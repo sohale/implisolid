@@ -366,13 +366,13 @@ def process3_subdivide_example(fi, verts, facets, iobj):
 
     mini_verts = np.concatenate( (triangle, new_verts), axis=0)
 
-    f012 = range(0, 3)  # facets[fi, :]
-    f345 = range(3, 6)
-    f012345 = np.array(f012 + f345)
-    #print f012, f345
+    v012 = range(0, 3)  # facets[fi, :]
+    v345 = range(3, 6)
+    v012345 = np.array(v012 + v345)
+    #print v012, v345
     mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
-    #print f012345
-    mini_faces = f012345[np.array(mini_faces_l)]
+    #print v012345
+    mini_faces = v012345[np.array(mini_faces_l)]
     #print mini_faces
 
     return mini_verts, mini_faces
@@ -398,7 +398,7 @@ def fix_degenerate_Faces():
     pass
 
 
-def subdivide_facets(verts, facets, iobj):
+def facets_subdivision_curvatures(verts, facets, iobj):
     """ Deviation of Mesh from object gradients """
 
     #fi = 100  # triangle T
@@ -511,7 +511,7 @@ def subdivide_facets(verts, facets, iobj):
     return e_array, bad_facets_count
 
 def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
-    e_array, bad_facets_count = subdivide_facets(verts, facets, iobj)
+    e_array, bad_facets_count = facets_subdivision_curvatures(verts, facets, iobj)
 
     nfaces = facets.shape[0]
 
@@ -826,8 +826,159 @@ def weighted_resampling_demo():
         mayavi_wireframe=False, opacity=[1, 0.2, 0.7], separate=False, pointsizes=[0.2, 0.6])
 
 
+def subdivide_multiple_faces(faces, verts, subdivided_face_indices):
+
+    # todo: avoid recomputing
+
+    mc = np.array([
+        [1, 0, 0, 1, 0, 1],  # 035
+        [0, 1, 0, 1, 1, 0],  # 314
+        [0, 0, 1, 0, 1, 1],  # 542
+        [0, 0, 0, 1, 1, 1],  # 345
+        ]) / 3.
+
+    subdiv_vert_matrix = np.array([
+        [1.,   0.,  0.],  # 0
+        [0.,   1.,  0.],  # 1
+        [0.,   0.,  1.],  # 2
+
+        [0.5,  0.5,  0],  # 3
+        [0,  0.5,  0.5],  # 4
+        [0.5,  0,  0.5]   # 5
+        ])  # .transpose()
+
+    raise "not tested yet. re-read/write step by step"
+    #allocate space for them
+    new_verts = verts + 3*len(subdivided_face_indices) **
+    new_facets = facets + 3*len(subdivided_face_indices)  **
+
+    new_vertex_counter = verts.shape[0]  #???? # facets.shape[0]
+    for subdiv_i in range(len(subdivided_face_indices)):
+
+        fi = subdivided_face_indices[subdiv_i]
+        triangle = verts[facets[fi, :], :]  # numverts x 3
+        assert triangle.shape == (3, 3)
+        VVV = triangle  # (nv=3) x 3
+
+        # new verices
+        m0123 = np.dot( np.dot(mc, subdiv_vert_matrix), VVV)
+        assert m0123.shape == (4, 3)
+        subdiv_centroids = m0123
+
+        new_verts = m0123
+
+        #new_verts = m123
+        #subdivision = triangle
+
+        #mini_verts = np.concatenate( (triangle, new_verts), axis=0)
+
+        #*********
+        # indices of original points
+        v012 = facets[fi, :]  # range(0, 3)  #  
+        v345 = range(new_vertex_counter, new_vertex_counter+3)   #range(3, 6)
+
+        assert v345.shape[0] == 3
+        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345
+
+        new_vertex_counter += 3
+
+        # facet's vertex indices
+        v012345 = np.array(v012 + v345)
+
+        mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
+
+        mini_faces = v012345[np.array(mini_faces_l)]
+
+        new_facets[fi, :] = mini_faces[0, :]
+        new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
+        assert mini_faces.shape[0] == (1+3)
+        new_facet_counter += 3
+
+
+        #return mini_verts, mini_faces
+        #numsubdiv = 4
+
+        if fi % 100 == 0:
+            print fi, "\r", ;import sys; sys.stdout.flush()
+    
+    assert new_verts.shape[0] == new_vertex_counter
+    assert new_facets.shape[0] == new_facet_counter
+    return new_verts, new_facets
+
+def process4(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_COUNT):
+    # first part updates vertices only
+    # second part updates faces only
+
+
+    # from mesh_utils import mesh_invariant
+    # mesh_invariant(facets) #isit really needed?
+
+    #RESAMPLING_ITERATIONS_COUNT = 5  # 2
+    verts3_relaxed = verts.copy()
+    for i in range(RESAMPLING_ITERATIONS_COUNT):
+        verts3_relaxed, faces3, centroids = process2(verts3_relaxed, facets, iobj)
+        print("Process finished.");sys.stdout.flush()
+    # return verts3_relaxed
+
+    e_array, bad_facets_count = facets_subdivision_curvatures(verts, facets, iobj)
+
+    a = np.arange(nfaces)[ e_array > epsilon ]
+    faces3_subdivided = subdivide_multiple_faces(faces, a)
+    # return faces3_subdivided
+
+    return verts3_relaxed, faces3_subdivided
+
+
+
+def subdivision_actually_do():
+
+    from example_objects import blend_example2_discs
+
+
+    iobj = blend_example2_discs(8.)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+
+    curvature_epsilon = 1. / 2000  # most points
+
+
+
+    from example_objects import make_example_vectorized
+
+
+    iobj = make_example_vectorized("ell_example1")
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+
+    from stl_tests import make_mc_values_grid
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE) )
+    print("MC calculated.")
+    sys.stdout.flush()
+
+
+
+    from mesh_utils import mesh_invariant
+    mesh_invariant(facets)
+
+
+    verts3 = verts.copy()
+
+
+    faces3 = process4(verts, facets, iobj, curvature_epsilon)
+
+
+
+    print("Mayavi.");sys.stdout.flush()
+
+    display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
+       mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX))
+
+
 
 if __name__ == '__main__':
     # visualise_normals_test()   # visualise to check the gradients
     # subdivision_demo()  # just shows which ones subdivided
-    weighted_resampling_demo()
+    # weighted_resampling_demo()
+    
+    subdivision_actually_do()
