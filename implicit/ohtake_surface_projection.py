@@ -480,12 +480,18 @@ def display_simple_using_mayavi_(vf_list, pointcloud_list, minmax=(-1,1), mayavi
     if type(opacity) is list:
         opacities = opacity  # 1.0
     else:
-        opacities = [opacity, 0.2, 0.2, 0.2, 0.2]  # 1.0, 0.2 #0.1
+        opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
 
     i = 0
     for vf in vf_list:
         verts, faces = vf
         if verts is None:
+            continue
+        if verts.size == 0:
+            print("Warning: empty vertices")
+            continue
+        if faces.size == 0:
+            print("Warning: no faces")
             continue
         mlab.triangular_mesh([vert[0] for vert in verts],
                          [vert[1] for vert in verts],
@@ -532,7 +538,7 @@ def display_simple_using_mayavi_(vf_list, pointcloud_list, minmax=(-1,1), mayavi
     mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
     mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
 
-    mlab.show(),
+    mlab.show()
 
 
 def test_proj_ohtak1():

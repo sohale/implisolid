@@ -115,9 +115,18 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     if old:
         return np.swapaxes(vgrid, 0, 1)
     else:
-        print("no swap")
+        print ("*********************************************")
+        vgrid = np.swapaxes(vgrid, 1, 2)
+        vgrid = np.swapaxes(vgrid, 0, 1)
         return vgrid
+        #print("no swap")
+        #return vgrid
 
+def make_mc_values_grid_mayavi(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
+    rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
+    import mc_utils
+    vgrid = mc_utils.make_grid(iobj, rng, old=True)
+    return np.swapaxes(vgrid, 0, 1)
 
 def test3():
     exname = "screw3"

@@ -206,21 +206,46 @@ def process2(verts, facets, iobj):
     return new_verts, facets, centroids
 
 
-def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0):
+def visualise_gradients(mlab, pos, iobj):
+    lm = 1  # STEPSIZE
+    pos4 = np.concatenate((pos, np.ones((pos.shape[0],1))),axis=1)
+    pnormals = - iobj.implicitGradient(pos4)
+    pnormals = normalize_vector4_vectorized(pnormals) 
+    check_vector4_vectorized(pos4)
+    xyz = pos
+    uvw = pnormals
+    xx, yy, zz = xyz[:, 0], xyz[:, 1], xyz[:, 2]
+    uu, vv, ww = uvw[:, 0], uvw[:, 1], uvw[:, 2]
+    #ax.quiver
+    #ax.quiver(xx, yy, zz,   uu, vv, ww,  length=np.abs(lm), arrow_length_ratio=0.3, alpha=0.3, pivot="tail")
+    #arrow_length_ratio=   length=np.abs(lm)
+    #pivot: tail | middle | tip
+    #mlab.quiver3d(x_verts,y_verts,z_verts, UVW_normals[:,0],UVW_normals[:,1],UVW_normals[:,2],color=(0,0,0))
+    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0))
+
+
+def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
+        separate=True, gradients_at=None, gradients_from_iobj=None):
+    """Two separate panels"""
     from mayavi import mlab
 
+    if type(opacity) is list:
+        opacities = opacity  # 1.0
+    else:
+        opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
+
+
     for fi in range(len(vf_list)):
-        mlab.figure()
-        #opacity = 1.0
-        #for vf in vf_list:
+        if separate:
+            mlab.figure()
+
         vf = vf_list[fi]
         verts, faces = vf
-        #if verts is None:
-        #    continue
+
         mlab.triangular_mesh([vert[0] for vert in verts],
                          [vert[1] for vert in verts],
                          [vert[2] for vert in verts],faces,representation="surface" if not mayavi_wireframe else "wireframe",
-                         opacity=opacity, scale_factor = 100.0)
+                         opacity=opacities[fi], scale_factor = 100.0)
         #opacity = 0.2 #0.1
 
 
@@ -247,6 +272,25 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         mlab.text3d(RANGE_MIN,0,0, "-x", scale=0.3)
         mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
         mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
+
+
+    def add_random_interior_points(ax, iobj):
+        """ Adding random points """
+        n=10000
+        import basic_types
+        ampl = 2
+        x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
+        v = iobj.implicitFunction(x)
+        x_sel =  x[ v >= 0 , :]
+        if x_sel.size ==0:
+            print("No points")
+            return
+        ax.points3d(x_sel[:,0], x_sel[:,1], x_sel[:,2], color=(0,0,0), scale_factor=0.2)
+
+    if gradients_at is not None:
+        visualise_gradients(mlab, gradients_at, gradients_from_iobj)
+    if gradients_from_iobj is not None:
+        add_random_interior_points(mlab, gradients_from_iobj)
 
     mlab.show()
     return
@@ -360,6 +404,8 @@ def subdivide_facets(verts, facets, iobj):
 
         assert triangle.shape == (3, 3)
         VVV = triangle  # (nv=3) x 3
+        #print np.dot( mc, subdiv_vert_matrix)
+        #exit()
         m0123 = np.dot( mc, np.dot(subdiv_vert_matrix, VVV) )
         assert m0123.shape == (4, 3)
         subdiv_centroids = m0123
@@ -367,21 +413,31 @@ def subdivide_facets(verts, facets, iobj):
         numsubdiv = 4
 
         subdiv_centroids4 = np.concatenate( (subdiv_centroids, np.ones((numsubdiv, 1))), axis=1)
-        mm = iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
+        mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
         mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
         mm = mm.transpose()  # 3x4
-        e = facet_areas[fi] * np.sum(1 - np.dot(n, mm))   # sum(,x4)
+        e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+
+        #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
+
+
+        #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
         e_array[fi] = e
+        #set_trace()
+
 
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
     print str(nf) + "   "
-    print e_array
+    #print e_array
+    l = e_array.tolist()
+    l.sort()
+    print "e=", l[:10], " [...] ", l[-10:]
     return e_array
 
-def process3(verts, facets, iobj):  # , centroid_normals):
+def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
     e_array = subdivide_facets(verts, facets, iobj)
 
     nfaces = facets.shape[0]
@@ -396,14 +452,93 @@ def process3(verts, facets, iobj):  # , centroid_normals):
     #set_trace()
 
     #epsilon = 4. # 0.22
-    epsilon = 4.2
+    #epsilon = 4.2
+    #epsilon = 0.0001
+    #epsilon = 1. / 10.
+    #epsilon = 1. / 1.
 
-    a = np.arange(nfaces)[ e_array > epsilon ]
+    #a = np.arange(nfaces)[ e_array > epsilon ]
+    a = np.arange(nfaces)[ e_array < epsilon ]
     print "a:", a
     return a
+"""
+def _prepare_grid_old(rng):
+    assert rng.size < 200
+    if rng.size > 200:
+        raise PolygonizationError(("Grid too large ( >200 ): ", rng.size))
+
+    (xx, yy, zz) = np.meshgrid(rng, rng, rng)
+    #xyz = np.mgrid( rng, rng, rng )
+    #xyza = xyz.reshape((len(rng)**3, 3))
+    #xyza = np.concat( ( np.expand_dims( xyza, axis=3 ), ones(len(rng)**3,1)  ), axis=3 )
+    #assert xyza.shape == (len(rng), len(rng), len(rng), 4)
+
+    #X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j] #??
+
+    xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
+    assert xyza.shape[1:] == (4,)
+
+    if VERBOSE:
+        print(xyza.shape)
+        print("done alloc")
+        sys.stdout.flush()
+
+    return xyza
+def make_grid_m(iobj, rng):
+    if old:
+        xyza = _prepare_grid_old(rng)
+    else:
+        xyza = _prepare_grid(rng)
+    #slow_grid__dont_use()
+
+    vgrid_v = iobj.implicitFunction(xyza)
+    vgrid = np.reshape(vgrid_v, (len(rng), len(rng), len(rng)), order='C')
+
+    if np.sum(vgrid_v > 0) == 0:
+        raise PolygonizationError("The shape is empty. No interior points detected")
+    if VERBOSE:
+        print("interior points:", np.sum(vgrid_v > 0))
+    return vgrid
+"""
+def visualise_normals_test():
+    """ Visualised normals on a given example object"""
+    from example_objects import make_example_vectorized
+    #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
+    #exname = "blend_example2_discs" # 
+    #exname ="ell_example1" #
+    #exname = "first_csg"
+    #exname = "bowl_15_holes"
+    iobj = make_example_vectorized("blend_example2_discs")
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.1)
+
+    #from stl_tests import make_mc_values_grid_mayavi
+
+    from stl_tests import make_mc_values_grid
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE) )
+    print("MC calculated.")
+    sys.stdout.flush()
+
+    from mesh_utils import mesh_invariant
+    mesh_invariant(facets)
+
+    verts3 = verts.copy()
+
+    print("Mayavi."); sys.stdout.flush()
+
+    ##############################
+    vv = verts[:, [1, 0, 2]]
+    ##############################
 
 
-def vtk_mc_test():
+    print("Mayavi.");sys.stdout.flush()
+    display_simple_using_mayavi_2( [ (vv, facets), ], pointcloud_list=[],
+       mayavi_wireframe=False, opacity=[0.1, 1, 0.1], gradients_at=vv, separate=False, gradients_from_iobj=iobj)
+
+
+
+def ob2_test():
 
     #set_trace()
     #dicesize = 16.
@@ -415,13 +550,35 @@ def vtk_mc_test():
     #from example_objects import cyl4
     #iobj, (RANGE_MIN, RANGE_MAX, STEPSIZE) = \
     #    cyl4()
-    from example_objects import first_csg
-    iobj = \
-        first_csg(8.)
+    #STEPSIZE = 1.
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20, 20, 1)
+    #from example_objects import first_csg
+    #iobj = \
+    #    first_csg(8.)
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20, 20, 1)
 
-    STEPSIZE = 1.
+    from example_objects import blend_example2_discs
+    #iobj = blend_example1(); (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20/4., 20/4., 1/4.)
+
+    iobj = blend_example2_discs(8.)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+    #curvature_epsilon = 1. / 4.
+    curvature_epsilon = 10000 # 1. / 40.
+
+
+    from example_objects import make_example_vectorized
+    #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
+    #exname = "blend_example2_discs" # 
+    #exname ="ell_example1" #
+    #exname = "first_csg"
+    #exname = "bowl_15_holes"
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+    #iobj = make_example_vectorized("???")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.2)
+
+    iobj = make_example_vectorized("first_csg")
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -464,11 +621,15 @@ def vtk_mc_test():
         display_simple_using_mayavi_( [(mv*1.0, mf), (verts, facets), (miniverts*1.0, minifaces)], pointcloud_list=[],
             mayavi_wireframe=True, opacity=[1, 0.2, 1])
 
-    chosen = process3(verts, facets, iobj)
-    print("Mayavi.");sys.stdout.flush()
-    display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
-        mayavi_wireframe=True, opacity=[0.1, 1, 0.1])
+    chosen = process3(verts, facets, iobj, curvature_epsilon)
+    print("Mayavi.+");sys.stdout.flush()
+    #display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
+    #    mayavi_wireframe=False, opacity=[0.1, 1, 0.1])
+    display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
+       mayavi_wireframe=False, opacity=[0.1, 0.21, 0.1], gradients_at=None, separate=False, gradients_from_iobj=iobj)  
+       # gradients_at=verts3, gradients_from_iobj=iobj)
 
 
 if __name__ == '__main__':
-    vtk_mc_test()
+    ob2_test()
+    # visualise_normals_test()   # visualise to check the gradients

@@ -205,6 +205,8 @@ def vtk_mc(gridvals, rrr):
         va[i, :] = p
         va[i, :] = va[i, :] * STEPSIZE + RANGE_MIN
 
+    #va = va[:, [0,1,2]]
+
     fcount = mesh_data.GetNumberOfCells()
     fa = np.zeros((fcount, 3), dtype=int)
     for i in range(fcount):
@@ -212,6 +214,8 @@ def vtk_mc(gridvals, rrr):
         (fa[i, 0], fa[i, 1], fa[i, 2]) = (c.GetPointId(0), c.GetPointId(1), c.GetPointId(2))
 
     # contour.Delete()
+
+    va = va[:, [1, 0, 2]]
 
     return va, fa
 
