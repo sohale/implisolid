@@ -225,9 +225,12 @@ def visualise_gradients(mlab, pos, iobj):
 
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
-        separate=True, gradients_at=None, gradients_from_iobj=None):
+        separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None):
     """Two separate panels"""
     from mayavi import mlab
+
+    if pointsizes is None:
+        pointsizes = [0.2]*10
 
     if type(opacity) is list:
         opacities = opacity  # 1.0
@@ -258,11 +261,15 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         #opacity = 0.2 #0.1
 
 
+        #allpoints are plottedon all panels?
         color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
         i = 0
         for c in pointcloud_list:
+            #if separate:
+            #    if i != fi:
+            #        continue
             #print c[:,0:3]
-            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=0.2)
+            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i] )
             i+=1
         del i
 
@@ -716,6 +723,111 @@ def subdivision_demo():
        # gradients_at=verts3, gradients_from_iobj=iobj)
 
 
+def weighted_resampling_demo():
+
+    #from example_objects import blend_example1, blend_example2_discs
+    #iobj = blend_example1(); (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20/4., 20/4., 1/4.)
+
+    #from example_objects import blend_example2_discs
+    #iobj = blend_example2_discs(8.)
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 2.)
+
+    from example_objects import first_csg
+    iobj = first_csg(8.)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20.*2, 30.*2, 2.)
+
+
+    if False:
+
+        #curvature_epsilon = 1. / 4.
+        #curvature_epsilon = 10000 # 1. / 40.
+        #curvature_epsilon = 1. / 100   # larger==> less points
+        #curvature_epsilon = 1. / 1000
+        curvature_epsilon = 1. / 2000  # most points
+
+
+
+        from example_objects import make_example_vectorized
+        #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
+        #exname = "blend_example2_discs" #
+        #exname ="ell_example1" #
+        #exname = "first_csg"
+        #exname = "bowl_15_holes"
+        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+        #iobj = make_example_vectorized("???")
+        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.2)
+
+        #"rdice_vec"  too slow
+        # screw3: terrible outcome
+        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+        #iobj = make_example_vectorized("screw3")
+        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
+
+        #iobj = make_example_vectorized("rdice_vec")
+        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
+
+        iobj = make_example_vectorized("ell_example1")
+        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3*3, +5*3, 0.2)
+
+
+    from stl_tests import make_mc_values_grid
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE) )
+    print("MC calculated.")
+    sys.stdout.flush()
+
+
+    #pre-view
+    #display_simple_using_mayavi_( [ (verts, facets), ], pointcloud_list=[], mayavi_wireframe=False, opacity=[1, 0.2, 0.7])
+
+
+    #from stl_tests import make_mc_mesh_scikit
+    #verts2, faces2 = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
+
+    from mesh_utils import mesh_invariant
+    mesh_invariant(facets)
+
+    #display_simple_using_mayavi_vf1(verts2, faces2)
+    #display_simple_using_mayavi_vf1(verts, facets)
+
+    RESAMPLING_ITERATIONS_COUNT = 5  # 2
+    verts3_relaxed = verts.copy()
+    for i in range(RESAMPLING_ITERATIONS_COUNT):
+        verts3_relaxed, faces3, centroids = process2(verts3_relaxed, facets, iobj)
+        print("Process finished.");sys.stdout.flush()
+
+    print("Mayavi.");sys.stdout.flush()
+    #display_simple_using_mayavi_vf1(verts3_relaxed, faces3)
+    #display_simple_using_mayavi_( [(verts, facets)], pointcloud_list=[verts3_relaxed*1.0 , verts], opacity=0.4)
+    #display_simple_using_mayavi_( [(verts3_relaxed, facets)], pointcloud_list=[])
+
+    #two windows
+    #display_simple_using_mayavi_2( [(verts, facets), (verts3_relaxed, facets)], pointcloud_list=[verts3_relaxed, verts])
+
+    #display_simple_using_mayavi_( [(verts, facets), (miniverts*1.2, minifaces)], pointcloud_list=[])
+
+    #pluck triangle # 100
+    miniverts, minifaces = process3_subdivide_example(100, verts, facets, iobj)
+    # pluck triangle # 0
+    mv, mf = (verts[0:3, :], np.array([[0, 1, 2]]) )
+    print("Mayavi.");sys.stdout.flush()
+
+    #display_simple_using_mayavi_( [(mv,mf)], pointcloud_list=[])
+
+    #WIREFRAME
+    #display_simple_using_mayavi_( [(mv*1.0, mf), (verts, facets), (miniverts*1.0, minifaces)], pointcloud_list=[verts, verts3_relaxed],
+    #    mayavi_wireframe=True, opacity=[1, 0.2, 1])
+
+    #GOOD
+    #display_simple_using_mayavi_2( [(mv*1.0, mf), (verts, facets), (miniverts*1.0, minifaces)], pointcloud_list=[verts, verts3_relaxed],
+    #    mayavi_wireframe=False, opacity=[1, 0.2, 0.7], separate=False, pointsizes=[0.2, 0.6])
+    display_simple_using_mayavi_2( [(verts3_relaxed, facets),  (mv*1.0, mf),  (miniverts*1.0, minifaces)], pointcloud_list=[verts, verts3_relaxed],
+        mayavi_wireframe=False, opacity=[1, 0.2, 0.7], separate=False, pointsizes=[0.2, 0.6])
+
+
+
 if __name__ == '__main__':
-    subdivision_demo()
     # visualise_normals_test()   # visualise to check the gradients
+    # subdivision_demo()  # just shows which ones subdivided
+    weighted_resampling_demo()

@@ -292,7 +292,7 @@ def first_csg(scale):
     m1[3, 3] = 1
 
     m2 = np.eye(4) * 1. * scale
-    rcenter = np.array([0.5*scale, 0, 0]) * scale
+    rcenter = np.array([0.5, 0, 0]) * scale
     m2[0:3, 3] = rcenter[0:3]
     m2[3, 3] = 1
 
