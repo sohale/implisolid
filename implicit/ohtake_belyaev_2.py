@@ -1,4 +1,4 @@
-#from ipdb import set_trace
+from ipdb import set_trace
 
 from vtk_mc import vtk_mc
 #from stl_tests import display_simple_using_mayavi_vf1
@@ -257,21 +257,22 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             i+=1
         del i
 
-        (RANGE_MIN, RANGE_MAX) = minmax
-        x = np.linspace(RANGE_MIN,RANGE_MAX,2).reshape(2,1)
-        y = np.zeros((2,1))
-        z = np.zeros((2,1))
+        if minmax is not None:
+            (RANGE_MIN, RANGE_MAX) = minmax
+            x = np.linspace(RANGE_MIN,RANGE_MAX,2).reshape(2,1)
+            y = np.zeros((2,1))
+            z = np.zeros((2,1))
 
-        mlab.plot3d(x, y, z,line_width=3,name="x-axis")
-        mlab.plot3d(y, x, z,line_width=3,name="y-axis")
-        mlab.plot3d(z, y, x,line_width=3,name="z-axis")
+            mlab.plot3d(x, y, z,line_width=3,name="x-axis")
+            mlab.plot3d(y, x, z,line_width=3,name="y-axis")
+            mlab.plot3d(z, y, x,line_width=3,name="z-axis")
 
-        mlab.text3d(RANGE_MAX,0,0, "x", scale=0.3)
-        mlab.text3d(0,RANGE_MAX,0, "y", scale=0.3)
-        mlab.text3d(0,0,RANGE_MAX, "z", scale=0.3)
-        mlab.text3d(RANGE_MIN,0,0, "-x", scale=0.3)
-        mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
-        mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
+            mlab.text3d(RANGE_MAX,0,0, "x", scale=0.3)
+            mlab.text3d(0,RANGE_MAX,0, "y", scale=0.3)
+            mlab.text3d(0,0,RANGE_MAX, "z", scale=0.3)
+            mlab.text3d(RANGE_MIN,0,0, "-x", scale=0.3)
+            mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
+            mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
 
 
     def add_random_interior_points(ax, iobj):
@@ -297,6 +298,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
 
 
 def compute_triangle_areas(verts, faces, return_normals=False):
+    """ facet_normals: can contain NaN if the area is zero"""
     # see mesh1.py ::     def calculate_face_areas(self)
     DEGENERACY_THRESHOLD = 0.00001
     nfaces = faces.shape[0]
@@ -309,7 +311,7 @@ def compute_triangle_areas(verts, faces, return_normals=False):
         axis=1)
     facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
     degenerates_count = len(facet_areas[facet_areas < DEGENERACY_THRESHOLD])
-    facet_areas[facet_areas < DEGENERACY_THRESHOLD] = -1
+    facet_areas[facet_areas < DEGENERACY_THRESHOLD] = np.nan  # -1
     if degenerates_count > 0:
         print("degenerate triangles", degenerates_count)
     if not return_normals:
@@ -374,7 +376,40 @@ def subdivide_facets(verts, facets, iobj):
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
     assert facet_normals.shape == (nf, 3)
-    assert np.allclose(np.linalg.norm(facet_normals, axis=1), 1.0)
+    print "000000000s"
+
+    #print np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1) ))
+    print verts[facets[np.isnan(np.linalg.norm(facet_normals, axis=1)), :],:]
+    #print verts[faces[np.isnan(np.linalg.norm(facet_normals, axis=1)),:],:]
+
+    print verts[facets[np.isnan(np.linalg.norm(facet_normals, axis=1)), :],:]
+    print facet_areas[np.isnan(np.linalg.norm(facet_normals, axis=1))]
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
+
+    #some edges are repeated
+
+    #zero_normals = np.arange(facets.shape[0])[np.linalg.norm(facet_normals, axis=1) < 0.0000001]
+
+    #print verts[facets[zero_normals, :], :]
+
+
+    degenerate_faces = np.isnan(facet_areas)
+    assert np.all(np.isnan(facet_areas[degenerate_faces]))
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
+    assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
+    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
+    print len(degenerate_faces)
+
+
+    #print zero_normals
+    #print degenerate_faces
+    #assert np.allclose(zero_normals - degenerate_faces, 0)
+    #print facet_normals[zero_normals, :]
+
+    #print facet_normals[zero_normals, :]
+    #print "facet_areas", facet_areas[zero_normals] 
+    #assert np.allclose(np.linalg.norm(facet_normals, axis=1)[np.logical_not(zero_normals)], 1.0)
+
 
     mc = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -425,16 +460,18 @@ def subdivide_facets(verts, facets, iobj):
 
         #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
         e_array[fi] = e
-        #set_trace()
+        #if e<0:
+        #    set_trace()
 
 
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
     print str(nf) + "   "
     #print e_array
-    l = e_array.tolist()
+    l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
-    print "e=", l[:10], " [...] ", l[-10:]
+    #print "e=", l[:10], " [...] ", l[-10:]
+    print "e: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
     return e_array
 
 def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
@@ -446,7 +483,7 @@ def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
     #epsilon = 4  # 0.34  # 1/8
     l = e_array.tolist()
     l.sort()
-    print l[-10:]
+    print "e_array      ", l[:10], ".,.", l[-10:]
     assert len(l) == nfaces
     print "7/8 median=", l[int(nfaces*( 10./11. ))]
     #set_trace()
@@ -457,9 +494,10 @@ def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
     #epsilon = 1. / 10.
     #epsilon = 1. / 1.
 
-    #a = np.arange(nfaces)[ e_array > epsilon ]
-    a = np.arange(nfaces)[ e_array < epsilon ]
+    a = np.arange(nfaces)[ e_array > epsilon ]
+    #a = np.arange(nfaces)[ e_array < epsilon ]
     print "a:", a
+    print "count need subdivision", len(a)
     return a
 """
 def _prepare_grid_old(rng):
@@ -563,12 +601,16 @@ def ob2_test():
     iobj = blend_example2_discs(8.)
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
     #curvature_epsilon = 1. / 4.
-    curvature_epsilon = 10000 # 1. / 40.
+    #curvature_epsilon = 10000 # 1. / 40.
+    #curvature_epsilon = 1. / 100   # larger==> less points
+    #curvature_epsilon = 1. / 1000
+    curvature_epsilon = 1. / 2000  # most points
+
 
 
     from example_objects import make_example_vectorized
     #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
-    #exname = "blend_example2_discs" # 
+    #exname = "blend_example2_discs" #
     #exname ="ell_example1" #
     #exname = "first_csg"
     #exname = "bowl_15_holes"
@@ -626,7 +668,8 @@ def ob2_test():
     #display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
     #    mayavi_wireframe=False, opacity=[0.1, 1, 0.1])
     display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
-       mayavi_wireframe=False, opacity=[0.1, 0.21, 0.1], gradients_at=None, separate=False, gradients_from_iobj=iobj)  
+       mayavi_wireframe=False, opacity=[0.1, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=None) 
        # gradients_at=verts3, gradients_from_iobj=iobj)
 
 
