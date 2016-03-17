@@ -242,6 +242,15 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         vf = vf_list[fi]
         verts, faces = vf
 
+        if verts is None:
+            continue
+        if verts.size == 0:
+            print("Warning: empty vertices")
+            continue
+        if faces.size == 0:
+            print("Warning: no faces")
+            continue
+
         mlab.triangular_mesh([vert[0] for vert in verts],
                          [vert[1] for vert in verts],
                          [vert[2] for vert in verts],faces,representation="surface" if not mayavi_wireframe else "wireframe",
@@ -361,8 +370,26 @@ def process3_subdivide_example(fi, verts, facets, iobj):
 
     return mini_verts, mini_faces
 
+def degenerate_facets():
+    facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
 
-#def subdivide_facet():
+    nf = facets.shape[0]
+    degenerate_faces = np.isnan(facet_areas)
+    indices = np.arange(nf)[degenerate_faces]
+
+    assert facet_areas.shape == (nf,)
+    assert facet_normals.shape == (nf, 3)
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
+    assert np.all(np.isnan(facet_areas[degenerate_faces]))
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
+    assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
+    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
+
+    return indices
+
+def fix_degenerate_Faces():
+    pass
+
 
 def subdivide_facets(verts, facets, iobj):
     """ Deviation of Mesh from object gradients """
@@ -472,10 +499,12 @@ def subdivide_facets(verts, facets, iobj):
     l.sort()
     #print "e=", l[:10], " [...] ", l[-10:]
     print "e: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
-    return e_array
+    bad_facets_count = np.sum(degenerate_faces)
+    #assert bad_facets_count == 0
+    return e_array, bad_facets_count
 
 def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
-    e_array = subdivide_facets(verts, facets, iobj)
+    e_array, bad_facets_count = subdivide_facets(verts, facets, iobj)
 
     nfaces = facets.shape[0]
 
@@ -576,7 +605,7 @@ def visualise_normals_test():
 
 
 
-def ob2_test():
+def subdivision_demo():
 
     #set_trace()
     #dicesize = 16.
@@ -618,7 +647,17 @@ def ob2_test():
     #iobj = make_example_vectorized("???")
     #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.2)
 
-    iobj = make_example_vectorized("first_csg")
+    #"rdice_vec"  too slow
+    # screw3: terrible outcome
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+    #iobj = make_example_vectorized("screw3")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
+
+    #iobj = make_example_vectorized("rdice_vec")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
+
+    iobj = make_example_vectorized("ell_example1")
     (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
 
@@ -663,16 +702,20 @@ def ob2_test():
         display_simple_using_mayavi_( [(mv*1.0, mf), (verts, facets), (miniverts*1.0, minifaces)], pointcloud_list=[],
             mayavi_wireframe=True, opacity=[1, 0.2, 1])
 
+    #slow part
     chosen = process3(verts, facets, iobj, curvature_epsilon)
+    #bypass:
+    #chosen=np.array([0,1,2])
+
     print("Mayavi.+");sys.stdout.flush()
     #display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
     #    mayavi_wireframe=False, opacity=[0.1, 1, 0.1])
     display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
-       mayavi_wireframe=False, opacity=[0.1, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=None) 
+       mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX))
        # gradients_at=verts3, gradients_from_iobj=iobj)
 
 
 if __name__ == '__main__':
-    ob2_test()
+    subdivision_demo()
     # visualise_normals_test()   # visualise to check the gradients

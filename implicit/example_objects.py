@@ -236,11 +236,12 @@ def blend_example2(scale=1.):
     return (iobj, iobj_)
 
 
-def ell_example1():
-    m1 = np.eye(4) * 1.3
-    m1[1, 1] = 0.4
-    m1[1, 2] = 0.4
-    m1[0:3, 3] = [0, 1, 0]
+def ell_example1(scale):
+    # scale not tested
+    m1 = np.eye(4) * 1.3 * scale
+    m1[1, 1] = 0.4 * scale
+    m1[1, 2] = 0.4 * scale
+    m1[0:3, 3] = [0, 1*scale, 0]
     m1[3, 3] = 1
 
     #m2 = np.eye(4) * 2
@@ -250,6 +251,9 @@ def ell_example1():
 
     iobj = vectorized.Ellipsoid(m1)
     iobj_ = nonvec.Ellipsoid(m1)
+
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
     return (iobj, iobj_)
 
 
@@ -547,6 +551,7 @@ examples = {
     "screw1": 2,
     "screw3": 2,
     "udice_vec": 2,
+    "cyl4": 2,  # spiral cage
     }
 
 
