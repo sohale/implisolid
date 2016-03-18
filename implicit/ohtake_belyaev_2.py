@@ -254,9 +254,20 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             print("Warning: no faces")
             continue
 
+        assert verts.ndim == 2
+        assert faces.ndim == 2
+        assert verts.shape == (verts.shape[0], 3), str(verts.shape)
+        assert faces.shape == (faces.shape[0], 3), str(faces.shape)
+        if type(mayavi_wireframe) is list:
+            wire_frame1 = mayavi_wireframe[fi]
+            assert len(mayavi_wireframe) == len(vf_list)
+        else:
+            wire_frame1 = mayavi_wireframe
         mlab.triangular_mesh([vert[0] for vert in verts],
                          [vert[1] for vert in verts],
-                         [vert[2] for vert in verts],faces,representation="surface" if not mayavi_wireframe else "wireframe",
+                         [vert[2] for vert in verts],
+                         faces,
+                         representation="surface" if not wire_frame1 else "wireframe",
                          opacity=opacities[fi], scale_factor = 100.0)
         #opacity = 0.2 #0.1
 
@@ -398,7 +409,7 @@ def fix_degenerate_Faces():
     pass
 
 
-def facets_subdivision_curvatures(verts, facets, iobj):
+def compute_facets_subdivision_curvatures(verts, facets, iobj):
     """ Deviation of Mesh from object gradients """
 
     #fi = 100  # triangle T
@@ -445,7 +456,7 @@ def facets_subdivision_curvatures(verts, facets, iobj):
     #assert np.allclose(np.linalg.norm(facet_normals, axis=1)[np.logical_not(zero_normals)], 1.0)
 
 
-    mc = np.array([
+    centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
         [0, 1, 0, 1, 1, 0],  # 314
         [0, 0, 1, 0, 1, 1],  # 542
@@ -473,9 +484,9 @@ def facets_subdivision_curvatures(verts, facets, iobj):
 
         assert triangle.shape == (3, 3)
         VVV = triangle  # (nv=3) x 3
-        #print np.dot( mc, subdiv_vert_matrix)
+        #print np.dot( centroidmaker_matrix, subdiv_vert_matrix)
         #exit()
-        m0123 = np.dot( mc, np.dot(subdiv_vert_matrix, VVV) )
+        m0123 = np.dot( centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV) )
         assert m0123.shape == (4, 3)
         subdiv_centroids = m0123
         #print subdiv_centroids
@@ -511,7 +522,7 @@ def facets_subdivision_curvatures(verts, facets, iobj):
     return e_array, bad_facets_count
 
 def process3(verts, facets, iobj, epsilon):  # , centroid_normals):
-    e_array, bad_facets_count = facets_subdivision_curvatures(verts, facets, iobj)
+    e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
     nfaces = facets.shape[0]
 
@@ -612,7 +623,7 @@ def visualise_normals_test():
 
 
 
-def subdivision_demo():
+def single_subdivision_demo():
 
     #set_trace()
     #dicesize = 16.
@@ -710,14 +721,14 @@ def subdivision_demo():
             mayavi_wireframe=True, opacity=[1, 0.2, 1])
 
     #slow part
-    chosen = process3(verts, facets, iobj, curvature_epsilon)
+    chosen_faces = process3(verts, facets, iobj, curvature_epsilon)
     #bypass:
-    #chosen=np.array([0,1,2])
+    #chosen_faces=np.array([0,1,2])
 
     print("Mayavi.+");sys.stdout.flush()
-    #display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
+    #display_simple_using_mayavi_( [ (verts, facets), (verts, facets[chosen_faces, :]), ], pointcloud_list=[],
     #    mayavi_wireframe=False, opacity=[0.1, 1, 0.1])
-    display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
+    display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen_faces, :]), ], pointcloud_list=[],
        mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX))
        # gradients_at=verts3, gradients_from_iobj=iobj)
@@ -826,64 +837,94 @@ def weighted_resampling_demo():
         mayavi_wireframe=False, opacity=[1, 0.2, 0.7], separate=False, pointsizes=[0.2, 0.6])
 
 
-def subdivide_multiple_faces(faces, verts, subdivided_face_indices):
+def subdivide_multiple_faces(verts_old, facets_old, tobe_subdivided_face_indices):
 
     # todo: avoid recomputing
 
-    mc = np.array([
+    centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
         [0, 1, 0, 1, 1, 0],  # 314
         [0, 0, 1, 0, 1, 1],  # 542
         [0, 0, 0, 1, 1, 1],  # 345
         ]) / 3.
 
+    DIP = 0.05*0
     subdiv_vert_matrix = np.array([
         [1.,   0.,  0.],  # 0
         [0.,   1.,  0.],  # 1
         [0.,   0.,  1.],  # 2
 
-        [0.5,  0.5,  0],  # 3
-        [0,  0.5,  0.5],  # 4
-        [0.5,  0,  0.5]   # 5
+        [0.5/(1.+DIP),  0.5/(1.+DIP),  DIP/(1.+DIP)],  # 3
+        [DIP/(1.+DIP),  0.5/(1.+DIP),  0.5/(1.+DIP)],  # 4
+        [0.5/(1.+DIP),  DIP/(1.+DIP),  0.5/(1.+DIP)]   # 5
         ])  # .transpose()
 
-    raise "not tested yet. re-read/write step by step"
+    global trace_subdivided_faces
+    trace_subdivided_faces = []
+
+
+    #raise "not tested yet. re-read/write step by step"
     #allocate space for them
-    new_verts = verts + 3*len(subdivided_face_indices) **
-    new_facets = facets + 3*len(subdivided_face_indices)  **
 
-    new_vertex_counter = verts.shape[0]  #???? # facets.shape[0]
-    for subdiv_i in range(len(subdivided_face_indices)):
+    #new_verts = verts_old + 3*len(tobe_subdivided_face_indices)
+    #new_facets = facets_old + 3*len(tobe_subdivided_face_indices)
 
-        fi = subdivided_face_indices[subdiv_i]
-        triangle = verts[facets[fi, :], :]  # numverts x 3
-        assert triangle.shape == (3, 3)
-        VVV = triangle  # (nv=3) x 3
+    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
+    provisional_new_facets_count = 3*len(tobe_subdivided_face_indices)
+    nverts_old = verts_old.shape[0]
+    nfaces_old = facets_old.shape[0]
+    new_verts = np.zeros((nverts_old+provisional_new_verts_count, 3), dtype=float)
+    new_facets = np.zeros((nfaces_old+provisional_new_facets_count, 3), dtype=int)
+    #set_trace()
+    new_verts[:nverts_old, :] = verts_old
+    new_facets[:nfaces_old, :] = facets_old
+
+    #on number of added vertices:
+    #problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
+    #also later check for faces with repeated edges. (which can be another cause of null normals)
+
+    new_vertex_counter = nverts_old
+    new_facet_counter = nfaces_old
+    for subdiv_i in range(len(tobe_subdivided_face_indices)):
+
+        fi = tobe_subdivided_face_indices[subdiv_i]
+        oldtriangle = verts_old[facets_old[fi, :], :]  # numverts x 3
+        assert oldtriangle.shape == (3, 3)
+        VVV = oldtriangle  # (nv=3) x 3
 
         # new verices
-        m0123 = np.dot( np.dot(mc, subdiv_vert_matrix), VVV)
+        m0123 = np.dot(np.dot(centroidmaker_matrix, subdiv_vert_matrix), VVV)
         assert m0123.shape == (4, 3)
         subdiv_centroids = m0123
 
-        new_verts = m0123
+        vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
+        assert vxyz_0123.shape == (6, 3)
 
-        #new_verts = m123
-        #subdivision = triangle
+        #tobeadded_verts = m0123
 
-        #mini_verts = np.concatenate( (triangle, new_verts), axis=0)
+        #tobeadded_verts = m123
+        #subdivision = oldtriangle
+
+        #mini_verts = np.concatenate( (oldtriangle, tobeadded_verts), axis=0)
+
+        # adding new verts and facets
 
         #*********
         # indices of original points
-        v012 = facets[fi, :]  # range(0, 3)  #  
-        v345 = range(new_vertex_counter, new_vertex_counter+3)   #range(3, 6)
+        #v012 = facets_old[fi, :]  # range(0, 3)  #
+        #v345 = np.arange(new_vertex_counter, new_vertex_counter+3, dtype=int)   #range(3, 6)
+        v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
+        v345 = range(new_vertex_counter, new_vertex_counter+3)
 
-        assert v345.shape[0] == 3
-        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345
+        v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
+
+        assert len(v345) == 3
+        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
 
         new_vertex_counter += 3
 
         # facet's vertex indices
-        v012345 = np.array(v012 + v345)
+        v012345 = np.array(v012 + v345, dtype=int)
 
         mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
 
@@ -892,6 +933,10 @@ def subdivide_multiple_faces(faces, verts, subdivided_face_indices):
         new_facets[fi, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
         assert mini_faces.shape[0] == (1+3)
+        #trace_subdivided_faces += range(new_facet_counter, (new_facet_counter+3))
+        trace_subdivided_faces += range(new_facet_counter, (new_facet_counter+3)) + [fi]  # include the face which reuses the old face's index
+        # trace_subdivided_faces will contain indices of faces
+
         new_facet_counter += 3
 
 
@@ -900,12 +945,21 @@ def subdivide_multiple_faces(faces, verts, subdivided_face_indices):
 
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
-    
+
+    print new_verts.shape[0], new_vertex_counter
+
     assert new_verts.shape[0] == new_vertex_counter
     assert new_facets.shape[0] == new_facet_counter
+    print "v", provisional_new_verts_count+nverts_old, new_vertex_counter
+    print "f", provisional_new_facets_count+nfaces_old, new_facet_counter
+    assert provisional_new_verts_count+nverts_old == new_vertex_counter
+    assert provisional_new_facets_count+nfaces_old == new_facet_counter
+    assert np.max(np.array(trace_subdivided_faces)) < new_facet_counter
     return new_verts, new_facets
 
-def process4(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_COUNT):
+
+
+def process4_combine_both(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_COUNT):
     # first part updates vertices only
     # second part updates faces only
 
@@ -920,17 +974,26 @@ def process4(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_COUNT):
         print("Process finished.");sys.stdout.flush()
     # return verts3_relaxed
 
-    e_array, bad_facets_count = facets_subdivision_curvatures(verts, facets, iobj)
+    verts = verts3_relaxed
 
-    a = np.arange(nfaces)[ e_array > epsilon ]
-    faces3_subdivided = subdivide_multiple_faces(faces, a)
+    e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+
+    a = np.arange(facets.shape[0])[ e_array > epsilon ]
+    #faces3_subdivided = subdivide_multiple_faces(faces, a)
+    verts4_subdivided, faces3_subdivided = subdivide_multiple_faces(verts, facets, a)
+    global trace_subdivided_faces  # third, implicit output
+
+    print "v,f=", verts.shape[0], facets.shape[0], "---->  v=", verts4_subdivided.shape[0], ", f=", faces3_subdivided.shape[0]
+    print "max=", np.max(np.array(trace_subdivided_faces))
+
     # return faces3_subdivided
+    #return verts3_relaxed, faces3_subdivided, trace_subdivided_faces
+    return verts4_subdivided, faces3_subdivided, trace_subdivided_faces
 
-    return verts3_relaxed, faces3_subdivided
 
 
-
-def subdivision_actually_do():
+def multiple_subdivisions_demo():
+    #was: combination_actually_do
 
     from example_objects import blend_example2_discs
 
@@ -964,21 +1027,45 @@ def subdivision_actually_do():
     verts3 = verts.copy()
 
 
-    faces3 = process4(verts, facets, iobj, curvature_epsilon)
+    # 0 => no vertex reaxation
+    #faces3 =
+    #verts3_relaxed, faces3_subdivided, trace_subdivided_faces = \
+    new_verts3, new_faces3, trace_subdivided_faces = \
+        process4_combine_both(verts, facets, iobj, curvature_epsilon, 0)
 
+    print("Mayavi..");sys.stdout.flush()
 
+    #set_trace()
+    chosen_faces = np.array(trace_subdivided_faces)
+    assert chosen_faces.ndim == 1
+    print "chosen_faces", chosen_faces.shape
+    print np.max(chosen_faces.ravel())
+    print new_verts3.shape
+    #print "chosen_faces", chosen_faces
 
-    print("Mayavi.");sys.stdout.flush()
+    assert np.all(chosen_faces < new_faces3.shape[0])
 
-    display_simple_using_mayavi_2( [ (verts, facets), (verts, facets[chosen, :]), ], pointcloud_list=[],
-       mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+    print("*********")
+    print new_verts3.shape
+    print new_faces3.shape
+    display_simple_using_mayavi_2( [ (new_verts3, new_faces3), (new_verts3, new_faces3[chosen_faces, :]), ], pointcloud_list=[],
+       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX))
+
+    #display_simple_using_mayavi_2( [ (verts, facets), (new_verts3, new_faces3[chosen_faces, :]), ], pointcloud_list=[],
+    #   mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   minmax=(RANGE_MIN,RANGE_MAX))
+
+    #display_simple_using_mayavi_2( [ (verts, facets), (new_verts3, new_faces3[chosen_faces, :]), ], pointcloud_list=[],
+    #   mayavi_wireframe=False, opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   minmax=(RANGE_MIN,RANGE_MAX))
 
 
 
 if __name__ == '__main__':
     # visualise_normals_test()   # visualise to check the gradients
-    # subdivision_demo()  # just shows which ones subdivided
+    # single_subdivision_demo()  # just shows which ones subdivided
     # weighted_resampling_demo()
-    
-    subdivision_actually_do()
+
+    multiple_subdivisions_demo()  # nice demo! keep it
+    #combination_actually_do() #
