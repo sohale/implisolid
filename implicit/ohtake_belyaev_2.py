@@ -206,14 +206,14 @@ def process2(verts, facets, iobj):
     return new_verts, facets, centroids
 
 
-def visualise_gradients(mlab, pos, iobj):
-    lm = 1  # STEPSIZE
+def visualise_gradients(mlab, pos, iobj, arrow_size):
+    lm = arrow_size  # 1.  # STEPSIZE
     pos4 = np.concatenate((pos, np.ones((pos.shape[0],1))),axis=1)
     pnormals = - iobj.implicitGradient(pos4)
-    pnormals = normalize_vector4_vectorized(pnormals) 
+    pnormals = normalize_vector4_vectorized(pnormals)
     check_vector4_vectorized(pos4)
     xyz = pos
-    uvw = pnormals
+    uvw = pnormals [:,0:3] / 2.
     xx, yy, zz = xyz[:, 0], xyz[:, 1], xyz[:, 2]
     uu, vv, ww = uvw[:, 0], uvw[:, 1], uvw[:, 2]
     #ax.quiver
@@ -221,7 +221,7 @@ def visualise_gradients(mlab, pos, iobj):
     #arrow_length_ratio=   length=np.abs(lm)
     #pivot: tail | middle | tip
     #mlab.quiver3d(x_verts,y_verts,z_verts, UVW_normals[:,0],UVW_normals[:,1],UVW_normals[:,2],color=(0,0,0))
-    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0))
+    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
@@ -306,7 +306,8 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
-        ampl = 2
+        ampl = avg_edge_len
+        #ampl = 2
         x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
         v = iobj.implicitFunction(x)
         x_sel =  x[ v >= 0 , :]
@@ -316,13 +317,27 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         ax.points3d(x_sel[:,0], x_sel[:,1], x_sel[:,2], color=(0,0,0), scale_factor=0.2)
 
     if gradients_at is not None:
-        visualise_gradients(mlab, gradients_at, gradients_from_iobj)
+        verts1, faces1 = vf_list[0]
+        avg_edge_len = compute_average_edge_length(verts, faces)
+        visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20.)
     if gradients_from_iobj is not None:
         add_random_interior_points(mlab, gradients_from_iobj)
 
     mlab.show()
     return
 
+def compute_average_edge_length(verts, faces):
+    nfaces = faces.shape[0]
+    expand = verts[faces, :]
+    assert expand.shape == (nfaces, 3, 3)
+    assert expand[:, 2, :].shape == (nfaces, 3)
+    ea_sum = 0.
+    for i in range(3):
+        i1 = i
+        i2 = (i+1) % 3
+        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :])
+        ea_sum += np.mean(e1)
+    return ea_sum / 3.
 
 def compute_triangle_areas(verts, faces, return_normals=False):
     """ facet_normals: can contain NaN if the area is zero"""
@@ -593,9 +608,19 @@ def visualise_normals_test():
     #exname ="ell_example1" #
     #exname = "first_csg"
     #exname = "bowl_15_holes"
+    #iobj = make_example_vectorized("blend_example2_discs")
+    ##(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.1)
+
     iobj = make_example_vectorized("blend_example2_discs")
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +4, 0.2)
+
+    #from example_objects import blend_example2_discs
+    #iobj = blend_example2_discs(8.)
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
-    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.1)
+
+
+
 
     #from stl_tests import make_mc_values_grid_mayavi
 
@@ -613,13 +638,14 @@ def visualise_normals_test():
     print("Mayavi."); sys.stdout.flush()
 
     ##############################
-    vv = verts[:, [1, 0, 2]]
+    #vv = verts[:, [1, 0, 2]]
     ##############################
+    vv = verts
 
 
     print("Mayavi.");sys.stdout.flush()
     display_simple_using_mayavi_2( [ (vv, facets), ], pointcloud_list=[],
-       mayavi_wireframe=False, opacity=[0.1, 1, 0.1], gradients_at=vv, separate=False, gradients_from_iobj=iobj)
+       mayavi_wireframe=False, opacity=[0.1, 1, 0.1], gradients_at=vv, separate=False, gradients_from_iobj=iobj, pointsizes=0.01)
 
 
 
@@ -1063,9 +1089,15 @@ def multiple_subdivisions_demo():
 
 
 if __name__ == '__main__':
-    # visualise_normals_test()   # visualise to check the gradients
-    # single_subdivision_demo()  # just shows which ones subdivided
-    # weighted_resampling_demo()
-
-    multiple_subdivisions_demo()  # nice demo! keep it
+    demo_choise = 4
+    if demo_choise == 1:
+        visualise_normals_test()   # visualise to check the gradients
+    elif demo_choise == 2:
+        single_subdivision_demo()  # just shows which ones subdivided
+    elif demo_choise == 3:
+        weighted_resampling_demo()
+    elif demo_choise == 4:
+        multiple_subdivisions_demo()  # nice demo! keep it
+    else:
+        print "Error"
     #combination_actually_do() #
