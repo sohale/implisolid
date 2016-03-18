@@ -1018,7 +1018,6 @@ def process4_combine_both(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_CO
 
 
 def multiple_subdivisions_demo():
-    #was: combination_actually_do
 
     from example_objects import blend_example2_discs
 
@@ -1087,13 +1086,38 @@ def multiple_subdivisions_demo():
     #   minmax=(RANGE_MIN,RANGE_MAX))
 
 
-def combination_actually_do():
+def apply_new_projection(verts, facets, iobj):
+    from ohtake_surface_projection import set_centers_on_surface__ohtake
+
+    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+
+    c3 = np.mean(verts[facets[:], :], axis=1)
+    # add extra points
+    #c3 = np.concatenate((c3, c3+STEPSIZE*0.1, c3+STEPSIZE*(-0.1)), axis=0)
+    #c3 = np.concatenate((c3,), axis=0)
+    centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
+
+    nones_map = centroids[:, 0]*0 > 100
+    new_centroids = centroids.copy()
+    set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+    #new_centroids is the output
+
+    return centroids, new_centroids
+
+    #display_simple_using_mayavi_2( [ (verts, facets), ], pointcloud_list=[ centroids, new_centroids],
+    #   mayavi_wireframe=[False], opacity=[0.2,], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   pointsizes=[0.02, 0.05]) # minmax=(RANGE_MIN,RANGE_MAX))
+
+
+def demo_combination_actually_do():
+    """ Now combination of vertex relaxation + subdivision only. Both are iterative. """
 
     #1. / 2000/50. # 43K
     #curvature_epsilon = 1. / 2000/2.  # most points
-    curvature_epsilon = 1. / 1000.
+    #curvature_epsilon = 1. / 1000.
+    curvature_epsilon = 1. / 2000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 1 # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 2  # 5+4
 
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized("ell_example1")  # "bowl_15_holes" works too
@@ -1107,6 +1131,9 @@ def combination_actually_do():
 
     old_verts, old_facets = verts, facets
 
+
+
+    #apply_new_projection(old_verts, old_facets, iobj); exit()
 
     #from mesh_utils import mesh_invariant
     #mesh_invariant(facets)
@@ -1139,20 +1166,117 @@ def combination_actually_do():
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
+        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            print("Vertex relaxation applied.");sys.stdout.flush()
+
+    #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
+    #display_simple_using_mayavi_2( [ (verts, facets), ], pointcloud_list=[ centroids, new_centroids],
+    #   mayavi_wireframe=[False], opacity=[0.2,], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   pointsizes=[0.02, 0.05]) # minmax=(RANGE_MIN,RANGE_MAX))
+    #exit()
+
     chosen_facet_indices = np.array(total_subdivided_facets)
+
+    #centroids2, new_centroids2 = centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
 
     if chosen_facet_indices.size == 0:
         chosen_subset_of_facets = np.zeros((0,), dtype=int)
     else:
         chosen_subset_of_facets = facets[chosen_facet_indices, :]
-    display_simple_using_mayavi_2( [ (old_verts, old_facets), (verts, chosen_subset_of_facets), ], pointcloud_list=[],
+    display_simple_using_mayavi_2( [ (old_verts, old_facets), (verts, chosen_subset_of_facets), ],
        mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX))
+       minmax=(RANGE_MIN,RANGE_MAX),
+       pointcloud_list=[], pointsizes=[]
+       )
+
+
+def demo_combination_actually_do_plus_centroid_projection():
+    """ Now combination of vertex relaxation + subdivision only. Both are iterative. """
+
+    # 1. / 2000/50. # 43K
+    # curvature_epsilon = 1. / 2000/2.  # most points
+    curvature_epsilon = 1. / 1000.
+    #curvature_epsilon = 1. / 2000.
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+    SUBDIVISION_ITERATIONS_COUNT = 2  # 5+4
+
+    from example_objects import make_example_vectorized
+    iobj = make_example_vectorized( "ell_example1")  #
+        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+    from stl_tests import make_mc_values_grid
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+    print("MC calculated.");sys.stdout.flush()
+
+    old_verts, old_facets = verts, facets
+
+
+
+    #apply_new_projection(old_verts, old_facets, iobj); exit()
+
+    #from mesh_utils import mesh_invariant
+    #mesh_invariant(facets)
+
+
+    #new_verts3, new_facets3, trace_subdivided_facets = \
+    #    process4_combine_both(verts, facets, iobj, curvature_epsilon, 0)
+
+    for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+        verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+        print("Vertex relaxation applied.");sys.stdout.flush()
+
+    total_subdivided_facets = []
+    for i in range(SUBDIVISION_ITERATIONS_COUNT):
+        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+
+        #print e_array
+
+        #ohtake_belyaev_2.py:1122: RuntimeWarning: invalid value encountered in greater
+        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+        #if np.any(np.isnan(e_array)):
+        #    print "funny NaN values around."
+        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+
+        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
+        global trace_subdivided_facets  # third implicit output
+        #chosen_facet_indices = np.array(trace_subdivided_facets)
+        verts, facets = verts4_subdivided, facets3_subdivided
+        print("Subdivision applied.");sys.stdout.flush()
+
+        total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
+
+        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            print("Vertex relaxation applied.");sys.stdout.flush()
+
+    centroids, new_centroids = apply_new_projection(verts, facets, iobj)
+    #display_simple_using_mayavi_2( [ (verts, facets), ], pointcloud_list=[ centroids, new_centroids],
+    #   mayavi_wireframe=[False], opacity=[0.2,], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   pointsizes=[0.02, 0.05]) # minmax=(RANGE_MIN,RANGE_MAX))
+    #exit()
+
+    chosen_facet_indices = np.array(total_subdivided_facets)
+
+    centroids2, new_centroids2 = centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
+
+    if chosen_facet_indices.size == 0:
+        chosen_subset_of_facets = np.zeros((0,), dtype=int)
+    else:
+        chosen_subset_of_facets = facets[chosen_facet_indices, :]
+    display_simple_using_mayavi_2( [ (old_verts, old_facets), (verts, chosen_subset_of_facets), ],
+       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.1], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX),
+       pointcloud_list=[ centroids2, new_centroids2], pointsizes=[0.01, 0.02]    # centroids
+       )
+
 
 
 
 if __name__ == '__main__':
-    demo_choise = 5
+    demo_choise = 6
     if demo_choise == 1:
         visualise_normals_test()   # visualise to check the gradients
     elif demo_choise == 2:
@@ -1162,6 +1286,8 @@ if __name__ == '__main__':
     elif demo_choise == 4:
         multiple_subdivisions_demo()  # nice demo! keep it
     elif demo_choise == 5:
-        combination_actually_do()
+        demo_combination_actually_do()  # subdivision (iterative) + vertex relaxation (0 times!)
+    elif demo_choise == 6:
+        demo_combination_actually_do_plus_centroid_projection()  # subdivision + projection
     else:
         print "Error"
