@@ -1273,10 +1273,197 @@ def demo_combination_actually_do_plus_centroid_projection():
        )
 
 
+def get_A_b(self, vertex_id, nlist_numpy, self_centroids, self_centroid_gradients):
+    #nlist = self.vertex_neighbours_list[vertex_id]
+    #nai = np.array(nlist)
+    nai = nlist_numpy
+    center_array = self_centroids[nai, :]
+
+    #note some centers may not be projected successfully in the previous step
+    not_projected_successfully = np.isnan(center_array[:].ravel())
+    if np.any(not_projected_successfully):
+        pass
+
+    normals = self_centroid_gradients[nai, :]  #why do we have repeats??
+    #note : not normalised. But it works.
+
+    norms = np.linalg.norm(normals, ord=2, axis=1)
+    #can be either 0, 1 or Nan
+    if np.any(norms < 0.000001):  #can be exactly 0.0
+        print("Error: bad normal", normals)
+
+    TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
+    #can be 0,0,0, inf, nonsharp, degenerate, ...
+    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
+    #simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
+    #todo:
+
+
+
+    #print(normals)
+    assert not np.any(np.isnan(normals) )
+    assert not np.any(np.isinf(normals) )
+
+    #normals = normalize_vector4_vectorized( normals ) #todo: move it to evaluate_centroid_gradients or self.centroid_normals
+
+    #print("normals", normals) # can be all 0,0,0
+
+    x0 = np.zeros((3, 1))
+
+    assert normals.shape[1] == 4
+    #normals = normals   # (4)x4
+    #grad = Ax+b
+    A = np.zeros((3, 3))
+    b = np.zeros((3, 1))
+    #assert len(center_array) == len(normals)
+    assert normals.shape == center_array.shape
+    for i in range(normals.shape[0]):
+        n_i = normals[i, 0:3, np.newaxis]
+        assert n_i.shape == (3, 1)
+        nnt = np.dot(n_i, np.transpose(n_i))
+        assert nnt.shape == (3, 3)
+        A += nnt
+        #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
+        p_i = center_array[i, 0:3, np.newaxis]
+        assert p_i.shape == (3, 1)
+        b += -np.dot(nnt, p_i - x0)
+
+        # IN PROGRESS
+    return A, b
+
+
+def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
+    assert not centroids is None
+    assert not vertex_neighbours_list is None
+    assert not centroid_gradients is None
+
+    nvert = verts.shape[0]
+    new_verts = np.zeros(verts.shape)
+    assert nvert == len(self.vertex_neighbours_list)
+
+    nlist = self.vertex_neighbours_list[vertex_id]
+    nai = np.array(nlist)
+    A, b = get_A_b(self, vi, nai, , self_centroids, self_centroid_gradients)
+
+
+
+def demo_combination_plus_qem():
+    """ Now with QEM """
+    curvature_epsilon = 1. / 1000.
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+    SUBDIVISION_ITERATIONS_COUNT = 0 #2  # 5+4
+
+    from example_objects import make_example_vectorized
+    iobj = make_example_vectorized(
+        "rdice_vec")  #
+        #"cube_example");
+        #"ell_example1")  #
+        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+    from stl_tests import make_mc_values_grid
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+    print("MC calculated.");sys.stdout.flush()
+
+    old_verts, old_facets = verts, facets
+
+    for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+        verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+        print("Vertex relaxation applied.");sys.stdout.flush()
+
+
+
+    #compute_facets_subdivision_curvatures
+    #subdivide_multiple_facets
+    #process2_vertex_resampling_relaxation
+    #apply_new_projection
+
+
+    total_subdivided_facets = []
+    for i in range(SUBDIVISION_ITERATIONS_COUNT):
+        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+
+        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+
+        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+
+        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
+        global trace_subdivided_facets  # third implicit output
+        verts, facets = verts4_subdivided, facets3_subdivided
+        print("Subdivision applied.");sys.stdout.flush()
+
+        total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
+
+        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            print("Vertex relaxation applied.");sys.stdout.flush()
+
+    centroids, new_centroids = apply_new_projection(verts, facets, iobj)
+
+    new_verts_qem0 = vertices_apply_qem3(verts, facets, centroids)
+
+    """
+    import mesh1
+    m = mesh1.Mesh_1(facets, verts)
+    m.build_centroids()
+    m.build_neighbours()
+
+    #m.faces = faces
+    #m.verts = verts
+    m.centroids = new_centroids
+    #m.vertex_neighbours_list = None
+    #m.centroid_gradients = None
+    #m.facet_areas = None
+
+    m.evaluate_centroid_gradients(iobj)
+    do_qem = True
+    if do_qem:
+        m.update_centroids_and_gradients(iobj)
+        m.update_centroids_and_gradients(iobj)
+        # if not qem_breakdown:
+        m.quadratic_optimise_vertices(1)
+        m.verts = m.new_verts
+        new_verts_qem0 = m.verts
+
+    alpha = 0.
+    new_verts_qem = (new_verts_qem0 * alpha + verts * (1-alpha))
+    """
+
+
+    chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
+
+    centroids2, new_centroids2 = centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
+
+    # move the following code into subdivide_multiple_facets() (?)
+    if chosen_facet_indices.size == 0:
+        chosen_subset_of_facets = np.zeros((0,), dtype=int)
+    else:
+        chosen_subset_of_facets = facets[chosen_facet_indices, :]
+
+
+    display_simple_using_mayavi_2( [(new_verts_qem, facets),(new_verts_qem0, facets),],    
+       pointcloud_list=[],   
+       mayavi_wireframe=[False,True], opacity=[1., 0.2, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
+       minmax=(RANGE_MIN,RANGE_MAX)  )
+
+    """
+    display_simple_using_mayavi_2( [(new_verts_qem, facets),],    
+       pointcloud_list=[],   
+       mayavi_wireframe=[False], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
+       minmax=(RANGE_MIN,RANGE_MAX)  )
+    """
+
+    #display_simple_using_mayavi_2( [    #(old_verts, old_facets), (verts, chosen_subset_of_facets), 
+    #    (new_verts_qem, facets)],
+    #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   minmax=(RANGE_MIN,RANGE_MAX)  ) #,
+    #   #pointcloud_list=[ centroids2, new_centroids2], pointsizes=[0.01, 0.02]    # centroids
+    #   #)
 
 
 if __name__ == '__main__':
-    demo_choise = 6
+    demo_choise = 7
     if demo_choise == 1:
         visualise_normals_test()   # visualise to check the gradients
     elif demo_choise == 2:
@@ -1289,5 +1476,7 @@ if __name__ == '__main__':
         demo_combination_actually_do()  # subdivision (iterative) + vertex relaxation (0 times!)
     elif demo_choise == 6:
         demo_combination_actually_do_plus_centroid_projection()  # subdivision + projection
+    elif demo_choise == 7:
+        demo_combination_plus_qem()  # subdivision + projection + qem
     else:
         print "Error"

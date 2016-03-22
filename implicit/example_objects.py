@@ -263,17 +263,17 @@ def sphere_example():
     return (iobj, iobj_)
 
 
-def cube_example():
+def cube_example(scale=1.):
     iobj = vectorized.UnitCube1()
     iobj_ = nonvec.UnitCube1()
 
     iobj = vectorized.Transformed(iobj) \
-        .move(-0.1, -0.1, -0.1) .resize(3) \
-        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2, 0, 0)
+        .move(-0.1*scale, -0.1*scale, -0.1*scale) .resize(3*scale) \
+        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2*scale, 0, 0)
 
     iobj_ = nonvec.Transformed(iobj_) \
-        .move(-0.1, -0.1, -0.1) .resize(3) \
-        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2, 0, 0)
+        .move(-0.1*scale, -0.1*scale, -0.1*scale) .resize(3*scale) \
+        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2*scale, 0, 0)
 
     return (iobj, iobj_)
 
