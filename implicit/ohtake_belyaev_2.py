@@ -1445,10 +1445,10 @@ def demo_combination_plus_qem():
 
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
-        "rcube_vec")  #
+        #"rcube_vec")  #
         # "rdice_vec")  #
         #"cube_example");
-        #"ell_example1")  #
+        "ell_example1")  #
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
@@ -1504,7 +1504,7 @@ def demo_combination_plus_qem():
     #new_centroids is the output
 
 
-    CHOICE = 1
+    CHOICE = 2
     if CHOICE == 1:
         #neighbour_faces_of_vertex
         vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
