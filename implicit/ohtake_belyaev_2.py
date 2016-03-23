@@ -142,6 +142,8 @@ def compute_centroids(verts, facets):
     return centroids
 
 
+
+#evaluate_centroid_gradients
 def compute_centroid_gradients(centroids, iobj, normalise=True):
     # see mesh1.py :: evaluate_centroid_gradients
     assert centroids is not None
@@ -1097,7 +1099,7 @@ def apply_new_projection(verts, facets, iobj):
     #c3 = np.concatenate((c3,), axis=0)
     centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
 
-    nones_map = centroids[:, 0]*0 > 100
+    nones_map = centroids[:, 0]*0 > 100  # all False
     new_centroids = centroids.copy()
     set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
     #new_centroids is the output
@@ -1273,18 +1275,18 @@ def demo_combination_actually_do_plus_centroid_projection():
        )
 
 
-def get_A_b(self, vertex_id, nlist_numpy, self_centroids, self_centroid_gradients):
+def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
     #nlist = self.vertex_neighbours_list[vertex_id]
     #nai = np.array(nlist)
     nai = nlist_numpy
-    center_array = self_centroids[nai, :]
+    center_array = centroids[nai, :]
 
     #note some centers may not be projected successfully in the previous step
     not_projected_successfully = np.isnan(center_array[:].ravel())
     if np.any(not_projected_successfully):
         pass
 
-    normals = self_centroid_gradients[nai, :]  #why do we have repeats??
+    normals = centroid_gradients[nai, :]  #why do we have repeats??
     #note : not normalised. But it works.
 
     norms = np.linalg.norm(normals, ord=2, axis=1)
@@ -1333,19 +1335,107 @@ def get_A_b(self, vertex_id, nlist_numpy, self_centroids, self_centroid_gradient
 
 
 def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
+    #based on quadratic_optimise_vertices(self, alpha=1.0)
     assert not centroids is None
     assert not vertex_neighbours_list is None
     assert not centroid_gradients is None
 
+    #alpha = 1.0
     nvert = verts.shape[0]
-    new_verts = np.zeros(verts.shape)
-    assert nvert == len(self.vertex_neighbours_list)
+    assert nvert == len(vertex_neighbours_list)
 
-    nlist = self.vertex_neighbours_list[vertex_id]
-    nai = np.array(nlist)
-    A, b = get_A_b(self, vi, nai, , self_centroids, self_centroid_gradients)
+    result_verts_ranks = np.zeros((nvert,), dtype=int)
+    assert verts.shape == (nvert, 3)
+    new_verts = np.zeros((nvert, 3))
+
+    for vertex_id in range(nvert):
+
+        vi = vertex_id
+        nlist = vertex_neighbours_list[vertex_id]
+        nai = np.array(nlist)
+        A, b = get_A_b(vi, nai, centroids, centroid_gradients)
+        #print A, b
+
+        ###
+        #A, b = self.get_A_b(vi)
+
+        u, s, v = np.linalg.svd(A)
+        assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
+        #print(s)  # [  1.48148148e+01   1.67928330e-15   1.01592270e-50]
+        assert s[0] == np.max(s)
+        #print( s / s[0] )  # [  1.00000000e+00   1.13351623e-16   6.85747820e-52]
+
+        tau = 10. ** 3.
+        s[s / s[0] < 1.0/tau] = 0
+        #print(s , s[0] , tau)
+        rank = np.sum(s / s[0] > 1.0/tau)
+        #if rank==1:
+        # Threshold_minimum_sigma
+        #      rank = np.sum(s / s[0] > Threshold_minimum_sigma)
+        # assert rank <= 1
+
+        #print(s)
+        #print("rank = ", rank)
+
+        #rank will never be 0: s[0]/s[0] is always 1, even when s[0] is too small.
+        #assert s[0] > 0.000001
+
+        if not  s[0] > 0.000001:
+            print("Warning! sigma_1 == 0" )
+            print(s)
+            print("A", A)
+
+            #not tested
+            result_verts_ranks[vi] = 0
+            new_verts[vi, 0:3] = new_x[:, 0]
+
+        assert np.all(s[:rank]/s[0] >= 1.0/tau)
+
+        x = verts[vi, 0:3, np.newaxis]
+        assert x.shape == (3, 1)
+
+        y = np.dot(v, x).copy()
+        utb = np.dot(-np.transpose(u), b)
+        #print("rank", rank, "1/tau=", 1./tau)
+        #print s
+        for i in range(rank):
+            #print(np.dot(-np.transpose(u), b), "scalar")
+            assert np.dot(-np.transpose(u), b).shape == (3,1)
+            #print s[i] , 1.0/tau
+            #assert s[i] >= 1.0/tau #fails when s[0] is small
+            assert s[i]/s[0] >= 1.0/tau
+            y[i] = utb[i] / s[i]
+        new_x = np.dot(np.transpose(v), y)
+        #print(x.ravel(), " -> ", new_x.ravel())
+        #print("    delta=", (new_x - x).ravel())
+
+        new_verts[vi, 0:3] = new_x[:, 0]
+        #self.new_verts[vi,3] = 1
+
+        assert x.shape == (3, 1)
+        # Apply alpha
+        #new_verts[vi, 0:3] = new_x[:, 0] * alpha + x[:, 0] * (1.0-alpha)
+        new_verts[vi, 0:3] = new_x[:, 0]
+
+        if not np.all(np.abs(utb.ravel()[rank:] ) < 0.0001):
+            #print("s", s.ravel()/s[0], "   utb", utb.ravel()/s[0])
+            pass
+        result_verts_ranks[vi] = rank
+
+        #exit()
+    print("max rank = ", np.max(result_verts_ranks))
+    print("min rank = ", np.min(result_verts_ranks))
+    if not np.min(result_verts_ranks) >= 1:
+        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed." )
+
+    if False:
+        assert np.min(result_verts_ranks) >= 1
+    return new_verts
 
 
+
+
+import mesh_utils
 
 def demo_combination_plus_qem():
     """ Now with QEM """
@@ -1355,7 +1445,8 @@ def demo_combination_plus_qem():
 
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
-        "rdice_vec")  #
+        "rcube_vec")  #
+        # "rdice_vec")  #
         #"cube_example");
         #"ell_example1")  #
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
@@ -1399,41 +1490,63 @@ def demo_combination_plus_qem():
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
             print("Vertex relaxation applied.");sys.stdout.flush()
 
-    centroids, new_centroids = apply_new_projection(verts, facets, iobj)
+    #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
+    from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    new_verts_qem0 = vertices_apply_qem3(verts, facets, centroids)
+    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
 
-    """
-    import mesh1
-    m = mesh1.Mesh_1(facets, verts)
-    m.build_centroids()
-    m.build_neighbours()
+    c3 = np.mean(verts[facets[:], :], axis=1)
+    old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
 
-    #m.faces = faces
-    #m.verts = verts
-    m.centroids = new_centroids
-    #m.vertex_neighbours_list = None
-    #m.centroid_gradients = None
-    #m.facet_areas = None
+    nones_map = old_centroids[:, 0]*0 > 100  # all False
+    new_centroids = old_centroids.copy()
+    set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+    #new_centroids is the output
 
-    m.evaluate_centroid_gradients(iobj)
-    do_qem = True
-    if do_qem:
-        m.update_centroids_and_gradients(iobj)
-        m.update_centroids_and_gradients(iobj)
-        # if not qem_breakdown:
-        m.quadratic_optimise_vertices(1)
-        m.verts = m.new_verts
-        new_verts_qem0 = m.verts
+
+    CHOICE = 1
+    if CHOICE == 1:
+        #neighbour_faces_of_vertex
+        vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
+        centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
+        #nv1  = 
+        new_verts_qem0 = \
+            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
+        #verts = nv1
+        #new_verts_qem0 = verts
+
+    elif CHOICE == 2:
+        import mesh1
+        m = mesh1.Mesh_1(facets, verts)
+        m.build_centroids()
+        m.build_neighbours()
+
+        #m.faces = faces
+        #m.verts = verts
+        m.centroids = new_centroids
+        #m.vertex_neighbours_list = None
+        #m.centroid_gradients = None
+        #m.facet_areas = None
+
+        m.evaluate_centroid_gradients(iobj)
+        do_qem = True
+        if do_qem:
+            #both not necessary here!
+            #m.update_centroids_and_gradients(iobj)
+            #m.update_centroids_and_gradients(iobj)
+            
+            # if not qem_breakdown:
+            m.quadratic_optimise_vertices(1)
+            m.verts = m.new_verts
+            new_verts_qem0 = m.verts
+    #
 
     alpha = 0.
     new_verts_qem = (new_verts_qem0 * alpha + verts * (1-alpha))
-    """
-
 
     chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
-    centroids2, new_centroids2 = centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
+    centroids2, new_centroids2 = old_centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
 
     # move the following code into subdivide_multiple_facets() (?)
     if chosen_facet_indices.size == 0:
@@ -1444,7 +1557,7 @@ def demo_combination_plus_qem():
 
     display_simple_using_mayavi_2( [(new_verts_qem, facets),(new_verts_qem0, facets),],    
        pointcloud_list=[],   
-       mayavi_wireframe=[False,True], opacity=[1., 0.2, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
+       mayavi_wireframe=[False,True], opacity=[0.8, 0.2, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
        minmax=(RANGE_MIN,RANGE_MAX)  )
 
     """

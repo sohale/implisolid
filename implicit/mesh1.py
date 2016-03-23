@@ -247,6 +247,7 @@ class Mesh_1(object):
         if False:
             assert np.min(self.verts_ranks) >= 1
 
+    # Some tests failed. so discontinued for now:
     def quadratic_optimise_vertices_new(self, alpha=1.0):
         assert False
         assert not self.centroids is None

@@ -204,6 +204,19 @@ def rdice_(ns=nonvec, scale=1., rotated=True):
         iobj.rotate(10*2, along=make_vector4(1, 1, 1), units="deg")
     return iobj
 
+def rcube_(ns=nonvec, scale=1., rotated=True):
+
+    d = ns.UnitCube1(size= 2.0*scale )
+
+    iobj = ns.Transformed(d)
+    iobj  \
+        .move(-0.2*scale, -0.2*scale, 0) \
+        .resize(0.9)
+    if rotated:
+        iobj.rotate(10*2, along=make_vector4(1, 1, 1), units="deg")
+    return iobj
+
+
 def rdice(scale):
     return rdice_(nonvec, scale)
 
@@ -213,6 +226,10 @@ def rdice_vec(scale):
 def udice_vec(scale=1.):
     """ Un-rotated dice """
     return rdice_(vectorized, scale, rotated=False)
+
+def rcube_vec(scale):
+    return rcube_(vectorized, scale)
+
 
 def blend_example2(scale=1.):
     #not tested for scale != 1.
@@ -548,6 +565,7 @@ examples = {
     "first_csg":  2,
     "french_fries_vectorized": 2,
     "rdice_vec": 2,
+    "rcube_vec": 2,
     "screw1": 2,
     "screw3": 2,
     "udice_vec": 2,
