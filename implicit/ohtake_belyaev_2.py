@@ -1452,6 +1452,25 @@ def demo_combination_plus_qem():
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
+    import vectorized, example_objects
+    c2 = vectorized.UnitCube1(1.)
+    def rotate_scale_(iobj, scale, center, angle=0.):
+        ns = vectorized
+        import numpy
+        m = numpy.eye(4)
+        m[0,0] = 0.1
+        iobj = ns.Transformed(iobj, m=m)
+        iobj  \
+            .resize(scale) \
+            .move(center[0], center[1], center[2])
+        if angle != 0.:
+            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+        return iobj
+
+    c2 = rotate_scale_(c2, 2., [1,1,1])
+    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+
+
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
@@ -1560,7 +1579,7 @@ def demo_combination_plus_qem():
 
     display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ],
-       mayavi_wireframe=[False,True], opacity=[0.4, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
 
     """
