@@ -1439,14 +1439,14 @@ import mesh_utils
 
 def demo_combination_plus_qem():
     """ Now with QEM """
-    curvature_epsilon = 1. / 1000.
+    curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 0 #2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec")  #
-        # "rdice_vec")  #
+        #"rdice_vec")  #
         #"cube_example");
         "ell_example1")  #
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
@@ -1504,16 +1504,16 @@ def demo_combination_plus_qem():
     #new_centroids is the output
 
 
-    CHOICE = 2
+    CHOICE = 1
     if CHOICE == 1:
         #neighbour_faces_of_vertex
         vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
-        #nv1  = 
-        new_verts_qem0 = \
+        #nv1  =
+        new_verts_qem = \
             vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
         #verts = nv1
-        #new_verts_qem0 = verts
+        #new_verts_qem = verts
 
     elif CHOICE == 2:
         import mesh1
@@ -1538,11 +1538,11 @@ def demo_combination_plus_qem():
             # if not qem_breakdown:
             m.quadratic_optimise_vertices(1)
             m.verts = m.new_verts
-            new_verts_qem0 = m.verts
+            new_verts_qem = m.verts
     #
 
     alpha = 0.
-    new_verts_qem = (new_verts_qem0 * alpha + verts * (1-alpha))
+    new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
     chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
@@ -1555,20 +1555,23 @@ def demo_combination_plus_qem():
         chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
 
-    display_simple_using_mayavi_2( [(new_verts_qem, facets),(new_verts_qem0, facets),],    
-       pointcloud_list=[],   
-       mayavi_wireframe=[False,True], opacity=[0.8, 0.2, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
+    highlighted_vertices = np.arange(100, 200)
+    hv = new_verts_qem[highlighted_vertices, :]
+
+    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+       pointcloud_list=[ hv ],
+       mayavi_wireframe=[False,True], opacity=[0.4, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
 
     """
-    display_simple_using_mayavi_2( [(new_verts_qem, facets),],    
+    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),],
        pointcloud_list=[],   
-       mayavi_wireframe=[False], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,       
+       mayavi_wireframe=[False], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
     """
 
-    #display_simple_using_mayavi_2( [    #(old_verts, old_facets), (verts, chosen_subset_of_facets), 
-    #    (new_verts_qem, facets)],
+    #display_simple_using_mayavi_2( [    #(old_verts, old_facets), (verts, chosen_subset_of_facets),
+    #    (new_verts_qem_alpha, facets)],
     #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #   minmax=(RANGE_MIN,RANGE_MAX)  ) #,
     #   #pointcloud_list=[ centroids2, new_centroids2], pointsizes=[0.01, 0.02]    # centroids
