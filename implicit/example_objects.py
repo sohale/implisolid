@@ -1,17 +1,17 @@
 import numpy as np
 
-#from primitives import UnitCube1
+# from primitives import UnitCube1
 
-#import ellipsoid
-#from crisp_csg import *
-#import transformed
+# import ellipsoid
+# from crisp_csg import *
+# import transformed
 
 from basic_types import make_vector4, normalize_vector
 
 import simple_blend
 
-#from . import vectorized
-#import simple_blend_nonvec
+# from . import vectorized
+# import simple_blend_nonvec
 
 
 import vectorized
@@ -32,44 +32,29 @@ def cube1():
     return c
 
 
-def dice(dice_scale, ns=nonvec):
-    dice_size = 2.0*dice_scale
+def dice(ns=nonvec):
+    dice_size = 2
     c = ns.UnitCube1(size=dice_size)
 
-    def hole_crisp(c, i, j, k):
+    def hole(c, i, j, k):
         m = np.eye(4)
-        dot_size = 0.25 * dice_scale
+        dot_size = 0.25
         m[0, 0] = dot_size
         m[1, 1] = dot_size
         m[2, 2] = dot_size
-        distance = (0.5-0.05)*dice_size
-        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
+        distance = (0.5 - 0.05) * dice_size
+        m[0:3, 3] = np.array([distance * i, distance * j, distance * k])
         s1 = ns.Ellipsoid(m)
         c = ns.CrispSubtract(c, s1)
         return c
 
-    def hole_r(c, i, j, k):
-        m = np.eye(4)
-        dot_size = 0.25 * dice_size
-        m[0, 0] = dot_size
-        m[1, 1] = dot_size
-        m[2, 2] = dot_size
-        distance = (0.5-0.05)*dice_size
-        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
-        s1 = ns.Ellipsoid(m)
-        c = ns.RSubtract(c, s1, 1.0)
-        return c
-
-    hole = hole_crisp
-    #hole = hole_r
-
     """ 1 """
     c = hole(c, 1, 0, 0)  # 1
-    #c = hole(c, 0, 1, 0)  # 2
+    # c = hole(c, 0, 1, 0)  # 2
     c = hole(c, 0, 0, 1)  # 3
-    #c = hole(c, -1, 0, 0)  # 4
+    # c = hole(c, -1, 0, 0)  # 4
     c = hole(c, 0, -1, 0)  # 5
-    #c = hole(c, 0, 0, -1)  # 6
+    # c = hole(c, 0, 0, -1)  # 6
 
     """ 2 """
     d = 0.3
@@ -77,7 +62,7 @@ def dice(dice_scale, ns=nonvec):
     c = hole(c, +d, 1, +d)
 
     """ 3 """
-    d = 0.6
+    d = 0.4
     c = hole(c, -d, -d, 1)
     c = hole(c, +d, +d, 1)
 
@@ -96,10 +81,10 @@ def dice(dice_scale, ns=nonvec):
     c = hole(c, +d, -1, +d)
 
     """ 6 """
-    d = 0.7
+    d = 0.6
     for i in range(3):
-        c = hole(c, d*(i-1), +d, -1)
-        c = hole(c, d*(i-1), -d, -1)
+        c = hole(c, d * (i - 1), +d, -1)
+        c = hole(c, d * (i - 1), -d, -1)
 
     return c
 
@@ -126,9 +111,9 @@ def csg_example1():
     m4[0:3, 3] = [1.5, 0, 0]
     m4[3, 3] = 1
 
-    #iobj = ellipsoid.Ellipsoid(m)
+    # iobj = ellipsoid.Ellipsoid(m)
 
-    iobj = nonvec.CrispSubtract(nonvec.CrispUnion(nonvec.Ellipsoid(m1), nonvec.Ellipsoid(m2)),  nonvec.Ellipsoid(m3))
+    iobj = nonvec.CrispSubtract(nonvec.CrispUnion(nonvec.Ellipsoid(m1), nonvec.Ellipsoid(m2)), nonvec.Ellipsoid(m3))
     return iobj
 
 
@@ -163,85 +148,83 @@ def bowl_hole():
             while unsat:
                 c = make_random_vector(big_radius, 1)[0:3]
                 unsat = c[2] > 0
-        #th0 = (i/15.0)*(3.1415926536*2)
-        #th = 5*th0
-        z0 = (i/15.0) * big_radius
-        #z0 = np.sqrt(1-(float(i)/15.0)**2) * big_radius
-        #print(z0)
-        #th = i * np.pi*2 * 5/ 4.45
-        #th =  (np.pi*2) * float(i) * 4.0 / 5.0
-        #th =  (np.pi*2) * float(i) * (1.0/5.0 * 1.0/2.0 * 1.0/5.0) * 5
+        # th0 = (i/15.0)*(3.1415926536*2)
+        # th = 5*th0
+        z0 = (i / 15.0) * big_radius
+        # z0 = np.sqrt(1-(float(i)/15.0)**2) * big_radius
+        # print(z0)
+        # th = i * np.pi*2 * 5/ 4.45
+        # th =  (np.pi*2) * float(i) * 4.0 / 5.0
+        # th =  (np.pi*2) * float(i) * (1.0/5.0 * 1.0/2.0 * 1.0/5.0) * 5
         NN = float(8)
-        #th =  (np.pi*2) * float(i) * (1.0/5.0 + 1.0/5.0 * 1.0/2.0 * 1.0/5.0)
-        th = (np.pi*2) * float(i) * (1.0/NN + 1.0/NN * 1.0/NN/2.0)
+        # th =  (np.pi*2) * float(i) * (1.0/5.0 + 1.0/5.0 * 1.0/2.0 * 1.0/5.0)
+        th = (np.pi * 2) * float(i) * (1.0 / NN + 1.0 / NN * 1.0 / NN / 2.0)
         c = make_vector4(np.cos(th) * big_radius, np.sin(th) * big_radius, -z0)
         c = normalize_vector(c) * big_radius
         c[3] = 1
 
-        #print( np.sqrt(np.dot(c,c)) )
+        # print( np.sqrt(np.dot(c,c)) )
         m_small[0:3, 3] = c[0:3]
         m_small[3, 3] = 1
         small_obj = nonvec.Ellipsoid(m_small)
         iobj = nonvec.CrispSubtract(iobj, small_obj)
-        #iobj = nonvec.CrispUnion( iobj, small_obj )
+        # iobj = nonvec.CrispUnion( iobj, small_obj )
 
     return iobj
 
 
-def rdice_(ns=nonvec, scale=1., rotated=True):
-    #m = np.eye(4)
-    #m[0:3, 3] = [0, 0, 0]
-    #m[2, 2] = 0.8
-    #m[1, 2] = -0.4
+def rdice_(ns=nonvec):
+    # m = np.eye(4)
+    # m[0:3, 3] = [0, 0, 0]
+    # m[2, 2] = 0.8
+    # m[1, 2] = -0.4
 
-    d = dice(scale, ns=ns)
-    #return d
+    d = dice(ns)
+    return d
     iobj = ns.Transformed(d)
     iobj  \
-        .move(-0.2*scale, -0.2*scale, 0) \
+        .move(-0.2, -0.2, 0) \
         .resize(0.9)
-    if rotated:
-        iobj.rotate(10*2, along=make_vector4(1, 1, 1), units="deg")
+    iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
     return iobj
+
 
 def rcube_(ns=nonvec, scale=1., rotated=True):
 
-    d = ns.UnitCube1(size= 2.0*scale )
+    d = ns.UnitCube1(size=2.0 * scale)
 
     iobj = ns.Transformed(d)
     iobj  \
-        .move(-0.2*scale, -0.2*scale, 0) \
+        .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
     if rotated:
-        iobj.rotate(10*2, along=make_vector4(1, 1, 1), units="deg")
+        iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
     return iobj
 
 
 def rdice(scale):
     return rdice_(nonvec, scale)
 
+
 def rdice_vec(scale):
     return rdice_(vectorized, scale)
 
-def udice_vec(scale=1.):
-    """ Un-rotated dice """
-    return rdice_(vectorized, scale, rotated=False)
 
 def rcube_vec(scale):
     return rcube_(vectorized, scale)
 
 
 def blend_example2(scale=1.):
-    #not tested for scale != 1.
+    # not tested for scale != 1.
     m1 = np.eye(4) * 1.3 * scale
     m1[1, 1] = 0.4 * scale
     m1[1, 2] = 0.4 * scale
-    m1[0:3, 3] = [0, 1*scale, 0] 
+    m1[0:3, 3] = [0, 1 * scale, 0]
     m1[3, 3] = 1
 
     m2 = np.eye(4) * 2
-    m2[0:3, 3] = [2* scale, 0, 0]
-    m2[2, 2] = 0.4 * scale
+    m2[0:3, 3] = [2, 0, 0]
+    m2[2, 2] = 0.4
     m2[3, 3] = 1
 
     a, b = vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)
@@ -258,18 +241,18 @@ def ell_example1(scale):
     m1 = np.eye(4) * 1.3 * scale
     m1[1, 1] = 0.4 * scale
     m1[1, 2] = 0.4 * scale
-    m1[0:3, 3] = [0, 1*scale, 0]
+    m1[0:3, 3] = [0, 1 * scale, 0]
     m1[3, 3] = 1
 
-    #m2 = np.eye(4) * 2
-    #m2[0:3, 3] = [2, 0, 0]
-    #m2[2, 2] = 0.4
-    #m2[3, 3] = 1
+    # m2 = np.eye(4) * 2
+    # m2[0:3, 3] = [2, 0, 0]
+    # m2[2, 2] = 0.4
+    # m2[3, 3] = 1
 
     iobj = vectorized.Ellipsoid(m1)
     iobj_ = nonvec.Ellipsoid(m1)
 
-    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     return (iobj, iobj_)
 
@@ -285,26 +268,25 @@ def cube_example(scale=1.):
     iobj_ = nonvec.UnitCube1()
 
     iobj = vectorized.Transformed(iobj) \
-        .move(-0.1*scale, -0.1*scale, -0.1*scale) .resize(3*scale) \
-        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2*scale, 0, 0)
+        .move(-0.1 * scale, -0.1 * scale, -0.1 * scale) .resize(3 * scale) \
+        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
 
     iobj_ = nonvec.Transformed(iobj_) \
-        .move(-0.1*scale, -0.1*scale, -0.1*scale) .resize(3*scale) \
-        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2*scale, 0, 0)
+        .move(-0.1 * scale, -0.1 * scale, -0.1 * scale) .resize(3 * scale) \
+        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
 
     return (iobj, iobj_)
 
 
-
-# ############################################################################################
+#############################################################################################
 
 """ vectorized examples """
 
 
 def first_csg(scale):
     # scale not tested
-    m1 = np.eye(4) * 2*scale
-    m1[1, 1] = 0.4*scale
+    m1 = np.eye(4) * 2 * scale
+    m1[1, 1] = 0.4 * scale
     m1[0:3, 3] = [0, 0, 0]
     m1[3, 3] = 1
 
@@ -314,14 +296,14 @@ def first_csg(scale):
     m2[3, 3] = 1
 
     m3 = np.eye(4) * 1.2 * scale
-    m3[0:3, 3] = [1.5*scale, 0, 0]
+    m3[0:3, 3] = [1.5 * scale, 0, 0]
     m3[3, 3] = 1
 
-    #m4 = np.eye(4)
-    #m4[0:3,3] = [1.5,0,0]
-    #m4[3,3] = 1
+    # m4 = np.eye(4)
+    # m4[0:3,3] = [1.5,0,0]
+    # m4[3,3] = 1
 
-    iobj = vectorized.CrispSubtract( vectorized.CrispUnion( vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2) ),  vectorized.Ellipsoid(m3) )
+    iobj = vectorized.CrispSubtract(vectorized.CrispUnion(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)), vectorized.Ellipsoid(m3))
     return iobj
 
 
@@ -333,98 +315,97 @@ def bowl_15_holes(scale_ignored):
 
     """ Make a sphere """
     m_big = np.eye(4) * big_radius
-    m_big[0:3,3] = [0,0,0]
-    m_big[3,3] = 1
+    m_big[0:3, 3] = [0, 0, 0]
+    m_big[3, 3] = 1
     iobj = vectorized.Ellipsoid(m_big)
 
     """ Cut a sphere out pf it """
     m_big2 = np.eye(4) * big_radius2
-    m_big2[0:3,3] = [0,0,0]
-    m_big2[3,3] = 1
+    m_big2[0:3, 3] = [0, 0, 0]
+    m_big2[3, 3] = 1
 
-    iobj = vectorized.CrispSubtract( iobj, vectorized.Ellipsoid(m_big2) )
+    iobj = vectorized.CrispSubtract(iobj, vectorized.Ellipsoid(m_big2))
 
     """ Cut the top part"""
     m_big3 = np.eye(4) * 10
-    m_big3[0:3,3] = [0,0,10.2]
-    m_big3[3,3] = 1
-    iobj = vectorized.CrispSubtract( iobj, vectorized.Ellipsoid(m_big3) )
-
+    m_big3[0:3, 3] = [0, 0, 10.2]
+    m_big3[3, 3] = 1
+    iobj = vectorized.CrispSubtract(iobj, vectorized.Ellipsoid(m_big3))
 
     """ Cut 15 small spheres from it """
-    for i in range(0,15):
+    for i in range(0, 15):
         m_small = np.eye(4) * small_radius
 
         if False:
             unsat = True
             while unsat:
-                c = make_random_vector( big_radius, 1)[0:3]
+                c = make_random_vector(big_radius, 1)[0:3]
                 unsat = c[2] > 0
-        #th0 = (i/15.0)*(3.1415926536*2)
-        #th = 5*th0
-        z0 = (i/15.0) * big_radius
-        #z0 = np.sqrt(1-(float(i)/15.0)**2) * big_radius
-        #print(z0)
-        #th = i * np.pi*2 * 5/ 4.45
-        #th =  (np.pi*2) * float(i) * 4.0 / 5.0
-        #th =  (np.pi*2) * float(i) * (1.0/5.0 * 1.0/2.0 * 1.0/5.0) * 5
+        # th0 = (i/15.0)*(3.1415926536*2)
+        # th = 5*th0
+        z0 = (i / 15.0) * big_radius
+        # z0 = np.sqrt(1-(float(i)/15.0)**2) * big_radius
+        # print(z0)
+        # th = i * np.pi*2 * 5/ 4.45
+        # th =  (np.pi*2) * float(i) * 4.0 / 5.0
+        # th =  (np.pi*2) * float(i) * (1.0/5.0 * 1.0/2.0 * 1.0/5.0) * 5
         NN = float(8)
-        #th =  (np.pi*2) * float(i) * (1.0/5.0 + 1.0/5.0 * 1.0/2.0 * 1.0/5.0)
-        th =  (np.pi*2) * float(i) * (1.0/NN + 1.0/NN * 1.0/NN/2.0)
+        # th =  (np.pi*2) * float(i) * (1.0/5.0 + 1.0/5.0 * 1.0/2.0 * 1.0/5.0)
+        th = (np.pi * 2) * float(i) * (1.0 / NN + 1.0 / NN * 1.0 / NN / 2.0)
         c = make_vector4(np.cos(th) * big_radius, np.sin(th) * big_radius, -z0)
         c = normalize_vector(c) * big_radius
         c[3] = 1
 
-        #print( np.sqrt(np.dot(c,c)) )
-        m_small[0:3,3] = c[0:3]
-        m_small[3,3] = 1
+        # print( np.sqrt(np.dot(c,c)) )
+        m_small[0:3, 3] = c[0:3]
+        m_small[3, 3] = 1
         small_obj = vectorized.Ellipsoid(m_small)
-        iobj = vectorized.CrispSubtract( iobj, small_obj )
-        #iobj = CrispUnion( iobj, small_obj )
+        iobj = vectorized.CrispSubtract(iobj, small_obj)
+        # iobj = CrispUnion( iobj, small_obj )
 
-
-    xa = vectorized.repeat_vect4( 10, make_vector4(1, 1, 1))
-    ga = iobj.implicitGradient( xa )
-    va = iobj.implicitFunction( xa )
-    #print(va)
-    #print(ga)
+    xa = vectorized.repeat_vect4(10, make_vector4(1, 1, 1))
+    ga = iobj.implicitGradient(xa)
+    va = iobj.implicitFunction(xa)
+    # print(va)
+    # print(ga)
     return iobj
+
 
 def blend_example1():
     m1 = np.eye(4) * 1
-    #m1[1,1] = 0.4
-    m1[0:3,3] = [0,1,0]
-    m1[3,3] = 1
+    # m1[1,1] = 0.4
+    m1[0:3, 3] = [0, 1, 0]
+    m1[3, 3] = 1
 
     m2 = np.eye(4) * 2
-    m2[0:3,3] = [2.5,0,0]
-    m2[3,3] = 1
+    m2[0:3, 3] = [2.5, 0, 0]
+    m2[3, 3] = 1
 
-    iobj = vectorized.SimpleBlend( vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2) )
+    iobj = vectorized.SimpleBlend(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2))
 
-    #print(iobj.a)
-    #print(iobj.b)
+    # print(iobj.a)
+    # print(iobj.b)
 
-    #iobj = Ellipsoid(m1)
+    # iobj = Ellipsoid(m1)
 
-    #iobj = CrispUnion( Ellipsoid(m1), Ellipsoid(m2) )
-
+    # iobj = CrispUnion( Ellipsoid(m1), Ellipsoid(m2) )
 
     return iobj
 
-def blend_example2_discs(scale):
-    m1 = np.eye(4) * 1.3 * scale
-    m1[1,1] = 0.4*scale
-    m1[1,2] = 0.4*scale
-    m1[0:3,3] = [0,1*scale,0]
-    m1[3,3] = 1
 
-    m2 = np.eye(4) * 2* scale
-    m2[0:3,3] = [2*scale,0,0]
-    m2[2,2] = 0.4*scale
-    m2[3,3] = 1
+def blend_example2_discs():
+    m1 = np.eye(4) * 1.3
+    m1[1, 1] = 0.4
+    m1[1, 2] = 0.4
+    m1[0:3, 3] = [0, 1, 0]
+    m1[3, 3] = 1
 
-    iobj = vectorized.SimpleBlend( vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2) )
+    m2 = np.eye(4) * 2
+    m2[0:3, 3] = [2, 0, 0]
+    m2[2, 2] = 0.4
+    m2[3, 3] = 1
+
+    iobj = vectorized.SimpleBlend(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2))
     assert vectorized.SimpleBlend == simple_blend.SimpleBlend
 
     return iobj
@@ -436,7 +417,7 @@ def french_fries():
         m2 = np.eye(4)
         m2[0, 0] = 0.1
         m2[1, 1] = 0.1
-        m2[0:3,3] = [+0.1/2.0*2, +0.1/2.0*2, +1.0/2.0*2]
+        m2[0:3, 3] = [+0.1 / 2.0 * 2, +0.1 / 2.0 * 2, +1.0 / 2.0 * 2]
         iobj = nonvec.Transformed(c, m2)
         iobj  \
             .move(-0.2, -0.2, 0) \
@@ -447,11 +428,11 @@ def french_fries():
 
     u = None
     for i in range(18):
-        c = rod().rotate(-30*i, along=make_vector4(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector4(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
-            u = nonvec.CrispUnion(u,c)
+            u = nonvec.CrispUnion(u, c)
     return u
 
 
@@ -461,24 +442,24 @@ def french_fries_vectorized(scale):
         m2 = np.eye(4) * scale
         m2[0, 0] = 0.1 * scale
         m2[1, 1] = 0.1 * scale
-        m2[0:3,3] = [+0.1/2.0*2*scale, +0.1/2.0*2*scale, +1.0/2.0*2*scale]
-        m2[3,3] = 1
+        m2[0:3, 3] = [+0.1 / 2.0 * 2 * scale, +0.1 / 2.0 * 2 * scale, + 1.0 / 2.0 * 2 * scale]
+        m2[3, 3] = 1
         iobj = vectorized.Transformed(c, m2)
-        ##.move(-0.1/2.0, -0.1/2.0, -1.0/2.0)
+        # .move(-0.1/2.0, -0.1/2.0, -1.0/2.0)
         iobj  \
-            .move(-0.2*scale, -0.2*scale, 0) \
+            .move(-0.2 * scale, -0.2 * scale, 0) \
             .resize(2) \
             .rotate(10, along=make_vector4(1, 1, 0), units="deg") \
-            .move(0.5*scale, 0, 0)
+            .move(0.5 * scale, 0, 0)
         return iobj
 
     u = None
     for i in range(18):
-        c = rod().rotate(-30*i, along=make_vector4(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector4(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
-            u = vectorized.CrispUnion(u,c)
+            u = vectorized.CrispUnion(u, c)
     return u
 
 
@@ -498,11 +479,11 @@ def rods():
 
     u = None
     for i in range(17):
-        c = rod().rotate(-30*i, along=make_vector4(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector4(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
-            u = nonvec.CrispUnion(u,c)
+            u = nonvec.CrispUnion(u, c)
     return u
 
 """
@@ -554,15 +535,15 @@ examples = {
     "rods": 1,
     "french_fries": 1,
 
-    "sphere_example":   3,
-    "ell_example1":     3,
-    "blend_example2":   3,
-    "cube_example":     3,
+    "sphere_example": 3,
+    "ell_example1": 3,
+    "blend_example2": 3,
+    "cube_example": 3,
 
-    "blend_example2_discs":  2,
-    "blend_example1":  2,
-    "bowl_15_holes":  2,
-    "first_csg":  2,
+    "blend_example2_discs": 2,
+    "blend_example1": 2,
+    "bowl_15_holes": 2,
+    "first_csg": 2,
     "french_fries_vectorized": 2,
     "rdice_vec": 2,
     "rcube_vec": 2,
@@ -570,49 +551,49 @@ examples = {
     "screw3": 2,
     "udice_vec": 2,
     "cyl4": 2,  # spiral cage
-    }
+}
 
 
 def make_example_nonvec(name):
-    #print("name: ", name)
+    # print("name: ", name)
     assert any(name == s for s in examples)
-    #res = globals()[name]()
-    #assert not type(res) is tuple
-    if examples[name]==1:
+    # res = globals()[name]()
+    # assert not type(res) is tuple
+    if examples[name] == 1:
         res = globals()[name]()
-    elif examples[name]==3:
+    elif examples[name] == 3:
         res = globals()[name]()
         res = res[0]
     else:
-        assert 0, "non-vector object not supported. "+str([examples[name]])
+        assert 0, "non-vector object not supported. " + str([examples[name]])
 
     return res
 
 
 def make_example_pair(name):
     assert any(name == s for s in examples)
-    #print(name, ": pair", examples[name])
+    # print(name, ": pair", examples[name])
     assert examples[name] in [3], "set examples{ ... %s: 2/3, } 2 or 3. It is currently %d" % (name, examples[name],)
     pair = globals()[name]()
     assert type(pair) is tuple
     assert len(pair) == 2
 
     from vectorized import ImplicitFunctionVectorized
-    assert issubclass(type(pair[0]), ImplicitFunctionVectorized), "NAME1: "%(name,)
+    assert issubclass(type(pair[0]), ImplicitFunctionVectorized), "NAME1: " % (name,)
     from nonvec import ImplicitFunctionPointwise
-    assert issubclass(type(pair[1]), ImplicitFunctionPointwise), "NAME2: "%(name,)
+    assert issubclass(type(pair[1]), ImplicitFunctionPointwise), "NAME2: " % (name,)
 
     return pair
 
 
-def make_example_vectorized(name, scale=1.0):
+def make_example_vectorized(name):
     assert any(name == s for s in examples)
-    #print(name, ": pair", examples[name])
+    # print(name, ": pair", examples[name])
     assert examples[name] in [2, 3], "Incorrect example type"
     if examples[name] == 2:
-        res = globals()[name](scale)
+        res = globals()[name]()
     elif examples[name] == 3:
-        res = globals()[name](scale)
+        res = globals()[name]()
         res = res[0]
     assert not type(res) is tuple
     return res
@@ -621,7 +602,7 @@ def make_example_vectorized(name, scale=1.0):
 def test_creation_of_all_Examples():
     for name in examples:
         res = globals()[name]()
-        #print("OK.")
+        # print("OK.")
 
 
 def get_all_examples(types_list):
@@ -631,15 +612,14 @@ def get_all_examples(types_list):
     for e in examples:
         if examples[e] in types_list:
             usable_examples += [e]
-            #print("e=", e)
+            # print("e=", e)
 
             if examples[e] in [1]:
                 iobj = make_example_nonvec(e)
-                #print("**********************")
+                # print("**********************")
                 x = make_vector4(0.5, 0.5, 0.5)
                 g = iobj.implicitGradient(x)
                 v = iobj.implicitFunction(x)
-
 
             if examples[e] in [2]:
                 iobj = make_example_vectorized(e)
@@ -651,18 +631,19 @@ def get_all_examples(types_list):
     assert i > 0
     return usable_examples
 
+
 def ex1():
-    #iobj = bowl_15_holes()
-    #iobj = first_csg()
-    #iobj = blend_example2_discs()
-    #iobj = example_objects.make_example_vectorized("blend_example2_discs")
+    # iobj = bowl_15_holes()
+    # iobj = first_csg()
+    # iobj = blend_example2_discs()
+    # iobj = example_objects.make_example_vectorized("blend_example2_discs")
     exlist = ["blend_example2_discs", "bowl_15_holes", "first_csg"]
 
     for i in range(len(exlist)):
         iobj = example_objects.make_example_vectorized(exlist[i])
 
     iobj = example_objects.make_example_vectorized(exlist[0])
-    #print(iobj)
+    # print(iobj)
 
     """Visualise using ascii:
     for i in range(10):
@@ -679,42 +660,45 @@ def ex1():
 
 import screw
 
+
 def screw1():
-    a = np.array([0,0,0])
-    w = np.array([0,0,1])
-    u = np.array([1,0,0])
+    a = np.array([0, 0, 0])
+    w = np.array([0, 0, 1])
+    u = np.array([1, 0, 0])
     r0 = 0.5
     delta = 0.2
-    twist_rate = 0.4*2
+    lambda_ = 0.4 * 2
     phi0 = 0
     screw_len = 2
-    return screw.Screw(a, w, u, screw_len, r0, delta, twist_rate, phi0)
+    return screw.Screw(a, w, u, screw_len, r0, delta, lambda_, phi0)
+
 
 def screw2():
-    #does not work
-    a = np.array([0,0,1])
-    w = np.array([0,0,1])
-    u = np.array([1,0,0])
+    # does not work
+    a = np.array([0, 0, 1])
+    w = np.array([0, 0, 1])
+    u = np.array([1, 0, 0])
     r0 = 0.5
     delta = 0.2
-    twist_rate = 0.4*2
+    lambda_ = 0.4 * 2
     phi0 = 0
     screw_len = 2
-    s = screw.Screw(a, w, u, screw_len, r0, delta, twist_rate, phi0)
-    #return vectorized.CrispSubtract(vectorized.UnitCube1(4), s)
+    s = screw.Screw(a, w, u, screw_len, r0, delta, lambda_, phi0)
+    # return vectorized.CrispSubtract(vectorized.UnitCube1(4), s)
     return s
 
+
 def screw3(SCALE=1.):
-    #not tested for SCALE != 1.
-    a = np.array([0,0,0]) #only works with [0,0,0]
-    w = np.array([0,0,-1])
-    u = np.array([1,0,0])
+    # not tested for SCALE != 1.
+    a = np.array([0, 0, 0])     # only works with [0,0,0]
+    w = np.array([0, 0, -1])
+    u = np.array([1, 0, 0])
 
     r0 = 0.5 * SCALE
     delta = 0.2 * SCALE
-    twist_rate = 0.4*2 / 2.0 * SCALE
+    twist_rate = 0.4 * 2 / 2.0 * SCALE
     screw_len = 2 * SCALE
-    return screw.Screw(a, w, u, screw_len, r0, delta, twist_rate) #, phi0) , phi0=0
+    return screw.Screw(a, w, u, screw_len, r0, delta, twist_rate)   # phi0) , phi0=0
 
 
 ##################################################
@@ -730,13 +714,13 @@ def cyl1():
     radius = 0.5 * SCALE
     c_len = 2 * SCALE
 
-    A = make_vector4(0, 0, -c_len/2.0)  # bug: aa is wrong
+    A = make_vector4(0, 0, -c_len / 2.0)  # bug: aa is wrong
     w = make_vector4(0, 1, 0)
-    w = w / np.linalg.norm(w[0:3]); w[3]=1
+    w = w / np.linalg.norm(w[0:3]); w[3] = 1
     u = make_vector4(1, 0, 0)
 
     c = SimpleCylinder(A, w, u, radius, radius, c_len)
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10/ 2.0)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
     return c, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
@@ -746,26 +730,26 @@ def rotation_matrix(angle, along, units="rad", around=None):
         if units == "rad":
             pass
         elif units == "deg":
-            angle = angle / 360.0 * np.pi*2.0
+            angle = angle / 360.0 * np.pi * 2.0
         else:
             raise UsageError()
 
         if around is None:
-            #center = 0
-            #t = np.eye(4)
+            # center = 0
+            # t = np.eye(4)
             pass
         else:
             check_vector4(around)
             center = around
-            #print "center=",center
+            # print "center=",center
             t = np.eye(4)
             t[:, 3] = center
             assert t[3, 3] == 1.
             tinv = np.eye(4)
             tinv[:, 3] = -center
-            tinv[3,3] = 1
-            #print "t", t
-            #print "tinv", tinv
+            tinv[3, 3] = 1
+            # print "t", t
+            # print "tinv", tinv
 
         check_vector4(along)
         rm = tf.rotation_matrix(angle, along[0:3])
@@ -774,45 +758,45 @@ def rotation_matrix(angle, along, units="rad", around=None):
             return rm
         else:
             return np.dot(np.dot(rm, tinv), t)
-        #return rm
-        #matrix = np.dot(rm , self.matrix)
-        #...
-        #return self
+        # return rm
+        # matrix = np.dot(rm , self.matrix)
+        # ...
+        # return self
 
 
 def cyl2():
     SCALE = 8.  # mm
 
     un = None
-    M = 5+1
+    M = 5 + 1
     for i in range(M):
         radius = 0.5 * SCALE
-        c_len = 2 * SCALE * 1./(i+1)
-        a_x = (i-(M-1.)/2.)*1*SCALE + -0.5*c_len
+        c_len = 2 * SCALE * 1. / (i + 1)
+        a_x = (i - (M - 1.) / 2.) * 1 * SCALE + -0.5 * c_len
 
         A = make_vector4(a_x, 0, 0)
         w = make_vector4(0, 1, 0)
         # m = np.eye(4)
 
-        center = A #+ make_vector4(0, 0, c_len/2.0)
+        center = A  # + make_vector4(0, 0, c_len/2.0)
         center[3] = 1
-        R = rotation_matrix(i*90./(M-1.), make_vector4(1, 0, 0), units="deg", around=center)
+        R = rotation_matrix(i * 90. / (M - 1.), make_vector4(1, 0, 0), units="deg", around=center)
 
-        #Rinf = R
-        #for i in range(15):
+        # Rinf = R
+        # for i in range(15):
         #    Rinf = np.dot(Rinf,Rinf)
-        #print "Rinf", Rinf
-        #print "w1", w, np.linalg.norm(w[:3])
-        #print R
+        # print "Rinf", Rinf
+        # print "w1", w, np.linalg.norm(w[:3])
+        # print R
         w = np.dot(R, np.transpose(w))
-        #print "w2", w, np.linalg.norm(w[:3])
-        #u = make_vector4(0, 0, 1)   #will not work well for 90deg
+        # print "w2", w, np.linalg.norm(w[:3])
+        # u = make_vector4(0, 0, 1)   #will not work well for 90deg
         u = make_vector4(1, 0, 0)
 
         def make_uv(w, u):
             w = w / np.linalg.norm(w[0:3]); w[3] = 1
             u = u / np.linalg.norm(u[0:3]); u[3] = 1
-            #print w, "u=",u
+            # print w, "u=",u
             assert np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001  # cannot be parallel
             v3 = np.cross(w[:3], u[:3])
             v3 = v3 / np.linalg.norm(v3[:3])
@@ -820,23 +804,23 @@ def cyl2():
             u3 = np.cross(v[:3], w[:3])
             u3 = u3 / np.linalg.norm(u3[:3])
             u = make_vector4(u3[0], u3[1], u3[2])
-            #print "dot", np.dot(w,u)
-            #return w, u
+            # print "dot", np.dot(w,u)
+            # return w, u
             return u
 
         u = make_uv(w, u)
 
         print np.linalg.norm(np.cross(w[:3], u[:3]))
-        print  np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001
+        print np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001
 
         def set4th1(v):
             assert v.shape == (4,)
             v[3] = 1
             return v
-        #c = SimpleCylinder(A, w, u, radius, radius, c_len)
-        newlen = c_len*5
-        c1 = SimpleCylinder(set4th1(A - 1.*newlen/2.*w), w, u, radius/5., radius/5., newlen)
-        delta, twist_rate = radius*0.2, 2
+        # c = SimpleCylinder(A, w, u, radius, radius, c_len)
+        newlen = c_len * 5
+        c1 = SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
+        delta, twist_rate = radius * 0.2, 2
         from vectorized import Screw
         c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 
@@ -846,7 +830,7 @@ def cyl2():
             un = c
         else:
             un = vectorized.CrispUnion(un, c)
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0*1.5/ 1.5)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
     return un, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
 
@@ -854,9 +838,9 @@ def cage_rods(rod_r, rod_len, cage_r, N):
     import math
     un = None
     for i in range(N):
-        th = i / float(N) * np.pi*2
-        x, y = cage_r*math.sin(th), cage_r*math.cos(th)
-        A = make_vector4(x, y, -rod_len/2.)
+        th = i / float(N) * np.pi * 2
+        x, y = cage_r * math.sin(th), cage_r * math.cos(th)
+        A = make_vector4(x, y, -rod_len / 2.)
         w = make_vector4(0, 0, 1)
         u = make_vector4(1, 0, 0)
         c = SimpleCylinder(A, w, u, rod_r, rod_r, rod_len)
@@ -874,7 +858,7 @@ def cyl3():
     cage_r = 10.
     rod_len = 10.
     N = 20
-    return cage_rods(rod_r, rod_len, cage_r, N), (-32/2, +32/2, 1.92 / 4.0)
+    return cage_rods(rod_r, rod_len, cage_r, N), (-32 / 2, +32 / 2, 1.92 / 4.0)
 
 
 def cyl4():
@@ -882,7 +866,7 @@ def cyl4():
     cage = cage_rods(rod_r=1, rod_len=20, cage_r=10, N=20)
     from twist_z import TwistZ
     t = TwistZ(cage, 0.02)  # cycles per mm
-    #0.06 is too much  0.02 is reasonable
+    # 0.06 is too much  0.02 is reasonable
     base_cyl = SimpleCylinder(
         make_vector4(0, 0, -10),  # A
         make_vector4(0, 0, -1),  # w
@@ -891,7 +875,7 @@ def cyl4():
         1.)
     ifunc = vectorized.CrispUnion(base_cyl, t)
 
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0)   #15 sec!  2.5 millions voxels
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32/2, +32/2, 1.92 / 4.0)  # 2.5 sec!
+    # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0)   #15 sec!  2.5 millions voxels
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
 
     return ifunc, (RANGE_MIN, RANGE_MAX, STEPSIZE)

@@ -4,6 +4,7 @@ from basic_types import check_vector4_vectorized, normalize_vector4_vectorized
 
 SUPPRESS_DEBUG_PRINT = True
 
+
 class Mesh_1(object):
     def __init__(self, faces, verts):
         self.faces = faces
@@ -16,11 +17,11 @@ class Mesh_1(object):
     def build_centroids(self):
         self.calculate_face_areas()
 
-        expand = self.verts[self.faces,:]
+        expand = self.verts[self.faces, :]
         nfaces = self.faces.shape[0]
         print(expand.shape)
         assert expand.shape == (nfaces, 3, 3)
-        centroids3 = np.mean( self.verts[self.faces[:],:], axis=1)
+        centroids3 = np.mean(self.verts[self.faces[:], :], axis=1)
         print(centroids3)
         if False:
             """ Check if there are repeats in the centroids """
@@ -29,81 +30,80 @@ class Mesh_1(object):
                 for j in range(centroids3.shape[0]):
                     if i == j:
                         continue
-                    dif = centroids3[i,:] - centroids3[j,:]
+                    dif = centroids3[i, :] - centroids3[j, :]
                     if np.max(np.abs(dif)) < 0.0001:
-                        #print("eq ", centroids3[i,:], centroids3[j,:], "faces: ", i,j)
-                        #print(self.verts[self.faces[i,:],:], self.verts[self.faces[i,:],:] )
+                        # print("eq ", centroids3[i,:], centroids3[j,:], "faces: ", i,j)
+                        # print(self.verts[self.faces[i,:],:], self.verts[self.faces[i,:],:] )
                         repeats += 1
             if repeats > 0:
                 print("repeats: ", repeats)
 
         n = self.faces.shape[0]
-        self.centroids = np.concatenate( (centroids3, np.ones((n,1))), axis=1)
-        #print(self.centroids.shape)
+        self.centroids = np.concatenate((centroids3, np.ones((n, 1))), axis=1)
+        # print(self.centroids.shape)
         self.centroid_gradients = None
 
     def evaluate_centroid_gradients(self, iobj):
-        assert not self.centroids is None
+        assert self.centroids is not None
         n = self.centroids.shape[0]
-        #centroids4 = np.concatenate( (self.centroids, np.ones((n,1))), axis=1)
+        # centroids4 = np.concatenate( (self.centroids, np.ones((n,1))), axis=1)
         centroids4 = self.centroids
         check_vector4_vectorized(centroids4)
-        self.centroid_gradients = iobj.implicitGradient( centroids4 )
+        self.centroid_gradients = iobj.implicitGradient(centroids4)
         assert not np.any( np.isnan(self.centroid_gradients) )
-        assert not np.any( np.isinf(self.centroid_gradients) )
+        assert not np.any(np.isinf(self.centroid_gradients))
         self.centroid_normals = normalize_vector4_vectorized(self.centroid_gradients)
-        #self.centroid_normals used only in (Laplacian) weighted resampling
+        # self.centroid_normals used only in (Laplacian) weighted resampling
 
     def calculate_face_areas(self):
         nfaces = self.faces.shape[0]
-        expand = self.verts[self.faces,:]
+        expand = self.verts[self.faces, :]
         assert expand.shape == (nfaces, 3, 3)
-        assert expand[:,2,:].shape == (nfaces, 3)
-        a = np.cross( expand[:,1,:] - expand[:,0,:], expand[:,2,:] - expand[:,0,:] , axis=1)
+        assert expand[:, 2, :].shape == (nfaces, 3)
+        a = np.cross(expand[:, 1, :] - expand[:, 0, :], expand[:, 2, :] - expand[:, 0, :], axis=1)
         self.facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
-        #print(list(-np.sort(-self.facet_areas)))
-        #print(self.facet_areas[self.facet_areas < 0.00001])
-        degenerates_count = len(self.facet_areas[self.facet_areas < 0.00001]) # 9
-        print(degenerates_count) 
+        # print(list(-np.sort(-self.facet_areas)))
+        # print(self.facet_areas[self.facet_areas < 0.00001])
+        degenerates_count = len(self.facet_areas[self.facet_areas < 0.00001])   # 9
+        print(degenerates_count)
 
     def build_neighbours(self):
         self.vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(self.faces)
 
-
-    #high level functions:
+    # high level functions:
     def correct_centroids(self):
-        #calls optimize_centroid
-        #todo
+        # calls optimize_centroid
+        # todo
         pass
 
     def get_A_b(self, vertex_id):
         nlist = self.vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
         center_array = self.centroids[nai, :]
-        #print(center_array)
-        #self.evaluate_centroid_gradients(iobj)
-        #print("nai", nai)
-        #print(self.centroid_gradients.shape)
+        # print(center_array)
+        # self.evaluate_centroid_gradients(iobj)
+        # print("nai", nai)
+        # print(self.centroid_gradients.shape)
 
-        #note some centers may not be projected successfully in the previous step
+        # note some centers may not be projected successfully in the previous step
         not_projected_successfully = np.isnan(center_array[0])
         if np.any(not_projected_successfully):
             pass
 
-        #todo:
-        #normals = self.centroid_normals[nai,:]
-        normals = self.centroid_gradients[nai,:]  #why do we have repeats??
-        #note : not normalised. But it works.
+        # todo:
+        # normals = self.centroid_normals[nai,:]
+        normals = self.centroid_gradients[nai, :]  # why do we have repeats??
+        # note : not normalised. But it works.
 
         norms = np.linalg.norm(normals, ord=2, axis=1)
-        #can be either 0, 1 or Nan
-        if np.any(norms < 0.000001):  #can be exactly 0.0
+        # can be either 0, 1 or Nan
+        if np.any(norms < 0.000001):    # can be exactly 0.0
             print("Error: bad normal", normals)
 
-        #can be 0,0,0, inf, nonsharp, degenerate, ...
-        degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < 0.0000001 )
-        #simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
-        #todo:
+        # can be 0,0,0, inf, nonsharp, degenerate, ...
+        degenerate_normals = np.logical_or(np.isnan(np.sum(normals, axis=1)), norms < 0.0000001)
+        # simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
+        # todo:
 
 
 
@@ -142,9 +142,9 @@ class Mesh_1(object):
         tolerance = 0.00001
         #todo: lambda = <edge length> / 2
         #lambda_ = 0.5
-        #self.centroids = 
+        #self.centroids =
         #mesh_utils.project_points2(iobj, self.centroids, tolerance = tolerance, lambda_=lambda_, maxdist=maxdist)
-        #xa = 
+        #xa =
         if method=="v0.1_inplace":
             xa = mesh_utils.optimize_points1_inplace_oldworking(iobj, self.centroids, tolerance = tolerance, lambda_=lambda_, maxdist=maxdist,
                 inplace=True)

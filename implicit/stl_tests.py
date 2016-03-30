@@ -55,8 +55,8 @@ def show_stl(stl_fn):
     # Show the plot to the screen
     pyplot.show()
 
-#load_stl('some_file.stl', 'new_stl_file.stl')
-#show_stl('tests/stl_binary/HalfDonut.stl')
+# load_stl('some_file.stl', 'new_stl_file.stl')
+# show_stl('tests/stl_binary/HalfDonut.stl')
 
 
 def plot_stlmesh(m):
@@ -68,7 +68,7 @@ def plot_stlmesh(m):
     axes = mplot3d.Axes3D(figure)
 
     # Render the cube faces
-    #for m in meshes:
+    # for m in meshes:
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(m.vectors))
 
     # Auto scale to the mesh size
@@ -77,22 +77,23 @@ def plot_stlmesh(m):
 
     pyplot.show()
 
-def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1,1), mayavi_wireframe=False):
+
+def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1, 1), mayavi_wireframe=False):
     from mayavi import mlab
     mlab.triangular_mesh([vert[0] for vert in verts],
-                     [vert[1] for vert in verts],
-                     [vert[2] for vert in verts],faces,representation="surface" if not mayavi_wireframe else "wireframe",opacity=1,scale_factor = 100.0)
+                         [vert[1] for vert in verts],
+                         [vert[2] for vert in verts], faces, representation="surface" if not mayavi_wireframe else "wireframe", opacity=1, scale_factor=100.0)
 
     (RANGE_MIN, RANGE_MAX) = minmax
-    x = np.linspace(RANGE_MIN,RANGE_MAX,2).reshape(2,1)
-    y = np.zeros((2,1))
-    z = np.zeros((2,1))
+    x = np.linspace(RANGE_MIN, RANGE_MAX, 2).reshape(2, 1)
+    y = np.zeros((2, 1))
+    z = np.zeros((2, 1))
 
-    mlab.plot3d(x,y,z,line_width=3,name="x-axis")
-    mlab.plot3d(y,x,z,line_width=3,name="y-axis")
-    mlab.plot3d(z,y,x,line_width=3,name="z-axis")
+    mlab.plot3d(x, y, z, line_width=3, name="x-axis")
+    mlab.plot3d(y, x, z, line_width=3, name="y-axis")
+    mlab.plot3d(z, y, x, line_width=3, name="z-axis")
 
-    mlab.show() #figure=fig,
+    mlab.show()     # figure=fig,
 
 
 def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
@@ -102,9 +103,9 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     vgrid = mc_utils.make_grid(iobj, rng, old=True)
     from skimage import measure
     verts, faces = measure.marching_cubes(vgrid, 0)
-    verts = ( (verts) * STEPSIZE + rng[0] )
+    verts = ((verts) * STEPSIZE + rng[0])
     print("OLD: swapping x,y")
-    verts = np.concatenate(( verts[:,1,np.newaxis], verts[:,0,np.newaxis],verts[:,2,np.newaxis] ) , axis=1)
+    verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
     return verts, faces
 
 
@@ -138,12 +139,10 @@ def test3():
     display_simple_using_mayavi_vf1(verts, faces)
 
 
-
-
-#test3()
+# test3()
 
 def m2stl_mesh(verts, faces):
-    from stl import mesh 
+    from stl import mesh
     fv = verts[faces, :]
     print fv.shape
 
@@ -155,8 +154,9 @@ def m2stl_mesh(verts, faces):
     m = mesh.Mesh(data)
     return m
 
+
 def test4():
-    #simply marching cubes
+    # simply marching cubes
     from stl import mesh
     import math
 
@@ -172,7 +172,7 @@ def test4():
 
     plot_stlmesh(m)
 
-    #display_simple_using_mayavi_vf1(verts, faces)
+    # display_simple_using_mayavi_vf1(verts, faces)
 
 
 def optimise_mesh(verts, faces, iobj):
@@ -200,7 +200,7 @@ def test5_screw():
     import example_objects
     iobj = example_objects.make_example_vectorized(exname, 8.0)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2.5*8, +2.5*8, 0.1*8)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2.5 * 8, +2.5 * 8, 0.1 * 8)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
     # verts = optimise_mesh(verts, faces, iobj)
@@ -224,7 +224,7 @@ def test6_blend():
     import example_objects
     iobj = example_objects.make_example_vectorized(exname, 8.0)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2.*8, +4.*8, 0.4*8/5)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2. * 8, +4. * 8, 0.4 * 8 / 5)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
     verts = optimise_mesh(verts, faces, iobj)
@@ -250,7 +250,7 @@ def test7_dice():
     """
     # -8.8, 7.2
     rescale = 1.
-    dicesize = rescale*8.
+    dicesize = rescale * 8.
     exname = "udice_vec"  # "blend_example2"
     import example_objects
     iobj = example_objects.make_example_vectorized(exname, dicesize)
@@ -259,7 +259,7 @@ def test7_dice():
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16., +32., 0.8)  #non-spiky
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-10, +9., 0.8)  # spikes at bottom!
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = \
-        (-11*rescale, +10.*rescale, 0.8*rescale)  # non-spiky!!
+        (-11 * rescale, +10. * rescale, 0.8 * rescale)  # non-spiky!!
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-8, +8., 0.8)  #
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
     from numerical_utils import average_edge_size
@@ -275,7 +275,7 @@ def test7_dice():
         m.save('stl/implicit7-dice.stl')  # wow
 
     display_simple_using_mayavi_vf1(verts, faces)
-    print(np.min(verts.ravel()), np.max(verts.ravel())) 
+    print(np.min(verts.ravel()), np.max(verts.ravel()))
 
     plot_stlmesh(m)
 
@@ -308,6 +308,7 @@ def test8_bigdice():
 
     plot_stlmesh(m)
 
+
 def test9_icesl1():
     """ Comparing with IceSL. """
     from stl import mesh
@@ -324,22 +325,21 @@ def test9_icesl1():
     #    print(m)
 
     sc = 1. / 4.
-    r1 = 2*25 * sc
+    r1 = 2 * 25 * sc
     m = np.eye(4) * r1
     m[3, 3] = 1
     print(m)
 
-    a = ns.Ellipsoid( m )
-    b = ns.UnitCube1( 2*40. * sc )
+    a = ns.Ellipsoid(m)
+    b = ns.UnitCube1(2 * 40. * sc)
     iobj = ns.CrispSubtract(b, a)
-    #iobj = ns.CrispUnion(b, a)
-    #iobj = ns.Transformed(d)
-
+    # iobj = ns.CrispUnion(b, a)
+    # iobj = ns.Transformed(d)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-90 * sc, +90. * sc, 4. * sc / 2.)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-    #verts = optimise_mesh(verts, faces, iobj)
+    # verts = optimise_mesh(verts, faces, iobj)
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:

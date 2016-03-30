@@ -26,9 +26,9 @@ from screw import *
 import screw
 __all__.extend(screw.__all__)
 
-from rvachev_csg import *
-import rvachev_csg
-__all__.extend(rvachev_csg.__all__)
+# from rvachev_csg import *
+# import rvachev_csg
+# __all__.extend(rvachev_csg.__all__)
 
 from cylinder_simple import *
 import cylinder_simple

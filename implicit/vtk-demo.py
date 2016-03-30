@@ -12,7 +12,7 @@ data_numpy = np.load('vgrid_array.npy')
 data_numpy_shape = data_numpy.shape
 data_numpy = data_numpy.ravel(order='C')
 b = data_numpy
-# initialize vtkImageData instance
+# initialize vtkImage.Data instance
 
 vtk_Data = vtkImageData()
 vtk_Data.SetExtent(0,26,0,26,0,26)
@@ -40,7 +40,9 @@ mcubes_mapper.SetInputConnection(mcubes.GetOutputPort())
 mcubes_actor = vtkActor()
 mcubes_actor.SetMapper(mcubes_mapper)
 mcubes_actor.GetProperty().SetOpacity(1)
-mcubes_actor.GetProperty().SetColor(tomato)
+mcubes_actor.GetProperty().SetColor((1,1,1))
+mcubes_actor.GetProperty.SetRepresentation('wireframe')
+
 renderer = vtkRenderer()
 camera = renderer.GetActiveCamera()
 camera.SetPosition(0,0,1000)

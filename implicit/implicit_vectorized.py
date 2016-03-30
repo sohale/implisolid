@@ -1,11 +1,20 @@
 import numpy as np
-
 #from implicit_config import TOLERANCE
+
 #from implicit_config import VERBOSE
 
 #from basic_types import make_inverse, check_matrix4, make_vector4
 from basic_types import check_vector4_vectorized, check_matrix3_vectorized
 from basic_types import make_vector4, check_vector4  # check_matrix4
+
+# @profile
+# def memoize(f):
+#     memo = {}
+#     def inner(*args):
+#         if str(args) not in memo:
+#             memo[str(args)] = f(*args)
+#         return memo[str(args)]
+#     return inner
 
 
 class ImplicitFunctionVectorized(object):
@@ -32,17 +41,17 @@ class SignedDistanceImplicitVectorized(object):
 
 
 class UnitSphere(ImplicitFunctionVectorized):
-
+    # @profile
     def implicitFunction(self, pv):
-        check_vector4_vectorized(pv)
+        # check_vector4_vectorized(pv)
         return 1.0 - np.sum(pv[:, :3] * pv[:, :3], axis=1)
-
+    # @profile
     def implicitGradient(self, pv):
         assert pv.ndim == 2
         assert pv.shape[1:] == (4,)
         grad = -2*pv
         grad[:, 3] = 1
-        check_vector4_vectorized(grad)
+        # check_vector4_vectorized(grad)
         return grad
 
     def hessianMatrix(self, vp):
@@ -85,6 +94,8 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         side(0, 0, -1)
 
     #todo: evaluate gradient and implicit function at the same time
+    # @memoize
+    # @profile
     def implicitFunction(self, p):
         check_vector4_vectorized(p)
 
@@ -96,7 +107,7 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
             n0 = self.n0[i]
             n0[3] = 0
             sub = p - np.tile(p0[np.newaxis, :], (n, 1))
-            assert np.allclose(sub[:, 3], 0)
+            # assert np.allclose(sub[:, 3], 0)
             vi = np.dot(sub, n0)
             temp[:, i] = vi
         #ia = np.argmin(temp, axis=1)
@@ -140,7 +151,8 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
 
         return v
         """
-
+    # @memoize
+    # @profile
     def implicitGradient(self, p):
         check_vector4_vectorized(p)
 
@@ -194,7 +206,8 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         check_vector4(grad)
         return grad
         """
-
+    # @memoize
+    # @profile
     def hessianMatrix(self, p):
         check_vector4(p)
         h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)

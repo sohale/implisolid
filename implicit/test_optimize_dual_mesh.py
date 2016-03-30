@@ -59,9 +59,14 @@ class MeshOptimizerTests(unittest.TestCase):
             func_evals[i] =  new_opt.function(vertices[i][:].reshape(1,4))
             print func_evals[i]
         self.assertEqual(np.linalg.norm(func_evals),0,"All the initial vertices should be on the implicit")
-
+    def test_normal_has_correct_dimensions(self):
+        new_opt = MeshOptimizer()
+        new_opt.load_example('bowl_15_holes')
+        point = np.array([1, 1, 1, 1])
+        self.assertEqual(new_opt.getNormalVectorAtPoint(point).shape,(3,3))
     def tearDown(self):
         pass
+
 
 if __name__== "__main__":
     unittest.main()

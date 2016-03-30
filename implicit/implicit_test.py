@@ -360,7 +360,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
 
             err = np.sum(np.abs(g1 - g2[np.newaxis,:]), axis=1)
             self.assertTrue(np.all(err < 0.000001))
-            
+
             self.check_two_vectors(g1, g2, NUMERICAL_GRADIENT_TOLERANCE, "gradient(vect versus nonvect) %s"%(objname,))
 
 

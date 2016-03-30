@@ -54,4 +54,3 @@ class Conic(Implicit2D):
     def curvature(self, x):
         check_vect2(x)
         raise NotImplementedError()
-
