@@ -312,6 +312,8 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
+        # ******
+        print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
         #ampl = 2
         x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
@@ -405,8 +407,8 @@ def check_degenerate_faces(verts, facets, fix_them):
     any_correction = False
     print ("e1,e2,e3")
     e1 = np.linalg.norm(verts[facets[:, 1],:] - verts[facets[:, 0],:], axis=1)
-    e2 = np.linalg.norm(verts[facets[:, 2],:] - verts[facets[:, 0],:], axis=1)
-    e3 = np.linalg.norm(verts[facets[:, 2],:] - verts[facets[:, 1],:], axis=1)
+    e2 = np.linalg.norm(verts[facets[:, 2],:] - verts[facets[:, 1],:], axis=1)
+    e3 = np.linalg.norm(verts[facets[:, 0],:] - verts[facets[:, 2],:], axis=1)
     print "e1e2e3"*10
 
     assert np.none(np.isnan(verts.ravel()))
@@ -415,9 +417,14 @@ def check_degenerate_faces(verts, facets, fix_them):
     #points with nan.  => error
     #
 
+    el = [e1, e2, e3]
+    for i in [0, 1, 2]:
+        assert np.any(el[i] < mesh_quality_settings["min_edge_len"])
+        assert not np.any(np.isnan(el[i]))
 
     print( e1[e1 < mesh_quality_settings["min_edge_len"] ])
     print( e1[np.isnan(e1)])
+    ***
 
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
     degenerate_faces = np.isnan(facet_areas)
@@ -699,7 +706,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 def apply_new_projection(verts, facets, iobj):
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+    average_edge = compute_average_edge_length(verts, facets)
 
     c3 = np.mean(verts[facets[:], :], axis=1)
     # add extra points
@@ -1124,7 +1131,8 @@ def demo_combination_plus_qem():
     #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+    ***
+    average_edge =  compute_average_edge_length(verts, facets)
 
     c3 = np.mean(verts[facets[:], :], axis=1)
     old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
@@ -1292,7 +1300,7 @@ def demo_everything():
     #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+    average_edge = compute_average_edge_length(verts, facets)
 
     verts, facets, any_mesh_correction = = check_degenerate_faces(verts, facets)
 

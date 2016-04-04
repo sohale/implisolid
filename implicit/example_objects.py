@@ -393,16 +393,16 @@ def blend_example1():
     return iobj
 
 
-def blend_example2_discs():
-    m1 = np.eye(4) * 1.3
-    m1[1, 1] = 0.4
-    m1[1, 2] = 0.4
-    m1[0:3, 3] = [0, 1, 0]
+def blend_example2_discs(scale):
+    m1 = np.eye(4) * 1.3 * scale
+    m1[1, 1] = 0.4 * scale
+    m1[1, 2] = 0.4 * scale
+    m1[0:3, 3] = [0, 1 * scale, 0]
     m1[3, 3] = 1
 
-    m2 = np.eye(4) * 2
-    m2[0:3, 3] = [2, 0, 0]
-    m2[2, 2] = 0.4
+    m2 = np.eye(4) * 2 * scale
+    m2[0:3, 3] = [2 * scale, 0, 0]
+    m2[2, 2] = 0.4 * scale
     m2[3, 3] = 1
 
     iobj = vectorized.SimpleBlend(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2))
@@ -586,14 +586,14 @@ def make_example_pair(name):
     return pair
 
 
-def make_example_vectorized(name):
+def make_example_vectorized(name, scale=1.0):
     assert any(name == s for s in examples)
     # print(name, ": pair", examples[name])
     assert examples[name] in [2, 3], "Incorrect example type"
     if examples[name] == 2:
-        res = globals()[name]()
+        res = globals()[name](scale)
     elif examples[name] == 3:
-        res = globals()[name]()
+        res = globals()[name](scale)
         res = res[0]
     assert not type(res) is tuple
     return res

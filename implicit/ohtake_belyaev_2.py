@@ -311,6 +311,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
+        print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
         #ampl = 2
         x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
@@ -1092,7 +1093,7 @@ def multiple_subdivisions_demo():
 def apply_new_projection(verts, facets, iobj):
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+    average_edge = compute_average_edge_length(verts, facets)
 
     c3 = np.mean(verts[facets[:], :], axis=1)
     # add extra points
@@ -1513,7 +1514,7 @@ def demo_combination_plus_qem():
     #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
-    average_edge = avg_edge_len = compute_average_edge_length(verts, facets)
+    average_edge = compute_average_edge_length(verts, facets)
 
     c3 = np.mean(verts[facets[:], :], axis=1)
     old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
@@ -1524,6 +1525,7 @@ def demo_combination_plus_qem():
     #new_centroids is the output
 
 
+    # The two CHOICEs are equaivalent. Two rewrite of the same method.
     CHOICE = 1
     if CHOICE == 1:
         #neighbour_faces_of_vertex
