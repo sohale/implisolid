@@ -208,7 +208,7 @@ class MeshOptimizer(object):
     @profile
     def optimize_centroid(self, centroid, ind):
         print "[Start] optimize_centroid ..."
-        # set_trace()
+        #  set_trace()
         print centroid
         centroid = centroid.reshape(1, 4)
 

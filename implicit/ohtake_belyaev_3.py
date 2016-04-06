@@ -70,7 +70,7 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
     c_ = c  # 2.0  # constant
     vertex_index = 1  # vertex
     #assert vertex_index >= 0
-    #assert vertex_index < 
+    #assert vertex_index <
     umbrella_facets = neighbour_faces_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_facets: ", umbrella_facets)
     #wa = np.zeros()
@@ -227,7 +227,7 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
-def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
+def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
 
@@ -499,7 +499,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     #print facet_normals[zero_normals, :]
 
     #print facet_normals[zero_normals, :]
-    #print "facet_areas", facet_areas[zero_normals] 
+    #print "facet_areas", facet_areas[zero_normals]
     #assert np.allclose(np.linalg.norm(facet_normals, axis=1)[np.logical_not(zero_normals)], 1.0)
 
 
@@ -543,7 +543,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         numsubdiv = 4
 
         subdiv_centroids4 = np.concatenate( (subdiv_centroids, np.ones((numsubdiv, 1))), axis=1)
-        #valids = 
+        #valids =
         if degenerate_faces[fi]:
             print "WARNING: degenerate triangle", fi, " = ",facets[fi,:]
         else:
@@ -1173,7 +1173,7 @@ def demo_combination_plus_qem():
             #both not necessary here!
             #m.update_centroids_and_gradients(iobj)
             #m.update_centroids_and_gradients(iobj)
-            
+
             # if not qem_breakdown:
             m.quadratic_optimise_vertices(1)
             m.verts = m.new_verts
@@ -1204,7 +1204,7 @@ def demo_combination_plus_qem():
 
     """
     display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),],
-       pointcloud_list=[],   
+       pointcloud_list=[],
        mayavi_wireframe=[False], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
     """

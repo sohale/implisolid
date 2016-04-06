@@ -246,7 +246,7 @@ def search_near__ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_
     Remeber: we may be on a totally irrelevant direction here.
     'direction' should be normalised. lambda*direction is used. Note that lambda is negated by default.
     Note: along_1d mode is in fact the same. It's just initialises direction=gradient(start_x).
-    Does both searchNearPoint1D and searchNearPoint() 
+    Does both searchNearPoint1D and searchNearPoint()
     :param direction: description
     @param np.array direction
     """
@@ -275,7 +275,7 @@ def search_near__ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_
     p2 = p1  # no need actually
 
     negative_f1 = -1 if f1 < 0. else +1
-    lambda_ = lambda_val*(-negative_f1)  # negation of input is bad practice
+    lambda_ = lambda_val * (-negative_f1)  # negation of input is bad practice
 
     exit_A = False
     while True:
@@ -542,7 +542,7 @@ def display_simple_using_mayavi_(vf_list, pointcloud_list, minmax=(-1,1), mayavi
 
 
 def test_proj_ohtak1():
-    """ Tests projection of centroids using Ohtake's original method. Projects point-wise. 
+    """ Tests projection of centroids using Ohtake's original method. Projects point-wise.
     Repeats points by applying a small perturbation.
     Blend disc object.
     Uses a high resolution MC for checking the new projected points (black dots).
@@ -618,7 +618,7 @@ def test_profiler():
     new_centroids = centroids.copy()
     set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
     new_centroids2 = new_centroids[np.logical_not(nones_map),:]
-    verts2, faces2 = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE * 0.2/1.0)   
+    verts2, faces2 = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE * 0.2/1.0)
 
 
 
