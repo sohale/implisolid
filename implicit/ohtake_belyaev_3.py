@@ -12,30 +12,52 @@ mesh_quality_settings = {
 class TroubledMesh(Exception):
     pass
 
-
-def check_faces(faces):
-    print("------ check_faces(faces)")
-    #return
-    print "faces"
-    #print faces
-
-    #faces = faces[:5+6:2, :]
-    #faces = np.random.randint(0,20, faces.shape)
-
+def check_face_triplets(faces):
     # unique faces
-    f = faces.copy()
-    f.sort(axis=1)
+    f3sides = faces.copy()
+    f3sides.sort(axis=1)
 
     B = 100000
     BBB = np.array([[1, B, B*B]]).transpose()  # 3x1
 
-    d = np.dot(f, BBB)
-    r = d.ravel()
-    del f
+    d = np.dot(f3sides, BBB)
+    face_triplet_ids = d.ravel()
+    del f3sides
 
-    r.sort()
+    face_order = face_triplet_ids.argsort()
+    face_triplet_ids.sort()
+    #print face_triplet_ids[np.diff(face_triplet_ids)==0]
     # Check there is no repeated faces (with exact same vertex list):
-    assert np.sum(np.diff(r)==0) == 0, "Repeated faces found"
+    diff0 = (np.diff(face_triplet_ids) == 0)
+    if np.sum(diff0) != 0:
+        print np.sum(diff0)  # 74
+        nonz = np.nonzero(diff0)[0]
+        #print nonz
+        # diff01: for print only: to print both sides (Elements) of each "diff==0"
+        diff01 = diff0.copy()
+        diff01[nonz+1] = True
+        #print face_triplet_ids[diff0]
+        #print face_triplet_ids[diff01]
+        #
+
+    nonz = np.nonzero(diff0)[0]
+    bad_faces = nonz
+    #but some repeated ones may remain
+    #howver the original idx (of redundant faces) are = face_order[nonz]
+    original_indices = face_order[bad_faces]
+
+    #print "***", original_indices
+    assert np.sum(diff0) == original_indices.size, "Number of redundant faces"
+    #assert np.sum(diff0) == 0, "Repeated faces found"
+    return original_indices
+
+
+def check_faces(faces):
+    print("------ check_faces(faces)")
+
+    redundant_faces = check_face_triplets(faces)
+    assert redundant_faces.size==0, "Repeated faces found"
+
 
     #unique edges
     f0 = faces[:, np.newaxis, 0:2]
@@ -54,11 +76,13 @@ def check_faces(faces):
     #fe3 = np.swapaxes(fe3, 0, 1)
     print fe3.shape
     #print fe3.shape
+    B = 100000
     BB = np.array([[1, B]]).transpose().ravel()  # 2x-
     edg = np.dot(fe3, BB)
     #print edg.shape  # fx3
     #print edg
 
+    #Sort edges to detect repeated edges. Each edge should appear exactly twice.
     q = edg.ravel()
     sort_idx = q.argsort()
     assert sort_idx.shape == (faces.shape[0]*3,)
@@ -199,20 +223,24 @@ def map_vertices_of_nil_faces(faces, nil_areas_whichfaces):
 
     face__projected_vertices = fmap_[faces]
 
-    v1 = face__projected_vertices[:, 1] == face__projected_vertices[:, 0]
-    v2 = face__projected_vertices[:, 2] == face__projected_vertices[:, 0]
-    v3 = np.logical_and(v1, v2)
-    print np.sum(v3), "faces with three (now) identical vertices"
+    v10 = face__projected_vertices[:, 1] == face__projected_vertices[:, 0]
+    v20 = face__projected_vertices[:, 2] == face__projected_vertices[:, 0]
+    v21 = face__projected_vertices[:, 1] == face__projected_vertices[:, 2]
+    v1020 = np.logical_and(v10, v20)
+    print np.sum(v1020), "faces with three (now) identical vertices"
     # Why is it 81 and 80 = number_of_faces_to_kill. (fixme)
-    #print faces[v3, :]
+    #print faces[v1020, :]
     #p0 = 131  # to what index is p0 projected?
     #print p0, "->",face_map10[0, :][face_map10[1, :]==p0]
     #exit()
 
+    faces_to_annihilate = np.logical_or(v10, v20, v21)  #129 ?!
+    print "faces_to_annihilate", np.sum(faces_to_annihilate)
+
     #return fmap_
     #return faces[fmap_]
     #return fmap_[faces]
-    return face__projected_vertices
+    return face__projected_vertices, faces_to_annihilate
 
 
 
@@ -239,7 +267,8 @@ def delete_unused_vertices(verts, faces):
     assert np.ndim(new_verts) == 2
 
     assert issubclass(faces.dtype.type, np.integer)
-    assert np.isreal(verts[0, 0])
+    assert new_verts.shape[0] > 0
+    assert np.isreal(new_verts[0, 0])
 
     return new_verts, new_faces
 
@@ -319,26 +348,62 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     return new_faces, new_verts
     """
 
+    #print new_faces[892, :], "892<<<<<<<<<<<<<<<<<<<<<<<"  # was [396 397 476]  -> now: 290,290,290
     #combine the vertices for removed faces, instead of removing the face altogether.
 
-    #faces = map_vertices_of_nil_faces(faces)[faces]
-    new_faces2 = map_vertices_of_nil_faces(new_faces, nil_areas_whichfaces)
+    #faces, faces_to_annihilate = map_vertices_of_nil_faces(faces)[faces]
+    new_faces2, faces_to_annihilate = map_vertices_of_nil_faces(new_faces, nil_areas_whichfaces)
     print new_faces2  #most of them are zero
     #exit()
 
+    #checking if the nil_areas_whichfaces matches the faces that are now projected
     eq1 = new_faces2[:, 0] == new_faces2[:, 1]
     eq2 = new_faces2[:, 0] == new_faces2[:, 2]
     eq12 = np.logical_and(eq1, eq2)
-    print eq12, " sum1=",np.sum(eq12) #1501 ?!!
-    print nil_areas_whichfaces, " sum2=", np.sum(nil_areas_whichfaces)
+    print eq12, " sum1=",np.sum(eq12)  # 81
+    print nil_areas_whichfaces, " sum2=", np.sum(nil_areas_whichfaces)  # 80
+    #81 and 80 consequently
     #print np.nonzero( nil_areas_whichfaces != eq12)
-    print new_faces2[eq12, :]
-    print new_faces2[nil_areas_whichfaces, :]
-    #exit()
 
-    new_faces = new_faces2
+    print "XOR", np.sum( eq12 != nil_areas_whichfaces)
+    xor_ = eq12 != nil_areas_whichfaces
+    #print new_faces2[xor_, :], np.nonzero(xor_)   # [290,290,290], 892
 
-    #check_faces(facets)
+    assert np.sum( np.logical_and(np.logical_not(eq12), nil_areas_whichfaces)) == 0, "assert nil_areas_whichfaces is-subset eq12"
+
+
+    #print new_faces2[eq12, :]
+    #print new_faces2[nil_areas_whichfaces, :] #nice
+    #81 and 80 consequently
+
+    #Now: faces with repeats in their vertices should be cut away.
+    #It is also the concern of: map_vertices_of_nil_faces
+    #new_faces = new_faces2
+    new_faces = new_faces2[ eq12 ]  # kill!
+
+
+    #Now there are repeated faces.
+
+    redundant_faces = check_face_triplets(new_faces)
+    #fails:
+    # assert redundant_faces.size==0, "Repeated faces found***"
+    #i1n = np.zeros( (new_faces.shape[0],), dtype=bool) + True
+    #i1n[redundant_faces] = False
+    #print new_faces
+    #print redundant_faces
+    new_faces = np.delete(new_faces, redundant_faces, axis=0)
+
+    #todo: D.R.Yself.
+    eq1 = new_faces[:, 0] == new_faces[:, 1]
+    eq2 = new_faces[:, 0] == new_faces[:, 2]
+    eq12 = np.logical_and(eq1, eq2)
+
+    new_faces = new_faces[np.logical_not(eq12), :]
+
+
+
+    check_faces(new_faces)
+    #passed!
 
     return new_verts, new_faces
 
