@@ -311,6 +311,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
+        # ******
         print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
         #ampl = 2
@@ -1525,7 +1526,7 @@ def demo_combination_plus_qem():
     #new_centroids is the output
 
 
-    # The two CHOICEs are equaivalent. Two rewrite of the same method.
+    # The two CHOICEs are equaivalent. Two rewrites of the same method.
     CHOICE = 1
     if CHOICE == 1:
         #neighbour_faces_of_vertex

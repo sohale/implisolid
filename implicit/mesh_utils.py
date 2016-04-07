@@ -34,13 +34,13 @@ def flip_face(faces, verts, face_idx):
 
 
 def make_edge_lookup_old(faces):
-    """ NOT USED. IN PROGRESS. This is a ** complicated algorithm, I wrote it using dynamical programming. """
+    """ """
     # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
     # faces_of_edges : index = edge number, value = face number1, face number2
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
     # eulookup[eu_paired_int] = edge number index
     #raise
-    print "Warning: not tested"
+    print "Warning: not tested enough"
 
     nfaces = faces.shape[0]
     assert nfaces % 2 == 0
@@ -95,6 +95,8 @@ def make_edge_lookup_old(faces):
                 # add a new edge
                 e_id = edge_counter
                 edges_of_faces[fi, vj] = e_id
+
+                #print faces_of_edges.shape, e_id, edge_counter, num_edges
                 faces_of_edges[e_id, 0] = fi
                 assert not vj == v2j
                 # assert vertpairs_of_edges[e_id] == eu_pair_int, "vertpairs_of_edges[e_id] == eu_pair_int:  vertpairs_of_edges[%d]=%d == %d"%(e_id, vertpairs_of_edges[e_id], eu_pair_int)
