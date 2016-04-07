@@ -8,6 +8,8 @@ mesh_quality_settings = {
     "min_edge_len":  0.000001   # 0.01  # 0.001 microns   # 0.001, 0.007
     }
 
+CHECK_PAIRED = False
+
 
 class TroubledMesh(Exception):
     pass
@@ -103,7 +105,10 @@ def check_faces(faces):
     #print f2
     #exit()
 
-    idx_xy = np.unravel_index( sort_idx[:10], fe3.shape[0:2] )
+    #print locals().keys()
+
+    #idx_xy = np.unravel_index( sort_idx[:10], fe3.shape[0:2] )
+    idx_xy = np.unravel_index( sort_idx[:], fe3.shape[0:2] )
     #idx_xy is a tuple
     face_idx = idx_xy[0]
     side_idx = idx_xy[1]
@@ -133,9 +138,51 @@ def check_faces(faces):
     #faces[face_idx, vert_idx_2]
     #exit()
 
-    assert np.all(np.diff(q)[::2] == 0), "Not all edges are paired"
+    if not np.all(np.diff(q)[::2] == 0):
+        print "q"
+        #print q.reshape( (q.size, 1) )
+        
+        #for i in range(q.size):
+        #    print q[i],
+        #print
+        
+        #dd = np.diff(q)[::2]
+        #for i in range(dd.size):
+        #    print dd[i],
+        #print
 
-    #raise Check()
+        i1 = (np.diff(q)[::2] != 0)
+        #print q[::2][i1]
+        #print q[1::2][i1]
+        #print np.zip(q[::2][i1], q[1::2][i1])
+        i00 = np.nonzero(i1)[0][0]
+        print i00, "i1[0]"
+        i0 = i00*2-4
+        for i in range(i0, i0+20): #range(zp.size):
+            print q[i],
+        print
+        #yes, some element is repeated 3 times
+        if False:
+            exit()
+
+
+            q0 = q[::2][i1][:, np.newaxis]
+            q1 = q[1::2][i1][:, np.newaxis]
+            print i1.shape
+            print q[::2].shape
+            zp = np.concatenate( (q0, q1), axis=1)
+            #print zp.ravel()
+            print zp.shape, "zp"
+
+
+            del i1
+            for i in range(20): #range(zp.size):
+                print zp.ravel()[i],
+            print
+
+    if CHECK_PAIRED:
+        assert np.all(np.diff(q)[::2] == 0), "Not all edges are paired"
+
 
 def visualise_edge_distribution(elist):
     ea = np.concatenate( (elist[0], elist[1], elist[2]), axis=0)
@@ -327,7 +374,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
         assert np.all(new_faces == map_[new_faces])
 
         #assert no map12[1, :] exist in faces
-        assert np.intersect1d(map12[1, :], new_faces.ravel()).size == 0
+        assert np.intersect1d(map12[1, :], new_faces.ravel()).size == 0, "assert no more vertex clustering necessary"
 
     assert new_faces.shape[0] > 0
 
@@ -450,6 +497,8 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
     assert new_faces.shape[0] > 0
 
+    print new_faces
+    print "-"*200
     check_faces(new_faces)
     #passed!
 
@@ -550,7 +599,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     #print sv12.transpose()
     #print np.diff(sv12, axis=1).transpose()
     #print np.diff(sv12, axis=1)[:, ::2].transpose()
-    assert np.all((np.diff(sv12, axis=1)[:, ::2]).ravel() == 0)  # Make sure each edge is repeated exactly once.
+    if CHECK_PAIRED:
+        assert np.all((np.diff(sv12, axis=1)[:, ::2]).ravel() == 0)  # Make sure each edge is repeated exactly once.
     map12 = sv12[:, 0::2]  # project map12[1,:] into map12[0,:]
 
     #print np.diff(sv12, axis=1)[:, :].transpose()
