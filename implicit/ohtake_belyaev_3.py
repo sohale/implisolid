@@ -243,8 +243,12 @@ def map_vertices_of_nil_faces(faces, nil_areas_whichfaces):
     return face__projected_vertices, faces_to_annihilate
 
 
-
+# BUG IS HERE: verts, new_verts, etc
 def delete_unused_vertices(verts, faces):
+    assert verts.shape[0] > 0
+    assert faces.shape[0] > 0
+    return verts, faces
+    assert np.isreal(verts[0, 0])
     killed_whichvertices = np.zeros((verts.shape[0],), dtype=np.bool) + True
     killed_whichvertices[faces.ravel()] = False
     #assert ***
@@ -277,6 +281,9 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     """ nil_areas_whichfaces: indices of faces that need to be removed.
     map12: the vertices that have to be replaced (remove map12[:,1] -> replace as: map12[:,0])."""
 
+    assert faces.shape[0] > 0
+    assert verts.shape[0] > 0
+
     assert map12.shape[0] == 2
     print "-"
     u =unused_vertices_slow(verts, faces)
@@ -299,6 +306,9 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
         new_faces = faces
     #todo: not all edges will be paired
 
+    assert new_faces.shape[0] > 0
+
+
     #(2) Make a map_ to change the bad vertices to good ones, even if a -> b -> c.
     # Since this does not change the index of faces, the actual removing of the degenerate faces can be done either after of before this step.
     map_ = np.arange(verts.shape[0])
@@ -307,6 +317,8 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     for i in range(2):
         map_ = map_[map_]
     assert np.all(map_ == map_[map_])
+
+    print "*new_faces", new_faces
 
     if True:
         #for i in range(3):
@@ -317,8 +329,13 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
         #assert no map12[1, :] exist in faces
         assert np.intersect1d(map12[1, :], new_faces.ravel()).size == 0
 
+    assert new_faces.shape[0] > 0
 
+    print "map_", map_
+    print "new_faces", new_faces
     new_verts, new_faces = delete_unused_vertices(verts, new_faces)
+
+    assert new_faces.shape[0] > 0
 
     #killed_whichvertices = np.zeros((verts.shape[0],), dtype=np.bool) + True
     #killed_whichvertices[new_faces.ravel()] = False
@@ -328,6 +345,9 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
 
     new_verts, new_faces = delete_unused_vertices(verts, new_faces)
+
+    assert new_faces.shape[0] > 0
+    assert new_verts.shape[0] > 0
 
     """
     new_faces = faces[np.logical_not(nil_areas_whichfaces)]
@@ -356,6 +376,11 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     print new_faces2  #most of them are zero
     #exit()
 
+    assert new_faces2.shape[0] > 0
+
+    assert new_faces2.shape[0] > 0
+
+
     #checking if the nil_areas_whichfaces matches the faces that are now projected
     eq1 = new_faces2[:, 0] == new_faces2[:, 1]
     eq2 = new_faces2[:, 0] == new_faces2[:, 2]
@@ -376,31 +401,54 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     #print new_faces2[nil_areas_whichfaces, :] #nice
     #81 and 80 consequently
 
+
+    #print "DELETING: %d out of %d"%(-np.sum(eq12), new_faces2.shape[0]), "="*90
+    #import time; time.sleep(2)
+
     #Now: faces with repeats in their vertices should be cut away.
     #It is also the concern of: map_vertices_of_nil_faces
     #new_faces = new_faces2
-    new_faces = new_faces2[ eq12 ]  # kill!
+    #new_faces = new_faces2[ eq12 ]  # kill! -> oops.  wrong ones.
+    new_faces = new_faces2[ np.logical_not(eq12) ]  # kill!
+
+
+
+    assert new_faces.shape[0] > 0
 
 
     #Now there are repeated faces.
 
     redundant_faces = check_face_triplets(new_faces)
+
+
     #fails:
     # assert redundant_faces.size==0, "Repeated faces found***"
     #i1n = np.zeros( (new_faces.shape[0],), dtype=bool) + True
     #i1n[redundant_faces] = False
     #print new_faces
     #print redundant_faces
+
+    assert new_faces.shape[0] > 0
+
+    #print "DELETING: %d out of %d"%(redundant_faces.size, new_faces.shape[0]), "="*90
+    #import time; time.sleep(2)
+
     new_faces = np.delete(new_faces, redundant_faces, axis=0)
+
+    assert new_faces.shape[0] > 0
 
     #todo: D.R.Yself.
     eq1 = new_faces[:, 0] == new_faces[:, 1]
     eq2 = new_faces[:, 0] == new_faces[:, 2]
     eq12 = np.logical_and(eq1, eq2)
 
+    #print "DELETING: %d out of %d"%(np.sum(eq12), new_faces.shape[0]), "-"*290
+    #print new_faces[eq12, :]
+    #import time; time.sleep(2)
+
     new_faces = new_faces[np.logical_not(eq12), :]
 
-
+    assert new_faces.shape[0] > 0
 
     check_faces(new_faces)
     #passed!
