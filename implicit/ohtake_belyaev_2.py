@@ -12,6 +12,7 @@ from basic_types import check_vector4_vectorized, normalize_vector4_vectorized
 #    pass
 
 def make_obj(id):
+
     if id == 14:
         from example_objects import make_example_vectorized
         iobj = make_example_vectorized(
@@ -95,6 +96,43 @@ def make_obj(id):
         #iobj = blend_example2_discs(8.)
         #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
+
+    elif id == 22: #bowl
+        from example_objects import make_example_vectorized
+        iobj = make_example_vectorized(
+            #"rcube_vec")  #
+            #"rdice_vec")  #
+            #"cube_example");
+            #"ell_example1")  #
+             "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
+
+    elif id == 17:
+
+        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
+        #STEPSIZE = 0.05
+
+        import vectorized, example_objects
+        c2 = vectorized.UnitCube1(1.)
+        def rotate_scale_(iobj, scale, center, angle=0.):
+            ns = vectorized
+            import numpy
+            m = numpy.eye(4)
+            m[0,0] = 0.1
+            iobj = ns.Transformed(iobj, m=m)
+            iobj  \
+                .resize(scale) \
+                .move(center[0], center[1], center[2])
+            if angle != 0.:
+                iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+            return iobj
+
+        c2 = rotate_scale_(c2, 2., [1, 1, 1])
+        iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
+
     else:
         raise Error()
 
@@ -1486,36 +1524,23 @@ import mesh_utils
 
 def demo_combination_plus_qem():
     """ Now with QEM """
-    print "-"*1000
+
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
-
-    import vectorized, example_objects
-    c2 = vectorized.UnitCube1(1.)
-    def rotate_scale_(iobj, scale, center, angle=0.):
-        ns = vectorized
-        import numpy
-        m = numpy.eye(4)
-        m[0,0] = 0.1
-        iobj = ns.Transformed(iobj, m=m)
-        iobj  \
-            .resize(scale) \
-            .move(center[0], center[1], center[2])
-        if angle != 0.:
-            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-        return iobj
-
-    c2 = rotate_scale_(c2, 2., [1,1,1])
-    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
-
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(17) #  8= CSG
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
+
+
+    #display_simple_using_mayavi_2( [(verts, facets), ],
+    #   pointcloud_list=[  ], pointcloud_opacity=0.2,
+    #   mayavi_wireframe=[False], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #   minmax=(RANGE_MIN,RANGE_MAX)  )
 
     old_verts, old_facets = verts, facets
 
@@ -1654,14 +1679,14 @@ if __name__ == '__main__':
     elif demo_choise == 2:
         single_subdivision_demo2()  # just shows which ones subdivided
     elif demo_choise == 3:
-        weighted_resampling_demo()
+        weighted_resampling_demo()  # resampling + subdiv one face only?
     elif demo_choise == 4:
-        multiple_subdivisions_demo()  # nice demo! keep it
+        multiple_subdivisions_demo()  # nice demo! keep it. resampling+subdivision
     elif demo_choise == 5:
         demo_combination_actually_do()  # subdivision (iterative) + vertex relaxation (0 times!)
     elif demo_choise == 6:
         demo_combination_actually_do_plus_centroid_projection()  # subdivision + projection
     elif demo_choise == 7:
-        demo_combination_plus_qem()  # subdivision + projection + qem
+        demo_combination_plus_qem()  # subdivision + projection + qem +subdiv but not multiple times subdivision
     else:
         print "Error"

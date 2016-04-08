@@ -440,7 +440,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     new_faces2, faces_to_annihilate = map_vertices_of_nil_faces(new_faces, nil_areas_whichfaces)
     print new_faces2  #most of them are zero
     #exit()
-    #quick_vis(verts, new_faces, nil_areas_whichfaces)
+    quick_vis(verts, new_faces, nil_areas_whichfaces)
 
     assert new_faces2.shape[0] > 0
 
@@ -473,7 +473,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
     a_n_b = np.nonzero(np.sum(np.logical_and(eq12, np.logical_not(nil_areas_whichfaces))))[0]
     print a_n_b
-    #quick_vis(verts, faces, a_n_b)
+    quick_vis(verts, faces, a_n_b)
 
 
     #print new_faces2[eq12, :]
@@ -675,8 +675,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     assert not np.any(np.isnan(facet_areas))
 
     assert np.all(facet_areas >= 0)
-    #AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
-    AREA_DEGENERACY_THRESHOLD = -1.  # 0.00001 ** 2
+    AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
+    #AREA_DEGENERACY_THRESHOLD = -1.  # 0.00001 ** 2
     ineq = facet_areas < AREA_DEGENERACY_THRESHOLD
     degenerates_count = len(facet_areas[ineq])
     degenerate_faces = ineq
@@ -741,7 +741,6 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
     any_correction = any_zero_edge or any_degenerate_area
 
-    print "-----------------"
     print any_zero_edge , any_degenerate_area
     #assert fix_them != if_assert, (fix_them, if_assert)
     if if_assert:
@@ -755,8 +754,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         return any_correction
 
 
-#def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
-def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
+def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
+#def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
     """ facet_normals: can contain NaN if the area is zero.
     If AREA_DEGENERACY_THRESHOLD is None or negative, the NaN is not assiged in output """
     # see mesh1.py ::     def calculate_face_areas(self)
