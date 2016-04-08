@@ -539,8 +539,11 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
     return new_verts, new_faces
 
+
+# **********************************
 def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     # todo: also check facets in-itself.
+    return verts, facets, False
 
     fix_them = (fix_mode == "fix")
     if_assert = (fix_mode == "assert")
@@ -857,16 +860,148 @@ def build_faces_of_faces(facets):
 def process2_vertex_resampling_relaxation(verts, facets, iobj):
     centroids = compute_centroids(verts, facets)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
-
     from mesh_utils import make_neighbour_faces_of_vertex
     neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(facets)
-
     faces_of_faces = build_faces_of_faces(facets)
-
-    print("**************"*10)
+    assert not np.any(np.isnan(verts.ravel()))  # fine
     new_verts = vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
-
+    assert not np.any(np.isnan(new_verts.ravel()))  # fails
     return new_verts, facets, centroids  # why does it return facets?
+
+
+
+
+#from mesh1.py
+def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
+    """ neighbour_faces_of_vertex: *** """
+
+    def kij(i, j):
+        """ Returns (1/r * Theta), a measure of curvature.
+        Theta is the angle between two normals at centroids (dual vertices) i, j.
+        The 1/r is the inverse of the distance between the pair.
+
+        Notes:
+        Normals should be already normalised (centroid normals).
+        centroids should be already [projected] on the implicit surface (dual mesh is optimised).
+        """
+
+        # i,j are centroids
+        assert i != j
+        pi, pj = (centroids[i, 0:3], centroids[j, 0:3])
+
+        # based on gradients. normalised.
+        mi, mj = (centroid_normals[i, 0:3], centroid_normals[j, 0:3])
+        assert mi.shape == (3,)
+        assert mj.shape == (3,)
+        assert np.abs(np.linalg.norm(mi) - 1.0) < 0.0000001
+        assert np.abs(np.linalg.norm(mj) - 1.0) < 0.0000001
+        mimj = np.dot(np.transpose(mi), mj)
+        #mimj[mimj>1.0] = 1.0
+        if mimj > 1.0:
+            mimj = 1.0
+        pipj = np.linalg.norm(pi - pj)
+        #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
+        assert pipj == np.linalg.norm(pi - pj, ord=2)
+        #if pipj==0:
+        #    pipj = 1
+        #CAN BE ZERO ****************
+        #FIXME
+        assert pipj > 0  # fails # ****
+
+        kij = np.arccos(mimj) / pipj  # radians?
+        assert not np.isnan(kij)  # fails
+        return kij
+
+    def wi(i_facet, ja_facets, c):
+        """
+        Returns the weight of a facet i_facet.
+        Adds kij of all centroids of the neighbour facets.
+        ja_facets = list of centroid indices (face index).
+        i_facet is a face index. """
+        # todo: make a pipj matrix (fxf). Make an acos matrix (fxf). The latter is base on a matrix of gradients: fx3.
+        #
+        #print i_facet, ja_facets
+        assert i_facet not in ja_facets
+        assert len(ja_facets) == 3
+        # ja_facets = neighbour facets of facet i_facet????
+        ki = 0
+        for j_facet in ja_facets:
+            ki += kij(i_facet, j_facet)
+
+        assert not np.isnan(ki)  # fails
+
+        wi = 1.0 + c*ki
+        # i_facet is facet (Centroid) index. j_facet is its neighbour facet (centroid). There are three j_facet for an i_facet.
+        return wi
+    #
+    c_ = c  # 2.0  # constant
+    vertex_index = 1  # vertex
+    #assert vertex_index >= 0
+    umbrella_facets = neighbour_faces_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+    print("umbrella_facets: ", umbrella_facets)
+    #wa = np.zeros()
+    w_list = []
+    for i_facet in umbrella_facets:
+        # neighbour facet i_facet of Vertex vertex_index
+        #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
+        three_facets = faces_of_faces[i_facet, :]
+        w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
+        # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
+        w_list.append(w)
+        #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
+        #todo: store in ...
+    #print "w_list ",w_list
+    #
+    #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
+    nfaces = centroids.shape[0]
+    wi_total_array = np.zeros((nfaces,))
+    for i_facet in range(nfaces):
+        three_facets = faces_of_faces[i_facet, :]
+        w = wi(i_facet, three_facets, c_)
+        assert not np.isnan(w)  # fails
+
+        wi_total_array[i_facet] = w
+    print wi_total_array
+    # The weights are prepared. Now let's resample vertices
+    assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
+
+    vertex_index = 1
+    #todo: umbrella_Facets = sparse matrix
+    #umbrella_facets = np.array(neighbour_faces_of_vertex)  #empty
+
+    umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])  # empty
+    print "umbrella_facets", umbrella_facets.shape, "****"
+    assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
+
+    def lift_verts(verts, centroids):
+        new_verts = verts.copy()
+        # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
+        for vertex_index in range(verts.shape[0]):
+            umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])
+            w = wi_total_array[umbrella_facets]
+            assert not np.any(np.isnan(umbrella_facets.ravel()))  # pass
+            assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
+
+            assert not np.any(np.isnan(w.ravel()))  # fails
+            w = w / np.sum(w)
+            assert not np.any(np.isnan(w.ravel()))  # fails
+
+            new_verts[vertex_index, :] = \
+                np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
+        assert not np.any(np.isnan(new_verts.ravel()))  # fails
+        return new_verts
+
+    assert not np.any(np.isnan(verts.ravel()))  # fine
+    r = lift_verts(verts, centroids)
+    print r.shape
+    assert not np.any(np.isnan(r.ravel()))  # fails
+    exit()
+    return r
+
+
+
+
+
 
 def two_bricks():
     import vectorized, example_objects
@@ -1073,6 +1208,206 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     return
 
 
+def compute_facets_subdivision_curvatures(verts, facets, iobj):
+    """ Deviation of Mesh from object gradients """
+    facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
+    nf = facets.shape[0]
+    assert facet_areas.shape == (nf,)
+    assert facet_normals.shape == (nf, 3)
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
+    #some edges are repeated
+    degenerate_faces = np.isnan(facet_areas)
+    assert np.all(np.isnan(facet_areas[degenerate_faces]))
+    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
+    assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
+    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
+
+    centroidmaker_matrix = np.array([
+        [1, 0, 0, 1, 0, 1],  # 035
+        [0, 1, 0, 1, 1, 0],  # 314
+        [0, 0, 1, 0, 1, 1],  # 542
+        [0, 0, 0, 1, 1, 1],  # 345
+        ]) / 3.
+
+    subdiv_vert_matrix = np.array([
+        [1.,   0.,  0.],  # 0
+        [0.,   1.,  0.],  # 1
+        [0.,   0.,  1.],  # 2
+
+        [0.5,  0.5,  0],  # 3
+        [0,  0.5,  0.5],  # 4
+        [0.5,  0,  0.5]   # 5
+        ])
+
+    #check_degenerate_faces1(verts, facets, degenerate_faces)
+
+    e_array = np.zeros((nf,))
+    for fi in range(nf):
+        n = facet_normals[fi, :]  # n: (3,)
+        triangle = verts[facets[fi, :], :]  # numverts x 3
+        assert not np.any(np.isnan(triangle.ravel()))
+        assert triangle.shape == (3, 3)
+        VVV = triangle  # (nv=3) x 3
+        assert not np.any(np.isnan(VVV.ravel()))
+        assert not np.any(np.isnan(subdiv_vert_matrix.ravel()))
+
+        m0123 = np.dot( centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV) )
+        assert m0123.shape == (4, 3)
+        assert not np.any(np.isnan(m0123.ravel()))
+        subdiv_centroids = m0123
+        numsubdiv = 4
+        subdiv_centroids4 = np.concatenate( (subdiv_centroids, np.ones((numsubdiv, 1))), axis=1)
+        if degenerate_faces[fi]:
+            print "WARNING: degenerate triangle", fi, " = ",facets[fi,:]
+        else:
+            assert not degenerate_faces[fi]
+        print subdiv_centroids4.shape
+        #Problem: there are NaNs
+        assert not np.any(np.isnan(subdiv_centroids4.ravel()))
+        #check_vector4_vectorized(subdiv_centroids4)
+        mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
+        assert mm.shape == (4, 3)
+        nn = np.linalg.norm(mm, axis=1)
+        mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        mm = mm.transpose()  # 3x4
+        e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+        #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
+        #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
+        e_array[fi] = e
+        #if e<0:
+        #    set_trace()
+
+        if fi % 100 == 0:
+            print fi, "\r", ;import sys; sys.stdout.flush()
+    l = e_array[np.logical_not(np.isnan(e_array))].tolist()
+    l.sort()
+    print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
+    bad_facets_count = np.sum(degenerate_faces)
+    #assert bad_facets_count == 0
+    return e_array, bad_facets_count
+
+
+def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
+
+    # todo: store subdivided gradients (on top of centroids), to avoid unnecessary calculations. When updating vettices, remove the caches.
+    # todo: avoid recomputing
+
+    centroidmaker_matrix = np.array([
+        [1, 0, 0, 1, 0, 1],  # 035
+        [0, 1, 0, 1, 1, 0],  # 314
+        [0, 0, 1, 0, 1, 1],  # 542
+        [0, 0, 0, 1, 1, 1],  # 345
+        ]) / 3.
+
+    DIP = 0.05*0
+    subdiv_vert_matrix = np.array([
+        [1.,   0.,  0.],  # 0
+        [0.,   1.,  0.],  # 1
+        [0.,   0.,  1.],  # 2
+
+        [0.5/(1.+DIP),  0.5/(1.+DIP),  DIP/(1.+DIP)],  # 3
+        [DIP/(1.+DIP),  0.5/(1.+DIP),  0.5/(1.+DIP)],  # 4
+        [0.5/(1.+DIP),  DIP/(1.+DIP),  0.5/(1.+DIP)]   # 5
+        ])  # .transpose()
+
+    global trace_subdivided_facets
+    trace_subdivided_facets = []
+
+
+    #raise "not tested yet. re-read/write step by step"
+    #allocate space for them
+
+    #new_verts = verts_old + 3*len(tobe_subdivided_face_indices)
+    #new_facets = facets_old + 3*len(tobe_subdivided_face_indices)
+
+    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
+    provisional_new_facets_count = 3*len(tobe_subdivided_face_indices)
+    nverts_old = verts_old.shape[0]
+    nfaces_old = facets_old.shape[0]
+    new_verts = np.zeros((nverts_old+provisional_new_verts_count, 3), dtype=float)
+    new_facets = np.zeros((nfaces_old+provisional_new_facets_count, 3), dtype=int)
+    #set_trace()
+    new_verts[:nverts_old, :] = verts_old
+    new_facets[:nfaces_old, :] = facets_old
+
+    #on number of added vertices:
+    #problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
+    #also later check for faces with repeated edges. (which can be another cause of null normals)
+
+    new_vertex_counter = nverts_old
+    new_facet_counter = nfaces_old
+    for subdiv_i in range(len(tobe_subdivided_face_indices)):
+
+        fi = tobe_subdivided_face_indices[subdiv_i]
+        oldtriangle = verts_old[facets_old[fi, :], :]  # numverts x 3
+        assert oldtriangle.shape == (3, 3)
+        VVV = oldtriangle  # (nv=3) x 3
+
+        # new verices
+        m0123 = np.dot(np.dot(centroidmaker_matrix, subdiv_vert_matrix), VVV)
+        assert m0123.shape == (4, 3)
+        subdiv_centroids = m0123
+
+        vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
+        assert vxyz_0123.shape == (6, 3)
+
+        #tobeadded_verts = m0123
+        #tobeadded_verts = m123
+        #subdivision = oldtriangle
+
+        #mini_verts = np.concatenate( (oldtriangle, tobeadded_verts), axis=0)
+
+        # adding new verts and facets
+
+        #*********
+        # indices of original points
+        #v012 = facets_old[fi, :]  # range(0, 3)  #
+        #v345 = np.arange(new_vertex_counter, new_vertex_counter+3, dtype=int)   #range(3, 6)
+        v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
+        v345 = range(new_vertex_counter, new_vertex_counter+3)
+
+        v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
+
+        assert len(v345) == 3
+        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
+
+        new_vertex_counter += 3
+
+        # facet's vertex indices
+        v012345 = np.array(v012 + v345, dtype=int)
+
+        mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
+
+        mini_faces = v012345[np.array(mini_faces_l)]
+
+        new_facets[fi, :] = mini_faces[0, :]
+        new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
+        assert mini_faces.shape[0] == (1+3)
+        #trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3))
+        trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3)) + [fi]  # include the face which reuses the old face's index
+        # trace_subdivided_facets will contain indices of faces
+
+        new_facet_counter += 3
+
+
+        #return mini_verts, mini_faces
+        #numsubdiv = 4
+
+        if fi % 100 == 0:
+            print fi, "\r", ;import sys; sys.stdout.flush()
+
+    print new_verts.shape[0], new_vertex_counter
+
+    assert new_verts.shape[0] == new_vertex_counter
+    assert new_facets.shape[0] == new_facet_counter
+    print "v", provisional_new_verts_count+nverts_old, new_vertex_counter
+    print "f", provisional_new_facets_count+nfaces_old, new_facet_counter
+    assert provisional_new_verts_count+nverts_old == new_vertex_counter
+    assert provisional_new_facets_count+nfaces_old == new_facet_counter
+    assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_facet_counter
+    return new_verts, new_facets
+
+
 def demo_everything():
     """ Base on demo_combination_plus_qem """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
@@ -1112,6 +1447,8 @@ def demo_everything():
 
     fix_faces_3div2(facets)
 
+    assert not np.any(np.isnan(verts.ravel()))  # fine
+
     any_mesh_correction = check_degenerate_faces(verts, facets, "dontfix")
     print "any_mesh_correction1", any_mesh_correction
     for qq in range(5):
@@ -1123,11 +1460,14 @@ def demo_everything():
     # COOL ! NOW WORKS!
 
     old_verts, old_facets = verts, facets
+    assert not np.any(np.isnan(verts.ravel()))  # fine
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+        assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
         verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
+        assert not np.any(np.isnan(verts.ravel()))  # fails
         if any_mesh_correction:
             print("mesh correction needed")
             exit()
@@ -1140,6 +1480,9 @@ def demo_everything():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
+        assert not np.any(np.isnan(facets.ravel()))
+        assert not np.any(np.isnan(verts.ravel()))  # fails
+
         e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
@@ -1240,127 +1583,6 @@ from ohtake_surface_projection import display_simple_using_mayavi_
 #def adaptive_subdivision(self):
 #    pass
 
-#from mesh1.py
-def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
-    """ neighbour_faces_of_vertex: *** """
-
-    def kij(i, j):
-        """ Returns (1/r * Theta), a measure of curvature.
-        Theta is the angle between two normals at centroids (dual vertices) i, j.
-        The 1/r is the inverse of the distance between the pair.
-
-        Notes:
-        Normals should be already normalised (centroid normals).
-        centroids should be already [projected] on the implicit surface (dual mesh is optimised).
-        """
-
-        # i,j are centroids
-        assert i != j
-        pi, pj = (centroids[i, 0:3], centroids[j, 0:3])
-
-        # based on gradients. normalised.
-        mi, mj = (centroid_normals[i, 0:3], centroid_normals[j, 0:3])
-        assert mi.shape == (3,)
-        assert mj.shape == (3,)
-        assert np.abs(np.linalg.norm(mi) - 1.0) < 0.0000001
-        assert np.abs(np.linalg.norm(mj) - 1.0) < 0.0000001
-        mimj = np.dot(np.transpose(mi), mj)
-        #mimj[mimj>1.0] = 1.0
-        if mimj > 1.0:
-            mimj = 1.0
-        pipj = np.linalg.norm(pi - pj)
-        #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
-        assert pipj == np.linalg.norm(pi - pj, ord=2)
-
-        kij = np.arccos(mimj) / pipj  # radians?
-        return kij
-
-    def wi(i_facet, ja_facets, c):
-        """
-        Returns the weight of a facet i_facet.
-        Adds kij of all centroids of the neighbour facets.
-        ja_facets = list of centroid indices (face index).
-        i_facet is a face index. """
-        # todo: make a pipj matrix (fxf). Make an acos matrix (fxf). The latter is base on a matrix of gradients: fx3.
-        #
-        #print i_facet, ja_facets
-        assert i_facet not in ja_facets
-        assert len(ja_facets) == 3
-        # ja_facets = neighbour facets of facet i_facet????
-        ki = 0
-        for j_facet in ja_facets:
-            ki += kij(i_facet, j_facet)
-
-        wi = 1.0 + c*ki
-        # i_facet is facet (Centroid) index. j_facet is its neighbour facet (centroid). There are three j_facet for an i_facet.
-        #print("w_i=", wi)
-        return wi
-    #
-    c_ = c  # 2.0  # constant
-    vertex_index = 1  # vertex
-    #assert vertex_index >= 0
-    #assert vertex_index < 
-    umbrella_facets = neighbour_faces_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
-    print("umbrella_facets: ", umbrella_facets)
-    #wa = np.zeros()
-    w_list = []
-    for i_facet in umbrella_facets:
-        # neighbour facet i_facet of Vertex vertex_index
-        print("i_facet", i_facet)
-        #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
-        three_facets = faces_of_faces[i_facet, :]
-        print(i_facet, three_facets)
-        w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
-        # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
-        print("w_i, i=", i_facet, w)
-        #w_list[i] = w
-        w_list.append(w)
-        #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
-        #todo: store in ...
-    #exit()
-    print "w_list ",w_list
-    #[1.9250638933714093, 2.0364604083536744, 1.4236331619142932, 3.4392903610759471, 5.4912745754508183, 3.2499307884393014, 5.0003861534703979]
-    print("===============")
-    #
-    #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
-    nfaces = centroids.shape[0]
-    wi_total_array = np.zeros((nfaces,))
-    for i_facet in range(nfaces):
-        three_facets = faces_of_faces[i_facet, :]
-        w = wi(i_facet, three_facets, c_)
-        wi_total_array[i_facet] = w
-    print wi_total_array
-    # The weights are prepared. Now let's resample vertices
-
-    vertex_index = 1
-    #todo: umbrella_Facets = sparse matrix
-    #umbrella_facets = np.array(neighbour_faces_of_vertex)  #empty
-
-    umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])  # empty
-    print "umbrella_facets", umbrella_facets.shape, "****"
-    assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
-    #return wi_total_array
-
-    #
-
-    def lift_verts(verts, centroids):
-        new_verts = verts.copy()
-        # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
-        for vertex_index in range(verts.shape[0]):
-            umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])
-            w = wi_total_array[umbrella_facets]
-            #w = w * 0 + 1
-            w = w / np.sum(w)
-            #print w / np.sum(w), w.shape
-            new_verts[vertex_index, :] = \
-                np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
-        return new_verts
-
-    return lift_verts(verts, centroids)
-
-
-
-
 
 
 
@@ -1399,267 +1621,24 @@ def degenerate_facets():
 
     return indices
 
+
 def fix_degenerate_Faces():
     pass
 
 
-def check_degenerate_faces1(verts, facets, degenerate_faces):
-    nf = facets.shape[0]
-    for fi in range(nf):
-        if degenerate_faces[fi]:
-            degen_triangle = verts[facets[fi, :], :]  # numverts x 3
-            print degen_triangle
+#def check_degenerate_faces1(verts, facets, degenerate_faces):
+#    nf = facets.shape[0]
+#    for fi in range(nf):
+#        if degenerate_faces[fi]:
+#            degen_triangle = verts[facets[fi, :], :]  # numverts x 3
+#            print degen_triangle
+#
+#            #assert not degenerate_faces[fi]
+#
+#            triangle = verts[facets[fi, :], :]  # numverts x 3
+#            assert triangle.shape == (3, 3)
 
-            #assert not degenerate_faces[fi]
 
-            triangle = verts[facets[fi, :], :]  # numverts x 3
-            assert triangle.shape == (3, 3)
-
-
-
-def compute_facets_subdivision_curvatures(verts, facets, iobj):
-    """ Deviation of Mesh from object gradients """
-
-    #fi = 100  # triangle T
-    #triangle = verts[facets[fi, :], :]  # numverts x 3
-    #assert triangle.shape == (3, 3)
-    #print triangle.shape
-    facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
-
-    nf = facets.shape[0]
-    assert facet_areas.shape == (nf,)
-    assert facet_normals.shape == (nf, 3)
-    #print "000000000s"
-
-    #  #print np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1) ))
-    #  print verts[facets[np.isnan(np.linalg.norm(facet_normals, axis=1)), :],:]
-    #  #print verts[faces[np.isnan(np.linalg.norm(facet_normals, axis=1)),:],:]
-    #
-    #  print verts[facets[np.isnan(np.linalg.norm(facet_normals, axis=1)), :],:]
-    #  print facet_areas[np.isnan(np.linalg.norm(facet_normals, axis=1))]
-    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
-
-    #some edges are repeated
-
-    #zero_normals = np.arange(facets.shape[0])[np.linalg.norm(facet_normals, axis=1) < 0.0000001]
-
-    #print verts[facets[zero_normals, :], :]
-
-
-    degenerate_faces = np.isnan(facet_areas)
-    assert np.all(np.isnan(facet_areas[degenerate_faces]))
-    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
-    assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
-    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
-    #print len(degenerate_faces)
-
-
-    #print zero_normals
-    #print degenerate_faces
-    #assert np.allclose(zero_normals - degenerate_faces, 0)
-    #print facet_normals[zero_normals, :]
-
-    #print facet_normals[zero_normals, :]
-    #print "facet_areas", facet_areas[zero_normals] 
-    #assert np.allclose(np.linalg.norm(facet_normals, axis=1)[np.logical_not(zero_normals)], 1.0)
-
-
-    centroidmaker_matrix = np.array([
-        [1, 0, 0, 1, 0, 1],  # 035
-        [0, 1, 0, 1, 1, 0],  # 314
-        [0, 0, 1, 0, 1, 1],  # 542
-        [0, 0, 0, 1, 1, 1],  # 345
-        ]) / 3.
-
-    subdiv_vert_matrix = np.array([
-        [1.,   0.,  0.],  # 0
-        [0.,   1.,  0.],  # 1
-        [0.,   0.,  1.],  # 2
-
-        [0.5,  0.5,  0],  # 3
-        [0,  0.5,  0.5],  # 4
-        [0.5,  0,  0.5]   # 5
-        ])  # .transpose()
-
-
-    check_degenerate_faces1(verts, facets, degenerate_faces)
-
-
-    e_array = np.zeros((nf,))
-    for fi in range(nf):
-        n = facet_normals[fi, :]  # n: (3,)
-
-        triangle = verts[facets[fi, :], :]  # numverts x 3
-        assert triangle.shape == (3, 3)
-        #print triangle.shape
-
-        assert triangle.shape == (3, 3)
-        VVV = triangle  # (nv=3) x 3
-        #print np.dot( centroidmaker_matrix, subdiv_vert_matrix)
-        #exit()
-        m0123 = np.dot( centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV) )
-        assert m0123.shape == (4, 3)
-        subdiv_centroids = m0123
-        #print subdiv_centroids
-        numsubdiv = 4
-
-        subdiv_centroids4 = np.concatenate( (subdiv_centroids, np.ones((numsubdiv, 1))), axis=1)
-        #valids = 
-        if degenerate_faces[fi]:
-            print "WARNING: degenerate triangle", fi, " = ",facets[fi,:]
-        else:
-            assert not degenerate_faces[fi]
-        mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
-        assert mm.shape == (4, 3)
-        nn = np.linalg.norm(mm, axis=1)
-        mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
-        mm = mm.transpose()  # 3x4
-        e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
-
-        #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
-
-
-        #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
-        e_array[fi] = e
-        #if e<0:
-        #    set_trace()
-
-
-        if fi % 100 == 0:
-            print fi, "\r", ;import sys; sys.stdout.flush()
-    #print str(nf) + "   "
-    #print e_array
-    l = e_array[np.logical_not(np.isnan(e_array))].tolist()
-    l.sort()
-    print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
-    bad_facets_count = np.sum(degenerate_faces)
-    #assert bad_facets_count == 0
-    return e_array, bad_facets_count
-
-
-
-
-
-def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
-
-    # todo: store subdivided gradients (on top of centroids), to avoid unnecessary calculations. When updating vettices, remove the caches.
-    # todo: avoid recomputing
-
-    centroidmaker_matrix = np.array([
-        [1, 0, 0, 1, 0, 1],  # 035
-        [0, 1, 0, 1, 1, 0],  # 314
-        [0, 0, 1, 0, 1, 1],  # 542
-        [0, 0, 0, 1, 1, 1],  # 345
-        ]) / 3.
-
-    DIP = 0.05*0
-    subdiv_vert_matrix = np.array([
-        [1.,   0.,  0.],  # 0
-        [0.,   1.,  0.],  # 1
-        [0.,   0.,  1.],  # 2
-
-        [0.5/(1.+DIP),  0.5/(1.+DIP),  DIP/(1.+DIP)],  # 3
-        [DIP/(1.+DIP),  0.5/(1.+DIP),  0.5/(1.+DIP)],  # 4
-        [0.5/(1.+DIP),  DIP/(1.+DIP),  0.5/(1.+DIP)]   # 5
-        ])  # .transpose()
-
-    global trace_subdivided_facets
-    trace_subdivided_facets = []
-
-
-    #raise "not tested yet. re-read/write step by step"
-    #allocate space for them
-
-    #new_verts = verts_old + 3*len(tobe_subdivided_face_indices)
-    #new_facets = facets_old + 3*len(tobe_subdivided_face_indices)
-
-    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
-    provisional_new_facets_count = 3*len(tobe_subdivided_face_indices)
-    nverts_old = verts_old.shape[0]
-    nfaces_old = facets_old.shape[0]
-    new_verts = np.zeros((nverts_old+provisional_new_verts_count, 3), dtype=float)
-    new_facets = np.zeros((nfaces_old+provisional_new_facets_count, 3), dtype=int)
-    #set_trace()
-    new_verts[:nverts_old, :] = verts_old
-    new_facets[:nfaces_old, :] = facets_old
-
-    #on number of added vertices:
-    #problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
-    #also later check for faces with repeated edges. (which can be another cause of null normals)
-
-    new_vertex_counter = nverts_old
-    new_facet_counter = nfaces_old
-    for subdiv_i in range(len(tobe_subdivided_face_indices)):
-
-        fi = tobe_subdivided_face_indices[subdiv_i]
-        oldtriangle = verts_old[facets_old[fi, :], :]  # numverts x 3
-        assert oldtriangle.shape == (3, 3)
-        VVV = oldtriangle  # (nv=3) x 3
-
-        # new verices
-        m0123 = np.dot(np.dot(centroidmaker_matrix, subdiv_vert_matrix), VVV)
-        assert m0123.shape == (4, 3)
-        subdiv_centroids = m0123
-
-        vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
-        assert vxyz_0123.shape == (6, 3)
-
-        #tobeadded_verts = m0123
-
-        #tobeadded_verts = m123
-        #subdivision = oldtriangle
-
-        #mini_verts = np.concatenate( (oldtriangle, tobeadded_verts), axis=0)
-
-        # adding new verts and facets
-
-        #*********
-        # indices of original points
-        #v012 = facets_old[fi, :]  # range(0, 3)  #
-        #v345 = np.arange(new_vertex_counter, new_vertex_counter+3, dtype=int)   #range(3, 6)
-        v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
-        v345 = range(new_vertex_counter, new_vertex_counter+3)
-
-        v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
-
-        assert len(v345) == 3
-        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
-
-        new_vertex_counter += 3
-
-        # facet's vertex indices
-        v012345 = np.array(v012 + v345, dtype=int)
-
-        mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
-
-        mini_faces = v012345[np.array(mini_faces_l)]
-
-        new_facets[fi, :] = mini_faces[0, :]
-        new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
-        assert mini_faces.shape[0] == (1+3)
-        #trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3))
-        trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3)) + [fi]  # include the face which reuses the old face's index
-        # trace_subdivided_facets will contain indices of faces
-
-        new_facet_counter += 3
-
-
-        #return mini_verts, mini_faces
-        #numsubdiv = 4
-
-        if fi % 100 == 0:
-            print fi, "\r", ;import sys; sys.stdout.flush()
-
-    print new_verts.shape[0], new_vertex_counter
-
-    assert new_verts.shape[0] == new_vertex_counter
-    assert new_facets.shape[0] == new_facet_counter
-    print "v", provisional_new_verts_count+nverts_old, new_vertex_counter
-    print "f", provisional_new_facets_count+nfaces_old, new_facet_counter
-    assert provisional_new_verts_count+nverts_old == new_vertex_counter
-    assert provisional_new_facets_count+nfaces_old == new_facet_counter
-    assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_facet_counter
-    return new_verts, new_facets
 
 
 
