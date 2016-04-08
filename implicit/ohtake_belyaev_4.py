@@ -1,4 +1,4 @@
-#from ipdb import set_trace
+from ipdb import set_trace
 
 from vtk_mc import vtk_mc
 #from stl_tests import display_simple_using_mayavi_vf1
@@ -10,94 +10,6 @@ from basic_types import check_vector4_vectorized, normalize_vector4_vectorized
 
 #def adaptive_subdivision(self):
 #    pass
-
-def make_obj(id):
-    if id == 14:
-        from example_objects import make_example_vectorized
-        iobj = make_example_vectorized(
-            #"rcube_vec")  #
-            #"rdice_vec")  #
-            #"cube_example");
-            "ell_example1")  #
-            # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
-    elif id == 8:
-        from example_objects import first_csg
-        iobj = first_csg(8.)
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20.*2, 30.*2, 2.)
-        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
-    elif id == 13:
-        #dicesize = 16.
-        #exname = "udice_vec"  # "blend_example2"
-        #import example_objects
-        #iobj = example_objects.make_example_vectorized(exname, dicesize)
-        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-22, +20., 0.8)
-
-        #from example_objects import cyl4
-        #iobj, (RANGE_MIN, RANGE_MAX, STEPSIZE) = \
-        #    cyl4()
-        #STEPSIZE = 1.
-
-        #from example_objects import first_csg
-        #iobj = \
-        #    first_csg(8.)
-        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20, 20, 1)
-
-        from example_objects import blend_example2_discs
-        #iobj = blend_example1(); (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20/4., 20/4., 1/4.)
-
-        iobj = blend_example2_discs(8.)
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
-        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
-
-    elif id == 12:
-        from example_objects import make_example_vectorized
-        #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
-        #exname = "blend_example2_discs" #
-        #exname ="ell_example1" #
-        #exname = "first_csg"
-        #exname = "bowl_15_holes"
-        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
-        #iobj = make_example_vectorized("???")
-        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.2)
-
-        #"rdice_vec"  too slow
-        # screw3: terrible outcome
-        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-
-        #iobj = make_example_vectorized("screw3")
-        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
-
-        #iobj = make_example_vectorized("rdice_vec")
-        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
-
-        iobj = make_example_vectorized("ell_example1")
-        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-
-        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
-
-    if id == 11:
-        from example_objects import make_example_vectorized
-        #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
-        #exname = "blend_example2_discs" #
-        #exname ="ell_example1" #
-        #exname = "first_csg"
-        #exname = "bowl_15_holes"
-        #iobj = make_example_vectorized("blend_example2_discs")
-        ##(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
-        #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.1)
-
-        iobj = make_example_vectorized("blend_example2_discs")
-        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +4, 0.2)
-
-        #from example_objects import blend_example2_discs
-        #iobj = blend_example2_discs(8.)
-        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
-        return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
-    else:
-        raise Error()
-
 
 #from mesh1.py
 def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
@@ -313,16 +225,14 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     #mlab.quiver3d(x_verts,y_verts,z_verts, UVW_normals[:,0],UVW_normals[:,1],UVW_normals[:,2],color=(0,0,0))
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
+
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
 
-    timer_t1 = dtimer() - timer_t1s
-    print('Total time: %g (Sec)'%(timer_t1,)); sys.stdout.flush()
-
     print("Mayavi."); sys.stdout.flush()
 
-    #from mayavi import mlab
+    from mayavi import mlab
 
     if pointsizes is None:
         pointsizes = [0.2]*10
@@ -401,7 +311,6 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
-        # ******
         print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
         #ampl = 2
@@ -717,7 +626,6 @@ def visualise_normals_test():
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
 
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(11)
 
 
     #from stl_tests import make_mc_values_grid_mayavi
@@ -744,16 +652,60 @@ def visualise_normals_test():
 
 
 
-def single_subdivision_demo2():
+def single_subdivision_demo():
 
     #set_trace()
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(13)
+    #dicesize = 16.
+    #exname = "udice_vec"  # "blend_example2"
+    #import example_objects
+    #iobj = example_objects.make_example_vectorized(exname, dicesize)
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-22, +20., 0.8)
 
+    #from example_objects import cyl4
+    #iobj, (RANGE_MIN, RANGE_MAX, STEPSIZE) = \
+    #    cyl4()
+    #STEPSIZE = 1.
+
+    #from example_objects import first_csg
+    #iobj = \
+    #    first_csg(8.)
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20, 20, 1)
+
+    from example_objects import blend_example2_discs
+    #iobj = blend_example1(); (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20/4., 20/4., 1/4.)
+
+    iobj = blend_example2_discs(8.)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
     #curvature_epsilon = 1. / 4.
     #curvature_epsilon = 10000 # 1. / 40.
     #curvature_epsilon = 1. / 100   # larger==> less points
     #curvature_epsilon = 1. / 1000
     curvature_epsilon = 1. / 2000  # most points
+
+
+
+    from example_objects import make_example_vectorized
+    #exname = "bowl_15_holes"  # "blend_example2_discs" "french_fries_vectorized" "cube_example"
+    #exname = "blend_example2_discs" #
+    #exname ="ell_example1" #
+    #exname = "first_csg"
+    #exname = "bowl_15_holes"
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
+    #iobj = make_example_vectorized("???")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1, +2, 0.2)
+
+    #"rdice_vec"  too slow
+    # screw3: terrible outcome
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
+    #iobj = make_example_vectorized("screw3")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
+
+    #iobj = make_example_vectorized("rdice_vec")
+    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
+
+    iobj = make_example_vectorized("ell_example1")
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
 
     from stl_tests import make_mc_values_grid
@@ -819,7 +771,9 @@ def weighted_resampling_demo():
     #iobj = blend_example2_discs(8.)
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 2.)
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(8)
+    from example_objects import first_csg
+    iobj = first_csg(8.)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20.*2, 30.*2, 2.)
 
 
     if False:
@@ -1070,6 +1024,8 @@ def process4_combine_both(verts, facets, iobj, epsilon, RESAMPLING_ITERATIONS_CO
 def multiple_subdivisions_demo():
 
     from example_objects import blend_example2_discs
+
+
     iobj = blend_example2_discs(8.)
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 1/1.)
 
@@ -1078,11 +1034,12 @@ def multiple_subdivisions_demo():
 
 
 
-    #from example_objects import make_example_vectorized
-    #iobj = make_example_vectorized("ell_example1")
-    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    from example_objects import make_example_vectorized
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
+
+    iobj = make_example_vectorized("ell_example1")
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -1166,10 +1123,10 @@ def demo_combination_actually_do():
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 2  # 5+4
 
-    #from example_objects import make_example_vectorized
-    #iobj = make_example_vectorized("ell_example1")  # "bowl_15_holes" works too
-    #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
+    from example_objects import make_example_vectorized
+    iobj = make_example_vectorized("ell_example1")  # "bowl_15_holes" works too
+    (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -1237,6 +1194,7 @@ def demo_combination_actually_do():
        pointcloud_list=[], pointsizes=[]
        )
 
+
 def demo_combination_actually_do_plus_centroid_projection():
     """ Now combination of vertex relaxation + subdivision only. Both are iterative. """
 
@@ -1247,12 +1205,10 @@ def demo_combination_actually_do_plus_centroid_projection():
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 2  # 5+4
 
-    #from example_objects import make_example_vectorized
-    #iobj = make_example_vectorized( "ell_example1")  #
-    #    # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
+    from example_objects import make_example_vectorized
+    iobj = make_example_vectorized( "ell_example1")  #
+        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -1365,19 +1321,29 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
     b = np.zeros((3, 1))
     #assert len(center_array) == len(normals)
     assert normals.shape == center_array.shape
+    n_i = normals[:, 0:3, np.newaxis]
+#    print n_i.shape, n_i.T.shape
+    p_i = center_array[:, 0:3, np.newaxis]
+    # nnt = np.dot(n_i, n_i.T)
+#    print repr(n_i) + "+++++++++++++++++++++++++++++++++++++++++++++="
+    # import ipdb; ipdb.set_trace()
+    A = np.dot(np.reshape(n_i,(normals.shape[0],3)).T, np.reshape(n_i,(normals.shape[0],3)))
+#   b = -np.dot(np.diag(np.reshape(n_i,(normals.shape[0],3)),0), np.dot(np.diag(np.reshape(n_i,(normals.shape[0],3)),0), np.diag(p_i.reshape(normals.shape[0],3),0)))
     for i in range(normals.shape[0]):
-        n_i = normals[i, 0:3, np.newaxis]
-        assert n_i.shape == (3, 1)
-        nnt = np.dot(n_i, np.transpose(n_i))
-        assert nnt.shape == (3, 3)
-        A += nnt
-        #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
-        p_i = center_array[i, 0:3, np.newaxis]
-        assert p_i.shape == (3, 1)
-        b += -np.dot(nnt, p_i - x0)
 
+        assert n_i[i].shape == (3, 1)
+        nnt = np.dot(n_i[i], np.transpose(n_i[i]))
+
+        assert nnt.shape == (3, 3)
+        #A += nnt
+        #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
+        assert p_i[i].shape == (3, 1)
+        b += -np.dot(nnt, p_i[i] - x0)
         # IN PROGRESS
+
     return A, b
+
+
 
 @profile
 def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
@@ -1483,15 +1449,20 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
-
 def demo_combination_plus_qem():
     """ Now with QEM """
-    print "-"*1000
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
+    from example_objects import make_example_vectorized
+    iobj = make_example_vectorized(
+        #"rcube_vec")  #
+        #"rdice_vec")  #
+        #"cube_example");
+        "ell_example1")  #
+        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     import vectorized, example_objects
     c2 = vectorized.UnitCube1(1.)
@@ -1564,7 +1535,7 @@ def demo_combination_plus_qem():
     #new_centroids is the output
 
 
-    # The two CHOICEs are equaivalent. Two rewrites of the same method.
+    # The two CHOICEs are equaivalent. Two rewrite of the same method.
     CHOICE = 1
     if CHOICE == 1:
         #neighbour_faces_of_vertex
@@ -1639,20 +1610,12 @@ def demo_combination_plus_qem():
     #   #)
 
 
-from timeit import default_timer as dtimer
-from mayavi import mlab
-print("Imports done."); sys.stdout.flush()
-
-
 if __name__ == '__main__':
-
-    timer_t1s = dtimer()
-
     demo_choise = 7
     if demo_choise == 1:
         visualise_normals_test()   # visualise to check the gradients
     elif demo_choise == 2:
-        single_subdivision_demo2()  # just shows which ones subdivided
+        single_subdivision_demo()  # just shows which ones subdivided
     elif demo_choise == 3:
         weighted_resampling_demo()
     elif demo_choise == 4:
