@@ -1,3 +1,4 @@
+#note: 3 points should NOT be projected into ONE point. DEFINITELY. => dont remove the faces. Only two vertices at a time.
 from vtk_mc import vtk_mc
 import sys
 import numpy as np
@@ -13,6 +14,7 @@ CHECK_PAIRED = False
 
 class TroubledMesh(Exception):
     pass
+
 
 def check_face_triplets(faces):
     # unique faces
@@ -141,11 +143,11 @@ def check_faces(faces):
     if not np.all(np.diff(q)[::2] == 0):
         print "q"
         #print q.reshape( (q.size, 1) )
-        
+
         #for i in range(q.size):
         #    print q[i],
         #print
-        
+
         #dd = np.diff(q)[::2]
         #for i in range(dd.size):
         #    print dd[i],
@@ -330,7 +332,7 @@ def quick_vis(verts, facets, face_idx):
     display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
        pointcloud_list=[ ], pointcloud_opacity=0.2,
        mayavi_wireframe=[False, True, True], opacity=[0.3, 1, 1],
-       gradients_at=None, separate=False, gradients_from_iobj=None, add_noise=[0, 0, 0.1],
+       gradients_at=None, separate=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
        )
 
 #todo: review this code: , separate it, u-test it.
@@ -675,8 +677,10 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     assert not np.any(np.isnan(facet_areas))
 
     assert np.all(facet_areas >= 0)
-    AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
+    #AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
     #AREA_DEGENERACY_THRESHOLD = -1.  # 0.00001 ** 2
+    AREA_DEGENERACY_THRESHOLD = 0.000000000001
+
     ineq = facet_areas < AREA_DEGENERACY_THRESHOLD
     degenerates_count = len(facet_areas[ineq])
     degenerate_faces = ineq
@@ -754,8 +758,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         return any_correction
 
 
-def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
-#def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
+#def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
+def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
     """ facet_normals: can contain NaN if the area is zero.
     If AREA_DEGENERACY_THRESHOLD is None or negative, the NaN is not assiged in output """
     # see mesh1.py ::     def calculate_face_areas(self)
