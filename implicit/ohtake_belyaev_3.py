@@ -323,6 +323,16 @@ def delete_unused_vertices(verts, faces):
 
     return new_verts, new_faces
 
+
+def quick_vis(verts, facets, face_idx):
+    print facets.shape
+    print facets[face_idx, :].shape
+    display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
+       pointcloud_list=[ ], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False, True, True], opacity=[0.3, 1, 1],
+       gradients_at=None, separate=False, gradients_from_iobj=None, add_noise=[0, 0, 0.1],
+       )
+
 #todo: review this code: , separate it, u-test it.
 def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     """ nil_areas_whichfaces: indices of faces that need to be removed.
@@ -374,7 +384,15 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
         assert np.all(new_faces == map_[new_faces])
 
         #assert no map12[1, :] exist in faces
-        assert np.intersect1d(map12[1, :], new_faces.ravel()).size == 0, "assert no more vertex clustering necessary"
+
+        #wrong test:
+        #assert np.intersect1d(map12[1, :], new_faces.ravel()).size == 0, "Confirm no more vertex clustering necessary."
+        from_ = np.nonzero(map_ != np.arange(map_.shape[0]))[0]
+        assert type(from_) is np.ndarray
+        assert np.ndim(from_) == 1
+        print np.intersect1d(from_, new_faces.ravel())
+        assert np.intersect1d(from_, new_faces.ravel()).size == 0, "Confirm no more vertex clustering necessary, hence the map is complete, does not need more repeats, and is not cylic.."
+
 
     assert new_faces.shape[0] > 0
 
@@ -422,6 +440,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     new_faces2, faces_to_annihilate = map_vertices_of_nil_faces(new_faces, nil_areas_whichfaces)
     print new_faces2  #most of them are zero
     #exit()
+    #quick_vis(verts, new_faces, nil_areas_whichfaces)
 
     assert new_faces2.shape[0] > 0
 
@@ -431,8 +450,10 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     #checking if the nil_areas_whichfaces matches the faces that are now projected
     eq1 = new_faces2[:, 0] == new_faces2[:, 1]
     eq2 = new_faces2[:, 0] == new_faces2[:, 2]
-    eq12 = np.logical_and(eq1, eq2)
+    eq12 = np.logical_and(eq1, eq2)  # The triangles which all vertices have the same index number.
+    eq1or2 = np.logical_or(eq1, eq2)
     print eq12, " sum1=",np.sum(eq12)  # 81
+    print " sum1or2=",np.sum(eq1or2)
     print nil_areas_whichfaces, " sum2=", np.sum(nil_areas_whichfaces)  # 80
     #81 and 80 consequently
     #print np.nonzero( nil_areas_whichfaces != eq12)
@@ -441,7 +462,18 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     xor_ = eq12 != nil_areas_whichfaces
     #print new_faces2[xor_, :], np.nonzero(xor_)   # [290,290,290], 892
 
+    print np.sum( np.logical_and(np.logical_not(eq12), nil_areas_whichfaces))
     assert np.sum( np.logical_and(np.logical_not(eq12), nil_areas_whichfaces)) == 0, "assert nil_areas_whichfaces is-subset eq12"
+    def x():
+        n = np.logical_not; a = eq12; b = nil_areas_whichfaces; aNd = np.logical_and
+        print "a & b", np.sum(aNd(a, b))  # 80
+        print "a & ~b", np.sum(aNd(a, n(b)))  # 1   Faces that are not (area=0), but their vertices are not identical. But how?
+        print "~a & b", np.sum(aNd(n(a), b)) # 0
+    x()
+
+    a_n_b = np.nonzero(np.sum(np.logical_and(eq12, np.logical_not(nil_areas_whichfaces))))[0]
+    print a_n_b
+    #quick_vis(verts, faces, a_n_b)
 
 
     #print new_faces2[eq12, :]
@@ -456,9 +488,10 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     #It is also the concern of: map_vertices_of_nil_faces
     #new_faces = new_faces2
     #new_faces = new_faces2[ eq12 ]  # kill! -> oops.  wrong ones.
-    new_faces = new_faces2[ np.logical_not(eq12) ]  # kill!
+    if False:
+        new_faces = new_faces2[ np.logical_not(eq12) ]  # kill!
 
-
+    new_faces = new_faces2[ np.logical_not(eq1or2) ]
 
     assert new_faces.shape[0] > 0
 
@@ -641,7 +674,9 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     facet_areas = compute_triangle_areas(verts, facets, return_normals=False, AREA_DEGENERACY_THRESHOLD=None)
     assert not np.any(np.isnan(facet_areas))
 
-    AREA_DEGENERACY_THRESHOLD = 0.00001
+    assert np.all(facet_areas >= 0)
+    #AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
+    AREA_DEGENERACY_THRESHOLD = -1.  # 0.00001 ** 2
     ineq = facet_areas < AREA_DEGENERACY_THRESHOLD
     degenerates_count = len(facet_areas[ineq])
     degenerate_faces = ineq
@@ -685,7 +720,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     lb = np.nonzero( np.logical_and(nil_areas_whichfaces, np.logical_not(nil_edgelen_whichfaces)) )[0]
     #la is not informative
     la = np.nonzero( np.logical_and(np.logical_not(nil_areas_whichfaces), nil_edgelen_whichfaces) )[0]
-    assert len(la) == 0  # la, "zero-edge only", should be empty. Because 'zero edge' => 'zero area'
+    #DOES NOT HOLD:
+    # assert len(la) == 0  # la, "zero-edge only", should be empty. Because 'zero edge' => 'zero area'
     print "zero-area only", lb
     print "both area and edge are zero", lboth
 
@@ -705,6 +741,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
     any_correction = any_zero_edge or any_degenerate_area
 
+    print "-----------------"
+    print any_zero_edge , any_degenerate_area
     #assert fix_them != if_assert, (fix_them, if_assert)
     if if_assert:
         if any_correction:
@@ -717,9 +755,10 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         return any_correction
 
 
-def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
+#def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
+def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
     """ facet_normals: can contain NaN if the area is zero.
-    If AREA_DEGENERACY_THRESHOLD is None, the NaN is not assiged in output """
+    If AREA_DEGENERACY_THRESHOLD is None or negative, the NaN is not assiged in output """
     # see mesh1.py ::     def calculate_face_areas(self)
     nfaces = faces.shape[0]
     expand = verts[faces, :]
@@ -866,12 +905,14 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
 
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
-        separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
+        separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
+        add_noise=[]):
     """Two separate panels"""
 
-    print("Mayavi."); sys.stdout.flush()
+    print"Mayavi.", ; sys.stdout.flush()
 
     from mayavi import mlab
+    print "Imported."; sys.stdout.flush()
 
     if pointsizes is None:
         pointsizes = [0.2]*10
@@ -908,12 +949,67 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         else:
             wire_frame1 = mayavi_wireframe
         M = 0.1*0
-        mlab.triangular_mesh([vert[0]+M*np.random.rand() for vert in verts],
-                         [vert[1]+M*np.random.rand() for vert in verts],
-                         [vert[2]+M*np.random.rand() for vert in verts],
-                         faces,
-                         representation="surface" if not wire_frame1 else "wireframe",
-                         opacity=opacities[fi], scale_factor = 100.0)
+        if len(add_noise)>0:
+            assert len(add_noise) == len(vf_list)
+            M = float(add_noise[fi])
+
+
+        if False:
+            _v = verts
+            _f = faces
+        else:
+            _v = verts[faces, :]
+            print _v.shape
+
+            _nv = np.prod(faces.shape)
+            _v = _v.reshape( (_nv, 3) )
+            assert _nv % 3 == 0
+            _f = np.arange(_nv).reshape( (_nv/3, 3) )
+            print _nv
+            print _nv % 3, _nv / 3
+            print _f
+            print np.max(_f.ravel())
+            print _v.shape
+
+            #print _v[:10, :]
+            #print _f[:10, :]
+            #exit()
+            #_f = _f[0:5000, :]
+
+            print _f.shape
+            print _v.shape
+            print np.max(_f.ravel()), _v.shape[0]
+
+            #print _f
+            print _f.shape
+
+            qq = _v[_f,:]
+            #exit()
+
+            print np.nonzero( np.isnan(_f.ravel()) )
+            print np.nonzero( np.isinf(_f.ravel()) )
+            vv=_f.ravel(); vv.sort()
+            print np.nonzero(vv != np.arange(vv.size))
+
+            #_v = np.concatenate( (_v, np.zeros( (10000, 3) )), axis=0)
+            _v = _v + (np.random.rand( _v.shape[0], _v.shape[1] ) -0.5) * M
+
+            #qq = _v[_f, :]
+            #assert  np.all( _f.ravel() == np.arange( _f.size ) )
+            #print qq
+            #print _v
+            #assert np.all(qq.ravel() == _v.ravel())
+
+        #v1 = [_v[0]+M*np.random.rand() for vert in verts],
+        #v2 = [_v[1]+M*np.random.rand() for vert in verts],
+        #v3 = [_v[2]+M*np.random.rand() for vert in verts],
+        v1 = [v[0] for v in _v]
+        v2 = [v[1] for v in _v]
+        v3 = [v[2] for v in _v]
+        mlab.triangular_mesh(
+                        v1, v2, v3, _f,
+                        representation="surface" if not wire_frame1 else "wireframe",
+                        opacity=opacities[fi], scale_factor = 100.0)
         #opacity = 0.2 #0.1
 
 
