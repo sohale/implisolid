@@ -1,7 +1,7 @@
 from scipy.sparse import csr_matrix
 import numpy as np
 from optimize_dual_mesh import MeshOptimizer
-from ipdb import set_trace
+# from ipdb import set_trace
 from mayavi import mlab
 
 
