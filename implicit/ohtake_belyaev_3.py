@@ -1476,15 +1476,29 @@ def propagated_subdiv(verts, facets, old_edges):
     #print subdiv_edges_codes  #they are so many! 417
     intersec = np.intersect1d(all_edges_codes, subdiv_edges_codes)
     #print intersec
-    x = np.lib.arraysetops.in1d(all_edges_codes, intersec) # elements of A A[x] that are in B
-    #print x.shape, "x"
+    x_ = np.lib.arraysetops.in1d(all_edges_codes, intersec) # elements of A, A.ravel[x_], that are in B
+    print x_.shape, "x_.shape"
+    print all_edges_codes.shape, "all_edges_codes.shape"
+    print np.prod(all_edges_codes.shape), "prod(all_edges_codes.shape)"
+    print intersec.shape, "intersec.shape"
+    #assert each_of all_edges_codes.ravel()[x_] in intersec
+    edges_which_in1 = all_edges_codes.ravel()[x_] # all edges_which_in1 are in intersec
+    #print edges_which_in1
+    #exit()
+    #print x_.shape, "x_"
     #print all_edges_codes.shape
     #print intersec.shape
-    assert np.sum(x) == intersec.size  # 417
-    ticks = x.reshape(all_edges_codes.shape)
+    assert np.sum(x_) == intersec.size  # 417
+    ticks = x_.reshape(all_edges_codes.shape)
     #print ticks.shape  # -x3
     sides= np.sum(ticks, axis=1)
-    sides.sort()
+    #sides.sort()  # there is no point in sorting
+
+    #now I need whose all_edges_codes (i.e. ticks) for which sides==1
+    sides_1 = ticks[sides==1, :]
+    #print sides_1
+    #print edges_which_in1
+
     #for c in range(4):
     #    print c, ":", np.sum(sides == c)
     """
@@ -1501,7 +1515,9 @@ def propagated_subdiv(verts, facets, old_edges):
         #only propagate triangles with subdivided 1,2,3 sides.
         #exit()
 
-    return propag_list
+    #edges1 = -1 #which edges are about one side?
+
+    return propag_list, edges_which_in1
 
 
 def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
@@ -1651,6 +1667,16 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     return new_verts, new_facets, old_edges
 
 
+def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side):
+    #todo: copy some code from propagated_subdiv()
+    #check which of these edges still exist in faces. (Each should be there only once. In this context.)
+    #remove them and add more.
+    #refactor the code copied from propagated_subdiv() into function
+    print "good"
+    exit()
+    return verts2, facets2
+
+
 def do_subdivision(verts, facets, iobj, curvature_epsilon):
     assert not np.any(np.isnan(facets.ravel()))
     assert not np.any(np.isnan(verts.ravel()))  # fails
@@ -1666,14 +1692,18 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
     global trace_subdivided_facets  # third implicit output
     #verts2, facets2 = verts_subdivided, facets_subdivided
 
+    #list_facets_with_1_side = []
+    list_edges_with_1_side = []
     while True:
-        propag_list = propagated_subdiv(verts2, facets2, old_edges)
+        propag_list, edges_which_in1 = propagated_subdiv(verts2, facets2, old_edges)
         for k in propag_list:
             print "%d:"%(k,), len(propag_list[k]), propag_list[k].shape
 
-        facets_with_1_side = []
         facets_with_2_or_3_sides = np.concatenate( (propag_list[2], propag_list[3]), axis=0 )
-        facets_with_1_side += [propag_list[1]]
+        # what if those faces dont exist anymore in the next round?
+        # list_facets_with_1_side += [propag_list[1]]
+        list_edges_with_1_side += [edges_which_in1]
+
 
         print facets_with_2_or_3_sides.shape
         if facets_with_2_or_3_sides.size ==0:
@@ -1683,11 +1713,32 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
         verts2, facets2, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides)
         #todo: merge with above call
 
-    # Finishes with 2 or 3 sides.
-    print facets_with_1_side
+    # Finished with 2 or 3 sides.
+
+    # Now 1 side:
+    n1 = 0
+    for i in range(len(list_edges_with_1_side)):
+        farr = list_edges_with_1_side[i]
+        assert farr.size == farr.shape[0]
+        assert len(farr.shape) == 1
+        n1 += farr.size
+    edges_with_1_side = np.zeros((n1,), dtype=np.int)
+    n1 = 0
+    for i in range(len(list_edges_with_1_side)):
+        farr = list_edges_with_1_side[i]
+        n2 = n1 + farr.size
+        edges_with_1_side[n1:n2] = farr
+        n1 = n2
+
+    #print list_edges_with_1_side
+    #print edges_with_1_side
+
+
+    verts2, facets2 = subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side)
     exit()
 
-    v5, f5, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides)
+    #???
+    #v5, f5, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides)
 
     print("Subdivision applied.");sys.stdout.flush()
     return verts2, facets2
