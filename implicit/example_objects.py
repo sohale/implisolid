@@ -1,18 +1,8 @@
 import numpy as np
 
-# from primitives import UnitCube1
-
-# import ellipsoid
-# from crisp_csg import *
-# import transformed
-
 from basic_types import make_vector4, normalize_vector
 
 import simple_blend
-
-# from . import vectorized
-# import simple_blend_nonvec
-
 
 import vectorized
 import nonvec
@@ -32,29 +22,44 @@ def cube1():
     return c
 
 
-def dice(ns=nonvec):
-    dice_size = 2
+def dice(dice_scale, ns=nonvec):
+    dice_size = 2.0*dice_scale
     c = ns.UnitCube1(size=dice_size)
 
-    def hole(c, i, j, k):
+    def hole_crisp(c, i, j, k):
         m = np.eye(4)
-        dot_size = 0.25
+        dot_size = 0.25 * dice_scale
         m[0, 0] = dot_size
         m[1, 1] = dot_size
         m[2, 2] = dot_size
-        distance = (0.5 - 0.05) * dice_size
-        m[0:3, 3] = np.array([distance * i, distance * j, distance * k])
+        distance = (0.5-0.05)*dice_size
+        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
         s1 = ns.Ellipsoid(m)
         c = ns.CrispSubtract(c, s1)
         return c
 
+    def hole_r(c, i, j, k):
+        m = np.eye(4)
+        dot_size = 0.25 * dice_size
+        m[0, 0] = dot_size
+        m[1, 1] = dot_size
+        m[2, 2] = dot_size
+        distance = (0.5-0.05)*dice_size
+        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
+        s1 = ns.Ellipsoid(m)
+        c = ns.RSubtract(c, s1, 1.0)
+        return c
+
+    hole = hole_crisp
+    #hole = hole_r
+
     """ 1 """
     c = hole(c, 1, 0, 0)  # 1
-    # c = hole(c, 0, 1, 0)  # 2
+    #c = hole(c, 0, 1, 0)  # 2
     c = hole(c, 0, 0, 1)  # 3
-    # c = hole(c, -1, 0, 0)  # 4
+    #c = hole(c, -1, 0, 0)  # 4
     c = hole(c, 0, -1, 0)  # 5
-    # c = hole(c, 0, 0, -1)  # 6
+    #c = hole(c, 0, 0, -1)  # 6
 
     """ 2 """
     d = 0.3
@@ -62,7 +67,7 @@ def dice(ns=nonvec):
     c = hole(c, +d, 1, +d)
 
     """ 3 """
-    d = 0.4
+    d = 0.6
     c = hole(c, -d, -d, 1)
     c = hole(c, +d, +d, 1)
 
@@ -81,37 +86,37 @@ def dice(ns=nonvec):
     c = hole(c, +d, -1, +d)
 
     """ 6 """
-    d = 0.6
+    d = 0.7
     for i in range(3):
-        c = hole(c, d * (i - 1), +d, -1)
-        c = hole(c, d * (i - 1), -d, -1)
+        c = hole(c, d*(i-1), +d, -1)
+        c = hole(c, d*(i-1), -d, -1)
 
     return c
+
+
 
 
 """ Preparing some implicit objects """
 
 
-def csg_example1():
-    m1 = np.eye(4) * 2
-    m1[1, 1] = 0.4
+def csg_example1(scale=1.):
+    m1 = np.eye(4) * 2 * scale
+    m1[1, 1] = 0.4 * scale
     m1[0:3, 3] = [0, 0, 0]
     m1[3, 3] = 1
 
-    m2 = np.eye(4) * 1
-    rcenter = [0.5, 0, 0]
+    m2 = np.eye(4) * 1 * scale
+    rcenter = [0.5 * scale, 0, 0]
     m2[0:3, 3] = rcenter[0:3]
     m2[3, 3] = 1
 
-    m3 = np.eye(4) * 1.2
-    m3[0:3, 3] = [1.5, 0, 0]
+    m3 = np.eye(4) * 1.2 * scale
+    m3[0:3, 3] = [1.5 * scale, 0, 0]
     m3[3, 3] = 1
 
-    m4 = np.eye(4)
-    m4[0:3, 3] = [1.5, 0, 0]
+    m4 = np.eye(4) * scale
+    m4[0:3, 3] = [1.5 * scale, 0, 0]
     m4[3, 3] = 1
-
-    # iobj = ellipsoid.Ellipsoid(m)
 
     iobj = nonvec.CrispSubtract(nonvec.CrispUnion(nonvec.Ellipsoid(m1), nonvec.Ellipsoid(m2)), nonvec.Ellipsoid(m3))
     return iobj
@@ -172,20 +177,19 @@ def bowl_hole():
 
     return iobj
 
-
-def rdice_(ns=nonvec):
+def rdice_(ns=nonvec, scale=1., rotated=True):
     # m = np.eye(4)
     # m[0:3, 3] = [0, 0, 0]
     # m[2, 2] = 0.8
     # m[1, 2] = -0.4
 
-    d = dice(ns)
+    d = dice(scale, ns=ns)
     return d
     iobj = ns.Transformed(d)
     iobj  \
-        .move(-0.2, -0.2, 0) \
+        .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
-    iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
+    iobj.rotate(20, along=make_vector4(1, 1, 1), units="deg")
     return iobj
 
 
@@ -210,6 +214,11 @@ def rdice_vec(scale):
     return rdice_(vectorized, scale)
 
 
+def udice_vec(scale=1.):       
+   """ Un-rotated dice """       
+   return rdice_(vectorized, scale, rotated=False)
+
+
 def rcube_vec(scale):
     return rcube_(vectorized, scale)
 
@@ -223,8 +232,8 @@ def blend_example2(scale=1.):
     m1[3, 3] = 1
 
     m2 = np.eye(4) * 2
-    m2[0:3, 3] = [2, 0, 0]
-    m2[2, 2] = 0.4
+    m2[0:3, 3] = [2 * scale, 0, 0]
+    m2[2, 2] = 0.4 * scale
     m2[3, 3] = 1
 
     a, b = vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)
@@ -243,11 +252,6 @@ def ell_example1(scale):
     m1[1, 2] = 0.4 * scale
     m1[0:3, 3] = [0, 1 * scale, 0]
     m1[3, 3] = 1
-
-    # m2 = np.eye(4) * 2
-    # m2[0:3, 3] = [2, 0, 0]
-    # m2[2, 2] = 0.4
-    # m2[3, 3] = 1
 
     iobj = vectorized.Ellipsoid(m1)
     iobj_ = nonvec.Ellipsoid(m1)
@@ -298,10 +302,6 @@ def first_csg(scale):
     m3 = np.eye(4) * 1.2 * scale
     m3[0:3, 3] = [1.5 * scale, 0, 0]
     m3[3, 3] = 1
-
-    # m4 = np.eye(4)
-    # m4[0:3,3] = [1.5,0,0]
-    # m4[3,3] = 1
 
     iobj = vectorized.CrispSubtract(vectorized.CrispUnion(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)), vectorized.Ellipsoid(m3))
     return iobj
@@ -588,7 +588,6 @@ def make_example_pair(name):
 
 def make_example_vectorized(name, scale=1.0):
     assert any(name == s for s in examples)
-    # print(name, ": pair", examples[name])
     assert examples[name] in [2, 3], "Incorrect example type"
     if examples[name] == 2:
         res = globals()[name](scale)
@@ -601,7 +600,8 @@ def make_example_vectorized(name, scale=1.0):
 
 def test_creation_of_all_Examples():
     for name in examples:
-        res = globals()[name]()
+        scale = 1.
+        res = globals()[name](scale)
         # print("OK.")
 
 
@@ -804,7 +804,6 @@ def cyl2():
             u3 = np.cross(v[:3], w[:3])
             u3 = u3 / np.linalg.norm(u3[:3])
             u = make_vector4(u3[0], u3[1], u3[2])
-            # print "dot", np.dot(w,u)
             # return w, u
             return u
 
