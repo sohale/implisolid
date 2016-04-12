@@ -1764,8 +1764,8 @@ def demo_everything():
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
-        global trace_subdivided_facets
         verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+        global trace_subdivided_facets  # third implicit output
         verts4_subdivided = verts  # ??
         facets3_subdivided = facets
 
@@ -1982,8 +1982,9 @@ def demo_combination_actually_do():
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
-        #global trace_subdivided_facets
+        #not tested:
         verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+        global trace_subdivided_facets  # third implicit output
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
@@ -2051,19 +2052,19 @@ def demo_combination_actually_do_plus_centroid_projection():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
-        assert np.sum(np.isnan(e_array)) == 0, "NaN"
-        #ohtake_belyaev_2.py:1122: RuntimeWarning: invalid value encountered in greater
-        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
-
-        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
-
-        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
+        #e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+        #assert np.sum(np.isnan(e_array)) == 0, "NaN"
+        #e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+        #which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+        #verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
+        #global trace_subdivided_facets  # third implicit output
+        #verts, facets = verts4_subdivided, facets3_subdivided
+        #print("Subdivision applied.");sys.stdout.flush()
+        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
-        #chosen_facet_indices = np.array(trace_subdivided_facets)
-        verts, facets = verts4_subdivided, facets3_subdivided
-        print("Subdivision applied.");sys.stdout.flush()
+        #verts4_subdivided = verts
+        #facets3_subdivided = facets
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
@@ -2313,17 +2314,19 @@ def demo_combination_plus_qem():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
-        assert np.sum(np.isnan(e_array)) == 0, "NaN"
-        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
-
-        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
-
-        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
+        #e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+        #assert np.sum(np.isnan(e_array)) == 0, "NaN"
+        #e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+        #which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+        #verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
+        #global trace_subdivided_facets  # third implicit output
+        #verts, facets = verts4_subdivided, facets3_subdivided
+        #print("Subdivision applied.");sys.stdout.flush()
+        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
-        verts, facets = verts4_subdivided, facets3_subdivided
-        print("Subdivision applied.");sys.stdout.flush()
+        #verts4_subdivided = verts
+        #facets3_subdivided = facets
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
