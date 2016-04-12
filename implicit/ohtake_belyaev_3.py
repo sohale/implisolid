@@ -1656,6 +1656,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
     print("Subdivision applied.");sys.stdout.flush()
     return verts, facets
 
+
 def demo_everything():
     """ Base on demo_combination_plus_qem """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
@@ -1980,24 +1981,9 @@ def demo_combination_actually_do():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
-        #print e_array
-
-        assert np.sum(np.isnan(e_array)) == 0, "NaN"
-        #ohtake_belyaev_2.py:1122: RuntimeWarning: invalid value encountered in greater
-        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
-
-
-        #if np.any(np.isnan(e_array)):
-        #    print "funny NaN values around."
-        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
-
-        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
-        global trace_subdivided_facets  # third implicit output
-        #chosen_facet_indices = np.array(trace_subdivided_facets)
-        verts, facets = verts4_subdivided, facets3_subdivided
-        print("Subdivision applied.");sys.stdout.flush()
+        #global trace_subdivided_facets
+        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
