@@ -140,6 +140,8 @@ def check_faces(faces):
     #faces[face_idx, vert_idx_2]
     #exit()
 
+    #assert np.all(np.diff(q)[1::2] != 0)  # what about the very first one
+
     if not np.all(np.diff(q)[::2] == 0):
         print "q"
         #print q.reshape( (q.size, 1) )
@@ -202,8 +204,134 @@ def visualise_edge_distribution(elist):
     plt.plot(np.log10(special_lengths+leps), special_lengths*0+100, "*")
     plt.show()
 
-def fix_faces_3div2(facets):
-    pass
+
+#def fix_faces_3div2(faces):
+#    from mesh_utils import make_neighbour_faces_of_vertex
+#    neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(facets)
+#    faces_of_faces = build_faces_of_faces(facets)
+
+def REMOVE_REPEATED_EDGES(faces):
+    #see check_faces()
+
+    f0 = faces[:, np.newaxis, 0:2]
+    f1 = faces[:, np.newaxis, 1:3]
+    f2 = faces[:, np.newaxis, np.array([0, 2])]
+    f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
+    f1 = f1.copy(); f1.sort(axis=2)
+    f2 = f2.copy(); f2.sort(axis=2)
+    fe3 = np.concatenate( (f0, f1, f2), axis=1)  # shape==(:,3,2)
+
+    B = 100000
+    BB = np.array([1, B])
+    edg = np.dot(fe3, BB)
+    print edg.shape  # fx3
+    print edg
+
+    #Sort edges to detect repeated edges. Each edge should appear exactly twice.
+    #was q
+    edg_sorted = edg.ravel()
+    sort_idx = edg_sorted.argsort()
+    assert sort_idx.shape == (faces.shape[0]*3,)
+    print sort_idx
+    q_unsorted = edg_sorted.copy()
+    edg_sorted.sort()
+    assert np.all(q_unsorted[sort_idx] == edg_sorted)
+    print edg_sorted[:10]
+    print "diff=", np.diff(edg_sorted)[:10]
+
+    assert np.all(np.diff(edg_sorted)[0::2] == 0), "some edges are not exactly repeated once: not manifold."
+    assert np.all(np.diff(edg_sorted)[1::2] != 0), "some edges are not exactly repeated once: not manifold."
+    print (faces.shape[0])/3.
+    assert faces.shape[0] % 3 == 0
+
+    #back to pairs
+    fe3_ravel = fe3.reshape( (np.prod(fe3.shape[0:2]), 2) )
+    #exit()
+    return
+
+    #print fe3_ravel.shape, "ss"
+    #print fe3_ravel[:5*3, :]
+    #print faces[:5,:]
+    #print f2
+    #exit()
+
+    #print locals().keys()
+
+    #idx_xy = np.unravel_index( sort_idx[:10], fe3.shape[0:2] )
+    idx_xy = np.unravel_index( sort_idx[:], fe3.shape[0:2] )
+    #idx_xy is a tuple
+    face_idx = idx_xy[0]
+    side_idx = idx_xy[1]
+    print "sort_idx=", sort_idx[:10]
+    print "face, side=", face_idx, side_idx
+
+    vert_idx_1 = side_idx
+    vert_idx_2 = (side_idx + 1) % 3
+    v1 = faces[face_idx, vert_idx_1]
+    v2 = faces[face_idx, vert_idx_2]
+
+    v12 = np.concatenate((v1[:, np.newaxis], v2[:, np.newaxis]), axis=1)
+
+    #Now they are the same: v12 and fe3_ravel
+    print v12
+    print fe3_ravel[sort_idx[:10], :]
+
+    #You can get the sorted inices here:
+    #faces[face_idx, vert_idx_1]
+    #faces[face_idx, vert_idx_2]
+
+    if not np.all(np.diff(edg_sorted)[::2] == 0):
+        pass
+
+
+
+
+
+
+def REMOVE_REPEATED_FACES_NEVER_NECESSARY(faces):
+    """ Remove faces that are exactly repeated """
+    print "ok"
+
+    # based on check_face_triplets()
+    # unique faces
+    f3sides = faces.copy()
+    f3sides.sort(axis=1)
+
+    B = 100000  # better: B = max of vertex index = 10**(floor(log10(verts.shape[0]+111))+1); assert ...
+    BBB = np.array([1, B, B*B])
+
+    face_triplet_ids = np.dot(f3sides, BBB)
+    #face_triplet_ids = face_triplet_ids
+    del f3sides
+
+    #print face_triplet_ids
+    #print face_triplet_ids.shape
+    #exit()
+
+    face_order = face_triplet_ids.argsort()
+    face_triplet_ids.sort()
+    # Check there is no repeated faces (with exact same vertex list):
+    diff0 = (np.diff(face_triplet_ids) == 0)
+    assert np.sum(diff0) == 0
+    #no repeat of faces
+
+    if np.sum(diff0) != 0: # 74 != 0
+        #get the original indices from the sorted
+        redunds = np.nonzero(diff0)[0]
+
+        # diff01: shifted version, for print only. to print both sides (Elements) of each "diff==0"
+        diff01 = diff0.copy()
+        diff01[redunds+1] = True
+        #print face_triplet_ids[diff0]
+        #print face_triplet_ids[diff01]
+
+        #redundants = redunds + 1
+        faces = np.delete( faces, redunds + 1, axis=0 )
+        print redunds + 1
+        exit()
+    print "no problem"
+    #exit()
+    return faces
 
 
 def unused_vertices_slow(verts, facets):
@@ -331,7 +459,7 @@ def quick_vis(verts, facets, face_idx):
     print facets[face_idx, :].shape
     display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
        pointcloud_list=[ ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, True, True], opacity=[0.3, 1, 1],
+       mayavi_wireframe=[False, True, True], opacity=[0.1, 1, 0.2],
        gradients_at=None, separate=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
        )
 
@@ -815,6 +943,11 @@ def compute_centroid_gradients(centroids, iobj, normalise=True):
     else:
         return centroid_gradients
 
+def check_faces3(facets):
+    #REMOVE_REPEATED_FACES_NEVER_NECESSARY(facets)
+    REMOVE_REPEATED_EDGES(facets)
+    pass
+
 
 def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
@@ -825,6 +958,7 @@ def build_faces_of_faces(facets):
     #pudb.set_trace()
     #set_trace()
     check_faces(facets)
+    check_faces3(facets)
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
         make_edge_lookup_old(facets)
         # ****
@@ -857,7 +991,13 @@ def build_faces_of_faces(facets):
     return f_uniq - 1  # fix back the indices
 
 
+global q
+q=0
 def process2_vertex_resampling_relaxation(verts, facets, iobj):
+    global q
+    q+=1
+    print "q"*1000, q
+    #facets = fix_faces_3div2(facets)
     centroids = compute_centroids(verts, facets)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
     from mesh_utils import make_neighbour_faces_of_vertex
@@ -870,6 +1010,8 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj):
 
 
 
+global failure_pairs
+failure_pairs = []
 
 #from mesh1.py
 def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
@@ -902,9 +1044,12 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
         pipj = np.linalg.norm(pi - pj)
         #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
         assert pipj == np.linalg.norm(pi - pj, ord=2)
-        #if pipj==0:
-        #    pipj = 1
-        #CAN BE ZERO ****************
+
+        if pipj==0:
+            failure_pairs.append( (i, j) )
+            #raise TroubledMesh("repeated triangle")
+            pipj = 1
+        #CAN BE absolute ZERO! ****************
         #FIXME
         assert pipj > 0  # fails # ****
 
@@ -995,7 +1140,7 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
     r = lift_verts(verts, centroids)
     print r.shape
     assert not np.any(np.isnan(r.ravel()))  # fails
-    exit()
+    #exit()
     return r
 
 
@@ -1209,7 +1354,9 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
 
 
 def compute_facets_subdivision_curvatures(verts, facets, iobj):
-    """ Deviation of Mesh from object gradients """
+    """ Deviation of Mesh from object gradients.
+    This function does not create the subdivisions.
+    It just computes. The function subdivide_multiple_facets() does the actual subdivision. """
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
@@ -1261,7 +1408,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
             print "WARNING: degenerate triangle", fi, " = ",facets[fi,:]
         else:
             assert not degenerate_faces[fi]
-        print subdiv_centroids4.shape
+        #print "*",subdiv_centroids4.shape  # too many lines printed
         #Problem: there are NaNs
         assert not np.any(np.isnan(subdiv_centroids4.ravel()))
         #check_vector4_vectorized(subdiv_centroids4)
@@ -1278,7 +1425,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         #    set_trace()
 
         if fi % 100 == 0:
-            print fi, "\r", ;import sys; sys.stdout.flush()
+            print fi, "*   \r", ;import sys; sys.stdout.flush()
     l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
@@ -1287,7 +1434,67 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     return e_array, bad_facets_count
 
 
+def propagated_subdiv(verts, facets, old_edges):
+    """ Reports the indices triangles that are to be subdivided 
+    as a propagation of a previous subdivision.
+    It returns separatesly the (not-yet-subdivided) triangles 
+    with 1,2 and 3 sibdivided sides, in a dictionary."""
+    #facets = new_facets
+    #verts = new_verts
+    #print old_edges
+    subdivided_edges = np.asarray(old_edges)
+    print subdivided_edges.shape
+    assert subdivided_edges.shape[1] == 2
+    subdivided_edges.sort(axis=1)
+    B = 100000
+    BB = np.array([1, B])
+
+    subdiv_edges_codes = np.dot(subdivided_edges, BB)
+
+    fc0 = facets.copy()
+    f0 = facets[:, np.newaxis, [0, 1]]
+    f1 = facets[:, np.newaxis, [1, 2]]
+    f2 = facets[:, np.newaxis, [0, 2]]
+    f012 = np.concatenate( (f0, f1, f2), axis=1 )
+    f012.sort(axis=2)
+    assert np.all(fc0.ravel() == facets.ravel())  # no copy() needed
+    all_edges_codes = np.dot(f012, BB)
+
+    #now look for subdiv_edges_codes in all_edges_codes
+    #print all_edges_codes
+    #print subdiv_edges_codes  #they are so many! 417
+    intersec = np.intersect1d(all_edges_codes, subdiv_edges_codes)
+    #print intersec
+    x = np.lib.arraysetops.in1d(all_edges_codes, intersec) # elements of A A[x] that are in B
+    #print x.shape, "x"
+    #print all_edges_codes.shape
+    #print intersec.shape
+    assert np.sum(x) == intersec.size  # 417
+    ticks = x.reshape(all_edges_codes.shape)
+    #print ticks.shape  # -x3
+    sides= np.sum(ticks, axis=1)
+    sides.sort()
+    for c in range(4):
+        print c, ":", np.sum(sides == c)
+    """
+    0 : 3083
+    1 : 232
+    2 : 85
+    3 : 5
+    """
+    # "2" will propagate further. But not 3 and 1.
+    propag_list = {}
+    for c in range(1, 4):
+        idx = np.nonzero(sides == c)[0]
+        propag_list[c] = idx
+        #only propagate triangles with subdivided 1,2,3 sides.
+        #exit()
+
+    return propag_list
+
+
 def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
+    """ Use compute_facets_subdivision_curvatures() to calculate tobe_subdivided_face_indices"""
 
     # todo: store subdivided gradients (on top of centroids), to avoid unnecessary calculations. When updating vettices, remove the caches.
     # todo: avoid recomputing
@@ -1333,6 +1540,12 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     #on number of added vertices:
     #problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
     #also later check for faces with repeated edges. (which can be another cause of null normals)
+
+    print "Subdividing:"
+
+    #edges that need to be divided because of the neighbouring triangle subdivided
+    #subdivided_edges = []
+    old_edges = []
 
     new_vertex_counter = nverts_old
     new_facet_counter = nfaces_old
@@ -1380,7 +1593,15 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
         mini_faces = v012345[np.array(mini_faces_l)]
 
-        new_facets[fi, :] = mini_faces[0, :]
+        original_facet_index = fi
+        #print original_facet_index
+        #print new_facets.shape
+        #print fi
+        old_edges .append(tuple(new_facets[original_facet_index, [0, 1]].tolist()))
+        old_edges .append(tuple(new_facets[original_facet_index, [1, 2]].tolist()))
+        old_edges .append(tuple(new_facets[original_facet_index, [2, 0]].tolist()))
+
+        new_facets[original_facet_index, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
         assert mini_faces.shape[0] == (1+3)
         #trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3))
@@ -1389,24 +1610,51 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
         new_facet_counter += 3
 
-
         #return mini_verts, mini_faces
         #numsubdiv = 4
 
-        if fi % 100 == 0:
-            print fi, "\r", ;import sys; sys.stdout.flush()
+        if subdiv_i % 10 == 0:
+            print subdiv_i , " @                     \r", ;import sys; sys.stdout.flush()
+            #," @", new_facet_counter/3, new_vertex_counter/3
+    print ""
 
     print new_verts.shape[0], new_vertex_counter
 
     assert new_verts.shape[0] == new_vertex_counter
     assert new_facets.shape[0] == new_facet_counter
-    print "v", provisional_new_verts_count+nverts_old, new_vertex_counter
-    print "f", provisional_new_facets_count+nfaces_old, new_facet_counter
-    assert provisional_new_verts_count+nverts_old == new_vertex_counter
-    assert provisional_new_facets_count+nfaces_old == new_facet_counter
+    assert provisional_new_verts_count+nverts_old == new_vertex_counter, "vector consistency"
+    assert provisional_new_facets_count+nfaces_old == new_facet_counter, "face consistency"
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_facet_counter
-    return new_verts, new_facets
+    #return new_verts, new_facets
 
+
+    #facets = new_facets
+    #verts = new_verts
+    propag_list = propagated_subdiv(new_verts, new_facets, old_edges)
+    #print propag_list
+
+    #exit()
+
+
+    return new_verts, new_facets, old_edges
+
+
+def do_subdivision(verts, facets, iobj, curvature_epsilon):
+    assert not np.any(np.isnan(facets.ravel()))
+    assert not np.any(np.isnan(verts.ravel()))  # fails
+
+    e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+
+    assert np.sum(np.isnan(e_array)) == 0, "NaN"
+    e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+
+    which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+
+    verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
+    global trace_subdivided_facets  # third implicit output
+    verts, facets = verts4_subdivided, facets3_subdivided
+    print("Subdivision applied.");sys.stdout.flush()
+    return verts, facets
 
 def demo_everything():
     """ Base on demo_combination_plus_qem """
@@ -1443,9 +1691,13 @@ def demo_everything():
     #print verts.shape, verts.shape[0]/2.
     print facets.shape, facets.shape[0]/3.
     #exit()
-    check_faces(facets)
+    #check_faces(facets)
 
-    fix_faces_3div2(facets)
+
+    #facets = fix_faces_3div2(facets)
+
+    #print ("sdfsf")
+    #exit()
 
     assert not np.any(np.isnan(verts.ravel()))  # fine
 
@@ -1462,8 +1714,20 @@ def demo_everything():
     old_verts, old_facets = verts, facets
     assert not np.any(np.isnan(verts.ravel()))  # fine
 
+    print np.diff(verts[ [352, 363], : ], axis=0)  # is zero!
+    print np.diff(verts[ [361, 373], : ], axis=0)  # is zero!
+    #*********
+    #exit()
+
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+
+        #facets = fix_faces_3div2(facets)
+
+
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+
+        #facets = fix_faces_3div2(facets)
+
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
         verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
@@ -1471,6 +1735,24 @@ def demo_everything():
         if any_mesh_correction:
             print("mesh correction needed")
             exit()
+
+    print "failure_pairs"
+    print failure_pairs
+    fpna = np.asarray(failure_pairs).ravel()
+    print facets[fpna, :]
+    print "unique triangles:", np.unique(fpna)
+    print "unique vertices:", np.unique(facets[fpna, :].ravel())
+    print "***fpna****"
+    print facets[fpna,:]
+    coords = verts[facets[fpna,:]]
+    print coords.shape  # 16x3x3
+    print coords.reshape(16, 9)
+    #exit()
+    #quick_vis(verts, facets, fpna)
+
+    #quick_vis(old_verts, old_facets, fpna)
+    #exit()
+    #********************
 
     #compute_facets_subdivision_curvatures
     #subdivide_multiple_facets
@@ -1480,25 +1762,18 @@ def demo_everything():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        assert not np.any(np.isnan(facets.ravel()))
-        assert not np.any(np.isnan(verts.ravel()))  # fails
 
-        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
-
-        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
-
-        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
-
-        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
-        global trace_subdivided_facets  # third implicit output
-        verts, facets = verts4_subdivided, facets3_subdivided
-        print("Subdivision applied.");sys.stdout.flush()
+        global trace_subdivided_facets
+        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+        verts4_subdivided = verts  # ??
+        facets3_subdivided = facets
 
         verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "assert")
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            print "i", "="*10, i
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
             print("Vertex relaxation applied.");sys.stdout.flush()
             verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
@@ -1709,13 +1984,16 @@ def demo_combination_actually_do():
 
         #print e_array
 
+        assert np.sum(np.isnan(e_array)) == 0, "NaN"
         #ohtake_belyaev_2.py:1122: RuntimeWarning: invalid value encountered in greater
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+
+
         #if np.any(np.isnan(e_array)):
         #    print "funny NaN values around."
         which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
 
-        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
+        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
         #chosen_facet_indices = np.array(trace_subdivided_facets)
         verts, facets = verts4_subdivided, facets3_subdivided
@@ -1789,15 +2067,13 @@ def demo_combination_actually_do_plus_centroid_projection():
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
         e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
-        #print e_array
-
+        assert np.sum(np.isnan(e_array)) == 0, "NaN"
         #ohtake_belyaev_2.py:1122: RuntimeWarning: invalid value encountered in greater
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
-        #if np.any(np.isnan(e_array)):
-        #    print "funny NaN values around."
+
         which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
 
-        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
+        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
         #chosen_facet_indices = np.array(trace_subdivided_facets)
         verts, facets = verts4_subdivided, facets3_subdivided
@@ -2053,11 +2329,12 @@ def demo_combination_plus_qem():
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
         e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
 
+        assert np.sum(np.isnan(e_array)) == 0, "NaN"
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
         which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
 
-        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
+        verts4_subdivided, facets3_subdivided, oe = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
         verts, facets = verts4_subdivided, facets3_subdivided
         print("Subdivision applied.");sys.stdout.flush()
