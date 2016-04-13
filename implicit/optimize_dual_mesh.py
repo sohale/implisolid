@@ -71,7 +71,7 @@ class MeshOptimizer(object):
         self.lamda = calc_avg_triangle_length(self.triangles) / 2
         print "[End] Loading example:  %s" % example_name + ' .'
 
-    # @profile
+
     @profile
     def plot_mesh(self, primal_mesh=True, axisOn=True, representation="surface"):
         print "[Start]: Plotting mesh for:  %s" % self.name + ' ...'
@@ -311,6 +311,24 @@ def plot3d_planes(self, ind):
 
         scalars = normal[0] * x + normal[1] * y + normal[2] * z - np.dot(point, normal)
         mlab.contour3d(x, y, z, scalars, contours=[0], opacity=0.2, color=my_colors[i])
+
+
+def build_neighbor_list_c2c(centroids, faces, neighbors_list):
+    """ This function returns a dictionary with centroid indexes for keys.
+        For each key the value is a list containing the centroids that are
+        neighbors of the key.
+    """
+
+    res = []
+    for i, centroid in enumerate(centroids):
+        v1, v2, v3 = faces[i]
+        n1, n2, n3 = neighbors_list[v1], neighbors_list[v2], neighbors_list[v3]
+        partial1 = [item for item in n1 if item in n2]
+        partial2 = [item for item in n2 if item in n3]
+        partial3 = [item for item in n1 if item in n3]
+        n = partial1 + partial2 + partial3
+        res.append([item for item in n if n.count(item) == 1])
+    return np.array(res)
 
 
 def calc_avg_triangle_length(triangles):
