@@ -1542,6 +1542,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         [1.,   0.,  0.],  # 0
         [0.,   1.,  0.],  # 1
         [0.,   0.,  1.],  # 2
+        #todo: remove unnecessary points
 
         [0.5/(1.+DIP),  0.5/(1.+DIP),  DIP/(1.+DIP)],  # 3
         [DIP/(1.+DIP),  0.5/(1.+DIP),  0.5/(1.+DIP)],  # 4
@@ -1578,52 +1579,40 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     #edges that need to be divided because of the neighbouring triangle subdivided
     #subdivided_edges = []
     old_edges = []
+    redundancy_counter = 0
 
     new_vertex_counter = nverts_old
     new_facet_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
 
         fi = tobe_subdivided_face_indices[subdiv_i]
-        oldtriangle = verts_old[facets_old[fi, :], :]  # numverts x 3
-        assert oldtriangle.shape == (3, 3)
-        VVV = oldtriangle  # (nv=3) x 3
+        triangle_old = verts_old[facets_old[fi, :], :]  # numverts x 3
+        assert triangle_old.shape == (3, 3)
 
-        # new verices
-        m0123 = np.dot(np.dot(centroidmaker_matrix, subdiv_vert_matrix), VVV)
-        assert m0123.shape == (4, 3)
-        subdiv_centroids = m0123
-
-        vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
-        assert vxyz_0123.shape == (6, 3)
-
-        #tobeadded_verts = m0123
-        #tobeadded_verts = m123
-        #subdivision = oldtriangle
-
-        #mini_verts = np.concatenate( (oldtriangle, tobeadded_verts), axis=0)
+        #output: v345_xyz
+        _vxyz_0123 = np.dot(subdiv_vert_matrix, triangle_old)  # not efficient
+        assert _vxyz_0123.shape == (6, 3)
+        v345_xyz = _vxyz_0123[3:6, :]  # only pick the new ones
+        del _vxyz_0123
 
         # adding new verts and facets
-
-        #*********
-        # indices of original points
-        #v012 = facets_old[fi, :]  # range(0, 3)  #
-        #v345 = np.arange(new_vertex_counter, new_vertex_counter+3, dtype=int)   #range(3, 6)
-        v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
-        v345 = range(new_vertex_counter, new_vertex_counter+3)
-
-        v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
-
-        assert len(v345) == 3
-        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
-
-        new_vertex_counter += 3
-
+        # indices of original points. Output: mini_faces
+        _v345 = range(new_vertex_counter, new_vertex_counter+3)
+        _v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
         # facet's vertex indices
-        v012345 = np.array(v012 + v345, dtype=int)
+        _v012345 = np.array(_v012 + _v345, dtype=int)
+        _mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
+        mini_faces = _v012345[np.array(_mini_faces_l)]
 
-        mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
+        del _v012
+        del _v345
+        del _v012345
 
-        mini_faces = v012345[np.array(mini_faces_l)]
+        #mapped_midvertices = np.arange(new_vertex_counter, new_vertex_counter+3)  # == v345
+        mapped_midvertices = range(new_vertex_counter, new_vertex_counter+3)  # == v345
+        #actual_mapped_midvertices = mapped_midvertices
+        #actual_mapped_midvertices = np.arange(new_vertex_counter, new_vertex_counter+3)  # == v345
+        #new_verts[mapped_midvertices, :] = v345_xyz
 
         original_facet_index = fi
         #print original_facet_index
@@ -1641,18 +1630,60 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         B = 100000
         BB = np.array([1, B])
         edges = np.dot(e012, BB)
-        mapped_midvertices = np.arange(new_vertex_counter, new_vertex_counter+3)
+
+        #avoid becasue it is redundant
+        avoid_which = np.zeros((3,), dtype=np.bool) + False
+
+        actual_3_vertices = np.zeros((3,), dtype=np.int)
         for i in range(3):
             if edges[i] in midpoint_map:
                 #print "midpoint already exists: [", edges[i], "]", midpoint_map[edges[i]], "->", mapped_midvertices[i]
-                pass
-            midpoint_map[edges[i]] = mapped_midvertices[i]
+                #print actual_mapped_midvertices
+                #actual_mapped_midvertices[i] = np.nan  # midpoint_map[edges[i]]
+                #print actual_mapped_midvertices
+                avoid_which[i] = True
+                mapped_midvertices[i] = -1  # for debug
+                redundancy_counter += 1
+                actual_3_vertices[i] = midpoint_map[edges[i]]
+            else:
+                x = mapped_midvertices[i]
+                midpoint_map[edges[i]] = x
+                actual_3_vertices[i] = x
         #print "len(midpoint_map)", len(midpoint_map)
 
+        use_which = np.logical_not(avoid_which)
+        #print use_which
+        #print v345_xyz[use_which, :]
+        #exit()
+        #new_vertex_counter += np.sum(use_which)
+        n1 = new_vertex_counter
+        n2 = n1 + np.sum(use_which)
+        new_vertex_counter = n2
+        #new_verts[use_which, :] = v345_xyz[use_which, :]
+        new_verts[n1:n2, :] = v345_xyz[use_which, :]
 
 
+        #make sure  mapped_midvertices i not [-1]
+        #assert mapped_midvertices
+
+        #now midpoint_map contains all
+        #actual_3_vertices = midpoint_map[]
+
+        #    print actual_mapped_midvertices
+        #    print avoid_which
+        #    use_which = np.logical_not(avoid_which)
+        #    #del actual_mapped_midvertices
+        #    #actual_mapped_midvertices = filter(lambda x: not np.isnan(x), actual_mapped_midvertices)
+        #    print actual_mapped_midvertices
+        #    #new_verts[mapped_midvertices, :] = v345_xyz
+        #    indices = actual_mapped_midvertices[use_which]
+        #    print filter(lambda x: not np.isnan(x), actual_mapped_midvertices)
+        #    print indices
+        #    new_verts[indices, :] = v345_xyz[use_which, :]
+        #    new_vertex_counter += len(indices) #v_increment
 
 
+        # facet's vertex indices
         new_facets[original_facet_index, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
         assert mini_faces.shape[0] == (1+3)
@@ -1678,10 +1709,21 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     print ""
 
     print new_verts.shape[0], new_vertex_counter
+    assert new_verts.shape[0] - new_vertex_counter == redundancy_counter
+    #assert new_verts.shape[0] == new_vertex_counter #files
+
+    print new_verts.shape
+    new_verts = new_verts[:new_vertex_counter, :]
+
+    quick_vis(new_verts, new_facets, [])
+
+
+    print np.max(new_facets.ravel()), new_verts.shape[0]
+    assert np.max(new_facets.ravel()) < new_verts.shape[0]
 
     assert new_verts.shape[0] == new_vertex_counter
     assert new_facets.shape[0] == new_facet_counter
-    assert provisional_new_verts_count+nverts_old == new_vertex_counter, "vector consistency"
+    assert provisional_new_verts_count+nverts_old-redundancy_counter == new_vertex_counter, "vector consistency"
     assert provisional_new_facets_count+nfaces_old == new_facet_counter, "face consistency"
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_facet_counter
     #return new_verts, new_facets
@@ -1702,7 +1744,7 @@ def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside
     #refactor the code copied from propagated_subdiv() into function
     #need to also get the new points. oops!! damn.
     print "good"
-    exit()
+    #exit()
     return verts2, facets2
 
 
@@ -1769,7 +1811,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
 
     whichside = []
     verts2, facets2 = subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map)
-    exit()
+    #exit()
 
     #???
     #v5, f5, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, ..)
@@ -1790,7 +1832,7 @@ def demo_everything():
         #"rcube_vec")  #
         #"rdice_vec")  #
         #"cube_example") # problem: zero facet areas
-        "ell_example1")  #+    
+        "ell_example1")  #+
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
