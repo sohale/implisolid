@@ -1187,7 +1187,7 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
-def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0, 
+def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
         add_noise=[]):
     """Two separate panels"""
@@ -1435,9 +1435,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 
 
 def propagated_subdiv(verts, facets, old_edges):
-    """ Reports the indices triangles that are to be subdivided 
+    """ Reports the indices triangles that are to be subdivided
     as a propagation of a previous subdivision.
-    It returns separatesly the (not-yet-subdivided) triangles 
+    It returns separatesly the (not-yet-subdivided) triangles
     with 1,2 and 3 sibdivided sides, in a dictionary."""
     #facets = new_facets
     #verts = new_verts
@@ -2379,7 +2379,7 @@ def demo_combination_plus_qem():
             #both not necessary here!
             #m.update_centroids_and_gradients(iobj)
             #m.update_centroids_and_gradients(iobj)
-            
+
             # if not qem_breakdown:
             m.quadratic_optimise_vertices(1)
             m.verts = m.new_verts
@@ -2410,7 +2410,7 @@ def demo_combination_plus_qem():
 
     """
     display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),],
-       pointcloud_list=[],   
+       pointcloud_list=[],
        mayavi_wireframe=[False], opacity=[0.2, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
     """
