@@ -1448,7 +1448,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 
 import mesh_utils
-
+@profile
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
