@@ -1520,7 +1520,7 @@ def propagated_subdiv(verts, facets, old_edges):
     return propag_list, edges_which_in1
 
 
-def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
+def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices, midpoint_map):
     """ Use compute_facets_subdivision_curvatures() to calculate tobe_subdivided_face_indices.
     Does not remove vertices => will be valid. But vertices will change: new elements will be appended to it.
     Returns: new vertices and faces.
@@ -1629,9 +1629,29 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #print original_facet_index
         #print new_facets.shape
         #print fi
-        old_edges .append(tuple(new_facets[original_facet_index, [0, 1]].tolist()))
-        old_edges .append(tuple(new_facets[original_facet_index, [1, 2]].tolist()))
-        old_edges .append(tuple(new_facets[original_facet_index, [2, 0]].tolist()))
+        e0 = new_facets[original_facet_index, [0, 1]]
+        e1 = new_facets[original_facet_index, [1, 2]]
+        e2 = new_facets[original_facet_index, [2, 0]]
+        old_edges .append(tuple(e0.tolist()))
+        old_edges .append(tuple(e1.tolist()))
+        old_edges .append(tuple(e2.tolist()))
+
+        e012 = np.vstack((e0, e1, e2))
+        e012.sort(axis=1)
+        B = 100000
+        BB = np.array([1, B])
+        edges = np.dot(e012, BB)
+        mapped_midvertices = np.arange(new_vertex_counter, new_vertex_counter+3)
+        for i in range(3):
+            if edges[i] in midpoint_map:
+                #print "midpoint already exists: [", edges[i], "]", midpoint_map[edges[i]], "->", mapped_midvertices[i]
+                pass
+            midpoint_map[edges[i]] = mapped_midvertices[i]
+        #print "len(midpoint_map)", len(midpoint_map)
+
+
+
+
 
         new_facets[original_facet_index, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
@@ -1641,6 +1661,13 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         # trace_subdivided_facets will contain indices of faces
 
         new_facet_counter += 3
+
+        #todo: if already exist, dont add.
+
+
+
+        #todo
+        #midpoint_map[] = ***
 
         #return mini_verts, mini_faces
         #numsubdiv = 4
@@ -1667,11 +1694,13 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     return new_verts, new_facets, old_edges
 
 
-def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side):
+def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map):
+    """list_edges_with_1_side contains the edges only. The face should be extracted in this function. """
     #todo: copy some code from propagated_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
     #remove them and add more.
     #refactor the code copied from propagated_subdiv() into function
+    #need to also get the new points. oops!! damn.
     print "good"
     exit()
     return verts2, facets2
@@ -1688,7 +1717,9 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
 
     which_facets = np.arange(facets.shape[0])[ curvatures > curvature_epsilon ]
 
-    verts2, facets2, old_edges = subdivide_multiple_facets(verts, facets, which_facets)
+    midpoint_map = {}
+    #midpoint_map is input and output. midpoint_map is a dictionary that given an edge's unique_int_id, gives you the vertex in the midpoint. It may contain midpoints that are not used anymore.
+    verts2, facets2, old_edges = subdivide_multiple_facets(verts, facets, which_facets, midpoint_map)
     global trace_subdivided_facets  # third implicit output
     #verts2, facets2 = verts_subdivided, facets_subdivided
 
@@ -1710,12 +1741,13 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
             print facets_with_2_or_3_sides.shape
             print "COOL"
             break
-        verts2, facets2, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides)
+        verts2, facets2, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, midpoint_map)
         #todo: merge with above call
 
     # Finished with 2 or 3 sides.
 
     # Now 1 side:
+    #Append all the lists in list_edges_with_1_side
     n1 = 0
     for i in range(len(list_edges_with_1_side)):
         farr = list_edges_with_1_side[i]
@@ -1730,15 +1762,17 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
         edges_with_1_side[n1:n2] = farr
         n1 = n2
 
+
     #print list_edges_with_1_side
     #print edges_with_1_side
 
 
-    verts2, facets2 = subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side)
+    whichside = []
+    verts2, facets2 = subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map)
     exit()
 
     #???
-    #v5, f5, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides)
+    #v5, f5, old_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, ..)
 
     print("Subdivision applied.");sys.stdout.flush()
     return verts2, facets2
