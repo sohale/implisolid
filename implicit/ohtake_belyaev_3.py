@@ -574,10 +574,11 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     new_faces2, faces_to_annihilate = map_vertices_of_nil_faces(new_faces, nil_areas_whichfaces)
     print new_faces2  #most of them are zero
     #exit()
+    ###########################################################
     quick_vis(verts, new_faces, nil_areas_whichfaces)
+    ####################################
 
     assert new_faces2.shape[0] > 0
-
     assert new_faces2.shape[0] > 0
 
 
@@ -1442,7 +1443,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     # assert np.sum(np.isnan(curvatures_array)) == 0
     l = curvatures_array[np.logical_not(np.isnan(curvatures_array))].tolist()
     l.sort()
-    print l
+    #print l
 
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
     bad_facets_count = np.sum(degenerate_faces)
@@ -1695,7 +1696,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #_v345 = range(n1, n2)
         _v345 = actual_3_vertices.tolist()
         _v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
-        print _v012, actual_3_vertices, avoid_which, "redundancy_counter", redundancy_counter
+        #print _v012, actual_3_vertices, avoid_which, "redundancy_counter", redundancy_counter
 
         # facet's vertex indices
         _v012345 = np.array(_v012 + _v345, dtype=int)
@@ -1738,7 +1739,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     new_verts = new_verts[:new_vertex_counter, :]
 
     #quick_vis(noisy(new_verts, 0.05), new_facets, [])
-    quick_vis(noisy(new_verts, 0.05), new_facets, range(new_facets.shape[0]))
+    #quick_vis(noisy(new_verts, 0.05), new_facets, range(new_facets.shape[0]))
 
 
     print np.max(new_facets.ravel()), new_verts.shape[0]
@@ -1825,7 +1826,16 @@ def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside
     #refactor the code copied from propagated_subdiv() into function
     #need to also get the new points. oops!! damn.
     print "good"
-    #exit()
+    #There is a guarantee that all faces that the edges_with_1_side belong to, have exactly one edge from this list.
+    #Note that these edges may be already subdivided
+    print "*"*300
+    #for e in edges_with_1_side:
+    #    if not e in midpoint_map:
+    #        print e,
+    #print
+    el = filter(lambda e: not e in midpoint_map, edges_with_1_side)
+    print el
+    assert len(el) == 0
     return verts2, facets2
 
 
@@ -1943,7 +1953,13 @@ def test_example_meshes():
 
 
     #exit()
-    v2, f2 = do_subdivision(v, f, iob, -1)  # all
+    ampl = 0.05
+    v2, f2 = v, f
+    for i in range(3+2):
+        v2, f2 = do_subdivision(v2, f2, iob, -1)  # all
+        v2 = noisy(v2, ampl)
+        quick_vis(v2, f2, range(f2.shape[0]))
+        ampl = ampl * 0.5
     #print f2
     #print v2
 
