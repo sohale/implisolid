@@ -1450,6 +1450,8 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     #assert bad_facets_count == 0
     return curvatures_array, bad_facets_count
 
+global jk
+jk = 0
 
 def propagated_subdiv(verts, facets, old_edges):
     """ Reports the indices triangles that are to be subdivided
@@ -1483,6 +1485,8 @@ def propagated_subdiv(verts, facets, old_edges):
     #now look for subdiv_edges_codes in all_edges_codes
     #print all_edges_codes
     #print subdiv_edges_codes  #they are so many! 417
+
+    #todo: refactor: intersec seems to be not used anymore
     intersec = np.intersect1d(all_edges_codes, subdiv_edges_codes)
     #print intersec
     x_ = np.lib.arraysetops.in1d(all_edges_codes, intersec) # elements of A, A.ravel[x_], that are in B
@@ -1497,7 +1501,15 @@ def propagated_subdiv(verts, facets, old_edges):
     #print x_.shape, "x_"
     #print all_edges_codes.shape
     #print intersec.shape
+    print np.sum(x_)
+    print intersec.size
+
+    global jk
+    jk += 1
+    print "jk="*100, jk
+
     assert np.sum(x_) == intersec.size  # 417
+
     ticks = x_.reshape(all_edges_codes.shape)
     #print ticks.shape  # -x3
     sides= np.sum(ticks, axis=1)
@@ -1593,7 +1605,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
     print "Subdividing:"
 
-    #edges that need to be divided because of the neighbouring triangle subdivided
+    #The edges that need to be divided because of the neighbouring triangle subdivided
     #subdivided_edges = []
     old_edges = []
     redundancy_counter = 0
@@ -1634,7 +1646,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         e012.sort(axis=1)
         B = 100000
         BB = np.array([1, B])
-        edges = np.dot(e012, BB)
+        all3edges = np.dot(e012, BB)
 
         #avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
@@ -1642,19 +1654,19 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         idx_counter = new_vertex_counter
         actual_3_vertices = np.zeros((3,), dtype=np.int)
         for i in range(3):
-            if edges[i] in midpoint_map:
+            if all3edges[i] in midpoint_map:
                 avoid_which[i] = True
-                actual_3_vertices[i] = midpoint_map[edges[i]]
+                actual_3_vertices[i] = midpoint_map[all3edges[i]]
                 #mapped_midvertices[i] = -1  # for debug
                 redundancy_counter += 1
             else:
                 assert avoid_which[i] == False
                 #x = mapped_midvertices[i]  # wrong!
                 x = idx_counter
-                midpoint_map[edges[i]] = x
+                midpoint_map[all3edges[i]] = x
                 idx_counter += 1
                 actual_3_vertices[i] = idx_counter - 1  # the new vertex
-                #if edges[i] == 700000:
+                #if all3edges[i] == 700000:
                 #    exit()
         #print "len(midpoint_map)", len(midpoint_map)
 
@@ -1758,7 +1770,13 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     #print np.all(verts_old_old == new_verts, axis=None)  # (0,) ) # axes)
     #exit()
     return new_verts, new_facets, old_edges
+    # todo: refactor "old_edges"
 
+
+def testcase_square():
+    v = np.array([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0] ])
+    f = np.array([[0, 1, 2], [0, 2, 3]])
+    return v, f
 
 def testcase_cube():
     faces_xyz = []
@@ -1815,17 +1833,17 @@ def testcase_cube():
     f =  np.array(faces)
     return v, f
 
+#from ipdb import set_trace
 
-
-
-def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map):
+def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoint_map):
     """list_edges_with_1_side contains the edges only. The face should be extracted in this function. """
     #todo: copy some code from propagated_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
+    #Some edges_with_1_side may not be in facets. They are already subdivided twice.
     #remove them and add more.
     #refactor the code copied from propagated_subdiv() into function
     #need to also get the new points. oops!! damn.
-    print "good"
+    #
     #There is a guarantee that all faces that the edges_with_1_side belong to, have exactly one edge from this list.
     #Note that these edges may be already subdivided
     print "*"*300
@@ -1833,13 +1851,116 @@ def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside
     #    if not e in midpoint_map:
     #        print e,
     #print
+
+    #yes of course all of them are there in it
+
+
     el = filter(lambda e: not e in midpoint_map, edges_with_1_side)
-    print el
     assert len(el) == 0
-    return verts2, facets2
+    #print edges_with_1_side
+    #print midpoint_map
 
 
-def do_subdivision(verts, facets, iobj, curvature_epsilon):
+    e0 = facets[:, np.newaxis, [0, 1]]
+    e1 = facets[:, np.newaxis, [1, 2]]
+    e2 = facets[:, np.newaxis, [2, 0]]
+    #e012 = np.vstack((e0, e1, e2))
+    e012 = np.concatenate((e0, e1, e2), axis=1)
+    e012.sort(axis=2)
+    B = 100000
+    BB = np.array([1, B])
+    all3edges = np.dot(e012, BB)
+    # n x 3
+    all3edges_ravel = all3edges.ravel()
+    print all3edges.shape
+    assert all3edges.shape[1] == 3
+    #set_trace()
+
+    #all3edges_ravel***
+
+    #intersec = np.intersect1d(all3edges_ravel, edges_with_1_side)
+
+    x_ = np.lib.arraysetops.in1d(all3edges_ravel, edges_with_1_side) # elements of A, A.ravel[x_], that are in B
+    print np.sum(x_), edges_with_1_side.shape
+    print "facets.shape", facets.shape, "x=", np.prod(facets.shape)
+    print "all3edges_ravel", all3edges_ravel.shape
+    print "all3edges_ravel", all3edges_ravel
+    print "edges_with_1_side", edges_with_1_side
+    print all3edges_ravel[x_]
+    print x_
+    #assert np.sum(x_) == edges_with_1_side.size, "not all of them were found. Some edges_with_1_side may not be in facets. They are already subdivided twice."
+    print x_.shape, "x_.shape"
+    print all3edges_ravel.shape, "all_edges_codes.shape"
+    #assert each_of all3edges_ravel.ravel()[x_] in intersec
+    #assert edges_which_in1 == all3edges_ravel.ravel()[x_] # all edges_which_in1 are in intersec
+    #assert np.sum(x_) == intersec.size
+    assert np.all(np.sum(x_.reshape(3, -1), axis=0) <= 1)
+    print x_.reshape(3, -1)
+    print "THIS FAILS"
+    exit()
+
+    face3_idx = np.nonzero(x_)[0]
+
+    idx_xy = np.unravel_index(face3_idx[:], all3edges.shape)
+    #idx_xy is a tuple
+    bad_face_idx = idx_xy[0]
+    bad_side_idx = idx_xy[1]
+    print bad_face_idx
+    print bad_side_idx
+    #all bad_face_idx should be removed
+
+    # The subdivided edge is between v1 and v2.
+    vert_idx_1 = bad_side_idx
+    vert_idx_2 = (bad_side_idx + 1) % 3
+    vert_idx_3 = (bad_side_idx + 2) % 3
+    v1 = facets[bad_face_idx, vert_idx_1]
+    v2 = facets[bad_face_idx, vert_idx_2]
+    v3 = facets[bad_face_idx, vert_idx_3]
+
+    #edge_codes = facets[bad_face_idx, bad_side_idx]
+    edge_pairs = np.vstack((v1, v2))
+    print edge_pairs
+
+    edge_s_codes = all3edges_ravel[x_]
+    print edge_s_codes
+    #vert_idx_mid
+    midpoints_third_verts = np.array(map(lambda edgecode: midpoint_map[edgecode], edge_s_codes), dtype=np.int)
+    print midpoints_third_verts
+    if midpoints_third_verts.size == 0:
+        exit()
+
+    #(v1,v3, midpoints_third_verts),  (v2,v3, midpoints_third_verts)
+    new_faces1 = np.vstack(((v1, v3, midpoints_third_verts))).T  # axis is 0. .T.size = N x 3
+    new_faces2 = np.vstack(((v2, v3, midpoints_third_verts))).T
+    print new_faces1
+    print new_faces2
+    print midpoints_third_verts.dtype
+    print midpoints_third_verts.dtype
+
+    # numpy's zip()
+    new_faces = np.concatenate((new_faces1[:, np.newaxis, :], new_faces2[:, np.newaxis, :]), axis=1).reshape(-1, 3)
+    print new_faces.shape
+    print new_faces
+
+    #good_boolean = np.zeros((facets.shape[0],), np.bool) + True
+    #good_boolean[bad_face_idx] =
+    f_rm = np.delete(facets, bad_face_idx, axis=0)
+    appended_faces = np.concatenate( (f_rm, new_faces), axis=0 )
+    return appended_faces
+    #exit()
+
+    #subdiv_12(bad_face_idx, bad_side_idx)
+
+    #vert_idx_mid = np.array(map(lambda x: 1))
+    #v12 = np.concatenate((v1[:, np.newaxis], v2[:, np.newaxis]), axis=1)
+    #one midpoint for each only.
+    for e in edges_with_1_side:
+        mid = midpoint_map[e]
+        #****
+    return facets
+
+
+def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probability=1.):
     assert not np.any(np.isnan(facets.ravel()))
     assert not np.any(np.isnan(verts.ravel()))  # fails
 
@@ -1849,6 +1970,16 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
     curvatures[np.isnan(curvatures)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
     which_facets = np.arange(facets.shape[0])[ curvatures > curvature_epsilon ]
+    if randomized_probability < 1.:
+        n0 = which_facets.shape[0]
+        #print randomized_probability, n0
+        m0 = np.ceil(float(randomized_probability)*float(n0))
+        #print n0, m0
+        #exit()
+        ridx = np.random.choice(n0, m0, replace=False)
+        assert len(ridx) == m0
+        #ridx = np.random.rand(n0) <= randomized_probability
+        which_facets = which_facets[ridx]
 
     midpoint_map = {}
     #midpoint_map is input and output. midpoint_map is a dictionary that given an edge's unique_int_id, gives you the vertex in the midpoint. It may contain midpoints that are not used anymore.
@@ -1901,7 +2032,11 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
 
 
     whichside = []
-    verts2, facets2 = subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map)
+    facets2 = subdivide_1to2_multiple_facets(facets2, edges_with_1_side, whichside, midpoint_map)
+    #print facets2.dtype
+    #print facets2
+    #exit()
+
     #exit()
 
     #???
@@ -1912,7 +2047,11 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
 
 
 def test_example_meshes():
-    v, f = testcase_cube()
+
+    np.random.seed(seed=7)
+
+    #v, f = testcase_cube()
+    v, f = testcase_square()
     print f
 
     v = noisy(v, 0.05)
@@ -1956,7 +2095,7 @@ def test_example_meshes():
     ampl = 0.05
     v2, f2 = v, f
     for i in range(3+2):
-        v2, f2 = do_subdivision(v2, f2, iob, -1)  # all
+        v2, f2 = do_subdivision(v2, f2, iob, -1, randomized_probability=0.3 )  # all
         v2 = noisy(v2, ampl)
         quick_vis(v2, f2, range(f2.shape[0]))
         ampl = ampl * 0.5
