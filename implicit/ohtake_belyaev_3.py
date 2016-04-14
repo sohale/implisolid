@@ -1634,8 +1634,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         B = 100000
         BB = np.array([1, B])
         edges = np.dot(e012, BB)
-        print
-        print "edges", edges
 
         #avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
@@ -1645,7 +1643,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         for i in range(3):
             if edges[i] in midpoint_map:
                 avoid_which[i] = True
-                print "midpoint reused = ", midpoint_map[edges[i]], " midpoint_map[",edges[i],"]"
                 actual_3_vertices[i] = midpoint_map[edges[i]]
                 #mapped_midvertices[i] = -1  # for debug
                 redundancy_counter += 1
@@ -1654,7 +1651,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
                 #x = mapped_midvertices[i]  # wrong!
                 x = idx_counter
                 midpoint_map[edges[i]] = x
-                print " - "*20, " midpoint_map[",edges[i],"] = ", x
                 idx_counter += 1
                 actual_3_vertices[i] = idx_counter - 1  # the new vertex
                 #if edges[i] == 700000:
@@ -1948,8 +1944,8 @@ def test_example_meshes():
 
     #exit()
     v2, f2 = do_subdivision(v, f, iob, -1)  # all
-    print f2
-    print v2
+    #print f2
+    #print v2
 
 
 test_example_meshes()
