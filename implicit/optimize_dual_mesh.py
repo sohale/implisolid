@@ -2,7 +2,7 @@ import numpy as np
 import mesh_utils
 import profile_support
 from mayavi import mlab
-# from ipdb import set_trace
+from ipdb import set_trace
 """
 
 Optimizing dual mesh
@@ -142,6 +142,8 @@ class MeshOptimizer(object):
 
     def update_centroids(self):
         self.centroids = np.mean(self.vertices[self.faces[:], :], axis=1)
+        # set_trace()
+        self.centroids[:,3] = 1
 
     def buildAFromNormal(self, point):
         assert not np.any(np.isnan(point)), "there should not be any NaN values"
