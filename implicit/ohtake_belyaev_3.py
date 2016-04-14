@@ -1530,6 +1530,9 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     # todo: store subdivided gradients (on top of centroids), to avoid unnecessary calculations. When updating vettices, remove the caches.
     # todo: avoid recomputing
 
+
+    #TODO: INDEX PROBLEM
+
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
         [0, 1, 0, 1, 1, 0],  # 314
@@ -1595,18 +1598,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         v345_xyz = _vxyz_0123[3:6, :]  # only pick the new ones
         del _vxyz_0123
 
-        # adding new verts and facets
-        # indices of original points. Output: mini_faces
-        _v345 = range(new_vertex_counter, new_vertex_counter+3)
-        _v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
-        # facet's vertex indices
-        _v012345 = np.array(_v012 + _v345, dtype=int)
-        _mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
-        mini_faces = _v012345[np.array(_mini_faces_l)]
-
-        del _v012
-        del _v345
-        del _v012345
 
         #mapped_midvertices = np.arange(new_vertex_counter, new_vertex_counter+3)  # == v345
         mapped_midvertices = range(new_vertex_counter, new_vertex_counter+3)  # == v345
@@ -1634,32 +1625,27 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
 
+        idx_counter = new_vertex_counter
         actual_3_vertices = np.zeros((3,), dtype=np.int)
         for i in range(3):
             if edges[i] in midpoint_map:
-                #print "midpoint already exists: [", edges[i], "]", midpoint_map[edges[i]], "->", mapped_midvertices[i]
-                #print actual_mapped_midvertices
-                #actual_mapped_midvertices[i] = np.nan  # midpoint_map[edges[i]]
-                #print actual_mapped_midvertices
                 avoid_which[i] = True
-                mapped_midvertices[i] = -1  # for debug
-                redundancy_counter += 1
                 actual_3_vertices[i] = midpoint_map[edges[i]]
+                #mapped_midvertices[i] = -1  # for debug
+                redundancy_counter += 1
             else:
                 x = mapped_midvertices[i]
                 midpoint_map[edges[i]] = x
-                actual_3_vertices[i] = x
+                idx_counter += 1
+                actual_3_vertices[i] = idx_counter - 1  # the new vertex
         #print "len(midpoint_map)", len(midpoint_map)
 
+
         use_which = np.logical_not(avoid_which)
-        #print use_which
-        #print v345_xyz[use_which, :]
-        #exit()
-        #new_vertex_counter += np.sum(use_which)
         n1 = new_vertex_counter
-        n2 = n1 + np.sum(use_which)
+        n2 = idx_counter
+        assert n2 == n1 + np.sum(use_which)
         new_vertex_counter = n2
-        #new_verts[use_which, :] = v345_xyz[use_which, :]
         new_verts[n1:n2, :] = v345_xyz[use_which, :]
 
 
@@ -1667,7 +1653,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #assert mapped_midvertices
 
         #now midpoint_map contains all
-        #actual_3_vertices = midpoint_map[]
+        #actual_3_vertices[..] = midpoint_map[]
 
         #    print actual_mapped_midvertices
         #    print avoid_which
@@ -1683,6 +1669,27 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #    new_vertex_counter += len(indices) #v_increment
 
 
+
+        #Output: mini_faces
+        # adding new verts and facets
+        # indices of original points.
+
+        #_v345 = range(new_vertex_counter, new_vertex_counter+3)
+        #_v345 = range(n1, n2)
+        _v345 = actual_3_vertices.tolist()
+        _v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
+        print _v012, actual_3_vertices, avoid_which, "redundancy_counter", redundancy_counter
+
+        # facet's vertex indices
+        _v012345 = np.array(_v012 + _v345, dtype=int)
+        _mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
+        mini_faces = _v012345[np.array(_mini_faces_l)]
+
+        del _v012
+        del _v345
+        del _v012345
+
+
         # facet's vertex indices
         new_facets[original_facet_index, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
@@ -1696,14 +1703,12 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #todo: if already exist, dont add.
 
 
-
         #todo
         #midpoint_map[] = ***
 
-        #return mini_verts, mini_faces
         #numsubdiv = 4
 
-        if subdiv_i % 10 == 0:
+        if True: #subdiv_i % 10 == 0:
             print subdiv_i , " @                     \r", ;import sys; sys.stdout.flush()
             #," @", new_facet_counter/3, new_vertex_counter/3
     print ""
@@ -1736,6 +1741,64 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     return new_verts, new_facets, old_edges
 
 
+def testcase_cube():
+    faces_xyz = []
+    for d in range(3):
+        dims = np.array([(d+1) % 3, (d+2) %3, d])  # new dimensions that x, y, z are mapped into
+        for s in range(2):
+            side_verts = []
+            for x in range(2):
+                for y in range(2):
+                    #print np.array([x, y, s]),
+                    xyz = np.array([x, y, s])[dims]
+                    #print xyz
+                    side_verts.append(tuple(xyz))
+            #reorder = np.array([0,1,3,2,0])
+            #reorder = [[0, 1], [1, 3], [3, 2], [2, 0]]
+            #verts_reorders = map( lambda edge: [side_verts[edge[0]],side_verts[edge[1]]] , reorder)
+            reorder = [[0, 1, 3], [3, 2, 0]]
+            verts_reorders = map( lambda face: [side_verts[face[0]], side_verts[face[1]], side_verts[face[2]] ] , reorder)
+            faces_xyz += verts_reorders
+    #print faces_xyz
+    vertdict = {}
+    vert_index_dict = {}
+    pure_verts = []
+    faces = []
+    for i in range(len(faces_xyz)):
+        f = faces_xyz[i]
+        face1 = []
+        for v in f:
+            key = str(v)
+            if key in vertdict:
+                idx = vert_index_dict[key]
+            else:
+                pure_verts.append(v)
+                idx = len(pure_verts) - 1
+                vert_index_dict[key] = idx
+            vertdict[key] = v
+            face1.append(idx)
+        faces.append(face1)
+
+
+    #for v in  vertdict:
+    #    print v
+    #print vertdict
+    #print vert_index_dict
+    #print pure_verts
+    for i in range(len(faces_xyz)):
+        f = faces_xyz[i]
+        for v in f:
+            xyz = vertdict[str(v)]
+    verts = pure_verts
+    #print
+    #print faces
+    v =  np.array(verts)
+    f =  np.array(faces)
+    return v, f
+
+
+
+
 def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside, midpoint_map):
     """list_edges_with_1_side contains the edges only. The face should be extracted in this function. """
     #todo: copy some code from propagated_subdiv()
@@ -1747,6 +1810,14 @@ def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside
     #exit()
     return verts2, facets2
 
+def test_example_meshes():
+    v,f = testcase_cube()
+    print f
+    print v
+    #exit()
+    #do_subdivision***
+
+test_example_meshes()
 
 def do_subdivision(verts, facets, iobj, curvature_epsilon):
     assert not np.any(np.isnan(facets.ravel()))
