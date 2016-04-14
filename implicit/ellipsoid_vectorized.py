@@ -62,7 +62,7 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
             super(Transformed, self).__init__(initialMatrix=m)
             #print(self.__class__)
 
-        print(type(base_object))
+        #print(type(base_object))
         assert issubclass(type(base_object), ImplicitFunctionVectorized)
         self.base_object = base_object
 

@@ -1426,6 +1426,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
         mm = mm.transpose()  # 3x4
         e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+
+        # The only reason for NaN should be the exactly-zero gradients
+
         #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
         #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
         curvatures_array[fi] = e
@@ -1434,8 +1437,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 
         if fi % 100 == 0:
             print fi, "*   \r", ;import sys; sys.stdout.flush()
+
+    # The only reason for NaN should be the exactly-zero gradients
+    # assert np.sum(np.isnan(curvatures_array)) == 0
     l = curvatures_array[np.logical_not(np.isnan(curvatures_array))].tolist()
     l.sort()
+    print l
+
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
     bad_facets_count = np.sum(degenerate_faces)
     #assert bad_facets_count == 0
@@ -1518,6 +1526,11 @@ def propagated_subdiv(verts, facets, old_edges):
     #edges1 = -1 #which edges are about one side?
 
     return propag_list, edges_which_in1
+
+
+def noisy(v, ampl):
+    v = v + (np.random.rand(v.shape[0],v.shape[1])*2.-1.) * ampl
+    return v
 
 
 def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices, midpoint_map):
@@ -1621,6 +1634,8 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         B = 100000
         BB = np.array([1, B])
         edges = np.dot(e012, BB)
+        print
+        print "edges", edges
 
         #avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
@@ -1630,14 +1645,20 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         for i in range(3):
             if edges[i] in midpoint_map:
                 avoid_which[i] = True
+                print "midpoint reused = ", midpoint_map[edges[i]], " midpoint_map[",edges[i],"]"
                 actual_3_vertices[i] = midpoint_map[edges[i]]
                 #mapped_midvertices[i] = -1  # for debug
                 redundancy_counter += 1
             else:
-                x = mapped_midvertices[i]
+                assert avoid_which[i] == False
+                #x = mapped_midvertices[i]  # wrong!
+                x = idx_counter
                 midpoint_map[edges[i]] = x
+                print " - "*20, " midpoint_map[",edges[i],"] = ", x
                 idx_counter += 1
                 actual_3_vertices[i] = idx_counter - 1  # the new vertex
+                #if edges[i] == 700000:
+                #    exit()
         #print "len(midpoint_map)", len(midpoint_map)
 
 
@@ -1720,7 +1741,8 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     print new_verts.shape
     new_verts = new_verts[:new_vertex_counter, :]
 
-    quick_vis(new_verts, new_facets, [])
+    #quick_vis(noisy(new_verts, 0.05), new_facets, [])
+    quick_vis(noisy(new_verts, 0.05), new_facets, range(new_facets.shape[0]))
 
 
     print np.max(new_facets.ravel()), new_verts.shape[0]
@@ -1810,14 +1832,6 @@ def subdivide_1to2_multiple_facets(verts2, facets2, edges_with_1_side, whichside
     #exit()
     return verts2, facets2
 
-def test_example_meshes():
-    v,f = testcase_cube()
-    print f
-    print v
-    #exit()
-    #do_subdivision***
-
-test_example_meshes()
 
 def do_subdivision(verts, facets, iobj, curvature_epsilon):
     assert not np.any(np.isnan(facets.ravel()))
@@ -1889,6 +1903,57 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon):
 
     print("Subdivision applied.");sys.stdout.flush()
     return verts2, facets2
+
+
+def test_example_meshes():
+    v, f = testcase_cube()
+    print f
+
+    v = noisy(v, 0.05)
+    #v = v + (np.random.rand(v.shape[0],v.shape[1])*2.-1.) * 0.05
+
+    from vectorized import ImplicitFunctionVectorized
+    class DummyImplicit(ImplicitFunctionVectorized):
+        def __init__(self):
+            pass
+
+        def implicitFunction(self, p):
+            check_vector4_vectorized(p)
+            return p[:, 0] * 0. - 1.
+
+        def implicitGradient(self, p):
+            check_vector4_vectorized(p)
+            g = p * 0. + 1.
+            check_vector4_vectorized(g)
+            return g
+
+        def hessianMatrix(self, p):
+            check_vector4(p)
+            h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)
+            return h
+
+    def make_Cube():
+        import vectorized
+        ns = vectorized
+        c = ns.UnitCube1()
+        m2 = np.eye(4)
+        m2[0, 0] = 1
+        m2[1, 1] = 1
+        iobj = ns.Transformed(c, m2)
+        return iobj
+
+    #iob = make_Cube()
+    iob = DummyImplicit()
+
+
+    #exit()
+    v2, f2 = do_subdivision(v, f, iob, -1)  # all
+    print f2
+    print v2
+
+
+test_example_meshes()
+exit()
 
 
 def demo_everything():

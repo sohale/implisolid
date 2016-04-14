@@ -78,7 +78,7 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
             self.n0 += [n0]
             self.p0[-1][3] = 1
             self.n0[-1][3] = 1
-            print(self.p0[-1])
+            #print(self.p0[-1])
             check_vector4(self.p0[-1])
             check_vector4(self.n0[-1])
 
