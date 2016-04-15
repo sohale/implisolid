@@ -2254,7 +2254,7 @@ def demo_everything():
     """ Base on demo_combination_plus_qem """
     curvature_epsilon = 1. / 1000. *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 5  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     global STEPSIZE
     from example_objects import make_example_vectorized
@@ -2327,6 +2327,7 @@ def demo_everything():
         print("Vertex relaxation applied.");sys.stdout.flush()
         verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
         assert not np.any(np.isnan(verts.ravel()))  # fails
+        assert not any_mesh_correction
         if any_mesh_correction:
             print("mesh correction needed")
             exit()
@@ -2365,9 +2366,9 @@ def demo_everything():
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            print "i", "="*10, i
+            #print "i", "="*10, i
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-            print("Vertex relaxation applied.");sys.stdout.flush()
+            print("Vertex relaxation2 applied again.");sys.stdout.flush()
             verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
 
     ################
@@ -2425,7 +2426,7 @@ def demo_everything():
 
     display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[True, True], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
 
 def compute_average_edge_length(verts, faces):

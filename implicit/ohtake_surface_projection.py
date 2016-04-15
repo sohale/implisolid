@@ -459,6 +459,7 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist ):
 
 def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
     #nones_map = centroids[:,0]*0 < 100
+    print "Projecting the centroids:"
     for i in range(centroids.shape[0]):
         print i,
         e = average_edge
@@ -470,7 +471,9 @@ def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
             centroids[i] = c
         else:
             nones_map[i] = True
-    print nones_map
+    #print nones_map
+    if np.any(nones_map):
+        print "failed projections: = ", np.sum(nones_map)
 
 
 def display_simple_using_mayavi_(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0):
