@@ -2235,7 +2235,7 @@ def test_example_meshes():
     ampl = 0.05
     v2, f2 = v, f
     for i in range(3+2+2):
-        v2, f2 = do_subdivision(v2, f2, iob, -1, randomized_probability=0.45 )  # all
+        v2, f2 = do_subdivision(v2, f2, iob, -1, randomized_probability=0.3 )  # all
         v2 = noisy(v2, ampl)
         quick_vis(v2, f2, range(f2.shape[0]))
         ampl = ampl * 0.5
@@ -2243,13 +2243,15 @@ def test_example_meshes():
     #print v2
 
 
-test_example_meshes()
-exit()
+#test_example_meshes()
+#exit()
 
+
+import mesh_utils
 
 def demo_everything():
     """ Base on demo_combination_plus_qem """
-    curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
+    curvature_epsilon = 1. / 1000. /10000. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
     SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
@@ -2261,9 +2263,10 @@ def demo_everything():
         #"cube_example") # problem: zero facet areas
         "ell_example1")  #+
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5)
 
-    iobj = two_bricks()
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    #iobj = two_bricks()
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -2305,8 +2308,9 @@ def demo_everything():
     old_verts, old_facets = verts, facets
     assert not np.any(np.isnan(verts.ravel()))  # fine
 
-    print np.diff(verts[ [352, 363], : ], axis=0)  # is zero!
-    print np.diff(verts[ [361, 373], : ], axis=0)  # is zero!
+    #print np.diff(verts[ [352, 363], : ], axis=0)  # is zero!
+    #print np.diff(verts[ [361, 373], : ], axis=0)  # is zero!
+
     #*********
     #exit()
 
@@ -2328,7 +2332,7 @@ def demo_everything():
 
     print "failure_pairs"  # list of pairs that have zero distance in weighted resampling.
     #print failure_pairs
-    fpna = np.asarray(failure_pairs).ravel()
+    fpna = np.asarray(failure_pairs, dtype=np.int).ravel()
     #print facets[fpna, :]
     #print "unique triangles:", np.unique(fpna)
     #print "unique vertices:", np.unique(facets[fpna, :].ravel())
@@ -2365,6 +2369,7 @@ def demo_everything():
             print("Vertex relaxation applied.");sys.stdout.flush()
             verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
 
+    ################
     #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
@@ -2410,16 +2415,193 @@ def demo_everything():
     else:
         chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
-    highlighted_vertices = np.arange(100, 200)
+    #red balls
+    highlighted_vertices = np.array([], dtype=np.int)  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
 
     check_degenerate_faces(new_verts_qem_alpha, facets, "assert")
     check_degenerate_faces(new_verts_qem, facets, "assert")
 
+    print "this "*100
     display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       mayavi_wireframe=[True, True], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
+
+def compute_average_edge_length(verts, faces):
+    nfaces = faces.shape[0]
+    expand = verts[faces, :]
+    assert expand.shape == (nfaces, 3, 3)
+    assert expand[:, 2, :].shape == (nfaces, 3)
+    ea_sum = 0.
+    for i in range(3):
+        i1 = i
+        i2 = (i+1) % 3
+        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :])
+        ea_sum += np.mean(e1)
+    return ea_sum / 3.
+
+
+
+def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
+    #based on quadratic_optimise_vertices(self, alpha=1.0)
+    assert not centroids is None
+    assert not vertex_neighbours_list is None
+    assert not centroid_gradients is None
+
+    #alpha = 1.0
+    nvert = verts.shape[0]
+    assert nvert == len(vertex_neighbours_list)
+
+    result_verts_ranks = np.zeros((nvert,), dtype=int)
+    assert verts.shape == (nvert, 3)
+    new_verts = np.zeros((nvert, 3))
+
+    for vertex_id in range(nvert):
+
+        vi = vertex_id
+        nlist = vertex_neighbours_list[vertex_id]
+        nai = np.array(nlist)
+        A, b = get_A_b(vi, nai, centroids, centroid_gradients)
+        #print A, b
+
+        ###
+        #A, b = self.get_A_b(vi)
+
+        u, s, v = np.linalg.svd(A)
+        assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
+        #print(s)  # [  1.48148148e+01   1.67928330e-15   1.01592270e-50]
+        assert s[0] == np.max(s)
+        #print( s / s[0] )  # [  1.00000000e+00   1.13351623e-16   6.85747820e-52]
+
+        tau = 10. ** 3.
+        s[s / s[0] < 1.0/tau] = 0
+        #print(s , s[0] , tau)
+        rank = np.sum(s / s[0] > 1.0/tau)
+        #if rank==1:
+        # Threshold_minimum_sigma
+        #      rank = np.sum(s / s[0] > Threshold_minimum_sigma)
+        # assert rank <= 1
+
+        #print(s)
+        #print("rank = ", rank)
+
+        #rank will never be 0: s[0]/s[0] is always 1, even when s[0] is too small.
+        #assert s[0] > 0.000001
+
+        if not  s[0] > 0.000001:
+            print("Warning! sigma_1 == 0" )
+            print(s)
+            print("A", A)
+
+            #not tested
+            result_verts_ranks[vi] = 0
+            new_verts[vi, 0:3] = new_x[:, 0]
+
+        assert np.all(s[:rank]/s[0] >= 1.0/tau)
+
+        x = verts[vi, 0:3, np.newaxis]
+        assert x.shape == (3, 1)
+
+        y = np.dot(v, x).copy()
+        utb = np.dot(-np.transpose(u), b)
+        #print("rank", rank, "1/tau=", 1./tau)
+        #print s
+        for i in range(rank):
+            #print(np.dot(-np.transpose(u), b), "scalar")
+            assert np.dot(-np.transpose(u), b).shape == (3,1)
+            #print s[i] , 1.0/tau
+            #assert s[i] >= 1.0/tau #fails when s[0] is small
+            assert s[i]/s[0] >= 1.0/tau
+            y[i] = utb[i] / s[i]
+        new_x = np.dot(np.transpose(v), y)
+        #print(x.ravel(), " -> ", new_x.ravel())
+        #print("    delta=", (new_x - x).ravel())
+
+        new_verts[vi, 0:3] = new_x[:, 0]
+        #self.new_verts[vi,3] = 1
+
+        assert x.shape == (3, 1)
+        # Apply alpha
+        #new_verts[vi, 0:3] = new_x[:, 0] * alpha + x[:, 0] * (1.0-alpha)
+        new_verts[vi, 0:3] = new_x[:, 0]
+
+        if not np.all(np.abs(utb.ravel()[rank:] ) < 0.0001):
+            #print("s", s.ravel()/s[0], "   utb", utb.ravel()/s[0])
+            pass
+        result_verts_ranks[vi] = rank
+
+        #exit()
+    print("max rank = ", np.max(result_verts_ranks))
+    print("min rank = ", np.min(result_verts_ranks))
+    if not np.min(result_verts_ranks) >= 1:
+        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed." )
+
+    if False:
+        assert np.min(result_verts_ranks) >= 1
+    return new_verts
+
+def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
+    #nlist = self.vertex_neighbours_list[vertex_id]
+    #nai = np.array(nlist)
+    nai = nlist_numpy
+    center_array = centroids[nai, :]
+
+    #note some centers may not be projected successfully in the previous step
+    not_projected_successfully = np.isnan(center_array[:].ravel())
+    if np.any(not_projected_successfully):
+        pass
+
+    normals = centroid_gradients[nai, :]  #why do we have repeats??
+    #note : not normalised. But it works.
+
+    norms = np.linalg.norm(normals, ord=2, axis=1)
+    #can be either 0, 1 or Nan
+    if np.any(norms < 0.000001):  #can be exactly 0.0
+        print("Error: bad normal", normals)
+
+    TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
+    #can be 0,0,0, inf, nonsharp, degenerate, ...
+    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
+    #simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
+    #todo:
+
+
+
+    #print(normals)
+    assert not np.any(np.isnan(normals) )
+    assert not np.any(np.isinf(normals) )
+
+    #normals = normalize_vector4_vectorized( normals ) #todo: move it to evaluate_centroid_gradients or self.centroid_normals
+
+    #print("normals", normals) # can be all 0,0,0
+
+    x0 = np.zeros((3, 1))
+
+    assert normals.shape[1] == 4
+    #normals = normals   # (4)x4
+    #grad = Ax+b
+    A = np.zeros((3, 3))
+    b = np.zeros((3, 1))
+    #assert len(center_array) == len(normals)
+    assert normals.shape == center_array.shape
+    for i in range(normals.shape[0]):
+        n_i = normals[i, 0:3, np.newaxis]
+        assert n_i.shape == (3, 1)
+        nnt = np.dot(n_i, np.transpose(n_i))
+        assert nnt.shape == (3, 3)
+        A += nnt
+        #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
+        p_i = center_array[i, 0:3, np.newaxis]
+        assert p_i.shape == (3, 1)
+        b += -np.dot(nnt, p_i - x0)
+
+        # IN PROGRESS
+
+    assert not np.any(np.isnan(A.ravel()))
+    assert not np.any(np.isnan(b.ravel()))
+
+    return A, b
 
 
 if __name__ == '__main__':
@@ -2448,18 +2630,7 @@ from ohtake_surface_projection import display_simple_using_mayavi_
 
 
 
-def compute_average_edge_length(verts, faces):
-    nfaces = faces.shape[0]
-    expand = verts[faces, :]
-    assert expand.shape == (nfaces, 3, 3)
-    assert expand[:, 2, :].shape == (nfaces, 3)
-    ea_sum = 0.
-    for i in range(3):
-        i1 = i
-        i2 = (i+1) % 3
-        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :])
-        ea_sum += np.mean(e1)
-    return ea_sum / 3.
+
 
 
 
@@ -2496,10 +2667,6 @@ def fix_degenerate_Faces():
 #
 #            triangle = verts[facets[fi, :], :]  # numverts x 3
 #            assert triangle.shape == (3, 3)
-
-
-
-
 
 
 def apply_new_projection(verts, facets, iobj):
@@ -2676,166 +2843,8 @@ def demo_combination_actually_do_plus_centroid_projection():
        )
 
 
-def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
-    #nlist = self.vertex_neighbours_list[vertex_id]
-    #nai = np.array(nlist)
-    nai = nlist_numpy
-    center_array = centroids[nai, :]
-
-    #note some centers may not be projected successfully in the previous step
-    not_projected_successfully = np.isnan(center_array[:].ravel())
-    if np.any(not_projected_successfully):
-        pass
-
-    normals = centroid_gradients[nai, :]  #why do we have repeats??
-    #note : not normalised. But it works.
-
-    norms = np.linalg.norm(normals, ord=2, axis=1)
-    #can be either 0, 1 or Nan
-    if np.any(norms < 0.000001):  #can be exactly 0.0
-        print("Error: bad normal", normals)
-
-    TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
-    #can be 0,0,0, inf, nonsharp, degenerate, ...
-    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
-    #simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
-    #todo:
 
 
-
-    #print(normals)
-    assert not np.any(np.isnan(normals) )
-    assert not np.any(np.isinf(normals) )
-
-    #normals = normalize_vector4_vectorized( normals ) #todo: move it to evaluate_centroid_gradients or self.centroid_normals
-
-    #print("normals", normals) # can be all 0,0,0
-
-    x0 = np.zeros((3, 1))
-
-    assert normals.shape[1] == 4
-    #normals = normals   # (4)x4
-    #grad = Ax+b
-    A = np.zeros((3, 3))
-    b = np.zeros((3, 1))
-    #assert len(center_array) == len(normals)
-    assert normals.shape == center_array.shape
-    for i in range(normals.shape[0]):
-        n_i = normals[i, 0:3, np.newaxis]
-        assert n_i.shape == (3, 1)
-        nnt = np.dot(n_i, np.transpose(n_i))
-        assert nnt.shape == (3, 3)
-        A += nnt
-        #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
-        p_i = center_array[i, 0:3, np.newaxis]
-        assert p_i.shape == (3, 1)
-        b += -np.dot(nnt, p_i - x0)
-
-        # IN PROGRESS
-
-    assert not np.any(np.isnan(A.ravel()))
-    assert not np.any(np.isnan(b.ravel()))
-
-    return A, b
-
-
-def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
-    #based on quadratic_optimise_vertices(self, alpha=1.0)
-    assert not centroids is None
-    assert not vertex_neighbours_list is None
-    assert not centroid_gradients is None
-
-    #alpha = 1.0
-    nvert = verts.shape[0]
-    assert nvert == len(vertex_neighbours_list)
-
-    result_verts_ranks = np.zeros((nvert,), dtype=int)
-    assert verts.shape == (nvert, 3)
-    new_verts = np.zeros((nvert, 3))
-
-    for vertex_id in range(nvert):
-
-        vi = vertex_id
-        nlist = vertex_neighbours_list[vertex_id]
-        nai = np.array(nlist)
-        A, b = get_A_b(vi, nai, centroids, centroid_gradients)
-        #print A, b
-
-        ###
-        #A, b = self.get_A_b(vi)
-
-        u, s, v = np.linalg.svd(A)
-        assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
-        #print(s)  # [  1.48148148e+01   1.67928330e-15   1.01592270e-50]
-        assert s[0] == np.max(s)
-        #print( s / s[0] )  # [  1.00000000e+00   1.13351623e-16   6.85747820e-52]
-
-        tau = 10. ** 3.
-        s[s / s[0] < 1.0/tau] = 0
-        #print(s , s[0] , tau)
-        rank = np.sum(s / s[0] > 1.0/tau)
-        #if rank==1:
-        # Threshold_minimum_sigma
-        #      rank = np.sum(s / s[0] > Threshold_minimum_sigma)
-        # assert rank <= 1
-
-        #print(s)
-        #print("rank = ", rank)
-
-        #rank will never be 0: s[0]/s[0] is always 1, even when s[0] is too small.
-        #assert s[0] > 0.000001
-
-        if not  s[0] > 0.000001:
-            print("Warning! sigma_1 == 0" )
-            print(s)
-            print("A", A)
-
-            #not tested
-            result_verts_ranks[vi] = 0
-            new_verts[vi, 0:3] = new_x[:, 0]
-
-        assert np.all(s[:rank]/s[0] >= 1.0/tau)
-
-        x = verts[vi, 0:3, np.newaxis]
-        assert x.shape == (3, 1)
-
-        y = np.dot(v, x).copy()
-        utb = np.dot(-np.transpose(u), b)
-        #print("rank", rank, "1/tau=", 1./tau)
-        #print s
-        for i in range(rank):
-            #print(np.dot(-np.transpose(u), b), "scalar")
-            assert np.dot(-np.transpose(u), b).shape == (3,1)
-            #print s[i] , 1.0/tau
-            #assert s[i] >= 1.0/tau #fails when s[0] is small
-            assert s[i]/s[0] >= 1.0/tau
-            y[i] = utb[i] / s[i]
-        new_x = np.dot(np.transpose(v), y)
-        #print(x.ravel(), " -> ", new_x.ravel())
-        #print("    delta=", (new_x - x).ravel())
-
-        new_verts[vi, 0:3] = new_x[:, 0]
-        #self.new_verts[vi,3] = 1
-
-        assert x.shape == (3, 1)
-        # Apply alpha
-        #new_verts[vi, 0:3] = new_x[:, 0] * alpha + x[:, 0] * (1.0-alpha)
-        new_verts[vi, 0:3] = new_x[:, 0]
-
-        if not np.all(np.abs(utb.ravel()[rank:] ) < 0.0001):
-            #print("s", s.ravel()/s[0], "   utb", utb.ravel()/s[0])
-            pass
-        result_verts_ranks[vi] = rank
-
-        #exit()
-    print("max rank = ", np.max(result_verts_ranks))
-    print("min rank = ", np.min(result_verts_ranks))
-    if not np.min(result_verts_ranks) >= 1:
-        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed." )
-
-    if False:
-        assert np.min(result_verts_ranks) >= 1
-    return new_verts
 
 
 
