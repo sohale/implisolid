@@ -465,6 +465,7 @@ def quick_vis(verts, facets, face_idx):
        pointcloud_list=[ ], pointcloud_opacity=0.2,
        mayavi_wireframe=[False, True, True], opacity=[0.1, 1, 0.2],
        gradients_at=None, separate=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
+       noise_added_before_broadcast=True
        )
 
 #todo: review this code: , separate it, u-test it.
@@ -1194,7 +1195,7 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
-        add_noise=[]):
+        add_noise=[], noise_added_before_broadcast=False):
     """Two separate panels"""
 
     print"Mayavi.", ; sys.stdout.flush()
@@ -1246,6 +1247,16 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             _v = verts
             _f = faces
         else:
+            if noise_added_before_broadcast:
+                pre_expand_noise = True
+                post_expand_noise = False
+            else:
+                pre_expand_noise = False
+                post_expand_noise = True
+
+            if pre_expand_noise:
+                verts = noisy(verts, M/2.)
+
             _v = verts[faces, :]
             print _v.shape
 
@@ -1253,17 +1264,6 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             _v = _v.reshape( (_nv, 3) )
             assert _nv % 3 == 0
             _f = np.arange(_nv).reshape( (_nv/3, 3) )
-            #print _nv
-            #print _nv % 3, _nv / 3
-            #print _f
-            #print np.max(_f.ravel())
-            #print _v.shape
-
-            #print _f.shape
-            #print _v.shape
-            #print np.max(_f.ravel()), _v.shape[0]
-
-            #print _f.shape
 
             qq = _v[_f,:]
 
@@ -1273,7 +1273,9 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             #print np.nonzero(vv != np.arange(vv.size))
 
             #_v = np.concatenate( (_v, np.zeros( (10000, 3) )), axis=0)
-            _v = _v + (np.random.rand( _v.shape[0], _v.shape[1] ) -0.5) * M
+            if post_expand_noise:
+                #_v = _v + (np.random.rand( _v.shape[0], _v.shape[1] ) -0.5) * M
+                _v = noisy(_v, M/2.)
 
             #qq = _v[_f, :]
             #assert  np.all( _f.ravel() == np.arange( _f.size ) )
@@ -1774,7 +1776,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
 
 def testcase_square():
-    v = np.array([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0] ])
+    v = np.array([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0] ])*10 / 4.
     f = np.array([[0, 1, 2], [0, 2, 3]])
     return v, f
 
@@ -1856,7 +1858,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoin
 
 
     el = filter(lambda e: not e in midpoint_map, edges_with_1_side)
-    assert len(el) == 0
+    assert len(el) == 0, "edges_with_1_side is subset of midpoint_map"
     #print edges_with_1_side
     #print midpoint_map
 
@@ -1865,13 +1867,13 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoin
     e1 = facets[:, np.newaxis, [1, 2]]
     e2 = facets[:, np.newaxis, [2, 0]]
     #e012 = np.vstack((e0, e1, e2))
-    e012 = np.concatenate((e0, e1, e2), axis=1)
+    e012 = np.concatenate((e0, e1, e2), axis=1)  # n x 3 x 2
     e012.sort(axis=2)
     B = 100000
     BB = np.array([1, B])
-    all3edges = np.dot(e012, BB)
+    all3edges = np.dot(e012, BB)  # n x 3
     # n x 3
-    all3edges_ravel = all3edges.ravel()
+    all3edges_ravel = all3edges.ravel()  # is a view
     print all3edges.shape
     assert all3edges.shape[1] == 3
     #set_trace()
@@ -1894,13 +1896,25 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoin
     #assert each_of all3edges_ravel.ravel()[x_] in intersec
     #assert edges_which_in1 == all3edges_ravel.ravel()[x_] # all edges_which_in1 are in intersec
     #assert np.sum(x_) == intersec.size
+    print np.sum(x_.reshape(3, -1), axis=0)
+
+    #Dont want to subdivide 1->2
+    bad2 = np.all(np.sum(x_.reshape(3, -1), axis=0) > 1)
+    if bad2.size > 0:
+
+        print "bad2 faces: ", facets[bad2, :]
+        print all3edges[bad2, :]
+    #ASSERT SIDE EFFECT?????????????????????
+
     assert np.all(np.sum(x_.reshape(3, -1), axis=0) <= 1)
     print x_.reshape(3, -1)
     print "THIS FAILS"
-    exit()
+    #exit()
 
+    #indices of all edges
     face3_idx = np.nonzero(x_)[0]
 
+    #todo(refactor): use np.argwhere()
     idx_xy = np.unravel_index(face3_idx[:], all3edges.shape)
     #idx_xy is a tuple
     bad_face_idx = idx_xy[0]
@@ -1920,14 +1934,18 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoin
     #edge_codes = facets[bad_face_idx, bad_side_idx]
     edge_pairs = np.vstack((v1, v2))
     print edge_pairs
+    #edge_pairs never used!!
 
     edge_s_codes = all3edges_ravel[x_]
     print edge_s_codes
+    #????????????????????????????????????????????????????????
     #vert_idx_mid
     midpoints_third_verts = np.array(map(lambda edgecode: midpoint_map[edgecode], edge_s_codes), dtype=np.int)
     print midpoints_third_verts
     if midpoints_third_verts.size == 0:
-        exit()
+        #exit()
+        return facets
+        #??????????????????????????????????
 
     #(v1,v3, midpoints_third_verts),  (v2,v3, midpoints_third_verts)
     new_faces1 = np.vstack(((v1, v3, midpoints_third_verts))).T  # axis is 0. .T.size = N x 3
@@ -2048,7 +2066,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
 
 def test_example_meshes():
 
-    np.random.seed(seed=7)
+    np.random.seed(seed=19)
 
     #v, f = testcase_cube()
     v, f = testcase_square()
@@ -2094,8 +2112,8 @@ def test_example_meshes():
     #exit()
     ampl = 0.05
     v2, f2 = v, f
-    for i in range(3+2):
-        v2, f2 = do_subdivision(v2, f2, iob, -1, randomized_probability=0.3 )  # all
+    for i in range(3+2+2):
+        v2, f2 = do_subdivision(v2, f2, iob, -1, randomized_probability=0.45 )  # all
         v2 = noisy(v2, ampl)
         quick_vis(v2, f2, range(f2.shape[0]))
         ampl = ampl * 0.5
