@@ -1,4 +1,4 @@
-#from ipdb import set_trace
+# from ipdb import set_trace
 
 from vtk_mc import vtk_mc
 #from stl_tests import display_simple_using_mayavi_vf1
@@ -21,7 +21,7 @@ def make_obj(id):
             #"cube_example");
             "ell_example1")  #
             # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2, +2, 0.1)
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
     elif id == 8:
         from example_objects import first_csg
@@ -73,8 +73,8 @@ def make_obj(id):
         #iobj = make_example_vectorized("rdice_vec")
         #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
 
-        iobj = make_example_vectorized("ell_example1")
-        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+        iobj = make_example_vectorized("rcube_vec")
+        (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
 
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
 
@@ -138,6 +138,7 @@ def make_obj(id):
 
 
 #from mesh1.py
+@profile
 def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
     """ neighbour_faces_of_vertex: *** """
 
@@ -166,6 +167,8 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
         if mimj > 1.0:
             mimj = 1.0
         pipj = np.linalg.norm(pi - pj)
+        if pipj == 0:
+            return 0
         #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
         assert pipj == np.linalg.norm(pi - pj, ord=2)
 
@@ -262,6 +265,9 @@ def compute_centroids(verts, facets):
     expand = verts[facets,:]
     nfacets = facets.shape[0]
     assert expand.shape == (nfacets, 3, 3)
+    #if not np.allclose(verts[facets[:],:], expand):
+    #        print facets
+    #        set_trace()
     assert np.allclose(verts[facets[:],:], expand)
     centroids3 = np.mean( verts[facets[:],:], axis=1)  # again
     centroids = np.concatenate( (centroids3, np.ones((nfacets,1))), axis=1)
@@ -283,7 +289,7 @@ def compute_centroid_gradients(centroids, iobj, normalise=True):
     else:
         return centroid_gradients
 
-
+@profile
 def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
     containing the face index of neighbours of each face.
@@ -321,6 +327,7 @@ def build_faces_of_faces(facets):
 
 
 def process2_vertex_resampling_relaxation(verts, facets, iobj):
+    assert not np.any(np.isnan(verts))
     centroids = compute_centroids(verts, facets)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
 
@@ -847,7 +854,7 @@ def single_subdivision_demo2():
        minmax=(RANGE_MIN,RANGE_MAX))
        # gradients_at=verts3, gradients_from_iobj=iobj)
 
-
+@profile
 def weighted_resampling_demo():
 
     #from example_objects import blend_example1, blend_example2_discs
@@ -857,7 +864,7 @@ def weighted_resampling_demo():
     #iobj = blend_example2_discs(8.)
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-20., 30., 2.)
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(8)
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
 
 
     if False:
@@ -917,6 +924,7 @@ def weighted_resampling_demo():
     RESAMPLING_ITERATIONS_COUNT = 5  # 2
     verts3_relaxed = verts.copy()
     for i in range(RESAMPLING_ITERATIONS_COUNT):
+        assert not np.any(np.isnan(verts))
         verts3_relaxed, faces3, centroids = process2_vertex_resampling_relaxation(verts3_relaxed, facets, iobj)
         print("Process finished."); sys.stdout.flush()
 
@@ -1526,10 +1534,10 @@ def demo_combination_plus_qem():
     """ Now with QEM """
 
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(17) #  8= CSG
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14) #  8= CSG
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)

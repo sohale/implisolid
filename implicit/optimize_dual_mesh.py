@@ -46,7 +46,7 @@ class MeshOptimizer(object):
         self.gradient = grd
 
     @profile
-    def load_example(self, example_name="ell_example1", res=1):
+    def load_example(self, example_name="rcube_vec", res=1):
         """
             res: controls step size of mc grid
             example_name: name of example to build, available names can be
@@ -178,7 +178,7 @@ class MeshOptimizer(object):
             b_current = -2 * (np.dot(p_current[0:3], alpha_current)).reshape(3, 1)
             b_total += b_current
             res = np.linalg.lstsq(2 * A_total, -b_total)
-        print res
+        # print res
         print "[End] minimize_tangent_planes ind: %d" % ind + ' .'
         return res[0].reshape(3, 1)
 
@@ -187,7 +187,7 @@ class MeshOptimizer(object):
         neighbors = self.vertex_neighbours_list[ind]
 
         print "These are the neighbors of vertex %d" % ind
-        print neighbors
+        # print neighbors
         p_matrix = np.array([self.optimized_dual_mesh[neighbor] for neighbor in neighbors])
         assert not np.any(np.isnan(p_matrix)), "The matrix of points should not contain NaN values"
         planes = []
@@ -211,7 +211,7 @@ class MeshOptimizer(object):
     def optimize_centroid(self, centroid, ind):
         print "[Start] optimize_centroid ..."
         #  set_trace()
-        print centroid
+        # print centroid
         centroid = centroid.reshape(1, 4)
 
         lambda_counter = 0
