@@ -1496,94 +1496,67 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 #jk = 0
 
 
-def propagated_subdiv(facets, presubdivision_edges):
+def propagated_subdiv(facets, subdivided_edges):
     """ Reports the indices triangles that are to be subdivided
     as a propagation of a previous subdivision.
     It returns separatesly the (not-yet-subdivided) triangles
-    with 1,2 and 3 sibdivided sides, in a dictionary."""
-    #facets = new_facets
-    #verts = new_verts
-    #print presubdivision_edges
-    if len(presubdivision_edges) == 0:
+    with 1,2 and 3 sibdivided sides, in a dictionary.
+    returns: edges_need_subdivision: those edges that still exist in mesh that need further subdivision.
+    But the type of subdivision will be determined based on the map propag_dict, which organises them based on the number of edges that need subdivision in the traiangle they belong.
+    subdivided_edges are both subdivided and not subdivided: they are subdivided previously but need to be subdivided again,
+    because they belong to two triangles. The sceond triangle may not have been subdivided yet. So they remain in the mesh as unsubdivided, although they are subdivided previously.
+    Each edge belongs to two triangles, hence this contradiction sometimes exit.
+    The function returns the edges that remain to be dealt with."""
+
+    if len(subdivided_edges) == 0:
         subdivided_edges = np.zeros((0, 2), dtype=np.int64)
     else:
-        subdivided_edges = np.asarray(presubdivision_edges)  # doesnt work if empty
+        subdivided_edges = np.asarray(subdivided_edges)  # doesnt work if empty
     print subdivided_edges.shape
     assert subdivided_edges.shape[1] == 2
     subdivided_edges.sort(axis=1)
 
     BB = np.array([1L, B])
-    subdiv_edges_codes = np.dot(subdivided_edges, BB)
-    assert subdiv_edges_codes.dtype == np.int64
-    assert np.min(subdiv_edges_codes) >= 0
+    subdivided_edges_codes = np.dot(subdivided_edges, BB)  # can be large
+    assert subdivided_edges_codes.dtype == np.int64
+    assert np.min(subdivided_edges_codes) >= 0
     assert np.max(facets, axis=None) < B
 
     fc0 = facets.copy()
     f0 = facets[:, np.newaxis, [0, 1]]
     f1 = facets[:, np.newaxis, [1, 2]]
     f2 = facets[:, np.newaxis, [0, 2]]
-    f012 = np.concatenate( (f0, f1, f2), axis=1 )
+    f012 = np.concatenate((f0, f1, f2), axis=1)
     f012.sort(axis=2)
     assert np.all(fc0.ravel() == facets.ravel())  # no copy() needed
-    all_edges_codes = np.dot(f012, BB)
+    all_edges_codes = np.dot(f012, BB)  # *x3
 
-    #now look for subdiv_edges_codes in all_edges_codes
-    #print all_edges_codes
-    #print subdiv_edges_codes  #they are so many! 417
+    # now look for subdivided_edges_codes in all_edges_codes
 
-    #todo: refactor: intersec seems to be not used anymore
-    intersec = np.intersect1d(all_edges_codes, subdiv_edges_codes)
-    #print intersec
-    x_ = np.lib.arraysetops.in1d(all_edges_codes, intersec) # elements of A, A.ravel[x_], that are in B
-    print x_.shape, "x_.shape"
-    print all_edges_codes.shape, "all_edges_codes.shape"
-    print np.prod(all_edges_codes.shape), "prod(all_edges_codes.shape)"
-    print intersec.shape, "intersec.shape"
-    #assert each_of all_edges_codes.ravel()[x_] in intersec
-    edges_which_in1 = all_edges_codes.ravel()[x_] # all edges_which_in1 are in intersec
-    #print edges_which_in1
-    #exit()
-    #print x_.shape, "x_"
-    #print all_edges_codes.shape
-    #print intersec.shape
-    print np.sum(x_)
-    print intersec.size
-
-    #global jk
-    #jk += 1
-    #print "jk="*100, jk
-
+    # todo: refactor: intersec seems to be not used anymore
+    intersec = np.intersect1d(all_edges_codes, subdivided_edges_codes)
+    # x_ is indice of those edges in the mesh's edges
+    # x_ is the bottleneck (both in terms of data and in terms of performance)
+    x_ = np.lib.arraysetops.in1d(all_edges_codes, intersec)  # elements of A, A.ravel[x_], that are in B
+    assert np.prod(all_edges_codes.shape) == x_.size
     assert np.sum(x_) == intersec.size  # 417
+    #assert each_of all_edges_codes.ravel()[x_] in intersec
+    edges_need_subdivision = all_edges_codes.ravel()[x_]  # all edges_need_subdivision are in intersec
 
-    ticks = x_.reshape(all_edges_codes.shape)
-    #print ticks.shape  # -x3
-    sides= np.sum(ticks, axis=1)
-    #sides.sort()  # there is no point in sorting
+    sides_booleans_Fx3 = x_.reshape(all_edges_codes.shape)  # *x3
+    numsides = np.sum(sides_booleans_Fx3, axis=1)  #numsides_needsubdivision: number of sides that need subdivision. index=face index
+    assert sides_booleans_Fx3.shape == (facets.shape[0], 3)
 
-    #now I need whose all_edges_codes (i.e. ticks) for which sides==1
-    sides_1 = ticks[sides==1, :]
-    #print sides_1
-    #print edges_which_in1
-
-    #for c in range(4):
-    #    print c, ":", np.sum(sides == c)
-    """
-    0 : 3083
-    1 : 232
-    2 : 85
-    3 : 5
-    """
-    # "2" will propagate further. But not 3 and 1.
+    #now I need whose all_edges_codes (i.e. sides_booleans_Fx3) for which numsides==1
+    #sides_1 = sides_booleans_Fx3[numsides==1, :] for c==1
+    # propag_dict["2"] will require [...]. But not 3 and 1.
     propag_dict = {}
     for c in range(1, 4):
-        idx = np.nonzero(sides == c)[0]
+        idx = np.nonzero(numsides == c)[0]
         propag_dict[c] = idx
         #only propagate triangles with subdivided 1,2,3 sides.
-        #exit()
 
-    #edges1 = -1 #which edges are about one side?
-
-    return propag_dict, edges_which_in1
+    return propag_dict, edges_need_subdivision
 
 
 def noisy(v, ampl):
