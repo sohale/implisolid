@@ -1535,7 +1535,7 @@ def propagated_subdiv(facets, subdivided_edges):
 
     # todo: refactor: intersec seems to be not used anymore
     intersec = np.intersect1d(all_edges_codes, subdivided_edges_codes)
-    # x_ is indice of those edges in the mesh's edges
+    # x_ indicates those edges taht are in the mesh's edges, hence remain there.
     # x_ is the bottleneck (both in terms of data and in terms of performance)
     x_ = np.lib.arraysetops.in1d(all_edges_codes, intersec)  # elements of A, A.ravel[x_], that are in B
     assert np.prod(all_edges_codes.shape) == x_.size
@@ -1544,17 +1544,16 @@ def propagated_subdiv(facets, subdivided_edges):
     edges_need_subdivision = all_edges_codes.ravel()[x_]  # all edges_need_subdivision are in intersec
 
     sides_booleans_Fx3 = x_.reshape(all_edges_codes.shape)  # *x3
-    numsides = np.sum(sides_booleans_Fx3, axis=1)  #numsides_needsubdivision: number of sides that need subdivision. index=face index
+    numsides = np.sum(sides_booleans_Fx3, axis=1)  # numsides_needsubdivision: number of sides that need subdivision. index=face index
     assert sides_booleans_Fx3.shape == (facets.shape[0], 3)
 
-    #now I need whose all_edges_codes (i.e. sides_booleans_Fx3) for which numsides==1
+    #now I need those all_edges_codes (i.e. sides_booleans_Fx3) for which numsides==1
     #sides_1 = sides_booleans_Fx3[numsides==1, :] for c==1
-    # propag_dict["2"] will require [...]. But not 3 and 1.
     propag_dict = {}
     for c in range(1, 4):
+        # Range starts with 1 because we only propagate triangles with subdivided 1,2,3 sides.
         idx = np.nonzero(numsides == c)[0]
         propag_dict[c] = idx
-        #only propagate triangles with subdivided 1,2,3 sides.
 
     return propag_dict, edges_need_subdivision
 
@@ -1708,8 +1707,8 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         new_facet_counter += 3
 
         if subdiv_i % 100 == 0:
-            print subdiv_i , " @                     \r", ;import sys; sys.stdout.flush()
-    print " "*100
+            print subdiv_i , "       \r", ;import sys; sys.stdout.flush()
+    print " "*10
 
     assert new_verts.shape[0] - new_vertex_counter == redundancy_counter
     new_verts = new_verts[:new_vertex_counter, :]
@@ -1832,7 +1831,7 @@ def isomorphic(a, b):
     assert b.dtype.type != np.bool
     return True
 
-def subdivide_1to2_multiple_facets(facets, edges_with_1_side, whichside, midpoint_map):
+def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
     """list_edges_with_1_side contains the edges only. The face should be extracted in this function. """
     #todo: copy some code from propagated_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
@@ -2059,11 +2058,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
         n1 = n2
     assert np.min(edges_with_1_side) > 0
 
-    whichside = []
-    facets2 = subdivide_1to2_multiple_facets(facets2, edges_with_1_side, whichside, midpoint_map)
-
-    #v5, f5, presubdivision_edges = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, ..)
-
+    facets2 = subdivide_1to2_multiple_facets(facets2, edges_with_1_side, midpoint_map)
 
     ###################
     #check_degenerate_faces(verts2, facets2, "assert")
@@ -2233,10 +2228,6 @@ def demo_everything():
 
     #quick_vis(old_verts, old_facets, fpna)
 
-    #compute_facets_subdivision_curvatures
-    #subdivide_multiple_facets
-    #process2_vertex_resampling_relaxation
-    #apply_new_projection
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
@@ -2256,13 +2247,10 @@ def demo_everything():
             print("Vertex relaxation2 applied again.");sys.stdout.flush()
             verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "assert")
 
-    ################
-    #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
     average_edge = compute_average_edge_length(verts, facets)
 
-    #up to here
     verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "assert")
 
     c3 = np.mean(verts[facets[:], :], axis=1)
@@ -2272,7 +2260,6 @@ def demo_everything():
     new_centroids = old_centroids.copy()
     set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
     #new_centroids is the output
-
 
     verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "assert")
 
@@ -2427,6 +2414,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
     return new_verts
 
 def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
+    #refactor: nlist_numpy contains faces.  -> neightbours_facelist or neightbours_faces
     #nlist = self.vertex_neighbours_list[vertex_id]
     #nai = np.array(nlist)
     nai = nlist_numpy
