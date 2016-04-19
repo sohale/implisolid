@@ -2,7 +2,7 @@ from ipdb import set_trace
 
 from vtk_mc import vtk_mc
 #from stl_tests import display_simple_using_mayavi_vf1
-from ohtake_surface_projection import display_simple_using_mayavi_
+from ohtake_surface_projection_2 import display_simple_using_mayavi_
 import sys
 
 import numpy as np
@@ -1091,7 +1091,7 @@ def multiple_subdivisions_demo():
 
 
 def apply_new_projection(verts, facets, iobj):
-    from ohtake_surface_projection import set_centers_on_surface__ohtake
+    from ohtake_surface_projection_2 import set_centers_on_surface_ohtake
 
     average_edge = compute_average_edge_length(verts, facets)
 
@@ -1103,7 +1103,7 @@ def apply_new_projection(verts, facets, iobj):
 
     nones_map = centroids[:, 0]*0 > 100  # all False
     new_centroids = centroids.copy()
-    set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+    set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     #new_centroids is the output
 
     return centroids, new_centroids
@@ -1522,16 +1522,15 @@ def demo_combination_plus_qem():
             print("Vertex relaxation applied.");sys.stdout.flush()
 
     #centroids, new_centroids = apply_new_projection(verts, facets, iobj)
-    from ohtake_surface_projection import set_centers_on_surface__ohtake
+    from ohtake_surface_projection_2 import set_centers_on_surface_ohtake
 
     average_edge = compute_average_edge_length(verts, facets)
 
     c3 = np.mean(verts[facets[:], :], axis=1)
     old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
 
-    nones_map = old_centroids[:, 0]*0 > 100  # all False
     new_centroids = old_centroids.copy()
-    set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+    set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     #new_centroids is the output
 
 
