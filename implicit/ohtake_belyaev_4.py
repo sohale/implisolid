@@ -1533,6 +1533,11 @@ def demo_combination_plus_qem():
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     #new_centroids is the output
 
+    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+    #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    # exit()
 
     # The two CHOICEs are equaivalent. Two rewrite of the same method.
     CHOICE = 1

@@ -394,7 +394,7 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_d
     f1 = iobj.implicitFunction(p1)
 
     eval_count += 1
-    f0 = f1
+#    f0 = f1
 
     if math.fabs(f1) < TH1:
         return p1
@@ -431,8 +431,8 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_d
                 return None   #
             #or back to start
             p1 = start_x
-            assert f0 * f1 >= 0
-            f1 = f0  #This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
+        #    assert f0 * f1 >= 0
+    #        f1 = f0  #This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
             p2 = p1
 
             #restart the loop
@@ -539,7 +539,8 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist):
     check_vector4_vectorized(start_x)
     assert start_x.shape[0] == 1
 
-    max_iter=20
+    #max_iter=4 #is working for the two cubes
+    max_iter = 20
     #p =
     p1 = search_near_ohtake(iobj, start_x, None, lambda_val, max_iter)
     if p1 is None:
