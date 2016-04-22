@@ -21,7 +21,7 @@ def make_obj(id):
             #"cube_example");
             "ell_example1")  #
             # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2, +2, 0.1)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
     elif id == 8:
         from example_objects import first_csg
@@ -74,6 +74,7 @@ def make_obj(id):
         #(RANGE_MIN,RANGE_MAX, STEPSIZE) = (-1.5, +1.5, 0.1)
 
         iobj = make_example_vectorized("rcube_vec")
+
         (RANGE_MIN,RANGE_MAX, STEPSIZE) = (-2, +2, 0.2)
 
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
@@ -1534,10 +1535,10 @@ def demo_combination_plus_qem():
     """ Now with QEM """
 
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1  ## 0
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14) #  8= CSG
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14) #  8= CSG 17 14
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
