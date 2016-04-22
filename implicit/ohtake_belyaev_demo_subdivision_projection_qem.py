@@ -229,6 +229,7 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
     direction = np.ndarray(start_x.shape)
 
     p1 = start_x.copy() #adding the copy : solve one problem of the code
+    #p1 = start_x
     f1 = iobj.implicitFunction(p1)
 
     lambda_ = lambda_val * (-np.sign(f1))
@@ -236,7 +237,9 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
 #    counting = 0
 
     for i in range(start_x.shape[0]):
-        direction[i,:] = (iobj.implicitGradient(start_x[i,:].reshape(1,4))) #no need for copy here!
+        xxv = start_x[i,:].reshape(1,4)
+        check_vector4_vectorized(xxv)
+        direction[i,:] = (iobj.implicitGradient(xxv)) #no need for copy here!
         dn = np.linalg.norm(direction[i,0:3]) #calculation of the normalization
 
         if  dn > 0.0:
@@ -269,7 +272,9 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                 for j in range(MAX_ITER):
                     number_of_iteration += 1
 
-                    dir1 = iobj.implicitGradient(start_x[i,:].copy().reshape(1,4)) #we have to give a copy of start_x to avoid problems
+                    xxv2 = start_x[i,:].copy().reshape(1,4)
+                    check_vector4_vectorized(xxv2)
+                    dir1 = iobj.implicitGradient(xxv2) #we have to give a copy of start_x to avoid problems
                     dir1 = dir1[0,:]
                     dn1 = np.linalg.norm(dir1[0:3].copy())
 
@@ -287,6 +292,7 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                         print i,"patate!"
                         print dir1, dir2
                         print dir1/dir1[0], dir2/dir2[0]
+                        print "ALLCLOSE failed"
                         exit()
 
 
