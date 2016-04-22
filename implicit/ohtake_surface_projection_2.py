@@ -240,6 +240,125 @@ import math
 
 @profile
 #search_near_1d_ohtake
+def search_near_ohtake_2(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
+    """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
+    The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
+    Remeber: we may be on a totally irrelevant direction here.
+    'direction' should be normalised. lambda*direction is used. Note that lambda is negated by default.
+    Note: along_1d mode is in fact the same. It's just initialises direction=gradient(start_x).
+    Does both searchNearPoint1D and searchNearPoint()
+    :param direction: description
+    @param np.array direction
+    """
+    #lambda should be ~ expected distance?  (that's why it should be half of the average edge size, i.e. half of the MC step size)
+
+    TH1 = 0.001
+    # MAX_ITER = 20
+    #TH2_L = 0.00000001  # Used by Ohtake. But too small
+    TH2_L = 0.00001  #only used in the along_1d mode
+
+    if direction is not None:
+        along_1d = True
+    else:
+        along_1d = False
+
+    if not along_1d:
+        direction = iobj.implicitGradient(start_x)  ## what?! why start_x ??
+        dn = np.linalg.norm(direction[0:3])
+        if dn>0.0:  # 00000001:
+            direction = direction/dn
+
+    #print direction
+    eval_count = 0
+
+    p1 = start_x
+    f1 = iobj.implicitFunction(p1)
+
+    eval_count += 1
+    f0 = f1
+
+    if math.fabs(f1) < TH1:
+        return p1
+
+    p2 = p1  # no need actually
+
+    negative_f1 = -1 if f1 < 0. else +1
+    lambda_ = lambda_val * (-negative_f1)  # negation of input is bad practice
+
+    exit_A = False
+    not_found = False
+    while True:
+        # (C) jumps back here.
+        number_of_iteration = 0
+        for j in range(MAX_ITER):
+            number_of_iteration += 1
+            p2 = p2 + lambda_ * direction
+
+            p2[:, 3] = 1
+            f2 = iobj.implicitFunction(p2)
+            eval_count += 1
+
+            if f1*f2 < 0.0:
+                # (A)
+                exit_A = True
+                break
+            p1 = p2
+
+            if number_of_iteration == MAX_ITER:
+                number_of_iteration = 0
+
+
+            #for loop ended becasue of MAX_ITER
+
+            #(C): next iteration with adaptively decreased lambda_. Revert and start over again using a smaller lambda
+                lambda_ = lambda_ / 2.
+            #either quit:
+                if np.abs(lambda_) < TH2_L:
+                    not_found = True
+                    print "(B)", eval_count
+                    break
+                else:
+            #or back to start
+                    p1 = start_x
+                    assert f0 * f1 >= 0
+                    f1 = f0  #This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
+                    p2 = p1
+
+            #restart the loop
+            #(C).
+
+        #(A)
+        if exit_A:  # f1*f2 < 0.0:
+            break
+
+        if not_found:
+            return None
+            break
+
+
+    #(A)
+    assert f1*f2 < 0.0
+    if f1 > 0:
+        (p1, p2) = (p2, p1)
+        (f1, f2) = (f2, f1)
+
+    assert f1 < 0
+    assert f2 > 0
+    assert math.fabs(f1) < 1000, str(p1)
+    assert math.fabs(f2) < 1000, str(p2)
+
+    converged, p1, p2, iter_log = bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER/2)
+    assert f1 < 0
+    assert f2 > 0
+
+    if converged:
+        assert p2 is None
+        return p1
+    else:
+        return None
+
+@profile
+#search_near_1d_ohtake
 def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
@@ -290,6 +409,7 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_d
         # (C) jumps back here.
         for j in range(MAX_ITER):
             p2 = p2 + lambda_ * direction
+
             p2[:, 3] = 1
             f2 = iobj.implicitFunction(p2)
             eval_count += 1
@@ -421,7 +541,7 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist):
 
     max_iter=20
     #p =
-    p1 = search_near__ohtake(iobj, start_x, None, lambda_val, max_iter)
+    p1 = search_near_ohtake(iobj, start_x, None, lambda_val, max_iter)
     if p1 is None:
         return None  # Should we return nothing if nothing found??
     f1 = iobj.implicitFunction(p1)
@@ -437,7 +557,7 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist):
             direction = direction/dn
 
             #broken
-            p3 = search_near__ohtake(iobj, start_x, direction, lambda_val, max_iter)
+            p3 = search_near_ohtake(iobj, start_x, direction, lambda_val, max_iter)
             #no max_dist
 
             if p3 is not None:
@@ -452,70 +572,69 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist):
         return None
     return p
 
-# @profile
-# def set_centers_on_surface__ohtake(iobj, centroids, average_edge):
-#     #nones_map = centroids[:,0]*0 < 100
-#     print "Projecting the centroids:"
-#     for i in range(centroids.shape[0]):
-#         print i,
-#         e = average_edge
-#         lm = e/2
-#         max_dist = e
-#         c = project_point_bidir_ohtake(iobj, centroids[i,np.newaxis,:], lm, max_dist)
-#         if c is not None:
-#             centroids[i] = c
-#         else:
-#             nones_map[i] = True
-#     #print nones_map
-
-
-
+@profile
 def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
-    #here we consider that the max_dist is the average_edge and lambda = average_edge/2
-    #new function who is a combination of set_centers_on_surface_ohtake and project_point_bidir_ohtake
-    lambda_val = average_edge/2
-    check_vector4_vectorized(centroids)
-    #definition of the matrix that are gonna be used in the rest of the programm
-    p1 = np.ndarray(centroids.shape)
-    p2 = np.ndarray(centroids.shape)
-    p3 = np.ndarray(centroids.shape)
-    p = np.ndarray(centroids.shape)
-    f1 = np.ndarray(centroids.shape[0])
-    f2 = np.ndarray(centroids.shape[0])
-    direction = np.ndarray(centroids.shape)
-    dn = np.ndarray(centroids.shape[0])
-
-    max_iter = 20 # used in search_near_ohtake
-
+    #nones_map = centroids[:,0]*0 < 100
+    print "Projecting the centroids:"
     for i in range(centroids.shape[0]):
-        p1[i,:] = search_near_ohtake(iobj, centroids[i,:].reshape((1,4)), None, lambda_val, max_iter)
-        if np.allclose(p1[i, 3], 1, 0.00000000000001) == True: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
-            p1[i,:].reshape(1,4)
-            f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,4))
-            #print f1[i]
-                # Mirror image: search the opposite way and accept only if it is closer than the best found.
-            p2[i,:] = 2*centroids[i,:] - p1[i,:] #p2 correspond to S in the paper
-            f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,4))
-            p[i,:] = p1[i,:]
+        print i,
+        e = average_edge
+        lm = e/2
+        max_dist = e
+        c = project_point_bidir_ohtake(iobj, centroids[i,np.newaxis,:], lm, max_dist)
+        if c is not None:
+            centroids[i] = c
 
-            if f1[i]*f2[i] < 0:
-                direction[i,:] = (centroids[i,:] - p1[i,:])  # as in Ohtake
-                dn[i] = np.linalg.norm(direction[i,:])
-                if dn[i] > 0:  #dn>0.000000001:
-                    direction[i,:] = direction[i,:]/dn[i]
-                    p3[i,:] = search_near_ohtake(iobj, centroids[i,:].reshape((1,4)), direction[i,:], lambda_val, max_iter)
-                    #no max_dist
+    #print nones_map
 
-                    if p3[i,:] is not None and np.allclose(p3[i, 3], 1, 0.00000000000001) == True:
-                        if np.linalg.norm(centroids[i,:] - p3[i,:]) > np.linalg.norm(centroids[i,:] - p1[i,:]):
-                            p[i,:] = p3[i,:]
-                            #else:
-                            #    p = p1
-                #else:
-                # #    p = p1
-            if p[i,:] is not None:
-                if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
-                    centroids[i,:] = p[i,:]
+
+# @profile
+# def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
+#     #here we consider that the max_dist is the average_edge and lambda = average_edge/2
+#     #new function who is a combination of set_centers_on_surface_ohtake and project_point_bidir_ohtake
+#     lambda_val = average_edge/2
+#     check_vector4_vectorized(centroids)
+#     #definition of the matrix that are gonna be used in the rest of the programm
+#     p1 = np.ndarray(centroids.shape)
+#     p2 = np.ndarray(centroids.shape)
+#     p3 = np.ndarray(centroids.shape)
+#     p = np.ndarray(centroids.shape)
+#     f1 = np.ndarray(centroids.shape[0])
+#     f2 = np.ndarray(centroids.shape[0])
+#     direction = np.ndarray(centroids.shape)
+#     dn = np.ndarray(centroids.shape[0])
+#
+#     max_iter = 20 # used in search_near_ohtake
+#
+#     for i in range(centroids.shape[0]):
+#         p1[i,:] = search_near_ohtake(iobj, centroids[i,:].reshape((1,4)), None, lambda_val, max_iter)
+#         if np.allclose(p1[i, 3], 1, 0.00000000000001) == True: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
+#             p1[i,:].reshape(1,4)
+#             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,4))
+#             #print f1[i]
+#                 # Mirror image: search the opposite way and accept only if it is closer than the best found.
+#             p2[i,:] = 2*centroids[i,:] - p1[i,:] #p2 correspond to S in the paper
+#             f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,4))
+#             p[i,:] = p1[i,:]
+#
+#             if f1[i]*f2[i] < 0:
+#                 direction[i,:] = (centroids[i,:] - p1[i,:])  # as in Ohtake
+#                 dn[i] = np.linalg.norm(direction[i,:])
+#                 if dn[i] > 0:  #dn>0.000000001:
+#                     direction[i,:] = direction[i,:]/dn[i]
+#                     p3[i,:] = search_near_ohtake(iobj, centroids[i,:].reshape((1,4)), direction[i,:], lambda_val, max_iter)
+#                     #no max_dist
+#
+#                     if p3[i,:] is not None and np.allclose(p3[i, 3], 1, 0.00000000000001) == True:
+#                         if np.linalg.norm(centroids[i,:] - p3[i,:]) > np.linalg.norm(centroids[i,:] - p1[i,:]):
+#                             p[i,:] = p3[i,:]
+#                             #else:
+#                             #    p = p1
+#                 #else:
+#                 # #    p = p1
+#         #    if p[i,:] is not None:
+#             if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
+#                 centroids[i,:] = p[i,:]
 
 def display_simple_using_mayavi_(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0):
     """ opacity can be either a list of a constant """
