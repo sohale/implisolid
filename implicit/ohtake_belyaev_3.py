@@ -213,8 +213,8 @@ def visualise_edge_distribution(elist):
 
 #def fix_faces_3div2(faces):
 #    from mesh_utils import make_neighbour_faces_of_vertex
-#    neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(facets)
-#    faces_of_faces = build_faces_of_faces(facets)
+#    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
+#    face_neighbours_of_faces_Fx3 = build_faces_of_faces(facets)
 
 def REMOVE_REPEATED_EDGES(faces):
     #see check_faces()
@@ -952,10 +952,6 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         print np.diff(v012, axis=1)
         exit()
 
-    print "."*200
-    global sahaja_yoga
-    sahaja_yoga += 1
-    print "here ", sahaja_yoga
 
     #print "*********"*100
     if not nothing_to_fix:
@@ -986,9 +982,6 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         return verts, facets, any_correction
     else:
         return any_correction
-
-global sahaja_yoga
-sahaja_yoga=0
 
 
 #def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=0.00001):
@@ -1065,7 +1058,7 @@ def build_faces_of_faces(facets):
         make_edge_lookup_old(facets)
         # ****
 
-    # need: faces_of_faces
+    # need: face_neighbours_of_faces_Fx3
     # e__nf_x_3 = edges_of_faces[facets]
     # print e__nf_x_3.shape
     # assert e__nf_x_3.shape == (nfaces, 3, 3)
@@ -1103,22 +1096,26 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj):
     centroids = compute_centroids(verts, facets)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
     from mesh_utils import make_neighbour_faces_of_vertex
-    neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(facets)
-    faces_of_faces = build_faces_of_faces(facets)
+    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
+    face_neighbours_of_faces_Fx3 = build_faces_of_faces(facets)
     assert not np.any(np.isnan(verts.ravel()))  # fine
-    new_verts = vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
+    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=2.0)
     assert not np.any(np.isnan(new_verts.ravel()))  # fails
     return new_verts, facets, centroids  # why does it return facets?
 
 
 
+def is_intarray(x):
+    return issubclass(x.dtype.type, np.integer)
+
 global failure_pairs
 failure_pairs = []
 
 #from mesh1.py
-def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
+def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals, c=2.0):
 
-    """ neighbour_faces_of_vertex: *** """
+    """ faceslist_neighbours_of_vertex: *** """
+    assert is_intarray(face_neighbours_of_faces_Fx3)
 
     def kij(i, j):
         """ Returns (1/r * Theta), a measure of curvature.
@@ -1185,14 +1182,14 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
     c_ = c  # 2.0  # constant
     vertex_index = 1  # vertex
     #assert vertex_index >= 0
-    umbrella_facets = neighbour_faces_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+    umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     #print("umbrella_facets: ", umbrella_facets)
     #wa = np.zeros()
     w_list = []
     for i_facet in umbrella_facets:
         # neighbour facet i_facet of Vertex vertex_index
         #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
-        three_facets = faces_of_faces[i_facet, :]
+        three_facets = face_neighbours_of_faces_Fx3[i_facet, :]
         w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
         # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
         w_list.append(w)
@@ -1204,7 +1201,7 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
     nfaces = centroids.shape[0]
     wi_total_array = np.zeros((nfaces,))
     for i_facet in range(nfaces):
-        three_facets = faces_of_faces[i_facet, :]
+        three_facets = face_neighbours_of_faces_Fx3[i_facet, :]
         w = wi(i_facet, three_facets, c_)
         assert not np.isnan(w)  # fails
 
@@ -1215,9 +1212,9 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
 
     vertex_index = 1
     #todo: umbrella_Facets = sparse matrix
-    #umbrella_facets = np.array(neighbour_faces_of_vertex, dtype=np.int)  #empty
+    #umbrella_facets = np.array(faceslist_neighbours_of_vertex, dtype=np.int)  #empty
 
-    umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index], dtype=np.int)  # empty
+    umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=np.int)  # empty
 
     #print "umbrella_facets", umbrella_facets.shape, "****"
     assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
@@ -1226,14 +1223,14 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
         for vertex_index in range(verts.shape[0]):
-            print vertex_index
-            print "  len=", len(neighbour_faces_of_vertex)
-            print "  max=", max(neighbour_faces_of_vertex)
+            #print vertex_index
+            #print "  len=", len(faceslist_neighbours_of_vertex)
+            #print "  max=", max(faceslist_neighbours_of_vertex)
 
-            # Note: the vertex may not exist, hence not in  neighbour_faces_of_vertex
-            if vertex_index in neighbour_faces_of_vertex:
-                print neighbour_faces_of_vertex[vertex_index]
-                umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index], dtype=int)
+            # Note: the vertex may not exist, hence not in  faceslist_neighbours_of_vertex
+            if vertex_index in faceslist_neighbours_of_vertex:
+                #print faceslist_neighbours_of_vertex[vertex_index]
+                umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=int)
                 w = wi_total_array[umbrella_facets]
                 assert not np.any(np.isnan(umbrella_facets.ravel()))  # pass
                 assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
@@ -2354,7 +2351,7 @@ def demo_everything():
     check_degenerate_faces(verts, facets, "assert")
     verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
 
-    #neighbour_faces_of_vertex
+    #faceslist_neighbours_of_vertex
     vertex_neighbour_facelist_dict = mesh_utils.make_neighbour_faces_of_vertex(facets)
     centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
     #nv1  =
