@@ -2044,7 +2044,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
     assert np.unique(edge_s_codes).size == edge_pairs.shape[1]
     tesort = edge_pairs.T.copy()
     tesort.sort(axis=1)
-    eid9 = np.dot(tesort, np.array([1, B]), dtype=np.int64).copy()
+    eid9 = np.dot(tesort, np.array([1, B], dtype=np.int64)).copy()
     assert eid9.dtype == np.int64
     assert eid9.size == 0 or np.min(eid9) >= 0
     assert np.max(facets, axis=None) < B
@@ -2377,7 +2377,7 @@ def demo_everything():
 
     # move the following code into subdivide_multiple_facets() (?)
     if chosen_facet_indices.size == 0:
-        chosen_subset_of_facets = np.zeros((0,), dtype=int64)
+        chosen_subset_of_facets = np.zeros((0,), dtype=np.int64)
     else:
         chosen_subset_of_facets = facets[chosen_facet_indices, :]
 

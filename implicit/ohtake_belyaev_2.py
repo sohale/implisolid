@@ -140,8 +140,8 @@ def make_obj(id):
 
 #from mesh1.py
 @profile
-def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
-    """ neighbour_faces_of_vertex: *** """
+def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
+    """ faceslist_neighbours_of_vertex: *** """
 
     def kij(i, j):
         """ Returns (1/r * Theta), a measure of curvature.
@@ -201,7 +201,7 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
     vertex_index = 1  # vertex
     #assert vertex_index >= 0
     #assert vertex_index <
-    umbrella_facets = neighbour_faces_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+    umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_facets: ", umbrella_facets)
     #wa = np.zeros()
     w_list = []
@@ -235,9 +235,9 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
 
     vertex_index = 1
     #todo: umbrella_Facets = sparse matrix
-    #umbrella_facets = np.array(neighbour_faces_of_vertex)  #empty
+    #umbrella_facets = np.array(faceslist_neighbours_of_vertex)  #empty
 
-    umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])  # empty
+    umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
     print "umbrella_facets", umbrella_facets.shape, "****"
     assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
     #return wi_total_array
@@ -248,7 +248,7 @@ def vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroid
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
         for vertex_index in range(verts.shape[0]):
-            umbrella_facets = np.array(neighbour_faces_of_vertex[vertex_index])
+            umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
             w = wi_total_array[umbrella_facets]
             #w = w * 0 + 1
             w = w / np.sum(w)
@@ -333,11 +333,12 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj):
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
 
     from mesh_utils import make_neighbour_faces_of_vertex
-    neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(facets)
+    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
 
     faces_of_faces = build_faces_of_faces(facets)
+    #print faces_of_faces.shape, "*x3"
 
-    new_verts = vertex_resampling(verts, neighbour_faces_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
+    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
 
     return new_verts, facets, centroids  # why does it return facets?
 
@@ -1601,7 +1602,7 @@ def demo_combination_plus_qem():
     # The two CHOICEs are equaivalent. Two rewrites of the same method.
     CHOICE = 1
     if CHOICE == 1:
-        #neighbour_faces_of_vertex
+        #faceslist_neighbours_of_vertex
         vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
         #nv1  =
