@@ -724,6 +724,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 from ipdb import set_trace
 # **********************************
 def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
+    """ This functions checks for Mesh problems, and fied them. It can run in three modes: quit if error, return False if error (dontfix), fix it if error (fix). In the 'fix' mode, the return is verts, faces. Otherwise, the return is boolean. The assert mode returns nothing."""
     # todo: also check facets in-itself.
     #return verts, facets, False
     #set_trace()
@@ -1278,6 +1279,29 @@ def two_bricks():
     c2 = rotate_scale_(c2, 2., [1,1,1])
     iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
     return iobj
+
+def make_bricks():
+    import vectorized
+    import example_objects
+    c2 = vectorized.UnitCube1(1.)
+
+    def rotate_scale_(iobj, scale, center, angle=0.):
+        ns = vectorized
+        import numpy
+        m = numpy.eye(4)
+        m[0,0] = 0.1
+        iobj = ns.Transformed(iobj, m=m)
+        iobj  \
+            .resize(scale) \
+            .move(center[0], center[1], center[2])
+        if angle != 0.:
+            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+        return iobj
+
+    c2 = rotate_scale_(c2, 2., [1, 1, 1])
+    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2 * 2.)
+    return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
 
 
 def visualise_gradients(mlab, pos, iobj, arrow_size):
@@ -2200,8 +2224,6 @@ def test_example_meshes():
     #print v2
 
 
-
-
 import mesh_utils
 
 def demo_everything():
@@ -2219,6 +2241,7 @@ def demo_everything():
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5)
 
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     #iobj = two_bricks()
 
@@ -2363,10 +2386,13 @@ def demo_everything():
     #verts = nv1
     #new_verts_qem = verts
 
-    check_degenerate_faces(new_verts_qem, facets, "assert")
-    new_verts_qem, facets, any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "fix")
+    any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
+    while any_mesh_correction:
+        new_verts_qem, facets, any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "fix")
+        any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
+        print "fixed"
+        # infinite loop
 
-    #
 
     alpha = 0.
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))

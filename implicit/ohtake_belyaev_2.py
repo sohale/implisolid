@@ -11,6 +11,27 @@ from basic_types import check_vector4_vectorized, normalize_vector4_vectorized
 #def adaptive_subdivision(self):
 #    pass
 
+def make_bricks():
+    import vectorized, example_objects
+    c2 = vectorized.UnitCube1(1.)
+    def rotate_scale_(iobj, scale, center, angle=0.):
+        ns = vectorized
+        import numpy
+        m = numpy.eye(4)
+        m[0,0] = 0.1
+        iobj = ns.Transformed(iobj, m=m)
+        iobj  \
+            .resize(scale) \
+            .move(center[0], center[1], center[2])
+        if angle != 0.:
+            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+        return iobj
+
+    c2 = rotate_scale_(c2, 2., [1, 1, 1])
+    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
+
 def make_obj(id):
 
     if id == 14:
@@ -114,24 +135,7 @@ def make_obj(id):
         #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_obj(14)
         #STEPSIZE = 0.05
 
-        import vectorized, example_objects
-        c2 = vectorized.UnitCube1(1.)
-        def rotate_scale_(iobj, scale, center, angle=0.):
-            ns = vectorized
-            import numpy
-            m = numpy.eye(4)
-            m[0,0] = 0.1
-            iobj = ns.Transformed(iobj, m=m)
-            iobj  \
-                .resize(scale) \
-                .move(center[0], center[1], center[2])
-            if angle != 0.:
-                iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-            return iobj
-
-        c2 = rotate_scale_(c2, 2., [1, 1, 1])
-        iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
         return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
 
     else:
