@@ -311,8 +311,9 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         """ Adding random points """
         n=10000
         import basic_types
-        print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
+        print avg_edge_len, "WHY USED BEFORE DEFINED?"
+
         #ampl = 2
         x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
         v = iobj.implicitFunction(x)
@@ -1615,7 +1616,7 @@ def demo_combination_plus_qem():
 
 
 if __name__ == '__main__':
-    demo_choise = 7
+    demo_choise = 3
     if demo_choise == 1:
         visualise_normals_test()   # visualise to check the gradients
     elif demo_choise == 2:

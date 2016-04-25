@@ -214,8 +214,8 @@ def rdice_vec(scale):
     return rdice_(vectorized, scale)
 
 
-def udice_vec(scale=1.):       
-   """ Un-rotated dice """       
+def udice_vec(scale=1.):
+   """ Un-rotated dice """
    return rdice_(vectorized, scale, rotated=False)
 
 
@@ -878,3 +878,34 @@ def cyl4():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
 
     return ifunc, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+
+def cube_with_cylinders():
+
+    SCALE = 2.  # mm
+    sz1 = 2.5
+
+    radius = 0.5 * SCALE
+    c_len = 2 * SCALE
+
+    A = make_vector4(-c_len/2.0, 0, 0)
+    #A = make_vector4(0, 0, c_len / 2.0)  # bug: aa is wrong
+    w = make_vector4(1,0 , 0)
+    w = w / np.linalg.norm(w[0:3]); w[3] = 1
+    u = make_vector4(0, 1, 0)
+
+    cyl = SimpleCylinder(A, w, u, radius, radius, c_len)
+
+
+    A2 = make_vector4(0, -c_len/2.0, 0)
+        #A = make_vector4(0, 0, c_len / 2.0)  # bug: aa is wrong
+    w2 = make_vector4(1,0 , 0)
+    w2 = w / np.linalg.norm(w[0:3]); w[3] = 1
+    u2 = make_vector4(0, 1, 0)
+
+    cyl_2 = SimpleCylinder(A2, u2, w2, radius, radius, c_len)
+    cube = vectorized.UnitCube1(size=sz1)
+    union = vectorized.CrispSubtract(cube, cyl_2)
+    final_object = vectorized.CrispUnion(union,cyl)
+
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    return final_object, (RANGE_MIN, RANGE_MAX, STEPSIZE)
