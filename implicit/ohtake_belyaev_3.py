@@ -1442,10 +1442,20 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     else:
         opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
 
-
     for fi in range(len(vf_list)):
         if separate_panels:
             mlab.figure()
+
+        #allpoints are plottedon all panels?
+        color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
+        i = 0
+        for c in pointcloud_list:
+            #if separate_panels:
+            #    if i != fi:
+            #        continue
+            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity)
+            i += 1
+        del i
 
         vf = vf_list[fi]
         verts, faces = vf
@@ -1473,9 +1483,8 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             assert len(add_noise) == len(vf_list)
             M = float(add_noise[fi])
 
-
-
-        if True:
+        ignore_noise = False
+        if ignore_noise:
             _v = verts
             _f = faces
         else:
@@ -1487,6 +1496,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
                 post_expand_noise = True
 
             if pre_expand_noise:
+                print "noise", M/2.
                 verts = noisy(verts, M/2.)
 
             _v = verts[faces, :]
@@ -1508,6 +1518,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             if post_expand_noise:
                 #_v = _v + (np.random.rand( _v.shape[0], _v.shape[1] ) -0.5) * M
                 _v = noisy(_v, M/2.)
+                print "noise2 ", M/2.
 
             #qq = _v[_f, :]
             #assert  np.all( _f.ravel() == np.arange( _f.size ) )
@@ -1527,17 +1538,6 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
                         opacity=opacities[fi], scale_factor = 100.0)
         #opacity = 0.2 #0.1
 
-
-        #allpoints are plottedon all panels?
-        color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
-        i = 0
-        for c in pointcloud_list:
-            #if separate_panels:
-            #    if i != fi:
-            #        continue
-            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity)
-            i += 1
-        del i
 
         if minmax is not None:
             (RANGE_MIN, RANGE_MAX) = minmax
@@ -2369,12 +2369,11 @@ def demo_everything():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-
-    display_simple_using_mayavi_2( [(verts, facets), ] * 2,
+    display_simple_using_mayavi_2( [(verts, facets), ] * 3,
        pointcloud_list=[],
-       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+       mayavi_wireframe=[False, True, True], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX),
-       add_noise=[0.05, 0.05], noise_added_before_broadcast=True  )
+       add_noise=[0.05, 0, 0.05], noise_added_before_broadcast=True  )
     #exit()
 
     #display_simple_using_mayavi_2( [(verts, facets), ],
