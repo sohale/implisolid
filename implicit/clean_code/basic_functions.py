@@ -47,7 +47,6 @@ def check_vector3(p):
     assert not np.any( np.isnan(p.ravel()) )
     assert not np.any( np.isinf(p.ravel()) )
 
-
 def check_vector4_vectorized(pa):
     assert not issubclass(pa.dtype.type, np.integer)
     assert pa.ndim == 2
@@ -88,6 +87,16 @@ def make_vector4(x, y, z):
 
     return np.array((float(x), float(y), float(z), 1.0))
 
+def make_vector3(x, y, z):
+    xyz = np.array([x,y,z])
+    assert not np.any( np.isnan(xyz) )
+    assert not np.any( np.isinf(xyz) )
+
+    if issubclass(type(x), np.ndarray):
+        return np.array((float(x[0]), float(y[1]), float(z[1])))
+
+    return np.array((float(x), float(y), float(z)))
+
 #
 def check_matrix3(m):
     assert m.shape == (3, 3)
@@ -108,6 +117,21 @@ def normalize_vector(v, snapToZero=False):
     r[3] = 1
     return r
 
+def normalize_vector3(v, snapToZero=False):
+    assert not np.any( np.isnan(v.ravel()) )
+    assert not np.any( np.isinf(v.ravel()) )
+
+    r = v.copy()
+    #r[:] = np.sign(r[:]) * np.abs(r[:]) ** POW
+    r = r / np.sqrt(np.dot(r, r))
+    assert (r[0]*r[0] + r[1]*r[1] + r[2]*r[2] - 1) < 0.00000000001
+    if snapToZero:
+        for i in range(0, 3):
+            if np.abs(r[i]) < 0.0000001:
+                r[i] = 0
+    return r
+
+
 #todo: http://floating-point-gui.de/errors/comparison/
 #todo: write tests for this
 def make_random_vector(norm, POW, type="rand"):
@@ -126,6 +150,24 @@ def make_random_vector(norm, POW, type="rand"):
         if np.abs(r[i]) < 0.0000001:
             r[i] = 0
     return np.array((r[0], r[1], r[2], 1))
+
+def make_random_vector3(norm, POW, type="rand"):
+    if type == "rand":
+        r = np.random.rand(3)*2 - 1
+    elif type == "randn":
+        r = np.random.randn(3)
+    else:
+        raise Error("nknown random distribution")
+
+    r[:] = np.sign(r[:]) * np.abs(r[:]) ** POW
+    r = r / np.sqrt(np.dot(r, r))
+    assert (r[0]*r[0] + r[1]*r[1] + r[2]*r[2] - 1) < 0.00000000001
+    r = r * norm
+    for i in range(0, 3):
+        if np.abs(r[i]) < 0.0000001:
+            r[i] = 0
+    return np.array((r[0], r[1], r[2]))
+
 
 def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
     r = np.ones((N, 4))
@@ -148,6 +190,30 @@ def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
     r[:, 0:3] = r[:, 0:3] * norm
     r[:, 3] = 1
     check_vector4_vectorized(r)
+    return r
+
+
+
+def make_random_vector3_vectorized(N, norm, POW, type="rand", normalize=True):
+    r = np.ones((N, 3))
+
+    #not tested:
+    if type == "rand":
+        r = np.random.rand(N, 3)*2 - 1
+    elif type == "randn":
+        r = np.random.randn(N, 3)
+    else:
+        raise Error("nknown random distribution")
+
+    r = np.sign(r) * np.abs(r) ** POW
+    #r[:,0:3] = r[0:3] / np.tile( np.sqrt( np.sum(r[:,0:3] * r[:,0:3], axis=1, keepdims=True) ) , (1,3) )
+    n3 = np.sqrt(np.sum(r * r, axis=1, keepdims=True))
+    if normalize:
+        r = r / np.tile(n3, (1, 3))
+        s_1 = np.sum(r * r, axis=1) - 1
+        assert np.all(np.abs(s_1) < 0.00000000001)
+    r = r * norm
+    check_vector3_vectorized(r)
     return r
 
 
@@ -196,9 +262,59 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     return r
 
 
+def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
+    """ returns vectors of either length 1 or zero. """
+    N = v.shape[0]
+    assert not issubclass(v.dtype.type, np.integer)
+    assert not np.any( np.isnan(v) )
+    assert not np.any( np.isinf(v) )
+
+    # norms = np.linalg.norm(v[:,0:3], axis = 1, keepdims=True, ord=2)
+    norms = np.sqrt(np.sum(v * v, axis=1, keepdims=True))
+    denominator = np.tile(norms, (1, 3))
+    if zero_normal=="leave_zero_norms":
+        zeros_i = np.abs(norms.ravel()) < 0.00000001
+        non_zero_i = np.logical_not(zeros_i)
+        if not np.any(zeros_i):
+            c = 1.0 / denominator
+        else:
+            c = np.ones(denominator.shape)
+            c[non_zero_i,:] = 1.0 / denominator[non_zero_i,:]
+    else:
+        pass
+    assert not np.any( np.isnan(c) )
+    assert not np.any( np.isinf(c) )
+    r = v * c
+    assert r.shape[0] == N
+    df = np.sum(r * r, axis=1)
+    #print(df.shape)
+    #print(df)
+    #print(non_zero_i)
+    e1a = np.all(np.abs(df[non_zero_i]-1.0) < 0.00000000001)
+    e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
+
+    if not (e1a and e0a):
+        print("r:", r)
+        print("v:", v)
+        print("c:", v)
+        print("denom: ", denominator)
+        print(norms)
+        print(denominator)
+        print(np.sum(r* r, axis=1))
+
+    assert e1a and e0a  # np.all(np.logical_or(e1a, e0a))
+    return r
+
 def repeat_vect4(N, v4):
     check_vector4(v4)
     _x = v4
+    xa = np.tile(np.expand_dims(_x, axis=0), (N, 1))
+    assert xa.shape[0] == N
+    return xa
+
+def repeat_vect3(N, v3):
+    check_vector3(v3)
+    _x = v3
     xa = np.tile(np.expand_dims(_x, axis=0), (N, 1))
     assert xa.shape[0] == N
     return xa
