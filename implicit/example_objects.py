@@ -551,6 +551,7 @@ examples = {
     "screw3": 2,
     "udice_vec": 2,
     "cyl4": 2,  # spiral cage
+    "cube_with_cylinders" : 2
 }
 
 
@@ -661,7 +662,7 @@ def ex1():
 import screw
 
 
-def screw1():
+def screw1(scale_ignored):
     a = np.array([0, 0, 0])
     w = np.array([0, 0, 1])
     u = np.array([1, 0, 0])
@@ -673,7 +674,7 @@ def screw1():
     return screw.Screw(a, w, u, screw_len, r0, delta, lambda_, phi0)
 
 
-def screw2():
+def screw2(scale_ignored):
     # does not work
     a = np.array([0, 0, 1])
     w = np.array([0, 0, 1])
@@ -879,7 +880,7 @@ def cyl4():
 
     return ifunc, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-def cube_with_cylinders():
+def cube_with_cylinders(SCALE):
 
     SCALE = 2.  # mm
     sz1 = 2.5

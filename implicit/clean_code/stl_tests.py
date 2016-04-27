@@ -175,21 +175,6 @@ def test4():
     # display_simple_using_mayavi_vf1(verts, faces)
 
 
-def optimise_mesh(verts, faces, iobj):
-    import mesh1
-    m = mesh1.Mesh_1(faces, verts)
-    m.build_centroids()
-    m.build_neighbours()
-    m.evaluate_centroid_gradients(iobj)
-    do_qem = True
-    if do_qem:
-        m.update_centroids_and_gradients(iobj)
-        m.update_centroids_and_gradients(iobj)
-        # if not qem_breakdown:
-        m.quadratic_optimise_vertices(1)
-        m.verts = m.new_verts
-    return m.verts
-
 
 def test5_screw():
     # simply marching cubes
@@ -227,7 +212,7 @@ def test6_blend():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2. * 8, +4. * 8, 0.4 * 8 / 5)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-    verts = optimise_mesh(verts, faces, iobj)
+    #verts = optimise_mesh(verts, faces, iobj)
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:
@@ -267,7 +252,7 @@ def test7_dice():
     # When rescale is doubled (=2.), average edge size 0.824 -> 1.647 .
     # Seems the latter is when it works very well.
 
-    verts = optimise_mesh(verts, faces, iobj)
+
     print "average_edge_size", average_edge_size(verts, faces)  # 0.86 -> 1.72
 
     m = m2stl_mesh(verts, faces)
@@ -297,7 +282,7 @@ def test8_bigdice():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-22, +20., 0.8)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-    verts = optimise_mesh(verts, faces, iobj)
+    #verts = optimise_mesh(verts, faces, iobj)
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:

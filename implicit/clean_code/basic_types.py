@@ -98,6 +98,30 @@ def normalize_vector(v, snapToZero=False):
 #todo: http://floating-point-gui.de/errors/comparison/
 #todo: write tests for this
 
+def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
+    r = np.ones((N, 4))
+
+    #not tested:
+    if type == "rand":
+        r[:, 0:3] = np.random.rand(N, 3)*2 - 1
+    elif type == "randn":
+        r[:, 0:3] = np.random.randn(N, 3)
+    else:
+        raise Error("nknown random distribution")
+
+    r[:, 0:3] = np.sign(r[:, 0:3]) * np.abs(r[:, 0:3]) ** POW
+    #r[:,0:3] = r[0:3] / np.tile( np.sqrt( np.sum(r[:,0:3] * r[:,0:3], axis=1, keepdims=True) ) , (1,3) )
+    n3 = np.sqrt(np.sum(r[:, 0:3] * r[:, 0:3], axis=1, keepdims=True))
+    if normalize:
+        r[:, 0:3] = r[:, 0:3] / np.tile(n3, (1, 3))
+        s_1 = np.sum(r[:, 0:3] * r[:, 0:3], axis=1) - 1
+        assert np.all(np.abs(s_1) < 0.00000000001)
+    r[:, 0:3] = r[:, 0:3] * norm
+    r[:, 3] = 1
+    check_vector4_vectorized(r)
+    return r
+
+
 def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     """ returns vectors of either length 1 or zero. """
     N = v.shape[0]

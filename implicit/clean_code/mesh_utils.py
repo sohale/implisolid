@@ -23,9 +23,7 @@ def make_neighbour_faces_of_vertex(faces):
             else:
                 assert fi not in neighbour_faces_of_vertex[v1]
                 neighbour_faces_of_vertex[v1].append(fi)
-    # print(neighbour_faces_of_vertex)
-    # print(map( lambda k: len(neighbour_faces_of_vertex[k]), neighbour_faces_of_vertex   )) #for k,v in neighbour_faces_of_vertex:
-    #    print(len(v), end="")
+
     return neighbour_faces_of_vertex
 
 #import vectorized
