@@ -19,7 +19,7 @@ class TroubledMesh(Exception):
         self.reason = reason
 
     def __str__(self):
-        return "TroubledMesh"+str(self.reason)
+        return "TroubledMesh: "+str(self.reason)
     pass
 
 
@@ -34,7 +34,7 @@ def check_face_triplets(faces):
     assert d.dtype == np.int64
     assert d.size == 0 or np.min(d) >= 0
     assert np.max(faces.ravel()) < B
-    face_triplet_ids = d.ravel()
+    face_triplet_ids = d.ravel().copy()
     del f3sides
 
     face_order = face_triplet_ids.argsort()
@@ -75,19 +75,11 @@ def check_faces(faces):
     f0 = faces[:, np.newaxis, 0:2]
     f1 = faces[:, np.newaxis, 1:3]
     f2 = faces[:, np.newaxis, [0, 2]]
-    #print faces[:,:]
-    #print f2
     f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
     f1 = f1.copy(); f1.sort(axis=2)
     f2 = f2.copy(); f2.sort(axis=2)
-    #print faces[:,:]
-    #print f2
-    #exit()
 
     fe3 = np.concatenate( (f0, f1, f2), axis=1 )  # shape==(:,3,2)
-    #fe3 = np.swapaxes(fe3, 0, 1)
-    #print fe3.shape
-    #print fe3.shape
     BB = np.array([[1L, B]], dtype=np.int64).transpose().ravel()  # 2x-
     edg = np.dot(fe3, BB)  # fx3
     assert edg.dtype == np.int64
@@ -95,62 +87,32 @@ def check_faces(faces):
     assert np.max(faces, axis=None) < B
 
     #Sort edges to detect repeated edges. Each edge should appear exactly twice.
-    q = edg.ravel()
+    q = edg.ravel().copy()
     sort_idx = q.argsort()
     assert sort_idx.shape == (faces.shape[0]*3,)
-    #print sort_idx
     q_unsorted = q.copy()
-    #q=-q
     q.sort()
-    #q=-q
     assert np.all(q_unsorted[sort_idx] == q)
-    #print q.reshape( (-1, 2) ).transpose()
-    #print q[:10]
-    #print "diff=", np.diff(q)[:10]
-
     fe3_ravel = fe3.reshape( (np.prod(fe3.shape[0:2]), 2) )
-    #print fe3_ravel.shape, "ss"
-    #print fe3_ravel[:5*3, :]
-    #print faces[:5,:]
-    #print f2
-    #exit()
 
-    #print locals().keys()
-
-    #idx_xy = np.unravel_index( sort_idx[:10], fe3.shape[0:2] )
     idx_xy = np.unravel_index( sort_idx[:], fe3.shape[0:2] )
-    #idx_xy is a tuple
-    face_idx = idx_xy[0]
+    face_idx = idx_xy[0]  # tuple
     side_idx = idx_xy[1]
-    #print "sort_idx=", sort_idx[:10]
-    #print "face, side=", face_idx, side_idx
 
     vert_idx_1 = side_idx
     vert_idx_2 = (side_idx + 1) % 3
+    # You can get the sorted inices here:
     v1 = faces[face_idx, vert_idx_1]
     v2 = faces[face_idx, vert_idx_2]
-    #print "V1, v2"
-    #print v1
-    #print v2
-    #print
     v12 = np.concatenate((v1[:, np.newaxis], v2[:, np.newaxis]), axis=1)
 
-    #print
-    #print fe3[sort_idx[:10], 1, :]
-    #print fe3_ravel[sort_idx[:10], :]
+    #Now they are the same: v12 and fe3_ravel: v12, fe3_ravel[sort_idx[:10], :]
 
-    #Now they are the same: v12 and fe3_ravel
-    #print v12
-    #print fe3_ravel[sort_idx[:10], :]
-
-    #You can get the sorted inices here:
-    #faces[face_idx, vert_idx_1]
-    #faces[face_idx, vert_idx_2]
-    #exit()
-
-    #assert np.all(np.diff(q)[1::2] != 0)  # what about the very first one
+    #Keep this:
+    #assert np.all(np.diff(q)[1::2] != 0)  # Note that the very first one can be zero
 
     if not np.all(np.diff(q)[::2] == 0):
+        set_trace()
         raise TroubledMesh("Edges are not paired")
         #print "q"
         #print q.reshape( (q.size, 1) )
@@ -326,6 +288,7 @@ def REMOVE_REPEATED_FACES_NEVER_NECESSARY(faces):
     #exit()
 
     face_order = face_triplet_ids.argsort()
+    face_triplet_ids=face_triplet_ids.copy()
     face_triplet_ids.sort()
     # Check there is no repeated faces (with exact same vertex list):
     diff0 = (np.diff(face_triplet_ids) == 0)
@@ -824,7 +787,7 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         assert np.max(sv12, axis=None) < B
 
         sort_order = eaa.argsort()
-        eaa_s = eaa.copy(); eaa_s.sort(); print eaa_s
+        #eaa_s = eaa.copy(); eaa_s.sort(); #print eaa_s
 
         # sort sv12 based on their edge codes (eaa)
         sv12 = sv12[:, sort_order]
@@ -935,7 +898,9 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
             #print cross, cross_proj
             assert cross_proj <= cross
             dist = proj-0  # M is already subtracted from proj
-            print "dist", dist, np.dot(a-b, v1M), np.dot(a-b, v2M)
+            #print "dist", dist, np.dot(a-b, v1M), np.dot(a-b, v2M)
+            print "-"
+
 
             if np.linalg.norm(dist) < 0.00000001 and np.linalg.norm(a-b) > 0.000001:  #and: two sides: a-b are far    # *** FIXME!
                 #_type=3 (midpoint)
@@ -961,7 +926,11 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
                 (ev1, ev2) = facets[fi, ends_vertices[0]], facets[fi, ends_vertices[1]]
                 edge_code = calculate_edge_code(np.array([[ev1,ev2]]))[0]
-                print edge_code, "->", facets[fi, other_vertex]
+                #sidesabc = sorted(list((np.linalg.norm(b), np.linalg.norm(a), np.linalg.norm(a-b))))
+                sidesabc = sorted(list((np.linalg.norm(a), np.linalg.norm(b), np.linalg.norm(a-b))))
+                print fi, sidesabc, sidesabc[2]-(sidesabc[1]+sidesabc[0]),
+                print "\t", edge_code, "->", facets[fi, other_vertex]
+
                 obm_map[edge_code] = facets[fi, other_vertex]
 
                 obm_faces += [fi]
@@ -1020,7 +989,9 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
         print np.diff(v012, axis=1)
         exit()
 
+    check_faces(facets)
 
+    FIX_OBM = True # True # False
     #print "*********"*100
     DID =0
     if fix_them:
@@ -1038,36 +1009,54 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
             print "ZERO AREA",
             DID = 1
 
-        if False and len(obm_faces) > 0:
+        check_faces(facets)
+
+        if FIX_OBM and len(obm_faces) > 0:
             assert not triangles_need_deletion_because_of_zero_edges, "If True, we cannot remove both. We need to OR first."
             print "going to delete ", facets.shape
-            facets = np.delete(facets, obm_faces, axis=0)
+            #facets = np.delete(facets, obm_faces, axis=0)
             print "deleted ", facets.shape
             DID = 2
+            #check_faces(facets)
+
     print
     print "*"*100
     print "DID", DID
 
+    #check_faces(facets)
 
     if fix_them:
-        if False and len(obm_map) > 0:
-            edge_array = np.array(obm_map.keys(), dtype=np.int)
+        if FIX_OBM and len(obm_map) > 0:
+            edge_array = np.array(obm_map.keys(), dtype=np.long)
 
             #set_trace()
             print "goting to subdiv sides ", facets.shape, edge_array.shape
             old_facets = facets.copy()
-            facets = subdivide_1to2_multiple_facets(facets, edge_array, obm_map)
+
+            facets = subdivide_1to2_multiple_facets(facets, edge_array, obm_map, careful_for_twosides=False)
             print "did subdiv sides ", facets.shape, edge_array.shape
-            set_trace()
+
+            #print "goting to subdiv sides ", facets.shape, edge_array.shape
+            #facets = subdivide_1to2_multiple_facets(facets, edge_array, obm_map, careful_for_twosides=False)
+            #print "did subdiv sides ", facets.shape, edge_array.shape
+
+            #print "goting to subdiv sides ", facets.shape, edge_array.shape
+            #facets = subdivide_1to2_multiple_facets(facets, edge_array, obm_map, careful_for_twosides=False)
+            #print "did subdiv sides ", facets.shape, edge_array.shape
+
+            #set_trace()
+
+            #set_trace()
             e3 = get_edge_codes_of_mesh(facets)
             er = e3.ravel()
             #np.intersect1d(er, edge_array)
             bl = np.lib.arraysetops.in1d(er, edge_array)
             #bl3=bl.reshape(e3.shape)
+            check_faces(facets)
 
     #fails
     #May not be fine yet
-    if False:
+    if True:
         check_faces(facets)
     #***not tested
     #todo: write unit-test
@@ -1401,7 +1390,9 @@ def make_bricks():
         return iobj
 
     c2 = rotate_scale_(c2, 2., [1, 1, 1])
-    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    c3 = example_objects.rcube_vec(1.)
+    iobj = c2 #
+    #iobj = vectorized.CrispUnion( c3, c2 )
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2 * 2.)
     return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
 
@@ -1511,7 +1502,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
 
             #print np.nonzero( np.isnan(_f.ravel()) )
             #print np.nonzero( np.isinf(_f.ravel()) )
-            vv=_f.ravel(); vv.sort()
+            vv=_f.ravel().copy(); vv.sort()
             #print np.nonzero(vv != np.arange(vv.size))
 
             #_v = np.concatenate( (_v, np.zeros( (10000, 3) )), axis=0)
@@ -2047,9 +2038,10 @@ def get_edge_codes_of_mesh(facets):
     return all3edges
 
 
-def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
+def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, careful_for_twosides=True):
     """list_edges_with_1_side contains the edges only. The face should be extracted in this function.
-    returns: faces."""
+    returns: faces.
+    careful_for_twosides: whe ntwo sides are being asked for subdivision. """
     #todo: copy some code from propagated_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
     #Some edges_with_1_side may not be in facets. They are already subdivided twice.
@@ -2110,21 +2102,24 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
     x3__b_Fx3 = x_.reshape(-1, 3)
     #x3__w = x3__a  #wrong
     x3__w = x3__b_Fx3  # right bug!
+    #refactor: merge: x3__w -> x3__b_Fx3
 
     #Dont want to subdivide 1->2
     #bad2 = np.all(np.sum(x_.reshape(3, -1), axis=0) > 1)  # bug!
     bad2 = np.nonzero(np.sum(x3__b_Fx3, axis=1) > 1)[0]
-    if bad2.size > 0:
-        print midpoint_map
-        print bad2
-        print facets[bad2, :]
-        print edges_with_1_side
-        set_trace()
-    assert bad2.size == 0
+    if careful_for_twosides:
+        if bad2.size > 0:
+            print midpoint_map
+            print bad2
+            print facets[bad2, :]
+            print edges_with_1_side
+            set_trace()
+        assert bad2.size == 0
     del bad2
 
-    assert np.all(np.sum(x3__b_Fx3, axis=1) <= 1)
-    if True:
+    if careful_for_twosides:
+        assert np.all(np.sum(x3__b_Fx3, axis=1) <= 1)
+    if careful_for_twosides:
         if not np.all(np.sum(x3__w, axis=1) <= 1):
             #print np.sum(x3__w, axis=1).tolist()
             a = np.sum(x3__w, axis=1)
@@ -2139,45 +2134,51 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
     assert np.ndim(face3_idx) == 1
 
     #todo(refactor): use np.argwhere()
-    #idx_xy = np.unravel_index(face3_idx[:], all3edges.shape)
     idx_xy = np.unravel_index(face3_idx, all3edges.shape)
     #idx_xy is a tuple
-    bad_face_idx = idx_xy[0]
-    bad_side_idx = idx_xy[1]
-    #assert np.all(bad_face_idx < 3)
+    #Triangles subject to be subdivided:
+    problem_face_idx = idx_xy[0]
+    problem_side_idx = idx_xy[1]
+    #assert np.all(problem_face_idx < 3)
     def has_repeats(x):
         y = x.copy()
         y.sort()
-        return np.any(np.diff(y)==0)
+        return np.any(np.diff(y) == 0)
 
     #has repeats, becasue [2]is not resolved before
-    #if has_repeats(bad_face_idx):
+    #if has_repeats(problem_face_idx):
     #    intersec = np.intersect1d(all3edges_ravel, edges_with_1_side)
     #    print intersec
     #    print facets
     #    exit()
 
-    assert not has_repeats(bad_face_idx)
-    for ii in range(bad_face_idx.size):
-        #assert all3edges_ravel[bad_face_idx[ii], bad_side_idx[ii]] in edges_with_1_side
-        assert all3edges[bad_face_idx[ii], bad_side_idx[ii]] in edges_with_1_side
-        assert bad_side_idx[ii] < 3
-    #all bad_face_idx should be removed
+    if careful_for_twosides:
+        assert not has_repeats(problem_face_idx), "triangles subject to be subdivided"
+    for ii in range(problem_face_idx.size):
+        #assert all3edges_ravel[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
+        assert all3edges[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
+        assert problem_side_idx[ii] < 3
+    #all problem_face_idx should be removed
+
 
     # The subdivided edge is between v1 and v2.
-    vert_idx_1 = bad_side_idx  # bad side is v1-v2
-    vert_idx_2 = (bad_side_idx + 1) % 3
-    vert_idx_3 = (bad_side_idx + 2) % 3
-    v1 = facets[bad_face_idx, vert_idx_1]
-    v2 = facets[bad_face_idx, vert_idx_2]
-    v3 = facets[bad_face_idx, vert_idx_3]
+    vert_idx_1 = problem_side_idx  # bad side is v1-v2
+    vert_idx_2 = (problem_side_idx + 1) % 3
+    vert_idx_3 = (problem_side_idx + 2) % 3
+    v1 = facets[problem_face_idx, vert_idx_1]
+    v2 = facets[problem_face_idx, vert_idx_2]
+    v3 = facets[problem_face_idx, vert_idx_3]
 
-    #edge_codes = facets[bad_face_idx, bad_side_idx]
+    #edge_codes = facets[problem_face_idx, problem_side_idx]
     edge_pairs = np.vstack((v1, v2))  # size: 2 x F
     #edge_pairs never used!!
 
     #edge_s_codes = A flat array of all the edge codes (For the sides that should be replaced with the sibdivided ones)
+    #?????????????
     edge_s_codes = all3edges_ravel[x_]
+    #if can tolerate two sides:
+    if not careful_for_twosides:
+        edge_s_codes = np.unique(edge_s_codes)
     assert np.unique(edge_s_codes).size == edge_s_codes.size
 
     assert np.unique(edge_s_codes).size == edge_pairs.shape[1]
@@ -2212,8 +2213,9 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map):
         y = x.copy()
         y.sort()
         return y
-    assert np.all(np.diff(sorted_copy(bad_face_idx)) != 0), "bad_face_idx has repeated elements"
-    f_rm = np.delete(facets, bad_face_idx, axis=0)
+    assert np.all(np.diff(sorted_copy(problem_face_idx)) != 0), "problem_face_idx has repeated elements"
+    set_trace()
+    f_rm = np.delete(facets, problem_face_idx, axis=0)
     appended_faces = np.concatenate((f_rm, new_faces), axis=0)
 
     return appended_faces
@@ -2396,7 +2398,7 @@ def demo_everything():
     check_degenerate_faces(verts, facets, "assert")
 
 
-    old_verts, old_facets = verts, facets
+    #old_verts, old_facets = verts, facets
     assert not np.any(np.isnan(verts.ravel()))  # fine
 
     display_simple_using_mayavi_2( [(verts, facets), ] * 2,
@@ -2405,22 +2407,18 @@ def demo_everything():
        minmax=(RANGE_MIN,RANGE_MAX)  )
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        #facets = fix_faces_3div2(facets)
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-        #facets = fix_faces_3div2(facets)
-        z1 = verts.ravel()
-        z2 = np.isnan(verts.ravel())
-        z3 = np.any(np.isnan(verts.ravel()))
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
         check_degenerate_faces(verts, facets_not_used, "assert")
-        verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
-        assert not np.any(np.isnan(verts.ravel()))  # fails
-        assert not any_mesh_correction
-        if any_mesh_correction:
-            print("mesh correction needed")
-            exit()
+        #verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
+        #assert not np.any(np.isnan(verts.ravel()))  # fails
+        #assert not any_mesh_correction
+        #if any_mesh_correction:
+        #    print("mesh correction needed")
+        #    exit()
 
+    assert len(failure_pairs) == 0
     if False:
         # list of pairs that have zero distance in weighted resampling.
         fpna = np.asarray(failure_pairs, dtype=np.int64).ravel()
@@ -2438,16 +2436,16 @@ def demo_everything():
         facets3_subdivided = facets
 
         check_degenerate_faces(verts4_subdivided, facets3_subdivided, "assert")
-        verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "fix")
+        #verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "fix")
 
         total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
-        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            #print "i", "="*10, i
-            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-            print("Vertex relaxation2 applied again.");sys.stdout.flush()
-            check_degenerate_faces(verts, facets_not_used, "assert")
-            verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
+        #for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+        #    #print "i", "="*10, i
+        #    verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+        #    print("Vertex relaxation2 applied again.");sys.stdout.flush()
+        #    check_degenerate_faces(verts, facets_not_used, "assert")
+        #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
 
     from ohtake_surface_projection import set_centers_on_surface__ohtake
 
@@ -2479,7 +2477,11 @@ def demo_everything():
     any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
     if not any_mesh_correction:
         print "Mesh health:", any_mesh_correction
-    if False:
+
+    print "*"*500
+    strict_about_mesh = False
+
+    if strict_about_mesh:
         while any_mesh_correction:
             new_verts_qem, facets, any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "fix")
             any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
@@ -2510,10 +2512,20 @@ def demo_everything():
         check_degenerate_faces(new_verts_qem_alpha, facets, "assert")
         check_degenerate_faces(new_verts_qem, facets, "assert")  # has degenerate face
 
-    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
-       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
+
+    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets), (new_verts_qem, facets), (new_verts_qem, facets), ],
+       pointcloud_list=[],
+       mayavi_wireframe=[False, True, True,], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX),
+       add_noise=[0.05, 0, 0.05], noise_added_before_broadcast=True  )
+
+    #display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    #   pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+    #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+    #   minmax=(RANGE_MIN,RANGE_MAX)  )
+
+    verts = new_verts_qem
+    #facets = facets
 
 
 def compute_average_edge_length(verts, faces):
