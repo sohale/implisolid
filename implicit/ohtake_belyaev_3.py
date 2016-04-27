@@ -928,57 +928,73 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
             #print side_lengths[longest_side], cross  # ~ 2e-16
             type3_whichfaces[fi] = cross
-            #proj = v1M - (v1M)
+
             a = v1M
             b = v2M
-            proj = a - (a-b)*np.dot(a, a-b)/np.dot(a-b, a-b)
-            #proj is exactly on the line
-            cross_proj = np.linalg.norm(np.cross(v1M-proj, v2M-proj))
-            #print cross, cross_proj
-            assert cross_proj <= cross
-            dist = proj-0  # M is already subtracted from proj
-            #print "dist", dist, np.dot(a-b, v1M), np.dot(a-b, v2M)
-            #print "-"
 
+            case = "-"
+            if np.linalg.norm(a) < 0.00000001 and np.linalg.norm(b) < 0.00000001:
+                case = "000"
+            else:
+                case = "OBM"
 
-            if np.linalg.norm(dist) < 0.00000001 and np.linalg.norm(a-b) > 0.000001:  #and: two sides: a-b are far    # *** FIXME!
-                #_type=3 (midpoint)
-
+            if case == "OBM":
+                assert np.linalg.norm(dist) < 0.00000001
+                assert  np.linalg.norm(a-b) > 0.000001  #and: two sides: a-b are far    # *** FIXME!
                 assert np.linalg.norm(a-b) > 0.000001
                 assert np.linalg.norm(a) > 0.000001  # M is at zero
                 assert np.linalg.norm(b) > 0.000001
 
+                #proj = v1M - (v1M)
+                proj = a - (a-b)*np.dot(a, a-b)/np.dot(a-b, a-b)
+                #proj is exactly on the line
+                cross_proj = np.linalg.norm(np.cross(v1M-proj, v2M-proj))
+                print a,b
+                print cross_proj, cross
+                assert cross_proj <= cross
+                dist = proj-0  # M is already subtracted from proj
+                #print "dist", dist, np.dot(a-b, v1M), np.dot(a-b, v2M)
+                #print "-"
 
-                #facets[fi, ends_vertices]
 
-                def calculate_edge_code(e):
-                    assert np.ndim(e) == 2
-                    assert e.shape[1] == 2
+                if np.linalg.norm(dist) < 0.00000001 and np.linalg.norm(a-b) > 0.000001:  #and: two sides: a-b are far    # *** FIXME!
+                    #_type=3 (midpoint)
 
-                    BB = np.array([1L, B], dtype=np.int64)
-                    edge_codes = np.dot(e, BB)  # n x ,
-                    assert edge_codes.dtype == np.int64
-                    assert edge_codes.size == 0 or np.min(edge_codes) >= 0
-                    assert np.max(facets, axis=None) < B
-                    assert edge_codes.size == 0 or np.min(edge_codes) >= 0
-                    return edge_codes
+                    assert np.linalg.norm(a-b) > 0.000001
+                    assert np.linalg.norm(a) > 0.000001  # M is at zero
+                    assert np.linalg.norm(b) > 0.000001
 
-                (ev1, ev2) = facets[fi, ends_vertices[0]], facets[fi, ends_vertices[1]]
-                edge_code = calculate_edge_code(np.array([[ev1,ev2]]))[0]
-                #sidesabc = sorted(list((np.linalg.norm(b), np.linalg.norm(a), np.linalg.norm(a-b))))
-                sidesabc = sorted(list((np.linalg.norm(a), np.linalg.norm(b), np.linalg.norm(a-b))))
-                #print fi, sidesabc, sidesabc[2]-(sidesabc[1]+sidesabc[0]),
-                #print "\t", edge_code, "->", facets[fi, other_vertex]
 
-                obm_map[edge_code] = facets[fi, other_vertex]
+                    #facets[fi, ends_vertices]
 
-                obm_faces += [fi]
-                #set_trace()
-                #print ""
+                    def calculate_edge_code(e):
+                        assert np.ndim(e) == 2
+                        assert e.shape[1] == 2
 
-            else:
-                #if not on that line but very small =>
-                assert False
+                        BB = np.array([1L, B], dtype=np.int64)
+                        edge_codes = np.dot(e, BB)  # n x ,
+                        assert edge_codes.dtype == np.int64
+                        assert edge_codes.size == 0 or np.min(edge_codes) >= 0
+                        assert np.max(facets, axis=None) < B
+                        assert edge_codes.size == 0 or np.min(edge_codes) >= 0
+                        return edge_codes
+
+                    (ev1, ev2) = facets[fi, ends_vertices[0]], facets[fi, ends_vertices[1]]
+                    edge_code = calculate_edge_code(np.array([[ev1,ev2]]))[0]
+                    #sidesabc = sorted(list((np.linalg.norm(b), np.linalg.norm(a), np.linalg.norm(a-b))))
+                    sidesabc = sorted(list((np.linalg.norm(a), np.linalg.norm(b), np.linalg.norm(a-b))))
+                    #print fi, sidesabc, sidesabc[2]-(sidesabc[1]+sidesabc[0]),
+                    #print "\t", edge_code, "->", facets[fi, other_vertex]
+
+                    obm_map[edge_code] = facets[fi, other_vertex]
+
+                    obm_faces += [fi]
+                    #set_trace()
+                    #print ""
+
+                else:
+                    #if not on that line but very small =>
+                    assert False
 
 
     #set_trace()
@@ -1156,6 +1172,7 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
         expand[:, 2, :] - expand[:, 0, :],
         axis=1)
     facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
+    #fixme: It is unnecessary to set them to NaN
     if AREA_DEGENERACY_THRESHOLD is not None:
         degenerates_count = len(facet_areas[facet_areas < AREA_DEGENERACY_THRESHOLD])
         facet_areas[facet_areas < AREA_DEGENERACY_THRESHOLD] = np.nan  # -1
@@ -1456,7 +1473,7 @@ def make_bricks():
     c2 = rotate_scale_(c2, 2., [1, 1, 1])
     c3 = example_objects.rcube_vec(1.)
     iobj = c2 #
-    #iobj = vectorized.CrispUnion( c3, c2 )
+    iobj = vectorized.CrispUnion( c3, c2 )
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2 * 2.)
     return iobj, RANGE_MIN, RANGE_MAX, STEPSIZE
 
@@ -1672,8 +1689,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     assert np.all(np.isnan(facet_areas[degenerate_faces]))
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
     assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
-    assert np.all(np.logical_not(facet_areas == 0.)), "Facet area zero."
-    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
+    if mesh_correction:
+        assert np.all(np.logical_not(facet_areas == 0.)), "Facet area zero."
+        assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
 
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -1697,6 +1715,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     curvatures_array = np.zeros((nf,))
     for fi in range(nf):
         n = facet_normals[fi, :]  # n: (3,)
+        if mesh_correction:
+            if degenerate_faces[fi]:
+                curvatures_array[fi] = 0
+                continue
+            if np.isnan(n[0]+n[1]+n[2]):
+                curvatures_array[fi] = 0
+                continue
         triangle = verts[facets[fi, :], :]  # numverts x 3
         assert not np.any(np.isnan(triangle.ravel()))
         assert triangle.shape == (3, 3)
@@ -1721,7 +1746,10 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
-        mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        nn_tile = np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        if mesh_correction:
+            nn_tile[nn_tile<0.00000001] = 100000.
+        mm = mm / nn_tile
         mm = mm.transpose()  # 3x4
         e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
 
@@ -1730,6 +1758,14 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
         #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
         curvatures_array[fi] = e
+        #print e,
+        if not mesh_correction:  # NAN is allowed (and used) for mesh correction
+            assert not np.isnan(e)
+        #if np.isnan(e):
+        #    print e
+        #    #print facet_areas[fi] , np.sum(1. - np.abs(np.dot(n, mm))) / 4., np.abs(np.dot(n, mm))
+        #    #print "n,mm", np.dot(n, mm), n, mm
+        #    print "n", n
         #if e<0:
         #    set_trace()
 
@@ -1743,6 +1779,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     print "curvature range: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
     bad_facets_count = np.sum(degenerate_faces)
     #assert bad_facets_count == 0
+
+    #assert np.sum(np.isnan(curvatures_array)) == 0, "NaN"
+
     return curvatures_array, bad_facets_count
 
 #global jk
@@ -2423,16 +2462,18 @@ def demo_everything():
     curvature_epsilon = 1. / 1000. *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
     SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
+    VERTEX_RELAXATION_ADD_NOISE = False
 
     global STEPSIZE
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec")  #
         #"rdice_vec")  #
-        #"cube_example") # problem: zero facet areas
-        "ell_example1")  #+
+        "cube_example") # problem: zero facet areas.  otherwise, it works.
+        #"ell_example1")  #+
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2.)
+        #"french_fries_vectorized")
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
 
@@ -2486,10 +2527,13 @@ def demo_everything():
            minmax=(RANGE_MIN,RANGE_MAX)  )
 
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            if VERTEX_RELAXATION_ADD_NOISE:
+                verts = verts + (np.random.rand(verts.shape[0], verts.shape[1])*2.-1.)/2.* (STEPSIZE/8.)
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
             assert not np.any(np.isnan(verts.ravel()))  # fails
             print("Vertex relaxation applied.");sys.stdout.flush()
-            check_degenerate_faces(verts, facets_not_used, "assert")
+            if mesh_correction:
+                check_degenerate_faces(verts, facets_not_used, "assert")
             #verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
             #assert not np.any(np.isnan(verts.ravel()))  # fails
             #assert not any_mesh_correction
@@ -2497,7 +2541,8 @@ def demo_everything():
             #    print("mesh correction needed")
             #    exit()
 
-        assert len(failure_pairs) == 0
+        if mesh_correction:
+            assert len(failure_pairs) == 0, "weighted resampling did not work for some faces"
         if False:
             # list of pairs that have zero distance in weighted resampling.
             fpna = np.asarray(failure_pairs, dtype=np.int64).ravel()
