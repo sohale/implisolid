@@ -11,8 +11,8 @@ mesh_quality_settings = {
 
 CHECK_PAIRED = True
 
-take_it_easy = True
-
+mesh_correction = False
+take_it_easy = False
 
 B = 1000000L
 
@@ -748,7 +748,8 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
     #not
     if fix_mode == "assert":
-        check_faces(facets)
+        #if not take_it_easy:
+            check_faces(facets)
 
     #any_correction = False
     e1 = np.linalg.norm(verts[facets[:, 0], :] - verts[facets[:, 2], :], axis=1)
@@ -2443,7 +2444,8 @@ def demo_everything():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-    display_simple_using_mayavi_2( [(verts, facets), ] * 3,
+    if False:
+     display_simple_using_mayavi_2( [(verts, facets), ] * 3,
        pointcloud_list=[],
        mayavi_wireframe=[False, True, True], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX),
@@ -2457,154 +2459,171 @@ def demo_everything():
     #   minmax=(RANGE_MIN,RANGE_MAX)  )
     #exit()
 
-    #check_faces(facets)
-    #facets = fix_faces_3div2(facets)
-    assert not np.any(np.isnan(verts.ravel()))  # fine
-    any_mesh_correction = check_degenerate_faces(verts, facets, "dontfix")
-    if any_mesh_correction:
-        for qq in range(5):
+    for rep in range(15):
+
+        if mesh_correction:
+          if not take_it_easy:
+            #check_faces(facets)
+            #facets = fix_faces_3div2(facets)
+            assert not np.any(np.isnan(verts.ravel()))  # fine
+            any_mesh_correction = check_degenerate_faces(verts, facets, "dontfix")
+            if any_mesh_correction:
+                for qq in range(5):
+                    verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
+                    if not any_mesh_correction:
+                        break
+            if not take_it_easy:
+                assert not any_mesh_correction
+            check_degenerate_faces(verts, facets, "assert")
+
+
+        #old_verts, old_facets = verts, facets
+        assert not np.any(np.isnan(verts.ravel()))  # fine
+        if False:
+         display_simple_using_mayavi_2( [(verts, facets), ] * 2,
+           pointcloud_list=[],
+           mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+           minmax=(RANGE_MIN,RANGE_MAX)  )
+
+        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            assert not np.any(np.isnan(verts.ravel()))  # fails
+            print("Vertex relaxation applied.");sys.stdout.flush()
+            check_degenerate_faces(verts, facets_not_used, "assert")
+            #verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
+            #assert not np.any(np.isnan(verts.ravel()))  # fails
+            #assert not any_mesh_correction
+            #if any_mesh_correction:
+            #    print("mesh correction needed")
+            #    exit()
+
+        assert len(failure_pairs) == 0
+        if False:
+            # list of pairs that have zero distance in weighted resampling.
+            fpna = np.asarray(failure_pairs, dtype=np.int64).ravel()
+            coords = verts[facets[fpna, :]]
+            #quick_vis(verts, facets, fpna)
+            #quick_vis(old_verts, old_facets, fpna)
+            print coords
+
+        total_subdivided_facets = []
+        for i in range(SUBDIVISION_ITERATIONS_COUNT):
+
+            verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+            global trace_subdivided_facets  # third implicit output
+            verts4_subdivided = verts  # ??
+            facets3_subdivided = facets
+
+            if mesh_correction:
+
+                check_degenerate_faces(verts4_subdivided, facets3_subdivided, "assert")
+                #verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "fix")
+
+                total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
+
+                #for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+                #    #print "i", "="*10, i
+                #    verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+                #    print("Vertex relaxation2 applied again.");sys.stdout.flush()
+                #    check_degenerate_faces(verts, facets_not_used, "assert")
+                #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
+
+        from ohtake_surface_projection import set_centers_on_surface__ohtake
+
+        average_edge = compute_average_edge_length(verts, facets)
+
+        if mesh_correction:
+            check_degenerate_faces(verts, facets, "assert")
             verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
-            if not any_mesh_correction:
-                break
-    assert not any_mesh_correction
-    check_degenerate_faces(verts, facets, "assert")
 
+        c3 = np.mean(verts[facets[:], :], axis=1)
+        old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
 
-    #old_verts, old_facets = verts, facets
-    assert not np.any(np.isnan(verts.ravel()))  # fine
+        nones_map = old_centroids[:, 0]*0 > 100  # all False
+        new_centroids = old_centroids.copy()
+        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+        #new_centroids is the output
 
-    display_simple_using_mayavi_2( [(verts, facets), ] * 2,
-       pointcloud_list=[],
-       mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
+        if mesh_correction:
+            check_degenerate_faces(verts, facets, "assert")
+            verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
 
-    for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-        assert not np.any(np.isnan(verts.ravel()))  # fails
-        print("Vertex relaxation applied.");sys.stdout.flush()
-        check_degenerate_faces(verts, facets_not_used, "assert")
-        #verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
-        #assert not np.any(np.isnan(verts.ravel()))  # fails
-        #assert not any_mesh_correction
-        #if any_mesh_correction:
-        #    print("mesh correction needed")
-        #    exit()
+        #faceslist_neighbours_of_vertex
+        vertex_neighbour_facelist_dict = mesh_utils.make_neighbour_faces_of_vertex(facets)
+        centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
+        #nv1  =
+        new_verts_qem = \
+            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients)
+        #verts = nv1
+        #new_verts_qem = verts
 
-    assert len(failure_pairs) == 0
-    if False:
-        # list of pairs that have zero distance in weighted resampling.
-        fpna = np.asarray(failure_pairs, dtype=np.int64).ravel()
-        coords = verts[facets[fpna, :]]
-        #quick_vis(verts, facets, fpna)
-        #quick_vis(old_verts, old_facets, fpna)
-        print coords
-
-    total_subdivided_facets = []
-    for i in range(SUBDIVISION_ITERATIONS_COUNT):
-
-        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
-        global trace_subdivided_facets  # third implicit output
-        verts4_subdivided = verts  # ??
-        facets3_subdivided = facets
-
-        check_degenerate_faces(verts4_subdivided, facets3_subdivided, "assert")
-        #verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "fix")
-
-        total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
-
-        #for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        #    #print "i", "="*10, i
-        #    verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-        #    print("Vertex relaxation2 applied again.");sys.stdout.flush()
-        #    check_degenerate_faces(verts, facets_not_used, "assert")
-        #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
-
-    from ohtake_surface_projection import set_centers_on_surface__ohtake
-
-    average_edge = compute_average_edge_length(verts, facets)
-
-    check_degenerate_faces(verts, facets, "assert")
-    verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
-
-    c3 = np.mean(verts[facets[:], :], axis=1)
-    old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
-
-    nones_map = old_centroids[:, 0]*0 > 100  # all False
-    new_centroids = old_centroids.copy()
-    set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
-    #new_centroids is the output
-
-    check_degenerate_faces(verts, facets, "assert")
-    verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
-
-    #faceslist_neighbours_of_vertex
-    vertex_neighbour_facelist_dict = mesh_utils.make_neighbour_faces_of_vertex(facets)
-    centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
-    #nv1  =
-    new_verts_qem = \
-        vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients)
-    #verts = nv1
-    #new_verts_qem = verts
-
-    any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
-    if not any_mesh_correction:
-        print "Mesh health:", any_mesh_correction
-
-    print "*"*500
-    strict_about_mesh = True
-
-    maxcount = 5
-    if strict_about_mesh:
-        while any_mesh_correction:
-            new_verts_qem, facets, any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "fix")
+        if mesh_correction:
             any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
-            print "fixed"
-            global still_fixed
-            still_fixed = True
-            # infinite loop
-            maxcount -= 1
-            if maxcount <0:
-                break
-        if not take_it_easy:
-            check_faces(facets)
-        print "GOOd "*10
+            if not any_mesh_correction:
+                print "Mesh health:", any_mesh_correction
+
+        #print "*"*500
+        strict_about_mesh = True
+
+        if mesh_correction:
+          maxcount = 5
+          if strict_about_mesh:
+            while any_mesh_correction:
+                new_verts_qem, facets, any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "fix")
+                any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
+                print "fixed"
+                global still_fixed
+                still_fixed = True
+                # infinite loop
+                maxcount -= 1
+                if maxcount <0:
+                    break
+            if not take_it_easy:
+                check_faces(facets)
+            print "GOOd "*10
 
 
-    alpha = 0.
-    new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+        alpha = 0.
+        new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
-    chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
+        chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
-    centroids2, new_centroids2 = old_centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
+        #centroids2, new_centroids2 = old_centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
 
-    # move the following code into subdivide_multiple_facets() (?)
-    if chosen_facet_indices.size == 0:
-        chosen_subset_of_facets = np.zeros((0,), dtype=np.int64)
-    else:
-        chosen_subset_of_facets = facets[chosen_facet_indices, :]
-
-    #red balls
-    highlighted_vertices = np.array([], dtype=np.int)  # np.arange(100, 200)
-    hv = new_verts_qem[highlighted_vertices, :]
-
-    if False:
-        check_degenerate_faces(new_verts_qem_alpha, facets, "assert")
-        check_degenerate_faces(new_verts_qem, facets, "assert")  # has degenerate face
+        # move the following code into subdivide_multiple_facets() (?)
+        if chosen_facet_indices.size == 0:
+            chosen_subset_of_facets = np.zeros((0,), dtype=np.int64)
+        else:
+            chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
 
-    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets), (new_verts_qem, facets), (new_verts_qem, facets), ],
-       pointcloud_list=[],
-       mayavi_wireframe=[False, True, True,], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX),
-       add_noise=[0.05, 0, 0.05], noise_added_before_broadcast=True  )
+        if False:  # if not take_it_easy:
+            check_degenerate_faces(new_verts_qem_alpha, facets, "assert")
+            check_degenerate_faces(new_verts_qem, facets, "assert")  # has degenerate face
 
-    #display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
-    #   pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-    #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-    #   minmax=(RANGE_MIN,RANGE_MAX)  )
+        #(verts, facets) = (new_verts_qem, facets)
 
-    verts = new_verts_qem
-    #facets = facets
+
+
+        ifnoisy = 0
+        #red balls
+        highlighted_vertices = np.array([], dtype=np.int)  # np.arange(100, 200)
+        hv = new_verts_qem[highlighted_vertices, :]
+        display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets), (new_verts_qem, facets), (new_verts_qem, facets), ],
+           pointcloud_list=[],
+           mayavi_wireframe=[False, True, True,], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+           minmax=(RANGE_MIN,RANGE_MAX),
+           add_noise=[0.05*ifnoisy, 0, 0.05*ifnoisy], noise_added_before_broadcast=True  )
+        #display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+        #   pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+        #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+        #   minmax=(RANGE_MIN,RANGE_MAX)  )
+
+        #]iobj = make_example_vectorized("ell_example1")
+
+        verts = new_verts_qem
+        #facets = facets
+        (verts, facets) = (new_verts_qem, facets)
 
 
 def compute_average_edge_length(verts, faces):
