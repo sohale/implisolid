@@ -242,6 +242,17 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     else:
         opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
 
+    #allpoints are plottedon all panels?
+    color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
+    i = 0
+    for c in pointcloud_list:
+        #if separate:
+        #    if i != fi:
+        #        continue
+        #print c[:,0:3]
+        mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity )
+        i+=1
+    del i
 
     for fi in range(len(vf_list)):
         if separate:
@@ -277,17 +288,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         #opacity = 0.2 #0.1
 
 
-        #allpoints are plottedon all panels?
-        color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
-        i = 0
-        for c in pointcloud_list:
-            #if separate:
-            #    if i != fi:
-            #        continue
-            #print c[:,0:3]
-            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity )
-            i+=1
-        del i
+
 
         if minmax is not None:
             (RANGE_MIN, RANGE_MAX) = minmax
@@ -1616,7 +1617,7 @@ def demo_combination_plus_qem():
 
 
 if __name__ == '__main__':
-    demo_choise = 3
+    demo_choise = 7
     if demo_choise == 1:
         visualise_normals_test()   # visualise to check the gradients
     elif demo_choise == 2:
