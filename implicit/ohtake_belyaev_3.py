@@ -1047,7 +1047,7 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
             #set_trace()
 
             #set_trace()
-            e3 = get_edge_codes_of_mesh(facets)
+            e3 = get_edge_code_triples_of_mesh(facets)
             er = e3.ravel()
             #np.intersect1d(er, edge_array)
             bl = np.lib.arraysetops.in1d(er, edge_array)
@@ -1842,9 +1842,9 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         e012 = np.vstack((e0, e1, e2))
         e012.sort(axis=1)
         BB = np.array([1L, B], dtype=np.int64)
-        all3edges = np.dot(e012, BB)
-        assert all3edges.dtype == np.int64
-        assert all3edges.size == 0 or np.min(all3edges) >= 0
+        all_edges_triples = np.dot(e012, BB)
+        assert all_edges_triples.dtype == np.int64
+        assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
         assert np.max(new_facets, axis=None) < B
 
         #avoid becasue it is redundant
@@ -1854,16 +1854,16 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         #actual_mapped_midvertices
         actual_3_vertices = np.zeros((3,), dtype=np.int64)
         for i in range(3):
-            if all3edges[i] in midpoint_map:
+            if all_edges_triples[i] in midpoint_map:
                 avoid_which[i] = True
-                actual_3_vertices[i] = midpoint_map[all3edges[i]]
+                actual_3_vertices[i] = midpoint_map[all_edges_triples[i]]
                 #mapped_midvertices[i] = -1  # for debug
                 redundancy_counter += 1
             else:
                 assert avoid_which[i] == False
                 #x = mapped_midvertices[i]  # wrong!
                 #x = idx_counter
-                midpoint_map[all3edges[i]] = idx_counter
+                midpoint_map[all_edges_triples[i]] = idx_counter
                 idx_counter += 1
                 actual_3_vertices[i] = idx_counter - 1  # the new vertex
 
@@ -1986,15 +1986,15 @@ def check_pairs(facets): #yet another!!
     e012 = np.concatenate((e0, e1, e2), axis=1)  # n x 3 x 2
     e012.sort(axis=2)
     BB = np.array([1, B], dtype=np.int64)
-    all3edges = np.dot(e012, BB)  # n x 3
-    assert all3edges.dtype == np.int64
-    assert all3edges.size == 0 or np.min(all3edges) >= 0
+    all_edges_triples = np.dot(e012, BB)  # n x 3
+    assert all_edges_triples.dtype == np.int64
+    assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
     assert np.max(facets, axis=None) < B
-    #print all3edges
-    all3edges_ravel = all3edges.ravel()
+    #print all_edges_triples
+    all_edge_triples_ravel = all_edges_triples.ravel()
 
 
-    e = all3edges_ravel.copy()
+    e = all_edge_triples_ravel.copy()
     e.sort()
     d = np.diff(e)
     #print d
@@ -2023,7 +2023,7 @@ def isomorphic(a, b):
     return True
 
 
-def get_edge_codes_of_mesh(facets):
+def get_edge_code_triples_of_mesh(facets):
     """ Returns an array of (F)x(3), containing the 'edge codes' of sides of the faces of a mesh.
     There are 3 sides for each face.
     An 'edge code' is a long integer (int64) v1+B*v2 where v1,v2 are the indices of the ends (vertices) of the edge, where v1<v2."""
@@ -2034,13 +2034,13 @@ def get_edge_codes_of_mesh(facets):
     assert e012.base is None  # make sure it's not a view of faces
     e012.sort(axis=2)
     BB = np.array([1L, B], dtype=np.int64)
-    all3edges = np.dot(e012, BB)  # n x 3
-    assert all3edges.dtype == np.int64
-    assert all3edges.size == 0 or np.min(all3edges) >= 0
+    all_edges_triples = np.dot(e012, BB)  # n x 3
+    assert all_edges_triples.dtype == np.int64
+    assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
     assert np.max(facets, axis=None) < B
-    assert all3edges.size == 0 or np.min(all3edges) >= 0
-    assert all3edges.shape == (facets.shape[0], 3)
-    return all3edges
+    assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
+    assert all_edges_triples.shape == (facets.shape[0], 3)
+    return all_edges_triples
 
 
 def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, careful_for_twosides=True):
@@ -2072,27 +2072,26 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
         exit()
     assert len(el) == 0, "assert edges_with_1_side is subset of midpoint_map"
 
-    all3edges = get_edge_codes_of_mesh(facets)
+    all_edges_triples = get_edge_code_triples_of_mesh(facets)
 
-    all3edges_ravel = all3edges.ravel()  # is a view
-    #print all3edges.shape
-    assert all3edges.shape[1] == 3
+    all_edge_triples_ravel = all_edges_triples.ravel()  # is a view
+    #print all_edges_triples.shape
+    assert all_edges_triples.shape[1] == 3
 
-    assert np.all(all3edges_ravel.reshape(-1, 3) == all3edges, axis=None)
+    assert np.all(all_edge_triples_ravel.reshape(-1, 3) == all_edges_triples, axis=None)
 
 
-    #intersec = np.intersect1d(all3edges_ravel, edges_with_1_side)
+    #intersec = np.intersect1d(all_edge_triples_ravel, edges_with_1_side)
 
     #index_of_edges_that_subdiv2
 
-    x_ = np.lib.arraysetops.in1d(all3edges_ravel, edges_with_1_side)  # elements of A, A.ravel[x_], that are in B
+    x_ = np.lib.arraysetops.in1d(all_edge_triples_ravel, edges_with_1_side)  # elements of A, A.ravel[x_], that are in B
 
     x_1x3 = x_.reshape(3, -1)
     assert np.all(x_1x3.ravel() == x_, axis=None)
 
     #x3__a = x_.reshape(3, -1)  # wrong. bug
     x3__b_Fx3 = x_.reshape(-1, 3)
-    #refactor: merge: x3__b_Fx3 -> x3__b_Fx3
 
     #Dont want to subdivide 1->2
     #bad2 = np.all(np.sum(x_.reshape(3, -1), axis=0) > 1)  # bug!
@@ -2124,7 +2123,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     assert np.ndim(face3_idx) == 1
 
     #todo(refactor): use np.argwhere()
-    idx_xy = np.unravel_index(face3_idx, all3edges.shape)
+    idx_xy = np.unravel_index(face3_idx, all_edges_triples.shape)
     #idx_xy is a tuple
     #Triangles subject to be subdivided:
     problem_face_idx = idx_xy[0]
@@ -2137,7 +2136,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #has repeats, becasue [2]is not resolved before
     #if has_repeats(problem_face_idx):
-    #    intersec = np.intersect1d(all3edges_ravel, edges_with_1_side)
+    #    intersec = np.intersect1d(all_edge_triples_ravel, edges_with_1_side)
     #    print intersec
     #    print facets
     #    exit()
@@ -2145,8 +2144,8 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     if careful_for_twosides:
         assert not has_repeats(problem_face_idx), "triangles subject to be subdivided"
     for ii in range(problem_face_idx.size):
-        #assert all3edges_ravel[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
-        assert all3edges[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
+        #assert all_edge_triples_ravel[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
+        assert all_edges_triples[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
         assert problem_side_idx[ii] < 3
     #all problem_face_idx should be removed
 
@@ -2165,7 +2164,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #edge_s_codes = A flat array of all the edge codes (For the sides that should be replaced with the sibdivided ones)
     #?????????????
-    edge_s_codes = all3edges_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
+    edge_s_codes = all_edge_triples_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
     #edge_pairs: those edges that*
 
     #if can tolerate two sides:
@@ -2177,6 +2176,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
         set_trace()
         #observation: edge_s_codes is (up to morphism) a subset of, but not equal to, edge_pairs
     assert np.unique(edge_s_codes).size == edge_pairs.shape[1]
+    #####################################################################################################################
     tesort = edge_pairs.T.copy()
     tesort.sort(axis=1)
     eid9 = np.dot(tesort, np.array([1, B], dtype=np.int64)).copy()
