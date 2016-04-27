@@ -10,7 +10,7 @@ import crisp_csg_vectorized
 __all__.extend(crisp_csg_vectorized.__all__)
 
 
-from basic_types import repeat_vect4, check_matrix3_vectorized, check_vector4_vectorized
+from basic_functions import repeat_vect4, check_matrix3_vectorized, check_vector4_vectorized
 __all__.extend(['repeat_vect4', 'check_matrix3_vectorized', 'check_vector4_vectorized'])
 
 from simple_blend import *
@@ -50,7 +50,7 @@ __all__.extend(["is_implicit_type"])
 #__all__.extend(simple_blend.__all__)
 
 
-#from basic_types import *
+#from basic_functions import *
 
 
 #print(crisp_csg_vectorized.CrispSubtract)

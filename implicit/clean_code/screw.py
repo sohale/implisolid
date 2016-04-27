@@ -1,6 +1,6 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
-from basic_types import check_vector4_vectorized, check_vector4, repeat_vect4, make_vector4
+from basic_functions import check_vector4_vectorized, check_vector4, repeat_vect4, make_vector4
 import vectorized
 from implicit_config import config
 

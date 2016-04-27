@@ -5,7 +5,7 @@ class Transformable1(object):
 
 from implicit_vectorized import ImplicitFunctionVectorized
 import numpy as np
-from basic_types import check_vector4_vectorized, make_vector4, check_vector4, check_scalar_vectorized
+from basic_functions import check_vector4_vectorized, make_vector4, check_vector4, check_scalar_vectorized
 
 #ImplicitFuncitonVectorized3
 class TwistZ(ImplicitFunctionVectorized, Transformable1):

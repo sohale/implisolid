@@ -6,7 +6,7 @@ import sys
 import math
 
 import numpy as np
-from basic_types import check_vector4_vectorized, normalize_vector4_vectorized
+from basic_functions import check_vector4_vectorized, normalize_vector4_vectorized
 
 def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
     TH1 = 0.001
@@ -520,11 +520,11 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     def add_random_interior_points(ax, iobj):
         """ Adding random points """
         n=10000
-        import basic_types
+        import basic_functions
         print avg_edge_len, "WHY USED BEFORE DEFINED?"
         ampl = avg_edge_len
         #ampl = 2
-        x = basic_types.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
+        x = basic_functions.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
         v = iobj.implicitFunction(x)
         x_sel =  x[ v >= 0 , :]
         if x_sel.size ==0:
@@ -707,18 +707,14 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    iobj = make_example_vectorized(
-        #"rcube_vec")  #
-        #"sphere_example")
-        #"rdice_vec")  #
-        #"cube_example");
-        #"screw2")
-        "cube_with_cylinders")
+    object_name =   #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"   "ell_example1"
+    iobj =  make_example_vectorized(object_name)
 
-    #    "ell_example1")  #
-        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
+    if object_name == "cyl4":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
+    #
 
     import vectorized, example_objects
     c2 = vectorized.UnitCube1(1.)
@@ -745,12 +741,8 @@ def demo_combination_plus_qem():
     print("MC calculated.");sys.stdout.flush()
 
     old_verts, old_facets = verts, facets
-    #
-    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-    #    pointcloud_list=[],
-    #    mayavi_wireframe=[False, True,], opacity=[0.8, 0.2], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    # exit()
+
+
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
@@ -784,28 +776,21 @@ def demo_combination_plus_qem():
     new_centroids = old_centroids.copy()
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     #new_centroids is the output
-
+    #
     # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
     #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
     # exit()
 
+    #neighbour_faces_of_vertex
+    vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
+    centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
-
-    # The two CHOICEs are equaivalent. Two rewrite of the same method.
-    CHOICE = 1
-    if CHOICE == 1:
-        #neighbour_faces_of_vertex
-        vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
-    #    import ipdb; ipdb.set_trace()
-        centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
-        #nv1  =
-        new_verts_qem = \
-            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
+    new_verts_qem = \
+        vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
         #verts = nv1
         #new_verts_qem = verts
-
 
     alpha = 0.
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))

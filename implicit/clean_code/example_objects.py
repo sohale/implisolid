@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_types import make_vector4, normalize_vector
+from basic_functions import make_vector4, normalize_vector
 
 import simple_blend
 
@@ -8,8 +8,82 @@ import vectorized
 
 #definition of the vectorized objects
 
+def dice(dice_scale):
+    dice_size = 2.0*dice_scale
+    c = vectorized.UnitCube1(size=dice_size)
+
+    def hole_crisp(c, i, j, k):
+        m = np.eye(4)
+        dot_size = 0.25 * dice_scale
+        m[0, 0] = dot_size
+        m[1, 1] = dot_size
+        m[2, 2] = dot_size
+        distance = (0.5-0.05)*dice_size
+        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
+        s1 = vectorized.Ellipsoid(m)
+        c = vectorized.CrispSubtract(c, s1)
+        return c
+
+    def hole_r(c, i, j, k):
+        m = np.eye(4)
+        dot_size = 0.25 * dice_size
+        m[0, 0] = dot_size
+        m[1, 1] = dot_size
+        m[2, 2] = dot_size
+        distance = (0.5-0.05)*dice_size
+        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
+        s1 = vectorized.Ellipsoid(m)
+        c = vectorized.RSubtract(c, s1, 1.0)
+        return c
+
+    hole = hole_crisp
+    #hole = hole_r
+
+    """ 1 """
+    c = hole(c, 1, 0, 0)  # 1
+    #c = hole(c, 0, 1, 0)  # 2
+    c = hole(c, 0, 0, 1)  # 3
+    #c = hole(c, -1, 0, 0)  # 4
+    c = hole(c, 0, -1, 0)  # 5
+    #c = hole(c, 0, 0, -1)  # 6
+
+    """ 2 """
+    d = 0.3
+    c = hole(c, -d, 1, -d)
+    c = hole(c, +d, 1, +d)
+
+    """ 3 """
+    d = 0.6
+    c = hole(c, -d, -d, 1)
+    c = hole(c, +d, +d, 1)
+
+    """ 4 """
+    d = 0.4
+    c = hole(c, -1, -d, +d)
+    c = hole(c, -1, -d, -d)
+    c = hole(c, -1, +d, -d)
+    c = hole(c, -1, +d, +d)
+
+    """ 5 """
+    d = 0.6
+    c = hole(c, -d, -1, +d)
+    c = hole(c, -d, -1, -d)
+    c = hole(c, +d, -1, -d)
+    c = hole(c, +d, -1, +d)
+
+    """ 6 """
+    d = 0.7
+    for i in range(3):
+        c = hole(c, d*(i-1), +d, -1)
+        c = hole(c, d*(i-1), -d, -1)
+
+    return c
+
+
+
 def rdice_vec(scale, rotated=True):
-    d = vectorized.UnitCube1(size=2.0 * scale)
+
+    d = dice(scale)
     return d
     iobj = vectorized.Transformed(d)
     iobj  \
@@ -30,6 +104,9 @@ def rcube_vec(scale, rotated=True):
         iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
     return iobj
 
+def udice_vec(scale=1.):
+   """ Un-rotated dice """
+   return rdice_vec(scale, rotated=False)
 
 def blend_example2(scale=1.):
     # not tested for scale != 1.
@@ -164,7 +241,7 @@ def bowl_15_holes(scale_ignored):
     return iobj
 
 
-def blend_example1():
+def blend_example1(scale_ignored):
     m1 = np.eye(4) * 1
     # m1[1,1] = 0.4
     m1[0:3, 3] = [0, 1, 0]
@@ -251,7 +328,7 @@ def rods(scale):
 
 import screw
 
-def screw1():
+def screw1(scale_ignored):
     a = np.array([0, 0, 0])
     w = np.array([0, 0, 1])
     u = np.array([1, 0, 0])
@@ -283,7 +360,7 @@ def screw2(SCALE=1.):
 from vectorized import SimpleCylinder
 
 
-def cyl1():
+def cyl1(scale_ignored):
     SCALE = 8.  # mm
 
     radius = 0.5 * SCALE
@@ -339,7 +416,7 @@ def rotation_matrix(angle, along, units="rad", around=None):
         # return self
 
 
-def cyl2():
+def cyl2(scale_ignored):
     SCALE = 8.  # mm
 
     un = None
@@ -482,7 +559,7 @@ def cube_with_cylinders(scale):
     union = vectorized.CrispSubtract(cube, cyl_2)
     final_object = vectorized.CrispUnion(union,cyl)
 
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object
     #, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 

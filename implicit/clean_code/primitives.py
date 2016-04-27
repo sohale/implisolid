@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_types import check_vector4, check_matrix3
+from basic_functions import check_vector4, check_matrix3
 
 
 class ImplicitFunctionPointwise(object):
@@ -66,7 +66,7 @@ class UnitSphere(PrimitiveBase):
     def integrity_invariant(self):
         return True
 
-from basic_types import make_vector4
+from basic_functions import make_vector4
 from implicit_config import INTEGRITY_TOLERANCES_NORM
 
 class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):

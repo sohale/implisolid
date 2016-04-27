@@ -1,6 +1,6 @@
 import numpy as np
-from basic_types import check_vector4_vectorized, check_scalar_vectorized
-from basic_types import check_matrix3_vectorized
+from basic_functions import check_vector4_vectorized, check_scalar_vectorized
+from basic_functions import check_matrix3_vectorized
 #from implicit_config import TOLERANCE
 #from primitives import ImplicitFunctionPointwise
 

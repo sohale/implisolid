@@ -3,9 +3,9 @@ import numpy as np
 
 #from implicit_config import VERBOSE
 
-#from basic_types import make_inverse, check_matrix4, make_vector4
-from basic_types import check_vector4_vectorized, check_matrix3_vectorized
-from basic_types import make_vector4, check_vector4  # check_matrix4
+#from basic_functions import make_inverse, check_matrix4, make_vector4
+from basic_functions import check_vector4_vectorized, check_matrix3_vectorized
+from basic_functions import make_vector4, check_vector4  # check_matrix4
 
 # @profile
 # def memoize(f):

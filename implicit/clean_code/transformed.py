@@ -1,7 +1,7 @@
 import numpy as np
 
 from primitives import ImplicitFunctionPointwise
-from basic_types import make_inverse, check_vector4, check_matrix4, is_python3
+from basic_functions import make_inverse, check_vector4, check_matrix4, is_python3
 
 #from lib.transformations import *
 import transformations as tf

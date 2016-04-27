@@ -34,50 +34,49 @@ def load_stl(stl_fn, save_stl_fn):
 
     your_mesh.save(save_stl_fn)
 
-
-def show_stl(stl_fn):
-    from stl import mesh
-    from mpl_toolkits import mplot3d
-    from matplotlib import pyplot
-
-    # Create a new plot
-    figure = pyplot.figure()
-    axes = mplot3d.Axes3D(figure)
-
-    # Load the STL files and add the vectors to the plot
-    your_mesh = mesh.Mesh.from_file(stl_fn)
-    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
-
-    # Auto scale to the mesh size
-    scale = your_mesh.points.flatten(-1)
-    axes.auto_scale_xyz(scale, scale, scale)
-
-    # Show the plot to the screen
-    pyplot.show()
+#
+# def show_stl(stl_fn):
+#     from stl import mesh
+#     from mpl_toolkits import mplot3d
+#     from matplotlib import pyplot
+#
+#     # Create a new plot
+#     figure = pyplot.figure()
+#     axes = mplot3d.Axes3D(figure)
+#
+#     # Load the STL files and add the vectors to the plot
+#     your_mesh = mesh.Mesh.from_file(stl_fn)
+#     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
+#
+#     # Auto scale to the mesh size
+#     scale = your_mesh.points.flatten(-1)
+#     axes.auto_scale_xyz(scale, scale, scale)
+#
+#     # Show the plot to the screen
+#     pyplot.show()
 
 # load_stl('some_file.stl', 'new_stl_file.stl')
 # show_stl('tests/stl_binary/HalfDonut.stl')
 
 
-def plot_stlmesh(m):
-    from matplotlib import pyplot
-    from mpl_toolkits import mplot3d
-
-    # Create a new plot
-    figure = pyplot.figure()
-    axes = mplot3d.Axes3D(figure)
-
-    # Render the cube faces
-    # for m in meshes:
-    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(m.vectors))
-
-    # Auto scale to the mesh size
-    scale = np.concatenate([m]).flatten(-1)
-    axes.auto_scale_xyz(scale, scale, scale)
-
-    pyplot.show()
-
-
+# def plot_stlmesh(m):
+#     from matplotlib import pyplot
+#     from mpl_toolkits import mplot3d
+#
+#     # Create a new plot
+#     figure = pyplot.figure()
+#     axes = mplot3d.Axes3D(figure)
+#
+#     # Render the cube faces
+#     # for m in meshes:
+#     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(m.vectors))
+#
+#     # Auto scale to the mesh size
+#     scale = np.concatenate([m]).flatten(-1)
+#     axes.auto_scale_xyz(scale, scale, scale)
+#
+#     pyplot.show()
+#
 def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1, 1), mayavi_wireframe=False):
     from mayavi import mlab
     mlab.triangular_mesh([vert[0] for vert in verts],
@@ -94,21 +93,21 @@ def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1, 1), mayavi_wirefra
     mlab.plot3d(z, y, x, line_width=3, name="z-axis")
 
     mlab.show()     # figure=fig,
+#
 
+# def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
+#     """ Uses Scikit's MC algorithm,which has minor bugs. """
+#     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
+#     import mc_utils
+#     vgrid = mc_utils.make_grid(iobj, rng, old=True)
+#     from skimage import measure
+#     verts, faces = measure.marching_cubes(vgrid, 0)
+#     verts = ((verts) * STEPSIZE + rng[0])
+#     print("OLD: swapping x,y")
+#     verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
+#     return verts, faces
 
-def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
-    """ Uses Scikit's MC algorithm,which has minor bugs. """
-    rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
-    import mc_utils
-    vgrid = mc_utils.make_grid(iobj, rng, old=True)
-    from skimage import measure
-    verts, faces = measure.marching_cubes(vgrid, 0)
-    verts = ((verts) * STEPSIZE + rng[0])
-    print("OLD: swapping x,y")
-    verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
-    return verts, faces
-
-
+@profile
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils
@@ -123,11 +122,12 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
         #print("no swap")
         #return vgrid
 
-def make_mc_values_grid_mayavi(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
-    rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
-    import mc_utils
-    vgrid = mc_utils.make_grid(iobj, rng, old=True)
-    return np.swapaxes(vgrid, 0, 1)
+#
+# def make_mc_values_grid_mayavi(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
+#     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
+#     import mc_utils
+#     vgrid = mc_utils.make_grid(iobj, rng, old=True)
+#     return np.swapaxes(vgrid, 0, 1)
 
 def test3():
     exname = "screw3"

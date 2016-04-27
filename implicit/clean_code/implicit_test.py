@@ -2,22 +2,20 @@ import unittest
 
 import numpy as np
 
-from basic_types import check_vector4, make_vector4, make_vector4_numpy, make_random_vector, almost_equal1, almost_equal4
+from basic_functions import check_vector4, make_vector4, make_vector4_numpy, make_random_vector, almost_equal1, almost_equal4
 
 from implicit_config import TOLERANCE
 
 from primitives import UnitSphere
 from primitives import UnitCube1
 
-#from ellipsoid import Ellipsoid
+
 import nonvec
 
-#vectorizes tests
-#import implicit_vectorized
-#import simple_blend_nonvec
+
 import ellipsoid_vectorized
 
-from basic_types import check_vector4_vectorized, check_scalar_vectorized, make_random_vector_vectorized, repeat_vect4
+from basic_functions import check_vector4_vectorized, check_scalar_vectorized, make_random_vector_vectorized, repeat_vect4
 
 #import simple_blend
 import vectorized

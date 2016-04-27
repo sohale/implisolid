@@ -1,9 +1,9 @@
 import numpy as np
 
-from basic_types import make_inverse, is_python3
+from basic_functions import make_inverse, is_python3
 import implicit_vectorized
-from basic_types import check_matrix4
-from basic_types import check_vector4_vectorized, check_scalar_vectorized
+from basic_functions import check_matrix4
+from basic_functions import check_vector4_vectorized, check_scalar_vectorized
 from implicit_vectorized import ImplicitFunctionVectorized
 from transformed import Transformable
 
