@@ -81,11 +81,6 @@ def cube_example(scale=1.):
     return iobj
 
 
-#############################################################################################
-
-""" vectorized examples """
-
-
 def first_csg(scale):
     # scale not tested
     m1 = np.eye(4) * 2 * scale
@@ -253,68 +248,6 @@ def rods(scale):
             u = vectorized.CrispUnion(u, c)
     return u
 
-
-# **************************************************************************************************
-
-
-""" contains safe functions to call for producing implicit objects for tests. """
-# 2 = vectorized only, 3 = a pair of vectorized and non-vectorised are used.
-examples = {
-
-    "sphere_example": 2,
-    "ell_example1": 2,
-    "blend_example2": 2,
-    "cube_example": 2,
-    "blend_example2_discs": 2,
-    "blend_example1": 2,
-    "bowl_15_holes": 2,
-    "first_csg": 2,
-    "french_fries_vectorized": 2,
-    "rdice_vec": 2,
-    "rcube_vec": 2,
-    "screw1": 2,
-    "screw2": 2,
-    "udice_vec": 2,
-    "rods": 2,
-    "cyl4": 2,       # spiral cage
-    "cube_with_cylinders": 2,
-
-}
-
-
-def make_example_vectorized(name, scale=1.0):
-    assert any(name == s for s in examples)
-    assert examples[name] in [2], "Incorrect example type"
-    res = globals()[name](scale)
-    assert not type(res) is tuple
-    return res
-
-
-def test_creation_of_all_Examples():
-    for name in examples:
-        scale = 1.
-        res = globals()[name](scale)
-        # print("OK.")
-
-
-def get_all_examples(types_list):
-    """ types_list i.e. [1] or [2] or [2,3] or [1,3] r [1,2,3] """
-    usable_examples = []
-    i = 0
-    for e in examples:
-        if examples[e] in types_list:
-            usable_examples += [e]
-            # print("e=", e)
-
-            if examples[e] in [2]:
-                iobj = make_example_vectorized(e)
-                x = vectorized.repeat_vect4(1, make_vector4(0.5, 0.5, 0.5))
-                g = iobj.implicitGradient(x)
-                v = iobj.implicitFunction(x)
-
-        i += 1
-    assert i > 0
-    return usable_examples
 
 import screw
 
@@ -551,3 +484,65 @@ def cube_with_cylinders():
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+
+# **************************************************************************************************
+
+
+""" contains safe functions to call for producing implicit objects for tests. """
+# 2 = vectorized only, 3 = a pair of vectorized and non-vectorised are used.
+examples = {
+
+    "sphere_example": 2,
+    "ell_example1": 2,
+    "blend_example2": 2,
+    "cube_example": 2,
+    "blend_example2_discs": 2,
+    "blend_example1": 2,
+    "bowl_15_holes": 2,
+    "first_csg": 2,
+    "french_fries_vectorized": 2,
+    "rdice_vec": 2,
+    "rcube_vec": 2,
+    "screw1": 2,
+    "screw2": 2,
+    "udice_vec": 2,
+    "rods": 2,
+    "cyl4": 2,       # spiral cage
+    "cube_with_cylinders": 2,
+
+}
+
+
+def make_example_vectorized(name, scale=1.0):
+    assert any(name == s for s in examples)
+    assert examples[name] in [2], "Incorrect example type"
+    res = globals()[name](scale)
+    assert not type(res) is tuple
+    return res
+
+
+def test_creation_of_all_Examples():
+    for name in examples:
+        scale = 1.
+        res = globals()[name](scale)
+        # print("OK.")
+
+
+def get_all_examples(types_list):
+    """ types_list i.e. [1] or [2] or [2,3] or [1,3] r [1,2,3] """
+    usable_examples = []
+    i = 0
+    for e in examples:
+        if examples[e] in types_list:
+            usable_examples += [e]
+            # print("e=", e)
+
+            if examples[e] in [2]:
+                iobj = make_example_vectorized(e)
+                x = vectorized.repeat_vect4(1, make_vector4(0.5, 0.5, 0.5))
+                g = iobj.implicitGradient(x)
+                v = iobj.implicitFunction(x)
+
+        i += 1
+    assert i > 0
+    return usable_examples

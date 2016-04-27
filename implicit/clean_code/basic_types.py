@@ -25,24 +25,10 @@ def check_matrix4(m):
     assert not np.any( np.isnan(m.ravel()) )
     assert not np.any( np.isinf(m.ravel()) )
 
-def check_matrix4_vectorized(m):
-    assert not issubclass(m.dtype.type, np.integer)
-    assert m.shape[1, :] == (4, 4), "Matrix must be Nx4x4"
-    for i in range(m.shape[0]):
-        assert np.allclose(m[i, 3, :], np.array((0, 0, 0, 1)), atol=0.00000000001), "Last row of any Matrix4 must be 0,0,0,1"
-    assert not np.any( np.isnan(m.ravel()) )
-    assert not np.any( np.isinf(m.ravel()) )
 
-
+#This function is made for the hessianMatrix h
 def check_matrix3_vectorized(h):
-    #print(h.ndim)
-    #print(h.ndim == 3)
-    #print(h.shape)
-    #print(h.shape[1:])
-    #print(h.shape[1:] == (3,3) )
     assert h.ndim == 3, "not 3d"
-    #assert(h.shape[1] == 3)
-    #assert(h.shape[2] == 3)
     assert h.shape[1:] == (3, 3), "not :x3x3"
     assert not np.any( np.isnan(h.ravel()) )
     assert not np.any( np.isinf(h.ravel()) )
@@ -57,7 +43,6 @@ def check_vector4(p):
 
 
 def check_vector4_vectorized(pa):
-    #assert not issubclass(np.dtype('int8').type, np.integer)
     assert not issubclass(pa.dtype.type, np.integer)
     assert pa.ndim == 2
     assert pa.shape[1:] == (4,), "Vector must be a numpy array of (Nx4) elements"
@@ -69,7 +54,6 @@ def check_vector4_vectorized(pa):
     assert not np.any( np.isinf(pa.ravel()) )
 
 def check_scalar_vectorized(va, N=None):
-    #assert va.ndim == 2 #dont force 2 dim. can accesp .shape==(100,)
     assert not issubclass(va.dtype.type, np.integer)
     n = va.shape[0]
     if va.ndim == 2:
@@ -79,16 +63,6 @@ def check_scalar_vectorized(va, N=None):
         assert va.shape[0] == N
     assert not np.any( np.isnan(va.ravel()) )
     assert not np.any( np.isinf(va.ravel()) )
-
-def make_vector4_numpy(v):
-    assert issubclass(type(v), np.ndarray)
-    assert v.size == 3 or v.size == 4
-
-    assert not np.any( np.isnan(v.ravel()) )
-    assert not np.any( np.isinf(v.ravel()) )
-
-    v = v.ravel()
-    return np.array((float(v[0]), float(v[1]), float(v[2]), 1.0))
 
 
 def make_vector4(x, y, z):
@@ -101,80 +75,9 @@ def make_vector4(x, y, z):
 
     return np.array((float(x), float(y), float(z), 1.0))
 
-def make_vector4_vectorized(x, y, z):
-    return make_vector4(x, y, z).reshape((1,4))
-
-
-def almost_equal4(a, b, TOLERANCE):
-    assert not np.any( np.isnan(a.ravel()) )
-    assert not np.any( np.isinf(b.ravel()) )
-    assert not issubclass(a.dtype.type, np.integer)
-    check_vector4(a)
-    check_vector4(b)
-    return np.sum(np.abs(a - b)) < TOLERANCE
-
-
-def almost_equal1(a, b, TOLERANCE):
-    """ Scalar version """
-    assert not issubclass(a.dtype.type, np.integer)
-    np.isscalar(a)
-    np.isscalar(b)
-    return np.sum(np.abs(a - b)) < TOLERANCE
-
-
-def almost_equal4_vectorized(a, b, TOLERANCE):
-    assert a.ndim == 2
-    assert b.ndim == 2
-    check_vector4_vectorized(a)
-    check_vector4_vectorized(a)
-    return np.sum(np.abs(a[:, :] - b[:, :])) < TOLERANCE
-
-
+#
 def check_matrix3(m):
-    #print(m.shape)
     assert m.shape == (3, 3)
-
-
-def make_random_vector(norm, POW, type="rand"):
-    if type == "rand":
-        r = np.random.rand(3)*2 - 1
-    elif type == "randn":
-        r = np.random.randn(3)
-    else:
-        raise Error("nknown random distribution")
-
-    r[:] = np.sign(r[:]) * np.abs(r[:]) ** POW
-    r = r / np.sqrt(np.dot(r, r))
-    assert (r[0]*r[0] + r[1]*r[1] + r[2]*r[2] - 1) < 0.00000000001
-    r = r * norm
-    for i in range(0, 3):
-        if np.abs(r[i]) < 0.0000001:
-            r[i] = 0
-    return np.array((r[0], r[1], r[2], 1))
-
-
-def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
-    r = np.ones((N, 4))
-
-    #not tested:
-    if type == "rand":
-        r[:, 0:3] = np.random.rand(N, 3)*2 - 1
-    elif type == "randn":
-        r[:, 0:3] = np.random.randn(N, 3)
-    else:
-        raise Error("nknown random distribution")
-
-    r[:, 0:3] = np.sign(r[:, 0:3]) * np.abs(r[:, 0:3]) ** POW
-    #r[:,0:3] = r[0:3] / np.tile( np.sqrt( np.sum(r[:,0:3] * r[:,0:3], axis=1, keepdims=True) ) , (1,3) )
-    n3 = np.sqrt(np.sum(r[:, 0:3] * r[:, 0:3], axis=1, keepdims=True))
-    if normalize:
-        r[:, 0:3] = r[:, 0:3] / np.tile(n3, (1, 3))
-        s_1 = np.sum(r[:, 0:3] * r[:, 0:3], axis=1) - 1
-        assert np.all(np.abs(s_1) < 0.00000000001)
-    r[:, 0:3] = r[:, 0:3] * norm
-    r[:, 3] = 1
-    check_vector4_vectorized(r)
-    return r
 
 
 def normalize_vector(v, snapToZero=False):
@@ -193,8 +96,8 @@ def normalize_vector(v, snapToZero=False):
     return r
 
 #todo: http://floating-point-gui.de/errors/comparison/
-
 #todo: write tests for this
+
 def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     """ returns vectors of either length 1 or zero. """
     N = v.shape[0]
@@ -235,8 +138,6 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
         print(denominator)
         print(np.sum(r[:,0:3] * r[:,0:3], axis=1))
 
-    #print (e1a)
-    #print (e0a)
     assert e1a and e0a  # np.all(np.logical_or(e1a, e0a))
     r[:, 3] = 1
     return r

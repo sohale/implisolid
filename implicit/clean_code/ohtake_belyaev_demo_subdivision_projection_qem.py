@@ -91,7 +91,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 
 VERBOSE = False
 
-#@profile
+@profile
 def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
@@ -1227,7 +1227,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
-#@profile
+@profile
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
