@@ -2024,10 +2024,14 @@ def isomorphic(a, b):
 
 
 def get_edge_codes_of_mesh(facets):
+    """ Returns an array of (F)x(3), containing the 'edge codes' of sides of the faces of a mesh.
+    There are 3 sides for each face.
+    An 'edge code' is a long integer (int64) v1+B*v2 where v1,v2 are the indices of the ends (vertices) of the edge, where v1<v2."""
     e0 = facets[:, np.newaxis, [0, 1]]
     e1 = facets[:, np.newaxis, [1, 2]]
-    e2 = facets[:, np.newaxis, [2, 0]]
+    e2 = facets[:, np.newaxis, [2, 0]]   # np view
     e012 = np.concatenate((e0, e1, e2), axis=1)  # n x 3 x 2
+    assert e012.base is None  # make sure it's not a view of faces
     e012.sort(axis=2)
     BB = np.array([1L, B], dtype=np.int64)
     all3edges = np.dot(e012, BB)  # n x 3
@@ -2035,6 +2039,7 @@ def get_edge_codes_of_mesh(facets):
     assert all3edges.size == 0 or np.min(all3edges) >= 0
     assert np.max(facets, axis=None) < B
     assert all3edges.size == 0 or np.min(all3edges) >= 0
+    assert all3edges.shape == (facets.shape[0], 3)
     return all3edges
 
 
@@ -2084,25 +2089,10 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     x_1x3 = x_.reshape(3, -1)
     assert np.all(x_1x3.ravel() == x_, axis=None)
-    #print np.sum(x_), edges_with_1_side.shape
-    #print "facets.shape", facets.shape, "x=", np.prod(facets.shape)
-    #print "all3edges_ravel", all3edges_ravel.shape
 
-    #print "all3edges_ravel", all3edges_ravel
-    #print "edges_with_1_side", edges_with_1_side
-    #print all3edges_ravel[x_]
-    #print x_
-    #assert np.sum(x_) == edges_with_1_side.size, "not all of them were found. Some edges_with_1_side may not be in facets. They are already subdivided twice."
-    #assert each_of all3edges_ravel.ravel()[x_] in intersec
-    #assert edges_which_in1 == all3edges_ravel.ravel()[x_] # all edges_which_in1 are in intersec
-    #assert np.sum(x_) == intersec.size
-    #print np.sum(x_.reshape(3, -1), axis=0)
-
-    #x3__a = x_.reshape(3, -1)  # wrong
+    #x3__a = x_.reshape(3, -1)  # wrong. bug
     x3__b_Fx3 = x_.reshape(-1, 3)
-    #x3__w = x3__a  #wrong
-    x3__w = x3__b_Fx3  # right bug!
-    #refactor: merge: x3__w -> x3__b_Fx3
+    #refactor: merge: x3__b_Fx3 -> x3__b_Fx3
 
     #Dont want to subdivide 1->2
     #bad2 = np.all(np.sum(x_.reshape(3, -1), axis=0) > 1)  # bug!
@@ -2120,14 +2110,14 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     if careful_for_twosides:
         assert np.all(np.sum(x3__b_Fx3, axis=1) <= 1)
     if careful_for_twosides:
-        if not np.all(np.sum(x3__w, axis=1) <= 1):
-            #print np.sum(x3__w, axis=1).tolist()
-            a = np.sum(x3__w, axis=1)
+        if not np.all(np.sum(x3__b_Fx3, axis=1) <= 1):
+            #print np.sum(x3__b_Fx3, axis=1).tolist()
+            a = np.sum(x3__b_Fx3, axis=1)
             #print np.nonzero(a > 1)
             print "FAILED"
-        assert np.all(np.sum(x3__w, axis=1) <= 1)
+        assert np.all(np.sum(x3__b_Fx3, axis=1) <= 1)
     #print "THIS FAILS"
-    del x3__w
+    del x3__b_Fx3
 
     #indices of all edges
     face3_idx = np.nonzero(x_)[0]
@@ -2175,12 +2165,17 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #edge_s_codes = A flat array of all the edge codes (For the sides that should be replaced with the sibdivided ones)
     #?????????????
-    edge_s_codes = all3edges_ravel[x_]
+    edge_s_codes = all3edges_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
+    #edge_pairs: those edges that*
+
     #if can tolerate two sides:
     if not careful_for_twosides:
         edge_s_codes = np.unique(edge_s_codes)
     assert np.unique(edge_s_codes).size == edge_s_codes.size
 
+    if not np.unique(edge_s_codes).size == edge_pairs.shape[1]:
+        set_trace()
+        #observation: edge_s_codes is (up to morphism) a subset of, but not equal to, edge_pairs
     assert np.unique(edge_s_codes).size == edge_pairs.shape[1]
     tesort = edge_pairs.T.copy()
     tesort.sort(axis=1)
@@ -2479,7 +2474,7 @@ def demo_everything():
         print "Mesh health:", any_mesh_correction
 
     print "*"*500
-    strict_about_mesh = False
+    strict_about_mesh = True
 
     if strict_about_mesh:
         while any_mesh_correction:
