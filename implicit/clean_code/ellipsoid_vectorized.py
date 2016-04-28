@@ -4,6 +4,7 @@ from basic_functions import make_inverse, is_python3
 import implicit_vectorized
 from basic_functions import check_matrix4
 from basic_functions import check_vector4_vectorized, check_scalar_vectorized
+from basic_functions import check_vector3_vectorized
 from implicit_vectorized import ImplicitFunctionVectorized
 from transformed import Transformable
 
@@ -78,9 +79,9 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
 
     def implicitFunction(self, p):
         check_vector3_vectorized(p)
-        print "fdghd"
+        #print "fdghd"
         p = np.concatenate((p, np.ones(p.shape[0],1)), axis = 1)
-        print p.shape, "**"
+    #    print p.shape, "**"
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
         v = self.base_object.implicitFunction(tp)

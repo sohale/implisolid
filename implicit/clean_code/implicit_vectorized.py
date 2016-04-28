@@ -4,8 +4,7 @@ import numpy as np
 #from implicit_config import VERBOSE
 
 #from basic_functions import make_inverse, check_matrix4, make_vector4
-from basic_functions import check_vector4_vectorized, check_matrix3_vectorized
-from basic_functions import make_vector4, check_vector4  # check_matrix4
+from basic_functions import check_vector3_vectorized, check_matrix3_vectorized
 
 # @profile
 # def memoize(f):
@@ -24,11 +23,11 @@ class ImplicitFunctionVectorized(object):
         raise VirtualException()
 
     def implicitGradient(self, pv):
-        """ Returns a vector of size N x 4 where N is the number of points. result[:,3] must be 1.0 for all. """
+        """ Returns a vector of size N x 3 where N is the number of points.  """
         raise VirtualException()
 
     def hessianMatrix(self, pv):
-        """ Returns a vector of size N x 4 x 4 where N is the number of points"""
+        """ Returns a vector of size N x 3 x 3 where N is the number of points"""
         raise VirtualException()
 
     def integrity_invariant(self):
@@ -43,15 +42,14 @@ class SignedDistanceImplicitVectorized(object):
 class UnitSphere(ImplicitFunctionVectorized):
     # @profile
     def implicitFunction(self, pv):
-        # check_vector4_vectorized(pv)
-        return 1.0 - np.sum(pv[:, :3] * pv[:, :3], axis=1)
+
+        return 1.0 - np.sum(pv * pv, axis=1)
     # @profile
     def implicitGradient(self, pv):
         assert pv.ndim == 2
-        assert pv.shape[1:] == (4,)
+        assert pv.shape[1:] == (3,)
         grad = -2*pv
-        grad[:, 3] = 1
-        # check_vector4_vectorized(grad)
+
         return grad
 
     def hessianMatrix(self, vp):
@@ -70,21 +68,19 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         self.n0 = []
 
         def side(x, y, z):
-            p0 = (make_vector4(x, y, z) + 0.0)
+            p0 = (make_vector3(x, y, z) + 0.0)
             p0 = p0 / 2.0 * size
-            n0 = -make_vector4(x, y, z)
+            n0 = -make_vector3(x, y, z)
             n0 = n0
             self.p0 += [p0]
             self.n0 += [n0]
-            self.p0[-1][3] = 1
-            self.n0[-1][3] = 1
             #print(self.p0[-1])
-            check_vector4(self.p0[-1])
-            check_vector4(self.n0[-1])
+            check_vector3(self.p0[-1])
+            check_vector3(self.n0[-1])
 
             def norm2(v):
                 return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
-            assert norm2(self.n0[-1][0:3]) - 1 == 0.0
+            assert norm2(self.n0[-1]) - 1 == 0.0
 
         side(1, 0, 0)
         side(-1, 0, 0)
@@ -97,7 +93,7 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
     # @memoize
     # @profile
     def implicitFunction(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
 
         sides = len(self.p0)
         n = p.shape[0]
@@ -105,7 +101,6 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         for i in range(sides):
             p0 = self.p0[i]
             n0 = self.n0[i]
-            n0[3] = 0
             sub = p - np.tile(p0[np.newaxis, :], (n, 1))
             # assert np.allclose(sub[:, 3], 0)
             vi = np.dot(sub, n0)
@@ -154,21 +149,16 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
     # @memoize
     # @profile
     def implicitGradient(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
 
         sides = 6
-        na = np.zeros((sides, 4))
+        na = np.zeros((sides, 3))
         n = p.shape[0]
         temp = np.zeros((n, sides))
         for i in range(len(self.p0)):
             p0 = self.p0[i]
-            n0 = self.n0[i]
-            n0[3] = 0
+            n0 = self.n0[i
             sub = p - np.tile(p0[np.newaxis, :], (n, 1))
-            assert np.allclose(sub[:, 3], 0)
-            #print("==================")
-            #print(sub.shape) #(1x4)
-            #print(n0.shape) #(4,)
             vi = np.dot(sub, n0)
             #print(vi)
             temp[:, i] = vi
@@ -180,9 +170,8 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         assert ia.shape == (n,)
 
         g = na[ia, :]
-        g[:, 3] = 1
 
-        check_vector4_vectorized(g)
+        check_vector3_vectorized(g)
         return g
 
 
@@ -209,7 +198,7 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
     # @memoize
     # @profile
     def hessianMatrix(self, p):
-        check_vector4(p)
+        check_vector3(p)
         h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)
         check_matrix3(h)
         #todo : array of matrix3s
