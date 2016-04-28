@@ -707,7 +707,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name =   #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"   "ell_example1"
+    object_name = "ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -731,9 +731,9 @@ def demo_combination_plus_qem():
             iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
         return iobj
 
-    c2 = rotate_scale_(c2, 2., [1,1,1])
-    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
-
+    # c2 = rotate_scale_(c2, 2., [1,1,1])
+    # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    iobj = c2
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -742,7 +742,11 @@ def demo_combination_plus_qem():
 
     old_verts, old_facets = verts, facets
 
-
+    display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+       pointcloud_list=[],
+       mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX)  )
+    exit()
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)

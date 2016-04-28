@@ -17,6 +17,17 @@ def make_inverse(m):
     assert np.allclose(invm[3, :], v0001, atol=TOLERANCE), "Last row of the inverse matrix should be 0,0,0,1 "
     return invm
 
+def make_inverse3(m):
+    assert not issubclass(m.dtype.type, np.integer)
+    assert m.shape == (3, 3), "Matrix must be 3x3"
+    invm = np.linalg.inv(m)
+    assert np.allclose(np.dot(invm, m), np.eye(3), atol=TOLERANCE), "Matrix inversion failed: Matrix is singular or bad conditioned"
+    assert np.allclose(np.dot(m, invm), np.eye(3), atol=TOLERANCE), "Matrix inversion failed: Matrix is singular or bad conditioned"
+    error = np.sum(np.abs(np.dot(invm, m) - np.eye(3)))
+    if VERBOSE:
+        print("Error of the inverse matrix: %2.20f" % error)
+    return invm
+
 
 def check_matrix4(m):
     assert not issubclass(m.dtype.type, np.integer)
@@ -43,38 +54,38 @@ def check_vector4(p):
 
 def check_vector3(p):
     assert not issubclass(p.dtype.type, np.integer)
-    assert p.shape == (3,), "Vector must be a numpy array of (4) elements"
+    assert p.shape == (3,), "Vector must be a numpy array of (3) elements"
     assert not np.any( np.isnan(p.ravel()) )
     assert not np.any( np.isinf(p.ravel()) )
 
-def check_vector4_vectorized(pa):
-    assert not issubclass(pa.dtype.type, np.integer)
-    assert pa.ndim == 2
-    assert pa.shape[1:] == (4,), "Vector must be a numpy array of (Nx4) elements"
-    e = np.sum(np.abs(pa[:, 3]-1))
+def check_vector4_vectorized(p):
+    assert not issubclass(p.dtype.type, np.integer)
+    assert p.ndim == 2
+    assert p.shape[1:] == (4,), "Vector must be a numpy array of (Nx4) elements"
+    e = np.sum(np.abs(p[:, 3]-1))
     if e > 0.0:
         print("EERROR:", e)
-    assert np.allclose(pa[:, 3], 1, 0.00000000000001), "4th element of every Vector must be 1.0"
-    assert not np.any( np.isnan(pa.ravel()) )
-    assert not np.any( np.isinf(pa.ravel()) )
+    assert np.allclose(p[:, 3], 1, 0.00000000000001), "4th element of every Vector must be 1.0"
+    assert not np.any( np.isnan(p.ravel()) )
+    assert not np.any( np.isinf(p.ravel()) )
 
-def check_vector3_vectorized(pa):
-    assert not issubclass(pa.dtype.type, np.integer)
-    assert pa.ndim == 2
-    assert pa.shape[1:] == (3,), "Vector must be a numpy array of (Nx4) elements"
-    assert not np.any( np.isnan(pa.ravel()) )
-    assert not np.any( np.isinf(pa.ravel()) )
+def check_vector3_vectorized(p):
+    assert not issubclass(p.dtype.type, np.integer)
+    assert p.ndim == 2
+    assert p.shape[1:] == (3,), "Vector must be a numpy array of (Nx3) elements"
+    assert not np.any( np.isnan(p.ravel()) )
+    assert not np.any( np.isinf(p.ravel()) )
 
-def check_scalar_vectorized(va, N=None):
-    assert not issubclass(va.dtype.type, np.integer)
-    n = va.shape[0]
-    if va.ndim == 2:
-        assert va.shape[1] == 1
-        assert va.shape == (n, 1), "values must be a numpy array of (N,) or (Nx1) elements"
+def check_scalar_vectorized(v, N=None):
+    assert not issubclass(v.dtype.type, np.integer)
+    n = v.shape[0]
+    if v.ndim == 2:
+        assert v.shape[1] == 1
+        assert v.shape == (n, 1), "values must be a numpy array of (N,) or (Nx1) elements"
     if not N is None:
-        assert va.shape[0] == N
-    assert not np.any( np.isnan(va.ravel()) )
-    assert not np.any( np.isinf(va.ravel()) )
+        assert v.shape[0] == N
+    assert not np.any( np.isnan(v.ravel()) )
+    assert not np.any( np.isinf(v.ravel()) )
 
 
 def make_vector4(x, y, z):
@@ -193,10 +204,8 @@ def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
     return r
 
 
-
 def make_random_vector3_vectorized(N, norm, POW, type="rand", normalize=True):
     r = np.ones((N, 3))
-
     #not tested:
     if type == "rand":
         r = np.random.rand(N, 3)*2 - 1
@@ -268,8 +277,6 @@ def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
     assert not issubclass(v.dtype.type, np.integer)
     assert not np.any( np.isnan(v) )
     assert not np.any( np.isinf(v) )
-
-    # norms = np.linalg.norm(v[:,0:3], axis = 1, keepdims=True, ord=2)
     norms = np.sqrt(np.sum(v * v, axis=1, keepdims=True))
     denominator = np.tile(norms, (1, 3))
     if zero_normal=="leave_zero_norms":

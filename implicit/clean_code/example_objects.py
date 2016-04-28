@@ -24,20 +24,7 @@ def dice(dice_scale):
         c = vectorized.CrispSubtract(c, s1)
         return c
 
-    def hole_r(c, i, j, k):
-        m = np.eye(4)
-        dot_size = 0.25 * dice_size
-        m[0, 0] = dot_size
-        m[1, 1] = dot_size
-        m[2, 2] = dot_size
-        distance = (0.5-0.05)*dice_size
-        m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
-        s1 = vectorized.Ellipsoid(m)
-        c = vectorized.RSubtract(c, s1, 1.0)
-        return c
-
     hole = hole_crisp
-    #hole = hole_r
 
     """ 1 """
     c = hole(c, 1, 0, 0)  # 1
@@ -547,9 +534,7 @@ def cube_with_cylinders(scale):
 
     cyl = SimpleCylinder(A, w, u, radius, radius, c_len)
 
-
     A2 = make_vector4(0, -c_len/2.0, 0)
-        #A = make_vector4(0, 0, c_len / 2.0)  # bug: aa is wrong
     w2 = make_vector4(1,0 , 0)
     w2 = w / np.linalg.norm(w[0:3]); w[3] = 1
     u2 = make_vector4(0, 1, 0)
@@ -598,13 +583,11 @@ def make_example_vectorized(name, scale=1.0):
     assert not type(res) is tuple
     return res
 
-
 def test_creation_of_all_Examples():
     for name in examples:
         scale = 1.
         res = globals()[name](scale)
         # print("OK.")
-
 
 def get_all_examples(types_list):
     """ types_list i.e. [1] or [2] or [2,3] or [1,3] r [1,2,3] """

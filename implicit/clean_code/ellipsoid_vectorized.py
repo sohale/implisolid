@@ -23,7 +23,7 @@ class Ellipsoid(ImplicitFunctionVectorized):
         check_vector4_vectorized(pa)
         tp = np.dot(self.invmatrix, np.transpose(pa))  # inefficient. todo: multiply from right => will be efficient
         tp = np.transpose(tp)  # inefficient.
-
+        print pa, tp
         v = self.sphere.implicitFunction(tp)
         check_scalar_vectorized(v)
         return v
@@ -75,8 +75,10 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
         assert isinstance(self.base_object, ImplicitFunctionVectorized)
 
     def implicitFunction(self, p):
-        check_vector4_vectorized(p)
-
+        check_vector3_vectorized(p)
+        print "fdghd"
+        p = np.concatenate((p, np.ones(p.shape[0],1)), axis = 1)
+        print p.shape, "**"
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
         v = self.base_object.implicitFunction(tp)
