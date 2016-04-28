@@ -1,7 +1,6 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
-from basic_functions import check_vector4_vectorized, make_vector4, check_vector4
-from basic_functions import check_vector3_vectorized, make_vector3, check_vector3
+from basic_functions import check_vector3_vectorized, check_vector3
 from implicit_config import config
 
 # todo: class CutCone
@@ -90,20 +89,14 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         p = np.transpose(aa) + np.dot(self.w, t_arr_1xN)   # 3x1 * 1xcount
         assert p.shape == (3, count)
         assert x.shape == (count, 3)
-        # alpha_beta = np.dot(self.UVW_inv, np.transpose(x) - p)  # alpha,beta  #not correct
-        # assert alpha_beta.shape == (3, count)
-        # theta = np.arctan2(alpha_beta[1, :], alpha_beta[0, :])
         assert self.radius_u == self.radius_v
 
         r = np.linalg.norm(x - np.transpose(p), ord=2, axis=1)
         assert r.shape == (count,)
 
-        # todo: the following is incorrect
-
         t0 = t
         t1 = self.c_len - t
         r_ = self.radius_u - r
-        # t0,t1,r_  as if  x,y,z
 
         print t0.shape, t1.shape, r_.shape
         m3 = np.concatenate((t0[:, np.newaxis], t1[:, np.newaxis], r_[:, np.newaxis]), axis=1)
@@ -133,22 +126,18 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             #print t0.shape, "t0"
             #print t1.shape, "t1"
             #return (c_t0) * grad_t0 + (c_t1) * grad_t1 + (c_r) * grad_r
-            a=  (c_t0) * grad_t0
-            b= (c_t1) * grad_t1
-            c=  (c_r) * grad_r
+            a =  (c_t0) * grad_t0
+            b = (c_t1) * grad_t1
+            c =  (c_r) * grad_r
             g3 = a+b+c
 
-        #    g4 = np.concatenate( (g, np.ones((count, 1), dtype=float)), axis=1)
-            check_vector4_vectorized(g4)
             check_vector3_vectorized(g3)
-            #in progress
         #    return fval, g4
             return fval, g3
 
     def implicitGradient(self, x):
-        # return numeric_utils.generic_slow_gradient(self, x)
         f, g = self.implicitFunction(x, return_grad=True)
-        print("ggggg", g.shape)
+        print("gradient", g.shape)
         return g
 
     def curvature(self, x):
