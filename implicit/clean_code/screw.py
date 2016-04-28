@@ -1,13 +1,15 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
 from basic_functions import check_vector4_vectorized, check_vector4, repeat_vect4, make_vector4
+from basic_functions import check_vector3_vectorized, check_vector3, repeat_vect3, make_vector3
+
 import vectorized
 from implicit_config import config
 
 
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorized="unspecified"):
     #0.1 is not enough for delta_t
-    check_vector4(pos0)
+    check_vector3(pos0)
     assert is_vectorized != "unspecified"
     if is_vectorized:
         assert issubclass(type(iobj), vectorized.ImplicitFunctionVectorized)
@@ -25,13 +27,13 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     x0 = 0
     findiff_weights = finite_diff_weights.weights(k=1, x0=x0, xs=np.array(sample_points) * delta_t)
 
-    pos0_4 = repeat_vect4(1, pos0)
-    pos = np.tile(pos0_4, (3*n, 1))
+    pos0_3 = repeat_vect3(1, pos0)
+    pos = np.tile(pos0_3, (3*n, 1))
     assert not issubclass(pos.dtype.type, np.integer)
 
-    dx = repeat_vect4(1, make_vector4(1, 0, 0))
-    dy = repeat_vect4(1, make_vector4(0, 1, 0))
-    dz = repeat_vect4(1, make_vector4(0, 0, 1))
+    dx = repeat_vect3(1, make_vector3(1, 0, 0))
+    dy = repeat_vect3(1, make_vector3(0, 1, 0))
+    dz = repeat_vect3(1, make_vector3(0, 0, 1))
     dxyz = [dx, dy, dz]
 
     ci = 0
@@ -42,7 +44,6 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
             #w[ci] = findef(i,n)
             ci += 1
 
-    pos[:, 3] = 1
 
     if is_vectorized:
         v = iobj.implicitFunction(pos)    # v .shape: (3,11)
@@ -94,14 +95,13 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     #grad_cnv = np.reshape(grad_cnv, (1,3))[:,np.newaxis]
     #grad_cnv = np.concatenate( ( grad_cnv[np.newaxis,:], np.reshape(np.array([1]),(1,1)) ), axis=1)
 
-    def v3_to_v14(v):
-        """ Converts shape from (3,) into a (1,4) vector4 """
-        assert v.ndim == 1
-        return np.concatenate((v[np.newaxis, :], np.reshape(np.array([1]), (1, 1))), axis=1)
-
-    grad_cnv = v3_to_v14(grad_cnv)
+    # def v3_to_v14(v):
+    #     """ Converts shape from (3,) into a (1,4) vector4 """
+    #     assert v.ndim == 1
+    #     return np.concatenate((v[np.newaxis, :], np.reshape(np.array([1]), (1, 1))), axis=1)
+    #
+    # grad_cnv = v3_to_v14(grad_cnv)
     #print("weights: ",findiff_weights)
-
 
     #Detecting sharp edges (non-smooth points, i.e. corners and edges and ridges)
     if np.max(np.abs(grad_cnv)) > 100:
@@ -122,7 +122,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
         print("grad_convolusion: ", grad_cnv)
 
     if False:
-        g = iobj.implicitGradient(pos0_4)
+        g = iobj.implicitGradient(pos0_3)
     if _VERBOSE:
         print("grad_analytical: ", g)
 
@@ -134,7 +134,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
         print("conv error: ", g - grad_cnv)
         #Amazing precision: [[0.0000000000001995071 -0.0000000038590481921 0.0000000000000008882  0.0000000000000000000]]
 
-        print("mean error: ", g - v3_to_v14(grad_mean))
+#        print("mean error: ", g - v3_to_v14(grad_mean))
         #Terrible error: [-0.262   2.12266  0 ]
 
         #v3 * findiff_weights
@@ -199,11 +199,11 @@ class Screw(ImplicitFunctionVectorized):
         return sane
 
     def implicitFunction(self, xa):
-        check_vector4_vectorized(xa)
+        check_vector3_vectorized(xa)
         #print(self.w.shape)
         assert self.w.shape == (3, 1)
         assert self.A.shape == (3, 1)
-        x = xa[:, 0:3]
+        x = xa
         #print(x.shape)
         count = x.shape[0]
         assert x.shape == (count, 3)
@@ -248,11 +248,11 @@ class Screw(ImplicitFunctionVectorized):
         return (-r + self.r0 + self.delta * phi(t / self.twist_rate - theta/pi2 + self.phi0))*inside_ness
 
     def implicitGradient(self, x):
-        check_vector4_vectorized(x)
+        check_vector3_vectorized(x)
         count = x.shape[0]
-        g = np.zeros((count, 4))
+        g = np.zeros((count, 3))
         for i in range(x.shape[0]):
-            v = x[i, 0:4]
+            v = x[i, 0:3]
             # inefficient: not vectorised
             g[i, :] = numerical_gradient(self, v, is_vectorized=True)
         return g

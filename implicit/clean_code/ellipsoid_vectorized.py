@@ -22,7 +22,7 @@ class Ellipsoid(ImplicitFunctionVectorized):
 
     def implicitFunction(self, pa):
         check_vector3_vectorized(pa)
-        pa = np.concatenate((pa, np.ones(pa.shape[0],1)), axis = 1)
+        pa = np.concatenate((pa, np.ones((pa.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(pa))  # inefficient. todo: multiply from right => will be efficient
         tp = np.transpose(tp)  # inefficient.
         print pa, tp
@@ -32,14 +32,14 @@ class Ellipsoid(ImplicitFunctionVectorized):
 
     def implicitGradient(self, pa):  # -> Vector3D :
         check_vector3_vectorized(pa)
-        pa = np.concatenate((pa, np.ones(pa.shape[0],1)), axis = 1)
+        pa = np.concatenate((pa, np.ones((pa.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix,  np.transpose(pa))
         tp = np.transpose(tp)  # inefficient
 
         g = self.sphere.implicitGradient(tp)
         check_vector3_vectorized(g)  # not needed
 
-        g = np.concatenate((g, np.ones(g.shape[0],1)), axis = 1)
+        g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
         v4 = np.dot(np.transpose(self.invmatrix),  np.transpose(g))
         v4 = np.transpose(v4)  # not efficient
         #print("v4:  ", v4)
@@ -80,7 +80,7 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
     def implicitFunction(self, p):
         check_vector3_vectorized(p)
         #print "fdghd"
-        p = np.concatenate((p, np.ones(p.shape[0],1)), axis = 1)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
     #    print p.shape, "**"
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
@@ -90,7 +90,7 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
 
     def implicitGradient(self, p):  # -> Vector3D :
         check_vector3_vectorized(p)
-        p = np.concatenate((p, np.ones(p.shape[0],1)), axis = 1)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
         g = self.base_object.implicitGradient(tp)
@@ -105,7 +105,7 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
 
     def hessianMatrix(self, p):
         check_vector3_vectorized(p)
-        p = np.concatenate((p, np.ones(p.shape[0],1)), axis = 1)
+        p = np.concatenate((p, np.ones((pa.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_functions import check_vector4, check_matrix3
+from basic_functions import check_vector3, check_matrix3
 
 
 class ImplicitFunctionPointwise(object):
@@ -47,18 +47,17 @@ class PrimitiveBase(ImplicitFunctionPointwise):
 class UnitSphere(PrimitiveBase):
 
     def implicitFunction(self, p):
-        check_vector4(p)
-        return 1.0 - (np.dot(p[:3], p[:3]))
+        check_vector3(p)
+        return 1.0 - (np.dot(p, p))
 
     def implicitGradient(self, p):
-        check_vector4(p)
+        check_vector3(p)
         grad = -2*p
-        grad[3] = 1
-        check_vector4(grad)
+        check_vector3(grad)
         return grad
 
     def hessianMatrix(self, p):
-        check_vector4(p)
+        check_vector3(p)
         h = np.array([[-2, 0, 0],  [0, -2, 0],  [0, 0, -2]], ndmin=2)
         check_matrix3(h)
         return h
@@ -75,21 +74,18 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
         self.n0 = []
 
         def side(x, y, z):
-            p0 = (make_vector4(x, y, z) + 0.0)
+            p0 = (make_vector3(x, y, z) + 0.0)
             p0 = p0 / 2.0 * size
             # n0 points inwards
-            n0 = -make_vector4(x, y, z)
+            n0 = -make_vector3(x, y, z)
             n0 = n0
             self.p0 += [p0]
             self.n0 += [n0]
-            self.p0[-1][3] = 1
-            self.n0[-1][3] = 1
-
             def norm2(v):
                 return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
 
             #print(norm2(self.n0[-1][0:3]))
-            assert norm2(self.n0[-1][0:3]) - 1 == 0.0
+            assert norm2(self.n0[-1]) - 1 == 0.0
 
         #for x in range( -1,2 ):
         #    for y in range( -1,2 ):
@@ -107,13 +103,13 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
     def integrity_invariant(self):
         integrity = True
         for i in range(6):
-            integrity = integrity and np.abs(norm2(self.n0[i][0:3]) - 1) < INTEGRITY_TOLERANCES_NORM
+            integrity = integrity and np.abs(norm2(self.n0[i]) - 1) < INTEGRITY_TOLERANCES_NORM
         #todo: Check convexity
         return integrity
 
     #todo: evaluate gradient and implicit function at the same time
     def implicitFunction(self, p):
-        check_vector4(p)
+        check_vector3(p)
         chosen_i = None
         v = +np.infty
         for i in range(len(self.p0)):
@@ -129,7 +125,7 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
         return v
 
     def implicitGradient(self, p):
-        check_vector4(p)
+        check_vector3(p)
         chosen_i = None
         v = +np.infty
         for i in range(len(self.p0)):
@@ -142,14 +138,12 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
                 grad = n0
 
         assert not chosen_i is None
-
         #not tested
-        grad[3] = 1
-        check_vector4(grad)
+        check_vector3(grad)
         return grad
 
     def hessianMatrix(self, p):
-        check_vector4(p)
+        check_vector3(p)
         h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)
         check_matrix3(h)
         return h

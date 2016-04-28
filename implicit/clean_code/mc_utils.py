@@ -17,8 +17,8 @@ def _prepare_grid(rng):
         raise PolygonizationError(("Grid too large ( >200 ): ", rng.size))
 
     (yy, xx, zz) = np.meshgrid(rng, rng, rng)
-    xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
-    assert xyza.shape[1:] == (4,)
+    xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel()]))
+    assert xyza.shape[1:] == (3,)
 
     if VERBOSE:
         print(xyza.shape)

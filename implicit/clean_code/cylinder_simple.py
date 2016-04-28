@@ -1,6 +1,6 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
-from basic_functions import check_vector3_vectorized, check_vector3
+from basic_functions import check_vector3_vectorized, check_vector3, check_vector4
 from implicit_config import config
 
 # todo: class CutCone
@@ -14,9 +14,15 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         (self.A, self.w, self.u, self.radius_u, self.radius_v, self.c_len) = \
             (A, w, u, radius_u, radius_v, c_len)
 
-        check_vector3(w)
-        check_vector3(u)
-        check_vector3(A)
+        check_vector4(w)
+        check_vector4(u)
+        check_vector4(A)
+        assert w[3] == 1
+        assert u[3] == 1
+        assert A[3] == 1
+        w = w[:3]
+        u = u[:3]
+        A = A[:3]
 
         v = np.cross(u, w)
         assert w.shape == (3,)
