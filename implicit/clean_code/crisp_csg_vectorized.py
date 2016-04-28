@@ -1,10 +1,7 @@
 import numpy as np
 from basic_functions import check_vector4_vectorized, check_scalar_vectorized
 from basic_functions import check_matrix3_vectorized, check_vector3_vectorized
-#from implicit_config import TOLERANCE
-#from primitives import ImplicitFunctionPointwise
 
-#from primitives import UnitSphere
 from implicit_vectorized import ImplicitFunctionVectorized
 
 
@@ -16,7 +13,6 @@ class CrispSubtract(ImplicitFunctionVectorized):
         self.b = b
 
     def implicitFunction(self, p):
-        #check_vector4_vectorized(p)
         check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = - self.b.implicitFunction(p)
@@ -27,7 +23,6 @@ class CrispSubtract(ImplicitFunctionVectorized):
         return v
 
     def implicitGradient(self, p):
-        #check_vector4_vectorized(p)
         check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = - self.b.implicitFunction(p)
@@ -44,7 +39,6 @@ class CrispSubtract(ImplicitFunctionVectorized):
         return grad
 
     def hessianMatrix(self, p):
-        #check_vector3_vectorized(p)
         check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = - self.b.implicitFunction(p)
@@ -68,7 +62,6 @@ class CrispUnion(ImplicitFunctionVectorized):
         self.b = b
 
     def implicitFunction(self, pa):
-
         check_vector3_vectorized(pa)
 
         va = self.a.implicitFunction(pa)

@@ -2,6 +2,7 @@ import numpy as np
 
 from primitives import ImplicitFunctionPointwise
 from basic_functions import make_inverse, check_vector4, check_matrix4, is_python3
+from basic_functions import check_vector3
 
 #from lib.transformations import *
 import transformations as tf
@@ -42,8 +43,8 @@ class Transformable(object):
         else:
             raise UsageError()  # UsageError
 
-        check_vector4(along)
-        rm = tf.rotation_matrix(angle, along[0:3])
+        check_vector3(along)
+        rm = tf.rotation_matrix(angle, along)
         self.matrix = np.dot(rm , self.matrix)
         self.invmatrix = make_inverse(self.matrix)
 
@@ -90,23 +91,24 @@ class Transformed(ImplicitFunctionPointwise, Transformable):
         assert isinstance(self.base_object, ImplicitFunctionPointwise)
 
     def implicitFunction(self, p):
-        check_vector4(p)
+        check_vector3(p)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, p)
         v = self.base_object.implicitFunction(tp)
         return v
 
     def implicitGradient(self, p):  # -> Vector3D :
-        check_vector4(p)
+        check_vector3(p)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, p)
         g = self.base_object.implicitGradient(tp)
-        g[3] = 0  # important
-        v4 = np.dot(np.transpose(self.invmatrix), g)
-        v4[3] = 1
-        return v4
+        v3 = np.dot(np.transpose(self.invmatrix), g)
+        return v3
 
     def hessianMatrix(self, p):
         #warning: not tested
-        check_vector4(p)
+        check_vector3(p)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, p)
         h1 = self.base_object.hessianMatrix(tp)
         h = np.dot(h1, self.invmatrix)  # which one is correct?

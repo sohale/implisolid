@@ -4,7 +4,8 @@ import numpy as np
 #from implicit_config import VERBOSE
 
 #from basic_functions import make_inverse, check_matrix4, make_vector4
-from basic_functions import check_vector3_vectorized, check_matrix3_vectorized
+from basic_functions import check_vector3_vectorized, check_matrix3_vectorized, make_vector3
+from basic_functions import check_vector3
 
 # @profile
 # def memoize(f):
@@ -157,7 +158,7 @@ class UnitCube1(ImplicitFunctionVectorized, SignedDistanceImplicitVectorized):
         temp = np.zeros((n, sides))
         for i in range(len(self.p0)):
             p0 = self.p0[i]
-            n0 = self.n0[i
+            n0 = self.n0[i]
             sub = p - np.tile(p0[np.newaxis, :], (n, 1))
             vi = np.dot(sub, n0)
             #print(vi)

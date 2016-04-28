@@ -129,16 +129,13 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             print grad_r.shape, "g_r"
             print grad_t0.shape, "g_t0"
             print grad_t1.shape, "g_t1"
-            #print t0.shape, "t0"
-            #print t1.shape, "t1"
-            #return (c_t0) * grad_t0 + (c_t1) * grad_t1 + (c_r) * grad_r
+    
             a =  (c_t0) * grad_t0
             b = (c_t1) * grad_t1
             c =  (c_r) * grad_r
             g3 = a+b+c
 
             check_vector3_vectorized(g3)
-        #    return fval, g4
             return fval, g3
 
     def implicitGradient(self, x):

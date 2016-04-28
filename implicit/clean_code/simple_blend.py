@@ -1,5 +1,6 @@
 import numpy as np
 from basic_functions import check_vector4_vectorized, check_scalar_vectorized
+from basic_functions import check_vector3_vectorized
 from implicit_config import TOLERANCE
 from primitives import ImplicitFunctionPointwise
 
@@ -21,10 +22,9 @@ class SimpleBlend (ImplicitFunctionVectorized):
         assert self.bfactor > 0
 
     def implicitFunction(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = self.b.implicitFunction(p)
-        #v = va * self.afactor  +  vb * self.bfactor + 1
 
         fa = self.afactor
         fb = self.bfactor
@@ -33,11 +33,11 @@ class SimpleBlend (ImplicitFunctionVectorized):
         return v
 
     def implicitGradient(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = self.b.implicitFunction(p)
-        ca = np.tile( va[:,np.newaxis], (1,4) )
-        cb = np.tile( vb[:,np.newaxis], (1,4) )
+        ca = np.tile( va[:,np.newaxis], (1,3) )
+        cb = np.tile( vb[:,np.newaxis], (1,3) )
 
         grada = self.a.implicitGradient(p)
         gradb = self.b.implicitGradient(p)
@@ -45,12 +45,11 @@ class SimpleBlend (ImplicitFunctionVectorized):
         fa = self.afactor
         fb = self.bfactor
         grad = + (fa*np.exp(ca)*grada   +  fb*np.exp(cb)*gradb ) / (fa+fb)
-        grad[:,3] = 1
-        check_vector4_vectorized(grad)
+        check_vector3_vectorized(grad)
         return grad
 
     def hessianMatrix(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         ha = self.a.hessianMatrix(p)
         hb = self.b.hessianMatrix(p)
         #todo

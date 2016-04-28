@@ -7,6 +7,7 @@ import math
 
 import numpy as np
 from basic_functions import check_vector4_vectorized, normalize_vector4_vectorized
+from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized
 
 def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
     TH1 = 0.001
@@ -143,7 +144,7 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # m
                     pass  # Finding is not going to happen. But it's fine.
 
             p2 = p2 + lambda_ * direction
-            p2[:, 3] = 1
+            #p2[:, 3] = 1
             f2 = iobj.implicitFunction(p2)
             eval_count += 1
 
@@ -224,10 +225,10 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
 #    counting = 0
 
     for i in range(start_x.shape[0]):
-        xxv = start_x[i,:].reshape(1,4)
+        xxv = start_x[i,:].reshape(1,3)
         check_vector4_vectorized(xxv)
         direction[i,:] = (iobj.implicitGradient(xxv)) #no need for copy here!
-        dn = np.linalg.norm(direction[i,0:3]) #calculation of the normalization
+        dn = np.linalg.norm(direction[i,:]) #calculation of the normalization
 
         if  dn > 0.0:
             direction[i,:] = (direction[i,:]/dn)
@@ -259,15 +260,14 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                 for j in range(MAX_ITER):
                     number_of_iteration += 1
 
-                    xxv2 = start_x[i,:].copy().reshape(1,4)
-                    check_vector4_vectorized(xxv2)
+                    xxv2 = start_x[i,:].copy().reshape(1,3)
+                    check_vector3_vectorized(xxv2)
                     dir1 = iobj.implicitGradient(xxv2) #we have to give a copy of start_x to avoid problems
                     dir1 = dir1[0,:]
-                    dn1 = np.linalg.norm(dir1[0:3].copy())
+                    dn1 = np.linalg.norm(dir1.copy())
 
                     if  dn1 > 0.0:
                         dir1 = dir1/dn1
-                    dir1[3] = 1
                     dir2 = direction[i,:]
 
 
@@ -286,8 +286,7 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                     p2 = p1[i,:] + lambda_[i] * dir2
             #        p2[i,:] = p1[i,:] + lambda_[i] * direction[i]
 
-                    p2[3] = 1
-                    f2 =iobj.implicitFunction(p2.reshape(1,4))
+                    f2 =iobj.implicitFunction(p2.reshape(1,3))
                     eval_count += 1
 
                     if f1[i]*f2 < 0.0:
@@ -304,7 +303,6 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
 
                         if np.abs(lambda_[i]) < TH2_L:
                             print i, "(B)", eval_count
-                            p1_found[i,3] = 0
                             not_found = True
                             break
                         else:
@@ -331,7 +329,7 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                 assert math.fabs(f1[i]) < 1000, str(p1[i,:])
                 assert math.fabs(f2) < 1000, str(p2)
 
-                converged, p1[i,:], p2, iter_log = bisection_prop_2(iobj, p1[i,:].reshape(1,4), p2.reshape(1,4), f1[i], f2, MAX_ITER/2)
+                converged, p1[i,:], p2, iter_log = bisection_prop_2(iobj, p1[i,:].reshape(1,3), p2.reshape(1,3), f1[i], f2, MAX_ITER/2)
                 assert f1[i] < 0
                 assert f2 > 0
 
@@ -339,8 +337,7 @@ def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
                     p1_found[i,:] = p1[i,:].copy()
 
                 else:
-                    p1_found[:,3] = 0
-                    p1_found[i,3] = 0
+                    p1_found[i,:] = 0
 
                 #    print p1_found[i,:]
         #    print direction[i,:], np.linalg.norm(direction[i,:])
@@ -372,14 +369,14 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 
     for i in range(centroids.shape[0]):
         #import ipdb; ipdb.set_trace()
-        p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,4)), None, lambda_val, max_iter)
-        if np.allclose(p1[i, 3], 1, 0.00000000000001) == True: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
-            p1[i,:].reshape(1,4)
-            f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,4))
+        p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,3)), None, lambda_val, max_iter)
+        if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
+            p1[i,:].reshape(1,3)
+            f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
 
                 # Mirror image: search the opposite way and accept only if it is closer than the best found.
             p2[i,:] = 2*centroids_new[i,:] - p1[i,:] #p2 correspond to S in the paper
-            f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,4))
+            f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,3))
             p[i,:] = p1[i,:]
 
 #            print f1[i], f2[i]
@@ -389,14 +386,13 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                 dn_3[i] = np.linalg.norm(direction_3[i,:])
                 if dn_3[i] > 0:  #dn>0.000000001:
                     direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,4), direction_3[i,:].reshape(1,4), lambda_val, max_iter)
+                    p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter)
 
 
                     #no max_dist
                 if p3 is not None:
-                    if np.allclose(p3[:,3], 1, 0.00000000000001) == True:
-                        if np.linalg.norm(centroids[i,:] - p3) > np.linalg.norm(centroids[i,:] - p1[i,:]):
-                            p[i,:] = p3
+                    if np.linalg.norm(centroids[i,:] - p3) > np.linalg.norm(centroids[i,:] - p1[i,:]):
+                        p[i,:] = p3
                             #else:
                             #    p = p1
                 #else:
@@ -413,23 +409,24 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 #evaluate_centroid_gradients
 def compute_centroid_gradients(centroids, iobj, normalise=True):
     assert centroids is not None
-    check_vector4_vectorized(centroids)
+    check_vector3_vectorized(centroids)
     centroid_gradients = iobj.implicitGradient(centroids)
     assert not np.any(np.isnan(centroid_gradients))
     assert not np.any(np.isinf(centroid_gradients))
     if normalise:
-        centroid_normals = normalize_vector4_vectorized(centroid_gradients)
+        centroid_normals = normalize_vector3_vectorized(centroid_gradients)
         return centroid_normals
     else:
         return centroid_gradients
 
 def visualise_gradients(mlab, pos, iobj, arrow_size):
     lm = arrow_size  # 1.  # STEPSIZE
-    pos4 = np.concatenate((pos, np.ones((pos.shape[0],1))),axis=1)
-    pnormals = - iobj.implicitGradient(pos4)
+    pos3 = pos
+#    pos3 = np.concatenate((pos, np.ones((pos.shape[0],1))),axis=1)
+    pnormals = - iobj.implicitGradient(pos3)
     pnormals = normalize_vector4_vectorized(pnormals)
-    check_vector4_vectorized(pos4)
-    xyz = pos
+    check_vector3_vectorized(pos3)
+    xyz = pos3
     uvw = pnormals [:,0:3] / 2.
     xx, yy, zz = xyz[:, 0], xyz[:, 1], xyz[:, 2]
     uu, vv, ww = uvw[:, 0], uvw[:, 1], uvw[:, 2]
@@ -587,15 +584,15 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
 
     x0 = np.zeros((3, 1))
 
-    assert normals.shape[1] == 4
+    assert normals.shape[1] == 3
     #normals = normals   # (4)x4
     #grad = Ax+b
     A = np.zeros((3, 3))
     b = np.zeros((3, 1))
     #assert len(center_array) == len(normals)
     assert normals.shape == center_array.shape
-    n_i = normals[:, 0:3, np.newaxis]
-    p_i = center_array[:, 0:3, np.newaxis]
+    n_i = normals[:, :, np.newaxis]
+    p_i = center_array[:, :, np.newaxis]
 
     A = np.dot(np.reshape(n_i,(normals.shape[0],3)).T, np.reshape(n_i,(normals.shape[0],3)))
 
@@ -707,33 +704,36 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"#"ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     if object_name == "cyl4":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
+
+    elif object_name == "french_fries_vectorized" or object_name == "rods":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.1)
     #
 
-    import vectorized, example_objects
-    c2 = vectorized.UnitCube1(1.)
-    def rotate_scale_(iobj, scale, center, angle=0.):
-        ns = vectorized
-        import numpy
-        m = numpy.eye(4)
-        m[0,0] = 0.1
-        iobj = ns.Transformed(iobj, m=m)
-        iobj  \
-            .resize(scale) \
-            .move(center[0], center[1], center[2])
-        if angle != 0.:
-            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-        return iobj
-
+    # import vectorized, example_objects
+    # c2 = vectorized.UnitCube1(1.)
+    # def rotate_scale_(iobj, scale, center, angle=0.):
+    #     ns = vectorized
+    #     import numpy
+    #     m = numpy.eye(4)
+    #     m[0,0] = 0.1
+    #     iobj = ns.Transformed(iobj, m=m)
+    #     iobj  \
+    #         .resize(scale) \
+    #         .move(center[0], center[1], center[2])
+    #     if angle != 0.:
+    #         iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+    #     return iobj
+    #
     # c2 = rotate_scale_(c2, 2., [1,1,1])
     # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
-    iobj = c2
+    # #iobj = c2
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -774,8 +774,11 @@ def demo_combination_plus_qem():
 
     average_edge = compute_average_edge_length(verts, facets)
 
-    c3 = np.mean(verts[facets[:], :], axis=1)
-    old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
+    # c3 = np.mean(verts[facets[:], :], axis=1)
+    # old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
+    old_centroids = np.mean(verts[facets[:], :], axis=1)
+#    old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
+
 
     new_centroids = old_centroids.copy()
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)

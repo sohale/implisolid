@@ -35,7 +35,7 @@ class Ellipsoid(ImplicitFunctionVectorized):
         pa = np.concatenate((pa, np.ones((pa.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix,  np.transpose(pa))
         tp = np.transpose(tp)  # inefficient
-
+        tp = tp[:,:3]
         g = self.sphere.implicitGradient(tp)
         check_vector3_vectorized(g)  # not needed
 
@@ -84,6 +84,7 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
     #    print p.shape, "**"
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
+        tp = tp[:,:3]
         v = self.base_object.implicitFunction(tp)
         check_scalar_vectorized(v)
         return v

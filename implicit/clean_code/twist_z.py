@@ -6,6 +6,7 @@ class Transformable1(object):
 from implicit_vectorized import ImplicitFunctionVectorized
 import numpy as np
 from basic_functions import check_vector4_vectorized, make_vector4, check_vector4, check_scalar_vectorized
+from basic_functions import check_vector3_vectorized, make_vector3, check_vector3
 
 #ImplicitFuncitonVectorized3
 class TwistZ(ImplicitFunctionVectorized, Transformable1):
@@ -40,7 +41,7 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
         return True
 
     def implicitFunction(self, p):
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         # vec3.check_vector3_vectorized(p)
         N = p.shape[0]
         print "self.lamda", self.lamda
@@ -69,32 +70,14 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
             ca[:, np.newaxis]*p[:, 0, np.newaxis] - sa[:, np.newaxis]*p[:, 1, np.newaxis],
             sa[:, np.newaxis]*p[:, 0, np.newaxis] + ca[:, np.newaxis]*p[:, 1, np.newaxis],
             p[:, 2, np.newaxis],  # z
-            p[:, 3, np.newaxis]   # 1.
             ), axis=1)
 
         v = self.base_object.implicitFunction(p2)
         check_scalar_vectorized(v)
         return v
 
-        #cs = np.concatenate((ca[:, np.newaxis], sa[:, np.newaxis]), axis=1)
-        #assert cs.shape == (N, 2)
-        # Nx2x2
-        #cs_4 = np.concatenate( (
-        #    ca[:, np.newaxis],
-        #    -sa[:, np.newaxis],
-        #    sa[:, np.newaxis],
-        #    ca[:, np.newaxis]
-        #    ), axis=1)
-        assert cs_4.shape == (N, 4)
-        cs_2x2 = cs_4.reshape(N, 2, 2)  #contains the reverse rotation matrix
-        assert cs_2x2.shape == (N, 2, 2)
-        #xy = np.dot(cs_2x2, p[:, 0:2])
-        #assert xy.shape == (N, 2)
-        p2 = p.copy()
-        #p2[:, 0:2] = np.dot(cs_2x2, p[:,0:2])
-        #m = np.tensordot(cs_2x2, p[:, 0:2], axes=(2, 1))
 
-        #np.sum(a*b, axis=1)
+        p2 = p.copy()
 
         print "m.shape", m.shape
         p2[:, 0:2] = m
@@ -104,22 +87,12 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
         return v
 
     def implicitGradient(self, p):  # -> Vector3D :
-        #check_vector4_vectorized(p)
-        #tp = np.dot(self.invmatrix, vec3.make_v4(np.transpose(p)))
-        #tp = np.transpose(tp)
-        #g = self.base_object.implicitGradient(tp)
-        #check_vector4_vectorized(g)
-        # #g[:, 3] = 0  # important
-        #v4 = np.dot(np.transpose(self.invmatrix), vec3.make_v4(np.transpose(g)))
-        #v4 = np.transpose(v4)  # not efficient
-        # #v4[:, 3] = 1
-        #check_vector4_vectorized(v4)
-        #return v4
+
         return None
 
     def hessianMatrix(self, p):
         #warning: not tested
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         #tp = np.dot(self.invmatrix, vec3.make_v4(np.transpose(p)))
         #tp = np.transpose(tp)
 

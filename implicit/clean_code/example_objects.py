@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_functions import make_vector4, normalize_vector
+from basic_functions import make_vector4, normalize_vector, make_vector3
 
 import simple_blend
 
@@ -88,7 +88,7 @@ def rcube_vec(scale, rotated=True):
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
     if rotated:
-        iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
+        iobj.rotate(10 * 2, along=make_vector3(1, 1, 1), units="deg")
     return iobj
 
 def udice_vec(scale=1.):
@@ -115,6 +115,7 @@ def blend_example2(scale=1.):
 
 
 def ell_example1(scale):
+    scale = 0.0001
     # scale not tested
     m1 = np.eye(4) * 1.3 * scale
     m1[1, 1] = 0.4 * scale
@@ -140,7 +141,7 @@ def cube_example(scale=1.):
 
     iobj = vectorized.Transformed(iobj) \
         .move(-0.1 * scale, -0.1 * scale, -0.1 * scale) .resize(3 * scale) \
-        .rotate(-20, along=make_vector4(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
+        .rotate(-20, along=make_vector3(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
 
     return iobj
 
@@ -220,7 +221,7 @@ def bowl_15_holes(scale_ignored):
         iobj = vectorized.CrispSubtract(iobj, small_obj)
         # iobj = CrispUnion( iobj, small_obj )
 
-    xa = vectorized.repeat_vect4(10, make_vector4(1, 1, 1))
+    xa = vectorized.repeat_vect3(10, make_vector3(1, 1, 1))
     ga = iobj.implicitGradient(xa)
     va = iobj.implicitFunction(xa)
     # print(va)
@@ -273,13 +274,13 @@ def french_fries_vectorized(scale):
         iobj  \
             .move(-0.2 * scale, -0.2 * scale, 0) \
             .resize(2) \
-            .rotate(10, along=make_vector4(1, 1, 0), units="deg") \
+            .rotate(10, along=make_vector3(1, 1, 0), units="deg") \
             .move(0.5 * scale, 0, 0)
         return iobj
 
     u = None
     for i in range(18):
-        c = rod().rotate(-30 * i, along=make_vector4(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector3(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
@@ -299,13 +300,13 @@ def rods(scale):
         iobj  \
             .move(-0, -0.3*scale, -1.0*scale) \
             .resize(2) \
-            .rotate(40, along=make_vector4(1, 1, 0), units="deg") \
+            .rotate(40, along=make_vector3(1, 1, 0), units="deg") \
             .move(0.5*scale, 0, 0)
         return iobj
 
     u = None
     for i in range(17):
-        c = rod().rotate(-30 * i, along=make_vector4(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector3(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
