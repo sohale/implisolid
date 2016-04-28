@@ -215,6 +215,20 @@ def visualise_edge_distribution(elist):
     plt.show()
 
 
+def visualise_distance_histogram(verts1, verts2, faces_used):
+    used_verts = np.unique(faces_used.ravel())
+    #print used_verts
+    #set_trace()
+    #import math
+    global STEPSIZE
+    import matplotlib.pyplot as plt
+
+    dists = np.linalg.norm(verts1[used_verts, :] - verts2[used_verts, :], axis=1)
+    plt.hist( dists, 50)
+    plt.plot([STEPSIZE, STEPSIZE/2.], [2.5, 2.5], "r*")
+    plt.show()
+
+
 #def fix_faces_3div2(faces):
 #    from mesh_utils import make_neighbour_faces_of_vertex
 #    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
@@ -2526,7 +2540,9 @@ def demo_everything():
            mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
            minmax=(RANGE_MIN,RANGE_MAX)  )
 
+        pre_relaxation_verts = verts.copy()
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+            VERTEX_RELAXATION_ADD_NOISE = False
             if VERTEX_RELAXATION_ADD_NOISE:
                 verts = verts + (np.random.rand(verts.shape[0], verts.shape[1])*2.-1.)/2.* (STEPSIZE/8.)
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
@@ -2540,6 +2556,8 @@ def demo_everything():
             #if any_mesh_correction:
             #    print("mesh correction needed")
             #    exit()
+
+        #visualise_distance_histogram(pre_relaxation_verts, verts, facets)
 
         if mesh_correction:
             assert len(failure_pairs) == 0, "weighted resampling did not work for some faces"
@@ -2586,8 +2604,12 @@ def demo_everything():
 
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
+        pre_proj_centroids = new_centroids.copy()
         set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
         #new_centroids is the output
+
+        visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
+
 
         if mesh_correction:
             check_degenerate_faces(verts, facets, "assert")
@@ -2863,13 +2885,81 @@ def get_A_b(vertex_id, faces_array, centroids, centroid_gradients):
     return A, b
 
 
+def fix_windws_control_C():
+    if sys.platform != 'win32':
+        print "NON-WINDoWS"
+        return  # no need
+    print "YES WINDoWS"
+
+    #http://stackoverflow.com/questions/15457786/ctrl-c-crashes-python-after-importing-scipy-stats
+    import os
+    import imp
+    import ctypes
+    import thread
+    import win32api
+
+    # Load the DLL manually to ensure its handler gets
+    # set before our handler.
+    basepath = imp.find_module('numpy')[1]
+    loc = 'C:\\Anaconda3\\pkgs\\mkl-11.3.1-0\\Library\\bin'
+    #ctypes.CDLL(os.path.join(basepath, 'core', 'libmmd.dll'))
+    #ctypes.CDLL(os.path.join(basepath, 'core', 'libifcoremd.dll'))
+    ctypes.CDLL(os.path.join(loc, 'libmmd.dll'))
+    ctypes.CDLL(os.path.join(loc, 'libifcoremd.dll'))
+
+    # Now set our handler for CTRL_C_EVENT. Other control event
+    # types will chain to the next handler.
+    def handler(dwCtrlType, hook_sigint=thread.interrupt_main):
+        if dwCtrlType == 0: # CTRL_C_EVENT
+            hook_sigint()
+            print "CONTROL +C CAUGHT"
+            return 1 # don't chain to the next handler
+        return 0 # chain to the next handler
+
+    win32api.SetConsoleCtrlHandler(handler, 1)
+
+
+#@profile
+def eval1(iobj, x):
+    return iobj.implicitFunction(x)
+
+#@profile
+def eval2(iobj, x):
+    y = np.zeros(x.shape[0])
+    for i in range(x.shape[0]):
+        y[i] = iobj.implicitFunction(x[i, np.newaxis, :])
+    return y
+
+
+@profile
+def compare_vectorised_speed():
+    import sys
+    print "hi"; sys.stdout.flush()
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
+
+    x = np.random.rand(100000, 4); x[:,3] = 1
+
+    print "A"; sys.stdout.flush()
+    f = eval1(iobj, x)  # 244 x times faster!
+
+    print "B"; sys.stdout.flush()
+    g = eval2(iobj, x)
+
+    print np.sum(f-g)
+    sys.stdout.flush()
+
+#python -O -m kernprof -v -l ohtake_belyaev_3.py
 if __name__ == '__main__':
+    fix_windws_control_C()
+
 
     #test_example_meshes()
     #print "good"
     #exit()
 
     demo_everything()
+
+    #compare_vectorised_speed()
 
 
 #from stl_tests import display_simple_using_mayavi_vf1
