@@ -123,9 +123,7 @@ class CrispIntersection(ImplicitFunctionVectorized):
         self.b = b
 
     def implicitFunction(self, p):
-        p = p[:,:3]
         check_vector3_vectorized(p)
-        #check_vector4_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = self.b.implicitFunction(p)
         c = 1.0-np.greater(va, vb)
@@ -134,45 +132,37 @@ class CrispIntersection(ImplicitFunctionVectorized):
         return v
 
     def implicitGradient(self, p):
-        #check_vector3_vectorized(p)
-        check_vector4_vectorized(p)
+        check_vector3_vectorized(p)
         va = self.a.implicitFunction(p)
         vb = self.b.implicitFunction(p)
 
         c = 1 - np.greater(va, vb)
-        # c = np.tile(c[:, np.newaxis], (1,3))
-        # assert c.shape[1:] == (3,)
 
-        c = np.tile(c[:, np.newaxis], (1, 4))
-        assert c.shape[1:] == (4,)
+        c = np.tile(c[:, np.newaxis], (1, 3))
+        assert c.shape[1:] == (3,)
 
         grada = self.a.implicitGradient(p)
         gradb = self.b.implicitGradient(p)
         grad = grada * c + gradb * (1-c)
-
-        #check_vector3_vectorized(grad)
-        check_vector4_vectorized(grad)
+        check_vector3_vectorized(grad)
         return grad
 
-#     def hessianMatrix(self, p):
-#         check_vector3_vectorized(p)
-#         #check_vector4_vectorized(grad)
-#         va = self.a.implicitFunction(p)
-#         vb = self.b.implicitFunction(p)
-#
-#         c = 1 - np.greater(va, vb)
-#         c = np.tile(c[:, np.newaxis, np.newaxis], (1, 3, 3))
-#         assert c.shape[1:] == (3, 3)
-# #        c = np.tile(c[:, np.newaxis, np.newaxis], (1, 4, 4))
-# #        assert c.shape[1:] == (4, 4)
-#
-#
-#         ha = self.a.hessianMatrix(p)
-#         hb = self.b.hessianMatrix(p)
-#         h = ha * c + hb * (1-c)
-#
-#         check_matrix3_vectorized(h)
-#         return h
+    def hessianMatrix(self, p):
+        check_vector3_vectorized(p)
+
+        va = self.a.implicitFunction(p)
+        vb = self.b.implicitFunction(p)
+
+        c = 1 - np.greater(va, vb)
+        c = np.tile(c[:, np.newaxis, np.newaxis], (1, 3, 3))
+        assert c.shape[1:] == (3, 3)
+
+        ha = self.a.hessianMatrix(p)
+        hb = self.b.hessianMatrix(p)
+        h = ha * c + hb * (1-c)
+
+        check_matrix3_vectorized(h)
+        return h
 
     #todo: non-crisp np.greater, i.e. smooth transition min.
 

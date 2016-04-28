@@ -1,7 +1,7 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
 from basic_functions import check_vector4_vectorized, make_vector4, check_vector4
-#from numerical_utils import numerical_gradient
+from basic_functions import check_vector3_vectorized, make_vector3, check_vector3
 from implicit_config import config
 
 # todo: class CutCone
@@ -15,17 +15,11 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         (self.A, self.w, self.u, self.radius_u, self.radius_v, self.c_len) = \
             (A, w, u, radius_u, radius_v, c_len)
 
-        check_vector4(w)
-        check_vector4(u)
-        check_vector4(A)
-        assert w[3] == 1
-        assert u[3] == 1
-        assert A[3] == 1
-        w = w[:3]
-        u = u[:3]
-        A = A[:3]
+        check_vector3(w)
+        check_vector3(u)
+        check_vector3(A)
 
-        v = np.cross(u[:3], w[:3])
+        v = np.cross(u, w)
         assert w.shape == (3,)
         assert u.shape == (3,)
         assert v.shape == (3,)
@@ -77,10 +71,10 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         return sd["sane"]
 
     def implicitFunction(self, xa, return_grad=False):
-        check_vector4_vectorized(xa)
+        check_vector3_vectorized(xa)
         assert self.w.shape == (3, 1)
         assert self.A.shape == (3, 1)
-        x = xa[:, 0:3]
+        x = xa
         count = x.shape[0]
         assert x.shape == (count, 3)
         aa = np.tile(np.transpose(self.A), (count, 1))
@@ -119,10 +113,6 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         if not return_grad:
             return fval
         else:
-            # c_t01 = (t - self.c_len/2.0)/(self.c_len/2.0)   # [-1,+1]
-            # c_t = (1.0 + np.sign(c_t01))/2.0  # {0,1}
-            # t01_grad = self.w * (1-c_t) + (-self.w) * c_t  # toward center
-            # c_
             c_t0 = np.logical_and(t0 <= t1,  t0 <= r_)
             c_t1 = np.logical_and(t1 <= t0,  t1 <= r_)
             c_r = np. logical_and(r_ <= t0,  r_ <= t1)
@@ -146,12 +136,14 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             a=  (c_t0) * grad_t0
             b= (c_t1) * grad_t1
             c=  (c_r) * grad_r
-            g = a+b+c
+            g3 = a+b+c
 
-            g4 = np.concatenate( (g, np.ones((count, 1), dtype=float)), axis=1)
+        #    g4 = np.concatenate( (g, np.ones((count, 1), dtype=float)), axis=1)
             check_vector4_vectorized(g4)
+            check_vector3_vectorized(g3)
             #in progress
-            return fval, g4
+        #    return fval, g4
+            return fval, g3
 
     def implicitGradient(self, x):
         # return numeric_utils.generic_slow_gradient(self, x)
