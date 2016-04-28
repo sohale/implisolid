@@ -15,72 +15,53 @@ def mysign_np(v):
 
 
 
-def bisection_pointwise1(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
-    """ x1_arr must be outside and x2_arr must be inside the object. Then this function finds points x=x1_arr+(lambda)*(x2_arr-x1_arr) where f(x)=0 using the bisection method."""
-    check_vector4_vectorized(x1_arr)
-    check_vector4_vectorized(x2_arr)
-    assert x1_arr.shape[0] == x2_arr.shape[0]
-    v1_arr = iobj.implicitFunction(x1_arr)
-    #x2_arr = x1_arr + ray_n * 1.0
-    x2_arr[:, 3] = 1
-    v2_arr = iobj.implicitFunction(x2_arr)
-
-    result_x_arr = np.zeros(x1_arr.shape)
-
+def bisection_pointwise1(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
+    """ x1_arr_ must be outside and x2_arr_ must be inside the object. Then this function finds points x=x1_arr+(lambda)*(x2_arr_-x1_arr_) where f(x)=0 using the bisection method."""
+    check_vector4_vectorized(x1_arr_)
+    check_vector4_vectorized(x2_arr_)
+    assert x1_arr_.shape[0] == x2_arr_.shape[0]
+    result_x_arr = np.zeros(x1_arr_.shape)
     EPS = 0.000001  # sign
 
-    n = x1_arr.shape[0]
+    n = x1_arr_.shape[0]
     for i in range(n):
+
+        x1v = x1_arr_[i, :].copy()
+        x2v = x2_arr_[i, :].copy()
+
+        v1_arr = iobj.implicitFunction(x1v[np.newaxis, :])[0]
+        v2_arr = iobj.implicitFunction(x2v[np.newaxis, :])[0]
+
         active_indices = np.arange(0, n)  # mid
         iteration = 1
         while True:
-            assert mysign_np(v2_arr[i]) * mysign_np(v1_arr[i] < 0 - EPS)  # greater or equal
-            assert v1_arr[i] < 0-ROOT_TOLERANCE
-            x_mid_arr = ( x1_arr[i,:] + x2_arr[i,:] ) / 2.0
-            x_mid_arr[3] = 1
-            v_mid_val = iobj.implicitFunction(x_mid_arr)[0]
-            print v_mid_val
-            exit()
-            assert v_mid_val.shape[0] == 4
-            assert v_mid_val.ndim == 1
-            boolean_boundary = np.abs(v_mid_val) <= ROOT_TOLERANCE  #eq
+            assert mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS  # greater or equal
+            assert v1_arr < 0-ROOT_TOLERANCE
+            x_midpoint = (x1v[:] + x2v[:]) / 2.0
+            x_midpoint[3] = 1
+            v_mid_val = iobj.implicitFunction(x_midpoint[np.newaxis, :])[0]
+
+            on_boundary_boolean = np.abs(v_mid_val) <= ROOT_TOLERANCE  #eq
             boolean_outside = v_mid_val < -ROOT_TOLERANCE  # gt
             boolean_inside  = v_mid_val > +ROOT_TOLERANCE  # -v_mid_val <  ROOT_TOLERANCE
-            boolean_eitherside = np.logical_not(boolean_boundary)
-            assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
 
-            which_zeroed = active_indices[ boolean_boundary ] # new start = mid
+            assert boolean_outside or boolean_inside == (not(on_boundary_boolean))
+            if on_boundary_boolean:
+                result_x_arr[i, :] = x_midpoint[:]
+                break
+            assert boolean_outside or boolean_inside
+            if boolean_inside:
+                v2_arr = v_mid_val
+                x2v[:] = x_midpoint[:]
+            if boolean_outside:
+                v1_arr = v_mid_val
+                x1v = x_midpoint
 
-            #already_root[which_zeroed] = 1  # iteration
-            result_x_arr[which_zeroed,:] = x_mid_arr[boolean_boundary,:]
-
-
-            #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
-            #the total is np.arange(n)
-            v2_arr[boolean_inside] = v_mid_val[boolean_inside]
-            x2_arr[boolean_inside,:] = x_mid_arr[boolean_inside,:]
-
-            #x1_arr and x2_arr both shrink here
-            v1_arr[boolean_outside] = v_mid_val[boolean_outside]
-            x1_arr[boolean_outside,:] = x_mid_arr[boolean_outside,:]
-
-            v1_arr = v1_arr[boolean_eitherside]
-            v2_arr = v2_arr[boolean_eitherside]
-            x1_arr = x1_arr[boolean_eitherside,:]
-            x2_arr = x2_arr[boolean_eitherside,:]
-            active_indices = active_indices[boolean_eitherside]
             iteration += 1
 
-            assert x1_arr.shape == x2_arr.shape
-            assert v1_arr.shape == v2_arr.shape
-            assert active_indices.shape == v1_arr.shape
+            assert x1v.shape == x2v.shape
 
-            if len(active_indices) == 0:
-                break
-
-    assert len(active_indices) == 0
-    v_arr = iobj.implicitFunction(result_x_arr)
-    assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
+    assert np.all(np.abs(iobj.implicitFunction(result_x_arr)) < ROOT_TOLERANCE)
     return result_x_arr
 
 
@@ -141,6 +122,7 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #the total is np.arange(n)
         v2_arr[boolean_inside] = v_mid_arr[boolean_inside]
         x2_arr[boolean_inside,:] = x_mid_arr[boolean_inside,:]
+        #note: x2_arr is modified
 
         #x1_arr and x2_arr both shrink here
         v1_arr[boolean_outside] = v_mid_arr[boolean_outside]
@@ -236,6 +218,9 @@ def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_target, ROOT_TOLERAN
         v2_arr[boolean_lt] = v_mid_arr[boolean_lt]#[which_flippedAny]
         x2_arr[boolean_lt,:] = x_mid_arr[boolean_lt,:]#[which_flippedAny]   # which_flippedAt2
 
+        #note: x2_arr is modified inplace (side-effect)
+
+
         #x1_arr and x2_arr both shrink here
 
         v1_arr[boolean_gt] = v_mid_arr[boolean_gt]#[which_flippedAny]
@@ -310,8 +295,9 @@ ifunc, (RANGE_MIN, RANGE_MAX, STEPSIZE) = getifunc()
 
 global xi
 global xo
-
-n = 1000000*3
+global maxn_pointwise
+maxn_pointwise = 1000000*3 #/1000
+n = 1000000*3 # / 1000
 x = (np.random.rand(n, 4)*2-1)*(RANGE_MAX-RANGE_MIN)+RANGE_MIN
 x[:, 3] = 1
 
@@ -332,20 +318,39 @@ del xi, xo
 
 def testout(ifunc, q):
     f = ifunc.implicitFunction(q)
-    print np.max(np.fabs(f)), ROOT_TOLERANCE
+    #print np.max(np.fabs(f)), ROOT_TOLERANCE
     return True
 
 def test1():
-    q = bisection_vectorized2(ifunc, xo, xi)
-    assert testout(ifunc, q)
+    global q1
+    q1 = bisection_vectorized2(ifunc, xo, xi)
+    assert testout(ifunc, q1)
 
 def test2():
-    q = bisection_vectorized1(ifunc, xo, xi)
-    assert testout(ifunc, q)
+    global q2
+    q2 = bisection_vectorized1(ifunc, xo, xi)
+    assert testout(ifunc, q2)
 
 def test3():
-    q = bisection_pointwise1(ifunc, xo, xi)
-    assert testout(ifunc, q)
+    global maxn_pointwise
+    if xo.shape[0]>maxn_pointwise:
+        return
+
+    global q3
+    q3 = bisection_pointwise1(ifunc, xo, xi)
+    assert testout(ifunc, q3)
+    TEST_RESULTS = True
+    if TEST_RESULTS:
+        global q1
+        global q2
+        e1 = np.sum(np.fabs(q2-q3))
+        e2 = np.sum(np.fabs(q1-q2))
+        TOL = 0.00000001
+        if not (e2 <TOL and e2 < TOL):
+            print "error:",
+            print e1,e2
+        assert e1 < TOL
+        assert e2 < TOL
 
 
 def optimised_used():
@@ -366,10 +371,12 @@ def experiment1():
     #test1()
     #test2()
     na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, 100000, 200000, 300000] #, 1000000]
+    global n_min
+    na = filter(lambda e: e <= n_min, na)
 
-    test_scripts = ['test1()', 'test2()']
-    sty = {0: "r*-", 1: "bs-"}
-    lbl = {0: 'point-wise', 1: 'numpy vectorised'}
+    test_scripts = ['test1()', 'test2()', 'test3()']
+    sty = {0: "r*-", 1: "bs-", 2: ".k-"}
+    lbl = {0: 'numpy vec. (new)', 1: 'numpy vec. (old)', 2:'point-wise'}
 
     tl = []
     for ei in range(len(na)):
@@ -391,13 +398,14 @@ def experiment1():
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
             t1 = timeit.timeit(test_scripts[test_i], "from __main__ import test"+str(test_i+1), number=repeats)
             tt += (t1/repeats,)
-            print tt
+            #print tt
         #tl.append((t1/repeats, t2/repeats))
         tl.append(tt)
-        print "."
+        print ".",
     ta = np.array(tl)
-    print ta.shape
+    #print ta.shape
     print ta * 1000  # in msec
+    print "ratio =", ta[:, 2]/ta[:, 0]
     print "ratio =", ta[:, 1]/ta[:, 0]
 
     naa = np.array(na)
