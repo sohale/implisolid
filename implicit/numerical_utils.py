@@ -65,7 +65,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     #print("v3=",v3)
     #print("diff=",np.diff(v3, axis=1) )
     #print(b_h_beta)
-   
+
     d0 = np.abs( np.diff(v3, axis=1) )
     #lipschitz_condition = d <= b_h_beta
     nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
@@ -338,7 +338,7 @@ def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_n, ROOT_TOLERANCE=RO
 #     #void Diagonalize(const Real (&A)[3][3], Real (&Q)[3][3], Real (&D)[3][3])
 # {
 #     // A must be a symmetric matrix.
-#     // returns Q and D such that 
+#     // returns Q and D such that
 #     // Diagonal matrix D = QT * A * Q;  and  A = Q*D*QT
 #     const int maxsteps=24;  // certainly wont need that many.
 #     int k0, k1, k2;
@@ -383,14 +383,14 @@ def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_n, ROOT_TOLERANCE=RO
 #         AQ[2][1] = Q[0][1]*A[0][2]+Q[1][1]*A[1][2]+Q[2][1]*A[2][2];
 #         AQ[2][2] = Q[0][2]*A[0][2]+Q[1][2]*A[1][2]+Q[2][2]*A[2][2];
 #         // D = Qt * AQ
-#         D[0][0] = AQ[0][0]*Q[0][0]+AQ[1][0]*Q[1][0]+AQ[2][0]*Q[2][0]; 
-#         D[0][1] = AQ[0][0]*Q[0][1]+AQ[1][0]*Q[1][1]+AQ[2][0]*Q[2][1]; 
-#         D[0][2] = AQ[0][0]*Q[0][2]+AQ[1][0]*Q[1][2]+AQ[2][0]*Q[2][2]; 
-#         D[1][0] = AQ[0][1]*Q[0][0]+AQ[1][1]*Q[1][0]+AQ[2][1]*Q[2][0]; 
-#         D[1][1] = AQ[0][1]*Q[0][1]+AQ[1][1]*Q[1][1]+AQ[2][1]*Q[2][1]; 
-#         D[1][2] = AQ[0][1]*Q[0][2]+AQ[1][1]*Q[1][2]+AQ[2][1]*Q[2][2]; 
-#         D[2][0] = AQ[0][2]*Q[0][0]+AQ[1][2]*Q[1][0]+AQ[2][2]*Q[2][0]; 
-#         D[2][1] = AQ[0][2]*Q[0][1]+AQ[1][2]*Q[1][1]+AQ[2][2]*Q[2][1]; 
+#         D[0][0] = AQ[0][0]*Q[0][0]+AQ[1][0]*Q[1][0]+AQ[2][0]*Q[2][0];
+#         D[0][1] = AQ[0][0]*Q[0][1]+AQ[1][0]*Q[1][1]+AQ[2][0]*Q[2][1];
+#         D[0][2] = AQ[0][0]*Q[0][2]+AQ[1][0]*Q[1][2]+AQ[2][0]*Q[2][2];
+#         D[1][0] = AQ[0][1]*Q[0][0]+AQ[1][1]*Q[1][0]+AQ[2][1]*Q[2][0];
+#         D[1][1] = AQ[0][1]*Q[0][1]+AQ[1][1]*Q[1][1]+AQ[2][1]*Q[2][1];
+#         D[1][2] = AQ[0][1]*Q[0][2]+AQ[1][1]*Q[1][2]+AQ[2][1]*Q[2][2];
+#         D[2][0] = AQ[0][2]*Q[0][0]+AQ[1][2]*Q[1][0]+AQ[2][2]*Q[2][0];
+#         D[2][1] = AQ[0][2]*Q[0][1]+AQ[1][2]*Q[1][1]+AQ[2][2]*Q[2][1];
 #         D[2][2] = AQ[0][2]*Q[0][2]+AQ[1][2]*Q[1][2]+AQ[2][2]*Q[2][2];
 #         o[0]    = D[1][2];
 #         o[1]    = D[0][2];
@@ -410,13 +410,13 @@ def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_n, ROOT_TOLERANCE=RO
 #         sgn     = (thet > 0.0)?1.0:-1.0;
 #         thet   *= sgn; // make it positive
 #         t       = sgn /(thet +((thet < 1.E6)?sqrt(thet*thet+1.0):thet)) ; // sign(T)/(|T|+sqrt(T^2+1))
-#         c       = 1.0/sqrt(t*t+1.0); //  c= 1/(t^2+1) , t=s/c 
+#         c       = 1.0/sqrt(t*t+1.0); //  c= 1/(t^2+1) , t=s/c
 #         if(c==1.0)
 #         {
 #             break;  // no room for improvement - reached machine precision.
 #         }
 #         jr[0 ]  = jr[1] = jr[2] = jr[3] = 0.0;
-#         jr[k0]  = sgn*sqrt((1.0-c)/2.0);  // using 1/2 angle identity sin(a/2) = sqrt((1-cos(a))/2)  
+#         jr[k0]  = sgn*sqrt((1.0-c)/2.0);  // using 1/2 angle identity sin(a/2) = sqrt((1-cos(a))/2)
 #         jr[k0] *= -1.0; // since our quat-to-matrix convention was for v*M instead of M*v
 #         jr[3 ]  = sqrt(1.0f - jr[k0] * jr[k0]);
 #         if(jr[3]==1.0)
@@ -509,7 +509,7 @@ def cubic_root_x1():
 
     def c_real_roots1(a, b, c, d):
         import math
-        """ Return x1 only. 
+        """ Return x1 only.
         todo: three roots. (all real roots)
         https://en.wikipedia.org/wiki/Cubic_function#Root-finding_formula
         """

@@ -1,4 +1,5 @@
 import numpy as np
+from basic_types import check_vector4_vectorized
 
 VERBOSE = False
 
