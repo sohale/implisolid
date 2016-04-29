@@ -195,6 +195,9 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     solved_count = 0
     #invariants...
 
+    x_mid_arr = np.ones((active_count, 4))
+    v_mid_arr = np.zeros((active_count,))
+
     iteration = 1
     while True:
         #if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
@@ -210,18 +213,19 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         assert active_indices.shape[0] == x1_arr.shape[0]
         assert active_indices.shape[0] == x2_arr.shape[0]
 
-        x_mid_arr = np.ones((active_count, 4))
-        v_mid_arr = np.zeros((active_count,))
-
         x_mid_arr[:active_count] = ( x1_arr + x2_arr ) / 2.0
         #assert x_mid_arr.shape[0] == active_count
-        x_mid_arr[:active_count, 3] = 1
+        #x_mid_arr[:active_count, 3] = 1
+
+        #assert np.all(x_mid_arr[:active_count, 3] == 1)
         v_mid_arr[:active_count] = iobj.implicitFunction(x_mid_arr[:active_count, :])
-        assert v_mid_arr.shape[0] == active_count
-        assert v_mid_arr.shape == active_indices.shape
+        #assert v_mid_arr.shape[0] == active_count
+        #assert v_mid_arr.shape == active_indices.shape
+        #print active_indices.shape, active_count
+        assert active_indices.shape == (active_count,)
         assert active_indices.ndim == 1
 
-        assert v_mid_arr.shape == active_indices.shape
+        ####assert v_mid_arr.shape == active_indices.shape
         boolean_boundary = np.abs(v_mid_arr[:active_count]) <= ROOT_TOLERANCE  #eq
         boolean_outside = v_mid_arr[:active_count] < -ROOT_TOLERANCE  # gt
         boolean_inside  = v_mid_arr[:active_count] > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
@@ -519,7 +523,7 @@ import matplotlib.pyplot as plt
 def experiment1():
     #test3()
     #test2()
-    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, ] # 100000, 200000, 300000] #, 1000000]
+    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000] #, 10000, ] # 100000, 200000, 300000] #, 1000000]
     #na = [1000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
