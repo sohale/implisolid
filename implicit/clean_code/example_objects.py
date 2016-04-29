@@ -601,7 +601,7 @@ def get_all_examples(types_list):
 
             if examples[e] in [2]:
                 iobj = make_example_vectorized(e)
-                x = vectorized.repeat_vect4(1, make_vector4(0.5, 0.5, 0.5))
+                x = vectorized.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
                 g = iobj.implicitGradient(x)
                 v = iobj.implicitFunction(x)
 

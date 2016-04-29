@@ -117,7 +117,7 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         fval = np.min(m3, axis=1)
 
         if not return_grad:
-            return fval 
+            return fval
         else:
             # c_t01 = (t - self.c_len/2.0)/(self.c_len/2.0)   # [-1,+1]
             # c_t = (1.0 + np.sign(c_t01))/2.0  # {0,1}
@@ -143,8 +143,8 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             #print t0.shape, "t0"
             #print t1.shape, "t1"
             #return (c_t0) * grad_t0 + (c_t1) * grad_t1 + (c_r) * grad_r
-            a=  (c_t0) * grad_t0 
-            b= (c_t1) * grad_t1 
+            a=  (c_t0) * grad_t0
+            b= (c_t1) * grad_t1
             c=  (c_r) * grad_r
             g = a+b+c
 

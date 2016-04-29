@@ -219,8 +219,17 @@ def udice_vec(scale=1.):
    return rdice_(vectorized, scale, rotated=False)
 
 
-def rcube_vec(scale):
-    return rcube_(vectorized, scale)
+def rcube_vec(scale, rotated=True):
+    d = vectorized.UnitCube1(size=2.0 * scale)
+
+    iobj = vectorized.Transformed(d)
+    iobj  \
+        .move(-0.2 * scale, -0.2 * scale, 0) \
+        .resize(0.9)
+    if rotated:
+        iobj.rotate(10 * 2, along=make_vector4(1, 1, 1), units="deg")
+    return iobj
+
 
 
 def blend_example2(scale=1.):

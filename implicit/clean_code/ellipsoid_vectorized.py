@@ -94,15 +94,18 @@ class Transformed(ImplicitFunctionVectorized, Transformable):
         p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(p))
         tp = np.transpose(tp)
+        tp = tp[:,:3]
         g = self.base_object.implicitGradient(tp)
-        check_vector4_vectorized(g)
-        g[:, 3] = 0  # important
+        check_vector3_vectorized(g)
+        #g[:, 3] = 0  # important
+
+        g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
 
         v4 = np.dot(np.transpose(self.invmatrix), np.transpose(g))
         v4 = np.transpose(v4)  # not efficient
         v3 = v4[:,:3]
         check_vector3_vectorized(v3)
-        return v4
+        return v3
 
     def hessianMatrix(self, p):
         check_vector3_vectorized(p)

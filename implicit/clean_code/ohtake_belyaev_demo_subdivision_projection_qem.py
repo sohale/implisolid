@@ -136,13 +136,12 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # m
         for j in range(MAX_ITER):
 
             if not along_1d:
-                direction = iobj.implicitGradient(start_x)  ## what?! why start_x ??
+                direction = iobj.implicitGradient(start_x)
                 dn = np.linalg.norm(direction)
                 if dn>0.0:  # 00000001:
                     direction = direction/dn
                 else:
                     pass  # Finding is not going to happen. But it's fine.
-
             p2 = p2 + lambda_ * direction
             #p2[:, 3] = 1
             f2 = iobj.implicitFunction(p2)
@@ -352,7 +351,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 #    here we consider that the max_dist is the average_edge and lambda = average_edge/2
 #    new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
     lambda_val = average_edge/2
-    check_vector4_vectorized(centroids)
+    check_vector3_vectorized(centroids)
     #definition of the matrix that are gonna be used in the rest of the programm
     p1 = np.ndarray(centroids.shape)
     p2 = np.ndarray(centroids.shape)
@@ -704,7 +703,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"#"ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
+    object_name = "rcube_vec"#"ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -742,11 +741,11 @@ def demo_combination_plus_qem():
 
     old_verts, old_facets = verts, facets
 
-    display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-       pointcloud_list=[],
-       mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
-    exit()
+    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+    #    pointcloud_list=[],
+    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    # exit()
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
