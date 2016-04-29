@@ -106,14 +106,14 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     active_indices = np.arange(0, n)  # mid
     iteration = 1
     while True:
-        if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
-            #print np.max(mysign_np(v2_arr) * mysign_np(v1_arr))
-            #i = mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS
-            #print np.concatenate((v2_arr[i, np.newaxis], v1_arr[i, np.newaxis]), axis=1)
-            # #print np.max(v2_arr), np.min(v1_arr)
-            #print np.min(v2_arr), np.max(v1_arr)
-            #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
-            pass
+        #if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
+        #    #print np.max(mysign_np(v2_arr) * mysign_np(v1_arr))
+        #    #i = mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS
+        #    #print np.concatenate((v2_arr[i, np.newaxis], v1_arr[i, np.newaxis]), axis=1)
+        #    # #print np.max(v2_arr), np.min(v1_arr)
+        #    #print np.min(v2_arr), np.max(v1_arr)
+        #    #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
+        #    pass
         assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
         assert np.all(v1_arr < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr.shape[0]
