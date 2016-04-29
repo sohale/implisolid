@@ -16,7 +16,7 @@ except AttributeError:
     __builtin__.profile = profile
 
 
-KP = False
+USE_KERNPROF = False
 
 ROOT_TOLERANCE = 0.000001
 
@@ -197,14 +197,14 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
     iteration = 1
     while True:
-        if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
-            #print np.max(mysign_np(v2_arr) * mysign_np(v1_arr))
-            #i = mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS
-            #print np.concatenate((v2_arr[i, np.newaxis], v1_arr[i, np.newaxis]), axis=1)
-            # #print np.max(v2_arr), np.min(v1_arr)
-            #print np.min(v2_arr), np.max(v1_arr)
-            #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
-            pass
+        #if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
+        #    #print np.max(mysign_np(v2_arr) * mysign_np(v1_arr))
+        #    #i = mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS
+        #    #print np.concatenate((v2_arr[i, np.newaxis], v1_arr[i, np.newaxis]), axis=1)
+        #    # #print np.max(v2_arr), np.min(v1_arr)
+        #    #print np.min(v2_arr), np.max(v1_arr)
+        #    #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
+        #    pass
         assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
         assert np.all(v1_arr < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr.shape[0]
@@ -521,7 +521,7 @@ def experiment1():
     na = filter(lambda e: e <= n_min, na)
 
     test_scripts = ['test1()', 'test2()', 'test3()', 'test4()']
-    sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m*:"}
+    sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m^-"}
     lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-no-alloc'}
 
     tl = []
@@ -543,7 +543,7 @@ def experiment1():
             #t1 = timeit.timeit(test_scripts[0], "from __main__ import test3", number=repeats)
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
 
-            if KP:
+            if USE_KERNPROF:
                 qq1 = test3()
                 qq2 = test4() #python -O -m kernprof -v -l   vectorised_bisection.py
                 exit()
