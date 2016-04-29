@@ -147,6 +147,8 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         v1_arr[boolean_outside] = v_mid_arr[boolean_outside]
         x1_arr[boolean_outside,:] = x_mid_arr[boolean_outside,:]
 
+        # ------ next round: --------
+
         #it does re-allocate
         v1_arr = v1_arr[boolean_eitherside]
         v2_arr = v2_arr[boolean_eitherside]
@@ -211,9 +213,9 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
         assert np.all(v1_arr < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr.shape[0]
-        assert active_indices.shape[0] == x2_arr.shape[0]
+        assert active_indices.shape[0] == x2_arr[:active_count].shape[0]
 
-        x_mid_arr[:active_count] = ( x1_arr + x2_arr ) / 2.0
+        x_mid_arr[:active_count] = ( x1_arr + x2_arr[:active_count] ) / 2.0
         #assert x_mid_arr.shape[0] == active_count
         #x_mid_arr[:active_count, 3] = 1
 
@@ -247,35 +249,40 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
         #the total is np.arange(n)
         v2_arr[boolean_inside] = v_mid_arr[:active_count][boolean_inside]
-        x2_arr[boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
+        x2_arr[:active_count][boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
         #note: x2_arr is modified
 
         #x1_arr and x2_arr both shrink here
         v1_arr[boolean_outside] = v_mid_arr[:active_count][boolean_outside]
         x1_arr[boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
 
-        v1_arr = v1_arr[boolean_eitherside]
-        v2_arr = v2_arr[boolean_eitherside]
-        x1_arr = x1_arr[boolean_eitherside,:]
-        x2_arr = x2_arr[boolean_eitherside,:]
+        # ------ next round: --------
 
         assert active_count == active_indices.size
         active_indices = active_indices[boolean_eitherside]
         #print active_count, active_indices.shape
         assert active_count - found_count == active_indices.size
+        old_active_count = active_count
         active_count = active_count - found_count
         assert active_count == np.sum(boolean_eitherside)
         iteration += 1
 
+        v1_arr = v1_arr[boolean_eitherside]
+        v2_arr = v2_arr[boolean_eitherside]
+        x1_arr = x1_arr[boolean_eitherside,:]
+        x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside,:]
+
         assert active_count == v1_arr.shape[0]
         assert active_count == x1_arr.shape[0]
         assert active_count == v2_arr.shape[0]
-        assert active_count == x2_arr.shape[0]
+        #assert active_count == x2_arr.shape[0]
 
-        assert x1_arr.shape == x2_arr.shape
+        assert x1_arr.shape == x2_arr[:active_count].shape
         assert v1_arr.shape == v2_arr.shape
         assert active_indices.shape == v1_arr.shape
         assert active_indices.shape[0] == active_count
+
+        del old_active_count
 
         if len(active_indices) == 0:
             break
@@ -523,7 +530,7 @@ import matplotlib.pyplot as plt
 def experiment1():
     #test3()
     #test2()
-    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000] #, 10000, ] # 100000, 200000, 300000] #, 1000000]
+    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, ] # 100000, 200000, 300000] #, 1000000]
     #na = [1000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
@@ -566,8 +573,10 @@ def experiment1():
     ta = np.array(tl)
     #print ta.shape
     print ta * 1000  # in msec
-    print "ratio =", ta[:, 2]/ta[:, 0]
-    print "ratio =", ta[:, 1]/ta[:, 0]
+    print "speedup ratios:"
+    for test_i in range(1, len(test_scripts)):
+        print lbl[test_i], "ratio = ", ta[:, 0]/ta[:, test_i]
+        # print "ratio =", ta[:, 0]/ta[:, test_i]
 
     naa = np.array(na)
 
