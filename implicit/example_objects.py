@@ -270,7 +270,7 @@ def ell_example1(scale):
     return (iobj, iobj_)
 
 
-def sphere_example():
+def sphere_example(scale_ignored):
     iobj = vectorized.UnitSphere()
     iobj_ = nonvec.UnitSphere()
     return (iobj, iobj_)
@@ -917,5 +917,5 @@ def cube_with_cylinders(SCALE):
     union = vectorized.CrispSubtract(cube, cyl_2)
     final_object = vectorized.CrispUnion(union,cyl)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    return final_object, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    return final_object

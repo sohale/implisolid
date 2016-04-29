@@ -1479,7 +1479,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
-#@profile
+@profile
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
@@ -1491,27 +1491,27 @@ def demo_combination_plus_qem():
         #"rcube_vec")  #
         #"rdice_vec")  #
         #"cube_example");
-        "ell_example1")  #
+        "sphere_example")  #
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     import vectorized, example_objects
-    c2 = vectorized.UnitCube1(1.)
-    def rotate_scale_(iobj, scale, center, angle=0.):
-        ns = vectorized
-        import numpy
-        m = numpy.eye(4)
-        m[0,0] = 0.1
-        iobj = ns.Transformed(iobj, m=m)
-        iobj  \
-            .resize(scale) \
-            .move(center[0], center[1], center[2])
-        if angle != 0.:
-            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-        return iobj
-
-    c2 = rotate_scale_(c2, 2., [1,1,1])
-    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    # c2 = vectorized.UnitCube1(1.)
+    # def rotate_scale_(iobj, scale, center, angle=0.):
+    #     ns = vectorized
+    #     import numpy
+    #     m = numpy.eye(4)
+    #     m[0,0] = 0.1
+    #     iobj = ns.Transformed(iobj, m=m)
+    #     iobj  \
+    #         .resize(scale) \
+    #         .move(center[0], center[1], center[2])
+    #     if angle != 0.:
+    #         iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+    #     return iobj
+    #
+    # c2 = rotate_scale_(c2, 2., [1,1,1])
+    # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
 
 
     from stl_tests import make_mc_values_grid
@@ -1519,7 +1519,14 @@ def demo_combination_plus_qem():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
+    exit()
     old_verts, old_facets = verts, facets
+
+    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+    #    pointcloud_list=[],
+    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    # exit()
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)

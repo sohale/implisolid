@@ -108,7 +108,7 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
     return verts, faces
 
-
+@profile
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils

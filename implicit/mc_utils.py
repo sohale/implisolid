@@ -63,7 +63,7 @@ def slow_grid__dont_use():
                 #vgrid[i,j,k] = i>1 and j>1 and k>1  and i<len(rng)-1 and j<len(rng)-1 and k<len(rng)-1  #iobj.implicitFunction( x )
                 vgrid[i,j,k] = iobj.implicitFunction( x_ )
 
-
+@profile
 def make_grid(iobj, rng, old=None):
     assert old is not None
     if old:
