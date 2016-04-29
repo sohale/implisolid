@@ -182,7 +182,7 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     x2_arr[:, 3] = 1
     v2_arr = iobj.implicitFunction(x2_arr)
 
-    result_x_arr = np.zeros(x1_arr.shape)
+    result_x_arr = np.ones(x1_arr.shape)
 
     EPS = 0.000001  # sign
 
@@ -209,18 +209,22 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         assert np.all(v1_arr < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr.shape[0]
         assert active_indices.shape[0] == x2_arr.shape[0]
-        x_mid_arr = ( x1_arr + x2_arr ) / 2.0
-        assert x_mid_arr.shape[0] == active_count
-        x_mid_arr[:,3] = 1
-        v_mid_arr = iobj.implicitFunction(x_mid_arr)
+
+        x_mid_arr = np.ones((active_count, 4))
+        v_mid_arr = np.zeros((active_count,))
+
+        x_mid_arr[:active_count] = ( x1_arr + x2_arr ) / 2.0
+        #assert x_mid_arr.shape[0] == active_count
+        x_mid_arr[:active_count, 3] = 1
+        v_mid_arr[:active_count] = iobj.implicitFunction(x_mid_arr[:active_count, :])
         assert v_mid_arr.shape[0] == active_count
         assert v_mid_arr.shape == active_indices.shape
         assert active_indices.ndim == 1
 
         assert v_mid_arr.shape == active_indices.shape
-        boolean_boundary = np.abs(v_mid_arr) <= ROOT_TOLERANCE  #eq
-        boolean_outside = v_mid_arr < -ROOT_TOLERANCE  # gt
-        boolean_inside  = v_mid_arr > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
+        boolean_boundary = np.abs(v_mid_arr[:active_count]) <= ROOT_TOLERANCE  #eq
+        boolean_outside = v_mid_arr[:active_count] < -ROOT_TOLERANCE  # gt
+        boolean_inside  = v_mid_arr[:active_count] > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
         boolean_eitherside = np.logical_not(boolean_boundary)
         assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
         assert boolean_boundary.shape[0] == active_count
@@ -232,19 +236,19 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #assert which_zeroed.shape[0] == active_count
 
         #already_root[which_zeroed] = 1  # iteration
-        result_x_arr[which_zeroed, :] = x_mid_arr[boolean_boundary[:], :]
+        result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][boolean_boundary[:], :3]
         #todo: x_mid_arr[boolean_boundary[:active_count], :]
 
 
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
         #the total is np.arange(n)
-        v2_arr[boolean_inside] = v_mid_arr[boolean_inside]
-        x2_arr[boolean_inside, :] = x_mid_arr[boolean_inside,:]
+        v2_arr[boolean_inside] = v_mid_arr[:active_count][boolean_inside]
+        x2_arr[boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
         #note: x2_arr is modified
 
         #x1_arr and x2_arr both shrink here
-        v1_arr[boolean_outside] = v_mid_arr[boolean_outside]
-        x1_arr[boolean_outside,:] = x_mid_arr[boolean_outside,:]
+        v1_arr[boolean_outside] = v_mid_arr[:active_count][boolean_outside]
+        x1_arr[boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
 
         v1_arr = v1_arr[boolean_eitherside]
         v2_arr = v2_arr[boolean_eitherside]
@@ -587,7 +591,10 @@ def experiment1():
     plt.show()
 
     #g1 = plt.plot(naa, ta[:, 1], "r*-", label='point-wise')
-    g2 = plt.plot(naa, ta[:, 0], "bs-", label='numpy vectorised')
+
+    #g2 = plt.plot(naa, ta[:, 0], "bs-", label='numpy vectorised')
+    for ti in range(1, len(test_scripts)):
+        g2 = plt.plot(naa, ta[:, ti], sty[ti], label=lbl[ti])
     plt.plot(naa, naa * asymp_ratio1, "b:", label='asympt')
     g0 = plt.plot(naa, naa * asymp_ratio2 + asymp_bias, "b:", label='asympt')
     plt.legend(loc='upper left', numpoints = 1)
