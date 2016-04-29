@@ -15,7 +15,7 @@ def check_vector3(p):
 
 class Tile1D(ImplicitFunctionVectorized):   # Movable, uniform_scalable, rotatable
 
-    def __init__(self, base_object, start, direction, tilecount):
+    def __init__(self, base_object, start, direction, tilecount, back_count=0):
         """
         """
 
@@ -23,8 +23,8 @@ class Tile1D(ImplicitFunctionVectorized):   # Movable, uniform_scalable, rotatab
         self.base_object = base_object
         assert isinstance(self.base_object, ImplicitFunctionVectorized)
 
-        (self.start, self.tilecount) = \
-            (start, tilecount)
+        (self.start, self.tilecount, self.back_count) = \
+            (start, tilecount, back_count)
 
         check_vector3(start)
         check_vector3(direction)
@@ -39,6 +39,9 @@ class Tile1D(ImplicitFunctionVectorized):   # Movable, uniform_scalable, rotatab
 
         assert float(int(self.tilecount)+1) == self.tilecount+1
         assert self.tilecount > 0
+        assert float(int(self.back_count)+1) == self.back_count+1
+        assert self.back_count >= 0
+
         assert np.isscalar(self.dir_len)
         assert self.dir_len > 0
         assert self.integrity_invariant()
@@ -66,6 +69,8 @@ class Tile1D(ImplicitFunctionVectorized):   # Movable, uniform_scalable, rotatab
         check(self.dir_len > 0, "dir_len +")
         check(np.floor(self.tilecount) == self.tilecount, "int")
         check( self.tilecount > 0, "point   count must be a natural number (positive integer)" )
+        check(np.floor(self.back_count) == self.back_count, "int")
+        check( self.back_count >= 0, "point   count must be a natural number (positive integer)" )
         check( np.isscalar(self.dir_len), "scalar" )
         check( self.dir_len > config.numerical_min_length, "vector too small")
 
@@ -82,8 +87,8 @@ class Tile1D(ImplicitFunctionVectorized):   # Movable, uniform_scalable, rotatab
         assert la.shape == (pointcount,)
         la = np.floor(la/self.dir_len)
         print la.shape
-        la[la > self.tilecount-1 + 0.1] = 0
-        la[la < 0 - 0.1] = 0
+        la[la > self.tilecount-1-self.back_count + 0.1] = 0
+        la[la < -self.back_count - 0.1] = 0
         la = la*self.dir_len
 
         print self.dir_normalised.shape
