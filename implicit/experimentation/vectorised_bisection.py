@@ -7,6 +7,17 @@ from basic_types import check_vector4_vectorized
 import math
 
 
+import __builtin__
+try:
+    __builtin__.profile
+except AttributeError:
+    def profile(func):
+        return func
+    __builtin__.profile = profile
+
+
+KP = False
+
 ROOT_TOLERANCE = 0.000001
 
 
@@ -14,9 +25,16 @@ def mysign_np(v):
     return np.sign(v) * (np.abs(v) > ROOT_TOLERANCE)
 
 
+# Versions:
+# 1 non-vectorised
+# 2 old vectorised
+# 3 new vectorised (x1, x2), polished
+# 4 avoiding gc.
 
 def bisection_pointwise1(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
-    """ x1_arr_ must be outside and x2_arr_ must be inside the object. Then this function finds points x=x1_arr+(lambda)*(x2_arr_-x1_arr_) where f(x)=0 using the bisection method."""
+    # A point-wise version (version 1)
+    """ x1_arr_ must be outside and x2_arr_ must be inside the object.
+    Then this function finds points x=x1_arr+(lambda)*(x2_arr_-x1_arr_) where f(x)=0 using the bisection method."""
     check_vector4_vectorized(x1_arr_)
     check_vector4_vectorized(x2_arr_)
     assert x1_arr_.shape[0] == x2_arr_.shape[0]
@@ -64,10 +82,11 @@ def bisection_pointwise1(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
     assert np.all(np.abs(iobj.implicitFunction(result_x_arr)) < ROOT_TOLERANCE)
     return result_x_arr
 
-
-
+@profile
 def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
-    """ x1_arr must be outside and x2_arr must be inside the object. Then this function finds points x=x1_arr+(lambda)*(x2_arr-x1_arr) where f(x)=0 using the bisection method."""
+    # vectorised: polished. (version 3)
+    """ x1_arr must be outside and x2_arr must be inside the object.
+    ..."""
     check_vector4_vectorized(x1_arr)
     check_vector4_vectorized(x2_arr)
     assert x1_arr.shape[0] == x2_arr.shape[0]
@@ -128,6 +147,7 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         v1_arr[boolean_outside] = v_mid_arr[boolean_outside]
         x1_arr[boolean_outside,:] = x_mid_arr[boolean_outside,:]
 
+        #it does re-allocate
         v1_arr = v1_arr[boolean_eitherside]
         v2_arr = v2_arr[boolean_eitherside]
         x1_arr = x1_arr[boolean_eitherside,:]
@@ -148,8 +168,120 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     return result_x_arr
 
 
+@profile
+def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
+    # New vectorised implementation (version 4)
+    """ x1_arr must be outside and x2_arr must be inside the object.
+    This function the point x=x1_arr+(lambda)*(x2-x1) where f(x)=0, using the Bisection method."""
+    check_vector4_vectorized(x1_arr)
+    check_vector4_vectorized(x2_arr)
+    assert x1_arr.shape[0] == x2_arr.shape[0]
+    #x1_arr = x1_arr  # start
+    v1_arr = iobj.implicitFunction(x1_arr)
+    #x2_arr = x1_arr + ray_n * 1.0
+    x2_arr[:, 3] = 1
+    v2_arr = iobj.implicitFunction(x2_arr)
+
+    result_x_arr = np.zeros(x1_arr.shape)
+
+    EPS = 0.000001  # sign
+
+
+    n = x1_arr.shape[0]
+    #already_root = np.zeros((n,), dtype=np.int)
+    #assert v2_arr * va > 0 - EPS  # greater or equal
+    active_indices = np.arange(0, n)  # mid
+    active_count = n
+    solved_count = 0
+    #invariants...
+
+    iteration = 1
+    while True:
+        if not np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS):
+            #print np.max(mysign_np(v2_arr) * mysign_np(v1_arr))
+            #i = mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS
+            #print np.concatenate((v2_arr[i, np.newaxis], v1_arr[i, np.newaxis]), axis=1)
+            # #print np.max(v2_arr), np.min(v1_arr)
+            #print np.min(v2_arr), np.max(v1_arr)
+            #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
+            pass
+        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
+        assert np.all(v1_arr < 0-ROOT_TOLERANCE)
+        assert active_indices.shape[0] == x1_arr.shape[0]
+        assert active_indices.shape[0] == x2_arr.shape[0]
+        x_mid_arr = ( x1_arr + x2_arr ) / 2.0
+        assert x_mid_arr.shape[0] == active_count
+        x_mid_arr[:,3] = 1
+        v_mid_arr = iobj.implicitFunction(x_mid_arr)
+        assert v_mid_arr.shape[0] == active_count
+        assert v_mid_arr.shape == active_indices.shape
+        assert active_indices.ndim == 1
+
+        assert v_mid_arr.shape == active_indices.shape
+        boolean_boundary = np.abs(v_mid_arr) <= ROOT_TOLERANCE  #eq
+        boolean_outside = v_mid_arr < -ROOT_TOLERANCE  # gt
+        boolean_inside  = v_mid_arr > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
+        boolean_eitherside = np.logical_not(boolean_boundary)
+        assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
+        assert boolean_boundary.shape[0] == active_count
+
+        which_zeroed = active_indices[ boolean_boundary ] # new start = mid
+        found_count = np.sum(boolean_boundary)
+        solved_count += found_count
+        assert active_count-found_count+solved_count == n
+        #assert which_zeroed.shape[0] == active_count
+
+        #already_root[which_zeroed] = 1  # iteration
+        result_x_arr[which_zeroed, :] = x_mid_arr[boolean_boundary[:], :]
+        #todo: x_mid_arr[boolean_boundary[:active_count], :]
+
+
+        #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
+        #the total is np.arange(n)
+        v2_arr[boolean_inside] = v_mid_arr[boolean_inside]
+        x2_arr[boolean_inside, :] = x_mid_arr[boolean_inside,:]
+        #note: x2_arr is modified
+
+        #x1_arr and x2_arr both shrink here
+        v1_arr[boolean_outside] = v_mid_arr[boolean_outside]
+        x1_arr[boolean_outside,:] = x_mid_arr[boolean_outside,:]
+
+        v1_arr = v1_arr[boolean_eitherside]
+        v2_arr = v2_arr[boolean_eitherside]
+        x1_arr = x1_arr[boolean_eitherside,:]
+        x2_arr = x2_arr[boolean_eitherside,:]
+
+        assert active_count == active_indices.size
+        active_indices = active_indices[boolean_eitherside]
+        #print active_count, active_indices.shape
+        assert active_count - found_count == active_indices.size
+        active_count = active_count - found_count
+        assert active_count == np.sum(boolean_eitherside)
+        iteration += 1
+
+        assert active_count == v1_arr.shape[0]
+        assert active_count == x1_arr.shape[0]
+        assert active_count == v2_arr.shape[0]
+        assert active_count == x2_arr.shape[0]
+
+        assert x1_arr.shape == x2_arr.shape
+        assert v1_arr.shape == v2_arr.shape
+        assert active_indices.shape == v1_arr.shape
+        assert active_indices.shape[0] == active_count
+
+        if len(active_indices) == 0:
+            break
+
+    assert len(active_indices) == 0
+    v_arr = iobj.implicitFunction(result_x_arr)
+    assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
+    return result_x_arr
+
+
 def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_target, ROOT_TOLERANCE=ROOT_TOLERANCE):
-    """ ray_x must be outside and ray_x+ray_n must be inside the object. Then this function finds points x=ray_x+(lambda)*ray_n where f(x)=0 using the bisection method."""
+    # My old vectorised implementation (version 2)
+    """ ray_x must be outside and ray_target must be inside the object.
+    This function the point x=ray_x+(lambda)*ray_n where f(x)=0, using the Bisection method."""
     ray_n = ray_target - ray_x
     ray_n[:, 3] = 1
     check_vector4_vectorized(ray_x)
@@ -321,36 +453,49 @@ def testout(ifunc, q):
     #print np.max(np.fabs(f)), ROOT_TOLERANCE
     return True
 
-def test1():
-    global q1
-    q1 = bisection_vectorized2(ifunc, xo, xi)
-    assert testout(ifunc, q1)
+
+
+
+
 
 def test2():
     global q2
     q2 = bisection_vectorized1(ifunc, xo, xi)
     assert testout(ifunc, q2)
 
-def test3():
+def test1():
     global maxn_pointwise
     if xo.shape[0]>maxn_pointwise:
         return
 
+    global q1
+    q1 = bisection_pointwise1(ifunc, xo, xi)
+    assert testout(ifunc, q1)
+
+
+def test3():
     global q3
-    q3 = bisection_pointwise1(ifunc, xo, xi)
+    q3 = bisection_vectorized2(ifunc, xo, xi)
     assert testout(ifunc, q3)
+
     TEST_RESULTS = True
     if TEST_RESULTS:
         global q1
         global q2
-        e1 = np.sum(np.fabs(q2-q3))
-        e2 = np.sum(np.fabs(q1-q2))
+        e1 = np.sum(np.fabs(q2-q1))
+        e2 = np.sum(np.fabs(q3-q2))
         TOL = 0.00000001
         if not (e2 <TOL and e2 < TOL):
             print "error:",
             print e1,e2
         assert e1 < TOL
         assert e2 < TOL
+
+
+def test4():
+    global q4
+    q4 = bisection_vectorized4(ifunc, xo, xi)
+    assert testout(ifunc, q4)
 
 
 def optimised_used():
@@ -368,15 +513,16 @@ import matplotlib.pyplot as plt
 
 
 def experiment1():
-    #test1()
+    #test3()
     #test2()
-    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, 100000, 200000, 300000] #, 1000000]
+    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, ] # 100000, 200000, 300000] #, 1000000]
+    #na = [1000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
 
-    test_scripts = ['test1()', 'test2()', 'test3()']
-    sty = {0: "r*-", 1: "bs-", 2: ".k-"}
-    lbl = {0: 'numpy vec. (new)', 1: 'numpy vec. (old)', 2:'point-wise'}
+    test_scripts = ['test1()', 'test2()', 'test3()', 'test4()']
+    sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m*:"}
+    lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-no-alloc'}
 
     tl = []
     for ei in range(len(na)):
@@ -394,8 +540,15 @@ def experiment1():
         import timeit
         tt = ()
         for test_i in range(len(test_scripts)):
-            #t1 = timeit.timeit(test_scripts[0], "from __main__ import test1", number=repeats)
+            #t1 = timeit.timeit(test_scripts[0], "from __main__ import test3", number=repeats)
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
+
+            if KP:
+                qq1 = test3()
+                qq2 = test4() #python -O -m kernprof -v -l   vectorised_bisection.py
+                exit()
+
+
             t1 = timeit.timeit(test_scripts[test_i], "from __main__ import test"+str(test_i+1), number=repeats)
             tt += (t1/repeats,)
             #print tt
