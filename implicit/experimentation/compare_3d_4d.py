@@ -33,7 +33,7 @@ def test2():
     from vtk_mc import vtk_mc as v2
     from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized
 
-    from example_objects_vectorized import make_example_vectorized as e2
+    from example_objects import make_example_vectorized as e2
 
     iobj = e2("cube_with_cylinders")  #
 

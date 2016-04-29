@@ -703,7 +703,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rcube_vec"#"ell_example1"#"cube_with_cylinders"#"ell_example1"  #"cube_with_cylinders" #"rcube_vec" #"sphere_example" #"rdice_vec" #"cube_example"
+    object_name = "first_csg"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -741,11 +741,11 @@ def demo_combination_plus_qem():
 
     old_verts, old_facets = verts, facets
 
-    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-    #    pointcloud_list=[],
-    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    # exit()
+    display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+       pointcloud_list=[],
+       mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX)  )
+    exit()
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)

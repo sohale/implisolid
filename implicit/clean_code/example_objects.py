@@ -115,7 +115,7 @@ def blend_example2(scale=1.):
 
 
 def ell_example1(scale):
-    scale = 0.0001
+    scale = 1.0
     # scale not tested
     m1 = np.eye(4) * 1.3 * scale
     m1[1, 1] = 0.4 * scale
