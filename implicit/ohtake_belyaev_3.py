@@ -2931,7 +2931,7 @@ def eval2(iobj, x):
     return y
 
 
-@profile
+#@profile
 def compare_vectorised_speed():
     import sys
     print "hi"; sys.stdout.flush()

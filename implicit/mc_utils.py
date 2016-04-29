@@ -63,7 +63,7 @@ def slow_grid__dont_use():
                 #vgrid[i,j,k] = i>1 and j>1 and k>1  and i<len(rng)-1 and j<len(rng)-1 and k<len(rng)-1  #iobj.implicitFunction( x )
                 vgrid[i,j,k] = iobj.implicitFunction( x_ )
 
-@profile
+#@profile
 def make_grid(iobj, rng, old=None):
     assert old is not None
     if old:
@@ -77,6 +77,8 @@ def make_grid(iobj, rng, old=None):
 
     if np.sum(vgrid_v > 0) == 0:
         raise PolygonizationError("The shape is empty. No interior points detected")
+    if np.sum(vgrid_v < 0) == 0:
+        raise PolygonizationError("The solid volume fills all the space. No exterior points detected")
     if VERBOSE:
         print("interior points:", np.sum(vgrid_v > 0))
     return vgrid
