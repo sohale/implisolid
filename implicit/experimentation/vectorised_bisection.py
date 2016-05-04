@@ -453,16 +453,18 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #assert which_zeroed.shape[0] == active_count
 
         #already_root[which_zeroed] = 1  # iteration
-        result_x_arr[which_zeroed] = x_mid_arr[:active_count][indices_boundary]
+        result_x_arr[which_zeroed] = x_mid_arr[indices_boundary]
+        assert np.all(indices_boundary < active_count)
         #todo: x_mid_arr[indices_boundary[:active_count], :]
-
 
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
         #the total is np.arange(n)
-        v2_arr[:active_count][indices_inside] = v_mid_arr[:active_count][indices_inside]
-        x2_arr[:active_count][indices_inside] = x_mid_arr[:active_count][indices_inside]
-        v1_arr[:active_count][indices_outside] = v_mid_arr[:active_count][indices_outside]
-        x1_arr[:active_count][indices_outside] = x_mid_arr[:active_count][indices_outside]
+        v2_arr[indices_inside] = v_mid_arr[indices_inside]
+        x2_arr[indices_inside] = x_mid_arr[indices_inside]
+        v1_arr[indices_outside] = v_mid_arr[indices_outside]
+        x1_arr[indices_outside] = x_mid_arr[indices_outside]
+        assert np.all(indices_outside < active_count)
+        assert np.all(indices_inside < active_count)
 
         # ------ next round: --------
 
@@ -477,10 +479,10 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
         #assert boolean_eitherside.size == old_active_count
         assert np.all(indices_eitherside < old_active_count)
-        v1_arr[:active_count] = v1_arr[:old_active_count][indices_eitherside]
-        v2_arr[:active_count] = v2_arr[:old_active_count][indices_eitherside]
-        x1_arr[:active_count] = x1_arr[:old_active_count][indices_eitherside]
-        x2_arr[:active_count] = x2_arr[:old_active_count][indices_eitherside]
+        v1_arr[:active_count] = v1_arr[indices_eitherside]
+        v2_arr[:active_count] = v2_arr[indices_eitherside]
+        x1_arr[:active_count] = x1_arr[indices_eitherside]
+        x2_arr[:active_count] = x2_arr[indices_eitherside]
 
 
         #assert active_count == v1_arr[:active_count].shape[0]
