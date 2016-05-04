@@ -1,6 +1,8 @@
 import sys
 sys.path.append("..")
 
+#import kernprof
+
 from basic_types import check_vector4_vectorized
 #from numerical_raycast_bisection_vectorized
 #from numerical_utils import numerical_raycast_bisection_vectorized
@@ -196,7 +198,7 @@ def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_target, ROOT_TOLERAN
 bisection_vectorized1 = numerical_raycast_bisection_vectorized
 
 
-#@profile
+@profile
 def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     # vectorised: polished. (version 3)
     """ x1_arr must be outside and x2_arr must be inside the object.
@@ -284,7 +286,7 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     return result_x_arr
 
 
-
+@profile
 def bisection_vectorized_frozen4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         # New vectorised implementation (version 4)
         check_vector4_vectorized(x1_arr)
@@ -373,7 +375,7 @@ def bisection_vectorized_frozen4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLER
 
 
 
-#@profile
+@profile
 def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     # New vectorised implementation (version 4)
     """ x1_arr must be outside and x2_arr must be inside the object.
@@ -414,12 +416,12 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #    #print np.min(v2_arr), np.max(v1_arr)
         #    #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
         #    pass
-        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
-        assert np.all(v1_arr < 0-ROOT_TOLERANCE)
-        assert active_indices.shape[0] == x1_arr.shape[0]
+        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr[:active_count]) < 0 - EPS)  # greater or equal
+        assert np.all(v1_arr[:active_count] < 0-ROOT_TOLERANCE)
+        assert active_indices.shape[0] == x1_arr[:active_count].shape[0]
         assert active_indices.shape[0] == x2_arr[:active_count].shape[0]
 
-        x_mid_arr[:active_count] = ( x1_arr + x2_arr[:active_count] ) / 2.0
+        x_mid_arr[:active_count] = ( x1_arr[:active_count] + x2_arr[:active_count] ) / 2.0
         #assert x_mid_arr.shape[0] == active_count
         #x_mid_arr[:active_count, 3] = 1
 
@@ -457,8 +459,8 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #note: x2_arr is modified
 
         #x1_arr and x2_arr both shrink here
-        v1_arr[boolean_outside] = v_mid_arr[:active_count][boolean_outside]
-        x1_arr[boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
+        v1_arr[:active_count][boolean_outside] = v_mid_arr[:active_count][boolean_outside]
+        x1_arr[:active_count][boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
 
         # ------ next round: --------
 
@@ -472,24 +474,24 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         iteration += 1
 
         assert boolean_eitherside.size == old_active_count
-        v1_arr = v1_arr[boolean_eitherside]
+        v1_arr[:active_count] = v1_arr[:old_active_count][boolean_eitherside]
         v2_arr = v2_arr[boolean_eitherside]
-        x1_arr = x1_arr[boolean_eitherside,:]
+        x1_arr[:active_count, :] = x1_arr[:old_active_count][boolean_eitherside, :]
 
-        assert v1_arr.shape[0] == active_count
+        #assert v1_arr[:active_count].shape[0] == active_count
         assert v2_arr.shape[0] == active_count
-        assert x1_arr.shape[0] == active_count
+        #assert x1_arr.shape[0] == active_count
 
-        x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside,:]
+        x2_arr[:active_count, :] = x2_arr[:old_active_count][boolean_eitherside, :]
 
-        assert active_count == v1_arr.shape[0]
-        assert active_count == x1_arr.shape[0]
+        assert active_count == v1_arr[:active_count].shape[0]
+        assert active_count == x1_arr[:active_count].shape[0]
         assert active_count == v2_arr.shape[0]
         #assert active_count == x2_arr.shape[0]
 
-        assert x1_arr.shape == x2_arr[:active_count].shape
-        assert v1_arr.shape == v2_arr.shape
-        assert active_indices.shape == v1_arr.shape
+        assert x1_arr[:active_count].shape == x2_arr[:active_count].shape
+        assert v1_arr[:active_count].shape == v2_arr.shape
+        assert active_indices.shape == v1_arr[:active_count].shape
         assert active_indices.shape[0] == active_count
 
         del old_active_count
@@ -580,7 +582,7 @@ def test3():
     q3 = bisection_vectorized2(ifunc, xo, xi)
     assert testout(ifunc, q3)
 
-    TEST_RESULTS = True
+    TEST_RESULTS = False
     if TEST_RESULTS:
         global q1
         global q2
@@ -625,8 +627,9 @@ def experiment1():
     #test3()
     #test2()
     # 20000
-    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000 ] # 100000, 200000, 300000] #, 1000000]
-    #na = [1000]
+    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, ]  # 100000, 200000, 300000] #, 1000000]
+    if USE_KERNPROF:
+        na = [10000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
 
@@ -642,8 +645,8 @@ def experiment1():
         global xi
         global xo
         assert xi0.shape[0] >= n
-        xi = xi0[:n, :]
-        xo = xo0[:n, :]
+        xi = xi0[:n, :].copy()
+        xo = xo0[:n, :].copy()
         print "init:", ei,
 
         repeats = 1 # max(int(math.ceil(10/n)), 2)
@@ -652,6 +655,11 @@ def experiment1():
         for test_i in range(len(test_scripts)):
             #t1 = timeit.timeit(test_scripts[0], "from __main__ import test3", number=repeats)
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
+
+            if USE_KERNPROF:
+                test3()
+                test5()
+                exit()
 
             if USE_KERNPROF:
                 qq1 = test3()
@@ -709,5 +717,6 @@ def experiment1():
     plt.show()
 
 if __name__ == "__main__":
-
     experiment1()
+
+#python -O -m kernprof -v -l vectorised_bisection.py
