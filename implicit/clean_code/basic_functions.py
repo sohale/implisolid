@@ -73,7 +73,7 @@ def check_vector3_vectorized(p):
     assert not issubclass(p.dtype.type, np.integer)
     assert p.ndim == 2
     assert p.shape[1:] == (3,), "Vector must be a numpy array of (Nx3) elements"
-    assert not np.any( np.isnan(p.ravel()) )
+#    assert not np.any( np.isnan(p.ravel()) )
     assert not np.any( np.isinf(p.ravel()) )
 
 def check_scalar_vectorized(v, N=None):
@@ -84,7 +84,7 @@ def check_scalar_vectorized(v, N=None):
         assert v.shape == (n, 1), "values must be a numpy array of (N,) or (Nx1) elements"
     if not N is None:
         assert v.shape[0] == N
-    assert not np.any( np.isnan(v.ravel()) )
+#    assert not np.any( np.isnan(v.ravel()) )
     assert not np.any( np.isinf(v.ravel()) )
 
 

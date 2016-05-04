@@ -369,8 +369,10 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
     for i in range(centroids.shape[0]):
         #import ipdb; ipdb.set_trace()
         p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,3)), None, lambda_val, max_iter)
+        print i, "Trying to find in the first direction"
         if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
             p1[i,:].reshape(1,3)
+        #    import ipdb; ipdb.set_trace()
             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
 
                 # Mirror image: search the opposite way and accept only if it is closer than the best found.
@@ -386,6 +388,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                 if dn_3[i] > 0:  #dn>0.000000001:
                     direction_3[i,:] = direction_3[i,:]/dn_3[i]
                     p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter)
+                    print i, "Trying to find in the opposite direction"
 
 
                     #no max_dist
@@ -632,16 +635,23 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         A, b = get_A_b(vi, nai, centroids, centroid_gradients)
         #print A, b
 
-
+        print "A:", A, "\n"
+        print "b;",b
+        # print A.shape, b.shape
         u, s, v = np.linalg.svd(A)
+        print u.shape, s.shape, v.shape
+        print "u:",u, "\n",
+        print "s:",s,"\n",
+        print "v:", v, "\n"
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
 
-
+    #    tau = 10. **0.37
         tau = 10. ** 3.
         s[s / s[0] < 1.0/tau] = 0
         #print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
+    #    print "rank:", rank
 
         if not  s[0] > 0.000001:
             print("Warning! sigma_1 == 0" )
@@ -670,9 +680,6 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         #print(x.ravel(), " -> ", new_x.ravel())
         #print("    delta=", (new_x - x).ravel())
 
-        new_verts[vi, 0:3] = new_x[:, 0]
-        #self.new_verts[vi,3] = 1
-
         assert x.shape == (3, 1)
 
         new_verts[vi, 0:3] = new_x[:, 0]
@@ -695,6 +702,18 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
+#delete some artefacts dues in the sharps part of the mesh
+def comparison_verts_new_verts(old_verts, new_verts):
+    THL = 10. **(0.001)#find experimentaly
+    nverts = old_verts.shape[0]
+    assert old_verts.shape == new_verts.shape
+
+    for i in range(nverts):
+        if np.abs(np.linalg.norm(old_verts[i,:] - new_verts[i,:])) > THL:
+            new_verts[i,:] = old_verts[i,:]
+
+    return new_verts
+
 @profile
 def demo_combination_plus_qem():
     """ Now with QEM """
@@ -703,7 +722,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "first_csg"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "rods"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -713,7 +732,13 @@ def demo_combination_plus_qem():
 
     elif object_name == "french_fries_vectorized" or object_name == "rods":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.1)
-    #
+
+    elif object_name == "cyl3":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
+
+    elif object_name == "cyl1":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
+
 
     # import vectorized, example_objects
     # c2 = vectorized.UnitCube1(1.)
@@ -732,7 +757,6 @@ def demo_combination_plus_qem():
     #
     # c2 = rotate_scale_(c2, 2., [1,1,1])
     # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
-    # #iobj = c2
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -741,11 +765,11 @@ def demo_combination_plus_qem():
 
     old_verts, old_facets = verts, facets
 
-    display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-       pointcloud_list=[],
-       mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
-    exit()
+    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+    #    pointcloud_list=[],
+    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    # exit()
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
@@ -778,16 +802,15 @@ def demo_combination_plus_qem():
     old_centroids = np.mean(verts[facets[:], :], axis=1)
 #    old_centroids = np.concatenate((c3, np.ones((c3.shape[0], 1))), axis=1)
 
-
     new_centroids = old_centroids.copy()
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     #new_centroids is the output
-    #
+
     # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
     #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    # exit()
+
 
     #neighbour_faces_of_vertex
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
@@ -796,9 +819,9 @@ def demo_combination_plus_qem():
     new_verts_qem = \
         vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
         #verts = nv1
-        #new_verts_qem = verts
 
     alpha = 0.
+
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
     chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
@@ -814,10 +837,16 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131,  71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
 
-    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
+    display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ], pointcloud_opacity=0.2,
        mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
+
+    # display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    #    pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
 
 #from timeit import default_timer as dtimer
 

@@ -26,10 +26,10 @@ class Ellipsoid(ImplicitFunctionVectorized):
         tp = np.dot(self.invmatrix, np.transpose(pa))  # inefficient. todo: multiply from right => will be efficient
         tp = np.transpose(tp)
         tp = tp[:,:3]
-        print pa, tp
+    #    print pa, tp
         v = self.sphere.implicitFunction(tp)
         check_scalar_vectorized(v)
-        print v
+#        print v
         return v
 
     def implicitGradient(self, pa):  # -> Vector3D :

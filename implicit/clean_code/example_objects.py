@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_functions import make_vector4, normalize_vector, make_vector3
+from basic_functions import make_vector4, normalize_vector, make_vector3, check_vector4
 
 import simple_blend
 
@@ -76,7 +76,7 @@ def rdice_vec(scale, rotated=True):
     iobj  \
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
-    iobj.rotate(20, along=make_vector4(1, 1, 1), units="deg")
+    iobj.rotate(20, along=make_vector3(1, 1, 1), units="deg")
     return iobj
 
 
@@ -362,7 +362,7 @@ def cyl1(scale_ignored):
     c = SimpleCylinder(A, w, u, radius, radius, c_len)
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
-    return c, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return c#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
 
 def rotation_matrix(angle, along, units="rad", around=None):
@@ -470,7 +470,7 @@ def cyl2(scale_ignored):
         else:
             un = vectorized.CrispUnion(un, c)
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
-    return un, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return un#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
 
 def cage_rods(rod_r, rod_len, cage_r, N):
@@ -497,7 +497,7 @@ def cyl3(scale):
     cage_r = 10.
     rod_len = 10.
     N = 20
-    return cage_rods(rod_r, rod_len, cage_r, N), (-32 / 2, +32 / 2, 1.92 / 4.0)
+    return cage_rods(rod_r, rod_len, cage_r, N)#, (-32 / 2, +32 / 2, 1.92 / 4.0)
 
 
 def cyl4(scale):
@@ -571,6 +571,9 @@ examples = {
     "screw2": 2,
     "udice_vec": 2,
     "rods": 2,
+    "cyl1" :2,
+    "cyl2" :2,
+    "cyl3" :2,
     "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
 

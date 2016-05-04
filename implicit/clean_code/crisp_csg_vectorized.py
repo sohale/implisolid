@@ -69,7 +69,7 @@ class CrispUnion(ImplicitFunctionVectorized):
         c = np.greater(va, vb)
         v = va * c + vb * (1-c)
 
-        print va, vb,
+    #    print va, vb,
         check_scalar_vectorized(v)
 
         return v
