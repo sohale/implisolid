@@ -453,7 +453,7 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #assert which_zeroed.shape[0] == active_count
 
         #already_root[which_zeroed] = 1  # iteration
-        result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][indices_boundary, :3]
+        result_x_arr[which_zeroed] = x_mid_arr[:active_count][indices_boundary]
         #todo: x_mid_arr[indices_boundary[:active_count], :]
 
 
@@ -499,7 +499,7 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
             break
 
     assert active_indices.size == 0
-    if True:  #optimised_used():
+    if not optimised_used():
         v_arr = iobj.implicitFunction(result_x_arr)
         assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
     return result_x_arr
