@@ -434,47 +434,53 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         assert active_indices.ndim == 1
 
         ####assert v_mid_arr.shape == active_indices.shape
-        boolean_boundary = np.abs(v_mid_arr[:active_count]) <= ROOT_TOLERANCE  #eq
-        boolean_outside = v_mid_arr[:active_count] < -ROOT_TOLERANCE  # gt
-        boolean_inside  = v_mid_arr[:active_count] > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
-        boolean_eitherside = np.logical_not(boolean_boundary)
-        assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
-        assert boolean_boundary.shape[0] == active_count
+        abs_ = np.abs(v_mid_arr[:active_count])
+        indices_boundary = np.nonzero(abs_ <= ROOT_TOLERANCE)[0]  #eq
+        indices_outside = np.nonzero(v_mid_arr[:active_count] < -ROOT_TOLERANCE)[0]  # gt
+        indices_inside  = np.nonzero(v_mid_arr[:active_count] > +ROOT_TOLERANCE)[0]  # -v_mid_arr <  ROOT_TOLERANCE
+        indices_eitherside = np.nonzero(abs_ > ROOT_TOLERANCE)[0]
+        #assert np.all(np.logical_or(indices_outside, indices_inside) == np.logical_not(indices_boundary) )
+        #assert np.sorted(np.hstack((indices_outside, indices_inside)) == ?np.logical_not(indices_boundary) )
+        #assert indices_boundary.shape[0] == active_count
+        assert indices_boundary.size + indices_inside.size + indices_outside.size == active_count
+        #print len(indices_eitherside), indices_eitherside.size, indices_eitherside.shape
+        assert indices_eitherside.size + indices_boundary.size == active_count
 
-        which_zeroed = active_indices[ boolean_boundary ] # new start = mid
-        found_count = np.sum(boolean_boundary)
+        which_zeroed = active_indices[ indices_boundary ] # new start = mid
+        found_count = indices_boundary.shape[0]
         solved_count += found_count
         assert active_count-found_count+solved_count == n
         #assert which_zeroed.shape[0] == active_count
 
         #already_root[which_zeroed] = 1  # iteration
-        result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][boolean_boundary[:], :3]
-        #todo: x_mid_arr[boolean_boundary[:active_count], :]
+        result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][indices_boundary, :3]
+        #todo: x_mid_arr[indices_boundary[:active_count], :]
 
 
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
         #the total is np.arange(n)
-        v2_arr[:active_count][boolean_inside] = v_mid_arr[:active_count][boolean_inside]
-        x2_arr[:active_count][boolean_inside] = x_mid_arr[:active_count][boolean_inside]
-        v1_arr[:active_count][boolean_outside] = v_mid_arr[:active_count][boolean_outside]
-        x1_arr[:active_count][boolean_outside] = x_mid_arr[:active_count][boolean_outside]
+        v2_arr[:active_count][indices_inside] = v_mid_arr[:active_count][indices_inside]
+        x2_arr[:active_count][indices_inside] = x_mid_arr[:active_count][indices_inside]
+        v1_arr[:active_count][indices_outside] = v_mid_arr[:active_count][indices_outside]
+        x1_arr[:active_count][indices_outside] = x_mid_arr[:active_count][indices_outside]
 
         # ------ next round: --------
 
         assert active_count == active_indices.size
-        active_indices = active_indices[boolean_eitherside]
+        active_indices = active_indices[indices_eitherside]
         #print active_count, active_indices.shape
         assert active_count - found_count == active_indices.size
         old_active_count = active_count
         active_count = active_count - found_count
-        assert active_count == np.sum(boolean_eitherside)
+        assert active_count == indices_eitherside.size
         iteration += 1
 
-        assert boolean_eitherside.size == old_active_count
-        v1_arr[:active_count] = v1_arr[:old_active_count][boolean_eitherside]
-        v2_arr[:active_count] = v2_arr[:old_active_count][boolean_eitherside]
-        x1_arr[:active_count] = x1_arr[:old_active_count][boolean_eitherside]
-        x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside]
+        #assert boolean_eitherside.size == old_active_count
+        assert np.all(indices_eitherside < old_active_count)
+        v1_arr[:active_count] = v1_arr[:old_active_count][indices_eitherside]
+        v2_arr[:active_count] = v2_arr[:old_active_count][indices_eitherside]
+        x1_arr[:active_count] = x1_arr[:old_active_count][indices_eitherside]
+        x2_arr[:active_count] = x2_arr[:old_active_count][indices_eitherside]
 
 
         #assert active_count == v1_arr[:active_count].shape[0]
@@ -492,9 +498,10 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         if len(active_indices) == 0:
             break
 
-    assert len(active_indices) == 0
-    v_arr = iobj.implicitFunction(result_x_arr)
-    assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
+    assert active_indices.size == 0
+    if True:  #optimised_used():
+        v_arr = iobj.implicitFunction(result_x_arr)
+        assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
     return result_x_arr
 
 
