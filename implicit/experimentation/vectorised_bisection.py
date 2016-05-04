@@ -374,10 +374,11 @@ def bisection_vectorized_frozen4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLER
 
 
 #@profile
-def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
+def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     # New vectorised implementation (version 4)
     """ x1_arr must be outside and x2_arr must be inside the object.
-    This function the point x=x1_arr+(lambda)*(x2-x1) where f(x)=0, using the Bisection method."""
+    This function the point x=x1_arr+(lambda)*(x2-x1) where f(x)=0, using the Bisection method.
+    Note: inplace operations will be done on x1_arr, x2_arr."""
     check_vector4_vectorized(x1_arr)
     check_vector4_vectorized(x2_arr)
     assert x1_arr.shape[0] == x2_arr.shape[0]
@@ -470,9 +471,15 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         assert active_count == np.sum(boolean_eitherside)
         iteration += 1
 
+        assert boolean_eitherside.size == old_active_count
         v1_arr = v1_arr[boolean_eitherside]
         v2_arr = v2_arr[boolean_eitherside]
         x1_arr = x1_arr[boolean_eitherside,:]
+
+        assert v1_arr.shape[0] == active_count
+        assert v2_arr.shape[0] == active_count
+        assert x1_arr.shape[0] == active_count
+
         x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside,:]
 
         assert active_count == v1_arr.shape[0]
@@ -588,15 +595,15 @@ def test3():
 
 
 def test5():
-    global q4
-    q4 = bisection_vectorized4(ifunc, xo, xi)
-    assert testout(ifunc, q4)
+    global q5
+    q5 = bisection_vectorized5(ifunc, xo, xi)
+    assert testout(ifunc, q5)
 
 
 def test4():
     global q4
-    q5 = bisection_vectorized_frozen4(ifunc, xo, xi)
-    assert testout(ifunc, q5)
+    q4 = bisection_vectorized_frozen4(ifunc, xo, xi)
+    assert testout(ifunc, q4)
 
 
 def optimised_used():
