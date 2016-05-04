@@ -416,7 +416,7 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #    #print np.min(v2_arr), np.max(v1_arr)
         #    #print mysign_np(np.min(v2_arr)), mysign_np(np.max(v1_arr))
         #    pass
-        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr[:active_count]) < 0 - EPS)  # greater or equal
+        assert np.all(mysign_np(v2_arr[:active_count]) * mysign_np(v1_arr[:active_count]) < 0 - EPS)  # greater or equal
         assert np.all(v1_arr[:active_count] < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr[:active_count].shape[0]
         assert active_indices.shape[0] == x2_arr[:active_count].shape[0]
@@ -454,7 +454,7 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
         #the total is np.arange(n)
-        v2_arr[boolean_inside] = v_mid_arr[:active_count][boolean_inside]
+        v2_arr[:active_count][boolean_inside] = v_mid_arr[:active_count][boolean_inside]
         x2_arr[:active_count][boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
         #note: x2_arr is modified
 
@@ -475,22 +475,22 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
         assert boolean_eitherside.size == old_active_count
         v1_arr[:active_count] = v1_arr[:old_active_count][boolean_eitherside]
-        v2_arr = v2_arr[boolean_eitherside]
-        x1_arr[:active_count, :] = x1_arr[:old_active_count][boolean_eitherside, :]
+        v2_arr[:active_count] = v2_arr[:old_active_count][boolean_eitherside]
+        x1_arr[:active_count] = x1_arr[:old_active_count][boolean_eitherside]
 
         #assert v1_arr[:active_count].shape[0] == active_count
-        assert v2_arr.shape[0] == active_count
-        #assert x1_arr.shape[0] == active_count
+        #assert v2_arr[:active_count].shape[0] == active_count
+        #assert x1_arr[:active_count].shape[0] == active_count
 
-        x2_arr[:active_count, :] = x2_arr[:old_active_count][boolean_eitherside, :]
+        x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside]
 
         assert active_count == v1_arr[:active_count].shape[0]
         assert active_count == x1_arr[:active_count].shape[0]
-        assert active_count == v2_arr.shape[0]
+        assert active_count == v2_arr[:active_count].shape[0]
         #assert active_count == x2_arr.shape[0]
 
         assert x1_arr[:active_count].shape == x2_arr[:active_count].shape
-        assert v1_arr[:active_count].shape == v2_arr.shape
+        assert v1_arr[:active_count].shape == v2_arr[:active_count].shape
         assert active_indices.shape == v1_arr[:active_count].shape
         assert active_indices.shape[0] == active_count
 
