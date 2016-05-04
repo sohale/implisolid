@@ -82,6 +82,120 @@ def bisection_pointwise1(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
     assert np.all(np.abs(iobj.implicitFunction(result_x_arr)) < ROOT_TOLERANCE)
     return result_x_arr
 
+
+
+
+def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_target, ROOT_TOLERANCE=ROOT_TOLERANCE):
+    # My old vectorised implementation (version 2)
+    """ ray_x must be outside and ray_target must be inside the object.
+    This function the point x=ray_x+(lambda)*ray_n where f(x)=0, using the Bisection method."""
+    ray_n = ray_target - ray_x
+    ray_n[:, 3] = 1
+    check_vector4_vectorized(ray_x)
+    check_vector4_vectorized(ray_n)
+    assert ray_x.shape[0] == ray_n.shape[0]
+    x1_arr = ray_x  # start
+    v1_arr = iobj.implicitFunction(x1_arr)
+    x2_arr = x1_arr + ray_n * 1.0
+    x2_arr[:,3] = 1
+    v2_arr = iobj.implicitFunction(x2_arr)
+
+    result_x_arr = np.zeros(ray_x.shape)
+
+    EPS = 0.0000001  # sign
+
+    n = x1_arr.shape[0]
+    already_root = np.zeros((n,), dtype=np.int)
+    #assert v2_arr * va > 0 - EPS  # greater or equal
+    active_indices  = np.arange(0,n)  # mid
+    iteration = 1
+    while True:
+        #print(v1_arr.shape, "*")
+        #print(np.vstack((v1_arr,v2_arr)))
+        #print(v2_arr * v1_arr )
+        #print("aaaaaaaaaaaaaaaa")
+        #print(v1_arr)
+        #print(v2_arr)
+        #print(v2_arr * v1_arr)
+        #assert np.all(v2_arr * v1_arr < 0 - EPS)  # greater or equal
+        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
+
+        assert np.all(v1_arr < 0-ROOT_TOLERANCE)
+        assert active_indices.shape[0] == x1_arr.shape[0]
+        assert active_indices.shape[0] == x2_arr.shape[0]
+        x_mid_arr = ( x1_arr + x2_arr ) / 2.0
+        x_mid_arr[:,3] = 1
+        v_mid_arr = iobj.implicitFunction(x_mid_arr)
+        assert v_mid_arr.shape == active_indices.shape
+        assert active_indices.ndim == 1
+
+        #flipped_i = v_mid_arr
+        #contains the indices
+        dif = -v_mid_arr  # assuming x1 is always outside and x2 is inside
+        assert dif.shape == active_indices.shape
+        boolean_eq = np.abs(dif) <= ROOT_TOLERANCE
+        boolean_gt =  dif >  ROOT_TOLERANCE
+        boolean_lt =  dif <  -ROOT_TOLERANCE # dif <  ROOT_TOLERANCE
+        boolean_neq = np.logical_not( boolean_eq )
+        #logical_or
+        assert np.all( np.logical_or(boolean_gt, boolean_lt) == np.logical_not(boolean_eq) )
+        #print("boolean_gt", boolean_gt)  #t
+        #print("boolean_lt", boolean_lt)  #f
+
+
+        which_zeroed     = active_indices[ boolean_eq ] # new start = mid
+        which_flippedAt1 = active_indices[ boolean_gt ] # new end = mid
+        which_flippedAt2 = active_indices[ boolean_lt ]
+        which_flippedAny = active_indices[ boolean_neq ]
+
+        already_root[which_zeroed] = 1  # iteration
+        result_x_arr[which_zeroed,:] = x_mid_arr[boolean_eq,:]
+
+
+        #x1_arr and x2_arr should have the same size eventually. the boolean_eq should be removed from their indices.
+        #the total is np.arange(n)
+        v2_arr[boolean_lt] = v_mid_arr[boolean_lt]#[which_flippedAny]
+        x2_arr[boolean_lt,:] = x_mid_arr[boolean_lt,:]#[which_flippedAny]   # which_flippedAt2
+
+        #note: x2_arr is modified inplace (side-effect)
+
+
+        #x1_arr and x2_arr both shrink here
+
+        v1_arr[boolean_gt] = v_mid_arr[boolean_gt]#[which_flippedAny]
+        x1_arr[boolean_gt,:] = x_mid_arr[boolean_gt,:]#[which_flippedAny]   #which_flippedAt1
+
+        v1_arr = v1_arr[boolean_neq]
+        v2_arr = v2_arr[boolean_neq]
+        x1_arr = x1_arr[boolean_neq,:]
+        x2_arr = x2_arr[boolean_neq,:]
+        #print("active_indices = ", active_indices)
+        #print("which_flippedAny = ", which_flippedAny)
+        #print("active_indices[which_flippedAny] = ", active_indices[boolean_neq])
+        active_indices = active_indices[boolean_neq] #which_flippedAt1 || which_flippedAt2
+        iteration += 1
+
+        assert x1_arr.shape == x2_arr.shape
+        assert v1_arr.shape == v2_arr.shape
+        assert active_indices.shape == v1_arr.shape
+
+        #print(active_indices)
+        #print(v1_arr, "****", v2_arr)
+        #print(boolean_lt)
+        #print("*******")
+
+        if len(active_indices) == 0:
+            break
+
+    assert len(active_indices) == 0
+    #result_x_arr
+    v_arr = iobj.implicitFunction(result_x_arr)
+    assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
+    return result_x_arr
+
+bisection_vectorized1 = numerical_raycast_bisection_vectorized
+
+
 #@profile
 def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     # vectorised: polished. (version 3)
@@ -168,6 +282,95 @@ def bisection_vectorized2(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     v_arr = iobj.implicitFunction(result_x_arr)
     assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
     return result_x_arr
+
+
+
+def bisection_vectorized_frozen4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
+        # New vectorised implementation (version 4)
+        check_vector4_vectorized(x1_arr)
+        check_vector4_vectorized(x2_arr)
+        assert x1_arr.shape[0] == x2_arr.shape[0]
+        v1_arr = iobj.implicitFunction(x1_arr)
+        x2_arr[:, 3] = 1
+        v2_arr = iobj.implicitFunction(x2_arr)
+        result_x_arr = np.ones(x1_arr.shape)
+
+        EPS = 0.000001  # sign
+
+        n = x1_arr.shape[0]
+        active_indices = np.arange(0, n)  # mid
+        active_count = n
+        solved_count = 0
+
+        x_mid_arr = np.ones((active_count, 4))
+        v_mid_arr = np.zeros((active_count,))
+
+        iteration = 1
+        while True:
+            assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
+            assert np.all(v1_arr < 0-ROOT_TOLERANCE)
+            assert active_indices.shape[0] == x1_arr.shape[0]
+            assert active_indices.shape[0] == x2_arr[:active_count].shape[0]
+
+            x_mid_arr[:active_count] = ( x1_arr + x2_arr[:active_count] ) / 2.0
+
+            v_mid_arr[:active_count] = iobj.implicitFunction(x_mid_arr[:active_count, :])
+            assert active_indices.shape == (active_count,)
+            assert active_indices.ndim == 1
+
+            boolean_boundary = np.abs(v_mid_arr[:active_count]) <= ROOT_TOLERANCE  #eq
+            boolean_outside = v_mid_arr[:active_count] < -ROOT_TOLERANCE  # gt
+            boolean_inside  = v_mid_arr[:active_count] > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
+            boolean_eitherside = np.logical_not(boolean_boundary)
+            assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
+            assert boolean_boundary.shape[0] == active_count
+
+            which_zeroed = active_indices[ boolean_boundary ] # new start = mid
+            found_count = np.sum(boolean_boundary)
+            solved_count += found_count
+            assert active_count-found_count+solved_count == n
+
+            result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][boolean_boundary[:], :3]
+
+            v2_arr[boolean_inside] = v_mid_arr[:active_count][boolean_inside]
+            x2_arr[:active_count][boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
+
+            v1_arr[boolean_outside] = v_mid_arr[:active_count][boolean_outside]
+            x1_arr[boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
+
+            # ------ next round: --------
+            assert active_count == active_indices.size
+            active_indices = active_indices[boolean_eitherside]
+            assert active_count - found_count == active_indices.size
+            old_active_count = active_count
+            active_count = active_count - found_count
+            assert active_count == np.sum(boolean_eitherside)
+            iteration += 1
+
+            v1_arr = v1_arr[boolean_eitherside]
+            v2_arr = v2_arr[boolean_eitherside]
+            x1_arr = x1_arr[boolean_eitherside,:]
+            x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside,:]
+
+            assert active_count == v1_arr.shape[0]
+            assert active_count == x1_arr.shape[0]
+            assert active_count == v2_arr.shape[0]
+
+            assert x1_arr.shape == x2_arr[:active_count].shape
+            assert v1_arr.shape == v2_arr.shape
+            assert active_indices.shape == v1_arr.shape
+            assert active_indices.shape[0] == active_count
+
+            del old_active_count
+
+            if len(active_indices) == 0:
+                break
+
+        assert len(active_indices) == 0
+        v_arr = iobj.implicitFunction(result_x_arr)
+        assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
+        return result_x_arr
+
 
 
 #@profile
@@ -293,216 +496,6 @@ def bisection_vectorized4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
     return result_x_arr
 
 
-def bisection_vectorized_frozen4(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
-        # New vectorised implementation (version 4)
-        check_vector4_vectorized(x1_arr)
-        check_vector4_vectorized(x2_arr)
-        assert x1_arr.shape[0] == x2_arr.shape[0]
-        v1_arr = iobj.implicitFunction(x1_arr)
-        x2_arr[:, 3] = 1
-        v2_arr = iobj.implicitFunction(x2_arr)
-        result_x_arr = np.ones(x1_arr.shape)
-
-        EPS = 0.000001  # sign
-
-        n = x1_arr.shape[0]
-        active_indices = np.arange(0, n)  # mid
-        active_count = n
-        solved_count = 0
-
-        x_mid_arr = np.ones((active_count, 4))
-        v_mid_arr = np.zeros((active_count,))
-
-        iteration = 1
-        while True:
-            assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
-            assert np.all(v1_arr < 0-ROOT_TOLERANCE)
-            assert active_indices.shape[0] == x1_arr.shape[0]
-            assert active_indices.shape[0] == x2_arr[:active_count].shape[0]
-
-            x_mid_arr[:active_count] = ( x1_arr + x2_arr[:active_count] ) / 2.0
-
-            v_mid_arr[:active_count] = iobj.implicitFunction(x_mid_arr[:active_count, :])
-            assert active_indices.shape == (active_count,)
-            assert active_indices.ndim == 1
-
-            boolean_boundary = np.abs(v_mid_arr[:active_count]) <= ROOT_TOLERANCE  #eq
-            boolean_outside = v_mid_arr[:active_count] < -ROOT_TOLERANCE  # gt
-            boolean_inside  = v_mid_arr[:active_count] > +ROOT_TOLERANCE  # -v_mid_arr <  ROOT_TOLERANCE
-            boolean_eitherside = np.logical_not(boolean_boundary)
-            assert np.all(np.logical_or(boolean_outside, boolean_inside) == np.logical_not(boolean_boundary) )
-            assert boolean_boundary.shape[0] == active_count
-
-            which_zeroed = active_indices[ boolean_boundary ] # new start = mid
-            found_count = np.sum(boolean_boundary)
-            solved_count += found_count
-            assert active_count-found_count+solved_count == n
-
-            result_x_arr[which_zeroed, :3] = x_mid_arr[:active_count, :3][boolean_boundary[:], :3]
-
-            v2_arr[boolean_inside] = v_mid_arr[:active_count][boolean_inside]
-            x2_arr[:active_count][boolean_inside, :] = x_mid_arr[:active_count, :][boolean_inside,:]
-
-            v1_arr[boolean_outside] = v_mid_arr[:active_count][boolean_outside]
-            x1_arr[boolean_outside,:] = x_mid_arr[:active_count, :][boolean_outside,:]
-
-            # ------ next round: --------
-            assert active_count == active_indices.size
-            active_indices = active_indices[boolean_eitherside]
-            assert active_count - found_count == active_indices.size
-            old_active_count = active_count
-            active_count = active_count - found_count
-            assert active_count == np.sum(boolean_eitherside)
-            iteration += 1
-
-            v1_arr = v1_arr[boolean_eitherside]
-            v2_arr = v2_arr[boolean_eitherside]
-            x1_arr = x1_arr[boolean_eitherside,:]
-            x2_arr[:active_count] = x2_arr[:old_active_count][boolean_eitherside,:]
-
-            assert active_count == v1_arr.shape[0]
-            assert active_count == x1_arr.shape[0]
-            assert active_count == v2_arr.shape[0]
-
-            assert x1_arr.shape == x2_arr[:active_count].shape
-            assert v1_arr.shape == v2_arr.shape
-            assert active_indices.shape == v1_arr.shape
-            assert active_indices.shape[0] == active_count
-
-            del old_active_count
-
-            if len(active_indices) == 0:
-                break
-
-        assert len(active_indices) == 0
-        v_arr = iobj.implicitFunction(result_x_arr)
-        assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
-        return result_x_arr
-
-
-def numerical_raycast_bisection_vectorized(iobj, ray_x, ray_target, ROOT_TOLERANCE=ROOT_TOLERANCE):
-    # My old vectorised implementation (version 2)
-    """ ray_x must be outside and ray_target must be inside the object.
-    This function the point x=ray_x+(lambda)*ray_n where f(x)=0, using the Bisection method."""
-    ray_n = ray_target - ray_x
-    ray_n[:, 3] = 1
-    check_vector4_vectorized(ray_x)
-    check_vector4_vectorized(ray_n)
-    assert ray_x.shape[0] == ray_n.shape[0]
-    x1_arr = ray_x  # start
-    v1_arr = iobj.implicitFunction(x1_arr)
-    x2_arr = x1_arr + ray_n * 1.0
-    x2_arr[:,3] = 1
-    v2_arr = iobj.implicitFunction(x2_arr)
-
-    result_x_arr = np.zeros(ray_x.shape)
-
-    EPS = 0.0000001  # sign
-
-    n = x1_arr.shape[0]
-    already_root = np.zeros((n,), dtype=np.int)
-    #assert v2_arr * va > 0 - EPS  # greater or equal
-    active_indices  = np.arange(0,n)  # mid
-    iteration = 1
-    while True:
-        #print(v1_arr.shape, "*")
-        #print(np.vstack((v1_arr,v2_arr)))
-        #print(v2_arr * v1_arr )
-        #print("aaaaaaaaaaaaaaaa")
-        #print(v1_arr)
-        #print(v2_arr)
-        #print(v2_arr * v1_arr)
-        #assert np.all(v2_arr * v1_arr < 0 - EPS)  # greater or equal
-        assert np.all(mysign_np(v2_arr) * mysign_np(v1_arr) < 0 - EPS)  # greater or equal
-
-        assert np.all(v1_arr < 0-ROOT_TOLERANCE)
-        assert active_indices.shape[0] == x1_arr.shape[0]
-        assert active_indices.shape[0] == x2_arr.shape[0]
-        x_mid_arr = ( x1_arr + x2_arr ) / 2.0
-        x_mid_arr[:,3] = 1
-        v_mid_arr = iobj.implicitFunction(x_mid_arr)
-        assert v_mid_arr.shape == active_indices.shape
-        assert active_indices.ndim == 1
-
-        #flipped_i = v_mid_arr
-        #contains the indices
-        dif = -v_mid_arr  # assuming x1 is always outside and x2 is inside
-        assert dif.shape == active_indices.shape
-        boolean_eq = np.abs(dif) <= ROOT_TOLERANCE
-        boolean_gt =  dif >  ROOT_TOLERANCE
-        boolean_lt =  dif <  -ROOT_TOLERANCE # dif <  ROOT_TOLERANCE
-        boolean_neq = np.logical_not( boolean_eq )
-        #logical_or
-        assert np.all( np.logical_or(boolean_gt, boolean_lt) == np.logical_not(boolean_eq) )
-        #print("boolean_gt", boolean_gt)  #t
-        #print("boolean_lt", boolean_lt)  #f
-
-
-        which_zeroed     = active_indices[ boolean_eq ] # new start = mid
-        which_flippedAt1 = active_indices[ boolean_gt ] # new end = mid
-        which_flippedAt2 = active_indices[ boolean_lt ]
-        which_flippedAny = active_indices[ boolean_neq ]
-
-        already_root[which_zeroed] = 1  # iteration
-        result_x_arr[which_zeroed,:] = x_mid_arr[boolean_eq,:]
-
-
-        #x1_arr and x2_arr should have the same size eventually. the boolean_eq should be removed from their indices.
-        #the total is np.arange(n)
-        v2_arr[boolean_lt] = v_mid_arr[boolean_lt]#[which_flippedAny]
-        x2_arr[boolean_lt,:] = x_mid_arr[boolean_lt,:]#[which_flippedAny]   # which_flippedAt2
-
-        #note: x2_arr is modified inplace (side-effect)
-
-
-        #x1_arr and x2_arr both shrink here
-
-        v1_arr[boolean_gt] = v_mid_arr[boolean_gt]#[which_flippedAny]
-        x1_arr[boolean_gt,:] = x_mid_arr[boolean_gt,:]#[which_flippedAny]   #which_flippedAt1
-
-        v1_arr = v1_arr[boolean_neq]
-        v2_arr = v2_arr[boolean_neq]
-        x1_arr = x1_arr[boolean_neq,:]
-        x2_arr = x2_arr[boolean_neq,:]
-        #print("active_indices = ", active_indices)
-        #print("which_flippedAny = ", which_flippedAny)
-        #print("active_indices[which_flippedAny] = ", active_indices[boolean_neq])
-        active_indices = active_indices[boolean_neq] #which_flippedAt1 || which_flippedAt2
-        iteration += 1
-
-        assert x1_arr.shape == x2_arr.shape
-        assert v1_arr.shape == v2_arr.shape
-        assert active_indices.shape == v1_arr.shape
-
-        #print(active_indices)
-        #print(v1_arr, "****", v2_arr)
-        #print(boolean_lt)
-        #print("*******")
-
-        if len(active_indices) == 0:
-            break
-
-    assert len(active_indices) == 0
-    #result_x_arr
-    v_arr = iobj.implicitFunction(result_x_arr)
-    assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
-    return result_x_arr
-
-bisection_vectorized1 = numerical_raycast_bisection_vectorized
-
-# def
-#     npoints = 1000
-#     radius = 5
-#     x = basic_types.make_random_vector_vectorized(npoints, radius, 1, type="rand", normalize=False)
-#     x1_arr = x
-#     x1_arr[:,0] += 4
-#     x1_arr[:,1] += 10
-#     ray_n = -x # iobj_.implicitGradient(x)
-#     ray_n[:,3] = 1
-#     #, rayscast=None
-#     xx = numerical_utils.numerical_raycast_bisection_vectorized(iobj_, x1_arr, ray_n)
-
-
 
 import numpy as np
 global STEPSIZE
@@ -594,13 +587,13 @@ def test3():
         assert e2 < TOL
 
 
-def test4():
+def test5():
     global q4
     q4 = bisection_vectorized4(ifunc, xo, xi)
     assert testout(ifunc, q4)
 
 
-def test5():
+def test4():
     global q4
     q5 = bisection_vectorized_frozen4(ifunc, xo, xi)
     assert testout(ifunc, q5)
@@ -617,20 +610,22 @@ def optimised_used():
     print "optimisation", _optimised_used
     return  _optimised_used
 
+
 import matplotlib.pyplot as plt
 
 
 def experiment1():
     #test3()
     #test2()
-    na = [1,2,5,10, 100,200,400,600, 800,  1000] #, 2000, 10000, ] # 100000, 200000, 300000] #, 1000000]
+    # 20000
+    na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000 ] # 100000, 200000, 300000] #, 1000000]
     #na = [1000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
 
     test_scripts = ['test1()', 'test2()', 'test3()', 'test4()', 'test5()']
     sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m^-", 4: "r^--"}
-    lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-inplace', 4: 'vec-inplace'}  # vec-no-alloc
+    lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-inplace (old)', 4: 'vec-inplace'}  # vec-no-alloc
 
     tl = []
     for ei in range(len(na)):
