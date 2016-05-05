@@ -38,8 +38,8 @@ def make_grid(iobj, rng, old=None):
     vgrid_v = iobj.implicitFunction(xyza)
     vgrid = np.reshape(vgrid_v, (len(rng), len(rng), len(rng)), order='C')
 
-    # if np.sum(vgrid_v > 0) == 0:
-    #     raise PolygonizationError("The shape is empty. No interior points detected")
-    # if VERBOSE:
-    #     print("interior points:", np.sum(vgrid_v > 0))
+    if np.sum(vgrid_v > 0) == 0:
+        raise PolygonizationError("The shape is empty. No interior points detected")
+    if VERBOSE:
+        print("interior points:", np.sum(vgrid_v > 0))
     return vgrid

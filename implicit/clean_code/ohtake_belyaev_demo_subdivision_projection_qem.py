@@ -406,11 +406,165 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 
 
 
+def build_faces_of_faces(facets):
+    """ builds lookup tables. The result if an array of nfaces x 3,
+    containing the face index of neighbours of each face.
+    Since each face has exactly three neighbours, the size of the result is n x 3."""
+    from mesh_utils import make_edge_lookup_old
+    (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
+        make_edge_lookup_old(facets)
 
+    # need: faces_of_faces
+    # e__nf_x_3 = edges_of_faces[facets]
+    # print e__nf_x_3.shape
+    # assert e__nf_x_3.shape == (nfaces, 3, 3)
+    print edges_of_faces.shape
+    nfaces = facets.shape[0]
+    assert edges_of_faces.shape == (nfaces, 3)
+    f1 = faces_of_edges[edges_of_faces, 0]  # first face of all edges of all faces : nf x 3 -> nf
+    f2 = faces_of_edges[edges_of_faces, 1]  # second face of all edges of all faces: nf x 3 -> nf   #3 for 3 sides (edges)
+    # one of the two (0:2) is equal to index=face. [index,3, 0:2 ]
+    f12 = faces_of_edges[edges_of_faces, :]
+    print f12.shape
+    assert f12.shape == (nfaces, 3, 2)
+    #print f12[0:5, :, :]
+    #strip f12 from repeats of the same face as one of its neighbours (at each side: 3 sides). Hence, the size changes from (nfaces,3,2) to (nfaces,3)
+    faceindex_eye = np.tile( np.arange(nfaces)[:, np.newaxis, np.newaxis], (1, 3, 2))
+    assert faceindex_eye.shape == (nfaces, 3, 2)
+    f12 = f12 + 1
+    f12[f12 == faceindex_eye+1] = 0  # np.nan
+    # print f12[0:5, :, :]
+    assert np.allclose(np.prod(f12, axis=2), 0)  # check of each row has at least a zero
+    f_uniq = np.sum(f12, axis=2)  # 0s will not be added
+    #print f_uniq[0:5,:]
+    # f_uniq now contains the neighbour of each face. one face at each side of each face: nfaces x 3 -> face
+    assert np.sum(f_uniq.ravel() == 0) == 0  # all faces have at least one neighbour at each side.
+    return f_uniq - 1  # fix back the indices
+
+def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
+    """ faceslist_neighbours_of_vertex: *** """
+
+    def kij(i, j):
+        """ Returns (1/r * Theta), a measure of curvature.
+        Theta is the angle between two normals at centroids (dual vertices) i, j.
+        The 1/r is the inverse of the distance between the pair.
+
+        Notes:
+        Normals should be already normalised (centroid normals).
+        centroids should be already [projected] on the implicit surface (dual mesh is optimised).
+        """
+
+        # i,j are centroids
+        assert i != j
+        pi, pj = (centroids[i, 0:3], centroids[j, 0:3])
+
+        # based on gradients. normalised.
+        mi, mj = (centroid_normals[i, 0:3], centroid_normals[j, 0:3])
+        assert mi.shape == (3,)
+        assert mj.shape == (3,)
+        assert np.abs(np.linalg.norm(mi) - 1.0) < 0.0000001
+        assert np.abs(np.linalg.norm(mj) - 1.0) < 0.0000001
+        mimj = np.dot(np.transpose(mi), mj)
+        #mimj[mimj>1.0] = 1.0
+        if mimj > 1.0:
+            mimj = 1.0
+        pipj = np.linalg.norm(pi - pj)
+        if pipj == 0:
+            return 0
+        #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
+        assert pipj == np.linalg.norm(pi - pj, ord=2)
+
+        kij = np.arccos(mimj) / pipj  # radians?
+        return kij
+
+    def wi(i_facet, ja_facets, c):
+        """
+        Returns the weight of a facet i_facet.
+        Adds kij of all centroids of the neighbour facets.
+        ja_facets = list of centroid indices (face index).
+        i_facet is a face index. """
+        # todo: make a pipj matrix (fxf). Make an acos matrix (fxf). The latter is base on a matrix of gradients: fx3.
+        #
+        #print i_facet, ja_facets
+        assert i_facet not in ja_facets
+        assert len(ja_facets) == 3
+        # ja_facets = neighbour facets of facet i_facet????
+        ki = 0
+        for j_facet in ja_facets:
+            ki += kij(i_facet, j_facet)
+
+        wi = 1.0 + c*ki
+        # i_facet is facet (Centroid) index. j_facet is its neighbour facet (centroid). There are three j_facet for an i_facet.
+        #print("w_i=", wi)
+        return wi
+    #
+    c_ = c  # 2.0  # constant
+    vertex_index = 1  # vertex
+    #assert vertex_index >= 0
+    #assert vertex_index <
+    umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+    print("umbrella_facets: ", umbrella_facets)
+    #wa = np.zeros()
+    w_list = []
+    for i_facet in umbrella_facets:
+        # neighbour facet i_facet of Vertex vertex_index
+        print("i_facet", i_facet)
+        #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
+        three_facets = faces_of_faces[i_facet, :]
+        print(i_facet, three_facets)
+        w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
+        # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
+        print("w_i, i=", i_facet, w)
+        #w_list[i] = w
+        w_list.append(w)
+        #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
+        #todo: store in ...
+    #exit()
+    print "w_list ",w_list
+    #[1.9250638933714093, 2.0364604083536744, 1.4236331619142932, 3.4392903610759471, 5.4912745754508183, 3.2499307884393014, 5.0003861534703979]
+    print("===============")
+    #
+    #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
+    nfaces = centroids.shape[0]
+    wi_total_array = np.zeros((nfaces,))
+    for i_facet in range(nfaces):
+        three_facets = faces_of_faces[i_facet, :]
+        w = wi(i_facet, three_facets, c_)
+        wi_total_array[i_facet] = w
+    print wi_total_array
+    # The weights are prepared. Now let's resample vertices
+
+    vertex_index = 1
+    #todo: umbrella_Facets = sparse matrix
+    #umbrella_facets = np.array(faceslist_neighbours_of_vertex)  #empty
+
+    umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
+    print "umbrella_facets", umbrella_facets.shape, "****"
+    assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
+    #return wi_total_array
+
+    #
+
+    def lift_verts(verts, centroids):
+        new_verts = verts.copy()
+        # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
+        for vertex_index in range(verts.shape[0]):
+            umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
+            w = wi_total_array[umbrella_facets]
+            #w = w * 0 + 1
+            w = w / np.sum(w)
+            #print w / np.sum(w), w.shape
+            new_verts[vertex_index, :] = \
+                np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
+        return new_verts
+
+    return lift_verts(verts, centroids)
 
 #evaluate_centroid_gradients
 def compute_centroid_gradients(centroids, iobj, normalise=True):
+    centroids = centroids[:,:3]
     assert centroids is not None
+
     check_vector3_vectorized(centroids)
     centroid_gradients = iobj.implicitGradient(centroids)
     assert not np.any(np.isnan(centroid_gradients))
@@ -635,14 +789,14 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         A, b = get_A_b(vi, nai, centroids, centroid_gradients)
         #print A, b
 
-        print "A:", A, "\n"
-        print "b;",b
+#        print "A:", A, "\n"
+#        print "b;",b
         # print A.shape, b.shape
         u, s, v = np.linalg.svd(A)
-        print u.shape, s.shape, v.shape
-        print "u:",u, "\n",
-        print "s:",s,"\n",
-        print "v:", v, "\n"
+#        print u.shape, s.shape, v.shape
+#        print "u:",u, "\n",
+#        print "s:",s,"\n",
+#        print "v:", v, "\n"
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
 
@@ -702,14 +856,44 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
+def compute_centroids(verts, facets):
+    # see Mesh1::build_centroids
+    #self.calculate_face_areas()
+    expand = verts[facets,:]
+    nfacets = facets.shape[0]
+    assert expand.shape == (nfacets, 3, 3)
+    #if not np.allclose(verts[facets[:],:], expand):
+    #        print facets
+    #        set_trace()
+    assert np.allclose(verts[facets[:],:], expand)
+    centroids3 = np.mean( verts[facets[:],:], axis=1)  # again
+    centroids = np.concatenate( (centroids3, np.ones((nfacets,1))), axis=1)
+    return centroids
+
+def process2_vertex_resampling_relaxation(verts, facets, iobj):
+    assert not np.any(np.isnan(verts))
+    centroids = compute_centroids(verts, facets)
+    centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
+
+    from mesh_utils import make_neighbour_faces_of_vertex
+    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
+
+    faces_of_faces = build_faces_of_faces(facets)
+    #print faces_of_faces.shape, "*x3"
+
+    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
+
+    return new_verts, facets, centroids  # why does it return facets?
+
 #delete some artefacts dues in the sharps part of the mesh
 def comparison_verts_new_verts(old_verts, new_verts):
-    THL = 10. **(0.001)#find experimentaly
+    THL = 10. **(0.001)#find experimentally
     nverts = old_verts.shape[0]
     assert old_verts.shape == new_verts.shape
 
     for i in range(nverts):
         if np.abs(np.linalg.norm(old_verts[i,:] - new_verts[i,:])) > THL:
+#            print i, new_verts[i,:], old_verts[i,:]
             new_verts[i,:] = old_verts[i,:]
 
     return new_verts
@@ -718,11 +902,11 @@ def comparison_verts_new_verts(old_verts, new_verts):
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rods"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
