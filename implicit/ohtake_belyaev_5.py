@@ -1765,7 +1765,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
             nn_tile[nn_tile<0.00000001] = 100000.
         mm = mm / nn_tile
         mm = mm.transpose()  # 3x4
-        e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+
+        #n can be nan. fixme.
+        #QD solution:
+        if np.any(np.isnan(n)):
+            e = 0.
+        else:
+            e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
 
         # The only reason for NaN should be the exactly-zero gradients
 
@@ -2622,11 +2628,12 @@ def demo_everything():
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
         #nv1  =
         new_verts_qem = \
-            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients)
+            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients, old_centroids_debug=old_centroids)
         #verts = nv1
         #new_verts_qem = verts
-        print collector
-        set_trace()
+        
+        #print collector
+        #set_trace()
 
         if mesh_correction:
             any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
@@ -2721,7 +2728,7 @@ worst_30 = \
 
 worst_30 = worst_30[-1:]
 
-def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict, centroid_gradients):
+def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict, centroid_gradients, old_centroids_debug):
     """
     result_verts_ranks (is not returned) is -1 if the verts has no neighbour (i.e. not included in facets, i.e. not participating in the mesh."""
     #based on quadratic_optimise_vertices(self, alpha=1.0)
@@ -2753,8 +2760,35 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
             continue   # leave it alone
         neighbours_facelist = vertex_neighbour_facelist_dict[vertex_id]
         faces_array = np.array(neighbours_facelist, dtype=np.int64)
-        A, b = get_A_b(vi, faces_array, centroids, centroid_gradients)
+        #qem_origin = np.zeros((3, 1))
+        qem_origin = verts[vertex_id, :].reshape(3, 1)
+        A, b = get_A_b(vi, faces_array, centroids, centroid_gradients, qem_origin)
         #print A, b
+        if vi==310:
+            print "here"
+            def q():
+                fa = facets[faces_array,:]
+                pc = centroids[faces_array, :]
+                pc_old = old_centroids_debug[faces_array, :]
+                #old_centroids_debug
+                display_simple_using_mayavi_2(
+                    [(verts, fa), (verts, fa), (verts, facets),],
+                    pointcloud_list=[ pc, pc_old ], pointcloud_opacity=0.2, pointsizes=[0.2*0.2, 0.2*0.1]*2,
+                    mayavi_wireframe=[False, True, False], opacity=[0.2, 1, 0.1],
+                    gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+                    add_noise=[0, 0, 0.], noise_added_before_broadcast=True )
+                pass
+            q()
+            """
+            def 
+                display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
+                   pointcloud_list=[ ], pointcloud_opacity=0.2,
+                   mayavi_wireframe=[True, True, True], opacity=[0.1, 1, 0.2],
+                   gradients_at=None, separate_panels=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
+                   noise_added_before_broadcast=True
+                   )
+            """
+            pass
 
         ###
         #A, b = self.get_A_b(vi)
@@ -2812,7 +2846,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
             #print
             #print
             pass
-        new_x = np.dot(np.transpose(v), y)
+        assert qem_origin.shape == (3, 1)
+        new_x = np.dot(np.transpose(v), y) + qem_origin
         #print(x.ravel(), " -> ", new_x.ravel())
         #print("    delta=", (new_x - x).ravel())
 
@@ -2820,8 +2855,10 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         #self.new_verts[vi,3] = 1
 
         displacement = verts[vi,0:3]-new_verts[vi, 0:3]
-        if np.linalg.norm(displacement) > STEPSIZE:
-            set_trace()
+        if np.linalg.norm(displacement) > STEPSIZE*3:
+            #vi==310: norm is > 10.
+            #set_trace()
+            pass
 
 
         assert x.shape == (3, 1)
@@ -2848,11 +2885,12 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         assert result_verts_ranks.size == 0 or np.min(result_verts_ranks) >= 1
     return new_verts
 
-def get_A_b(vertex_id, faces_array, centroids, centroid_gradients):
+def get_A_b(vertex_id, faces_array, centroids, centroid_gradients, qem_origin):
     #refactor: faces_array contains faces.  -> neightbours_facelist or neightbours_faces
     #neighbours_facelist = self.vertex_neighbour_facelist_dict[vertex_id]
     #faces_array = np.array(neighbours_facelist, dtype=int)
     #faces_array = faces_array
+    assert qem_origin.shape == (3, 1)
     center_array = centroids[faces_array, :]
 
     #note some centers may not be projected successfully in the previous step
@@ -2884,7 +2922,7 @@ def get_A_b(vertex_id, faces_array, centroids, centroid_gradients):
 
     #print("normals", normals) # can be all 0,0,0
 
-    x0 = np.zeros((3, 1))
+    #qem_origin = np.zeros((3, 1))
 
     assert normals.shape[1] == 4
     #normals = normals   # (4)x4
@@ -2902,7 +2940,13 @@ def get_A_b(vertex_id, faces_array, centroids, centroid_gradients):
         #It is correct if A contains equal rows. In this case, we have faces that are parallel or on the same plane (e.g. on the same side of a cube)
         p_i = center_array[i, 0:3, np.newaxis]
         assert p_i.shape == (3, 1)
-        b += -np.dot(nnt, p_i - x0)
+        b += -np.dot(nnt, p_i - qem_origin)
+        if vertex_id==310:
+            #set_trace()
+            #print "loop end"
+            #print "loop end"
+            #print "loop end"
+            pass
 
         # IN PROGRESS
 
