@@ -111,9 +111,9 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         r_ = self.radius_u - r
         # t0,t1,r_  as if  x,y,z
 
-        print t0.shape, t1.shape, r_.shape
+        #print t0.shape, t1.shape, r_.shape
         m3 = np.concatenate((t0[:, np.newaxis], t1[:, np.newaxis], r_[:, np.newaxis]), axis=1)
-        print m3.shape
+        #print m3.shape
         fval = np.min(m3, axis=1)
 
         if not return_grad:
@@ -134,12 +134,13 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             grad_t0 = np.tile(self.w[np.newaxis,:,0], (count,1))
             grad_t1 = np.tile(-self.w[np.newaxis,:,0], (count,1))
             grad_r = np.transpose(p) - x
-            print c_t0.shape, "c_t0"
-            print c_t1.shape, "c_t1"
-            print c_r.shape, "c_r"
-            print grad_r.shape, "g_r"
-            print grad_t0.shape, "g_t0"
-            print grad_t1.shape, "g_t1"
+            #print c_t0.shape, "c_t0"
+            #print c_t1.shape, "c_t1"
+            #print c_r.shape, "c_r"
+            #print grad_r.shape, "g_r"
+            #print grad_t0.shape, "g_t0"
+            #print grad_t1.shape, "g_t1"
+            
             #print t0.shape, "t0"
             #print t1.shape, "t1"
             #return (c_t0) * grad_t0 + (c_t1) * grad_t1 + (c_r) * grad_r
@@ -156,7 +157,7 @@ class SimpleCylinder(ImplicitFunctionVectorized):
     def implicitGradient(self, x):
         # return numeric_utils.generic_slow_gradient(self, x)
         f, g = self.implicitFunction(x, return_grad=True)
-        print("ggggg", g.shape)
+        #print("ggggg", g.shape)
         return g
 
     def curvature(self, x):

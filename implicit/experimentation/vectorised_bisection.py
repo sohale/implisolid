@@ -658,6 +658,9 @@ def experiment1():
             #t1 = timeit.timeit(test_scripts[0], "from __main__ import test3", number=repeats)
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
 
+            #test5()
+            #exit()
+
             if USE_KERNPROF:
                 test3()
                 test5()
