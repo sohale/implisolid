@@ -2713,20 +2713,23 @@ def compute_average_edge_length(verts, faces):
     for i in range(3):
         i1 = i
         i2 = (i+1) % 3
-        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :])
+        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis=1)  # bug fixed! axis=1 was missing.
+        assert e1.shape == (nfaces,)
         ea_sum += np.mean(e1)
+    #set_trace()
     return ea_sum / 3.
 
 
 collector = []
 
-worst_30 = \
-    np.array([  858,   238,   839,   171,   799,   199,   211,  1068, 
-        1135,   998,  1276,   812,   243,   794,   643,   296,
-         957,   529,   294,   453,   960,   531,  1279,  1607,
-        1066,   303,   809,   413,   245,   700])
-
-worst_30 = worst_30[-1:]
+#worst_30 = \
+#    np.array([  858,   238,   839,   171,   799,   199,   211,  1068, 
+#        1135,   998,  1276,   812,   243,   794,   643,   296,
+#         957,   529,   294,   453,   960,   531,  1279,  1607,
+#        1066,   303,   809,   413,   245,   700])
+#
+#worst_30 = worst_30[-1:]
+worst_30 = np.array([], dtype=int)
 
 def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict, centroid_gradients, old_centroids_debug):
     """
@@ -2736,7 +2739,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
     assert not vertex_neighbour_facelist_dict is None
     assert not centroid_gradients is None
 
-    global collector
+    #global collector
     #alpha = 1.0
     nvert = verts.shape[0]
     #Check if all vertices are included.
@@ -2761,7 +2764,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         neighbours_facelist = vertex_neighbour_facelist_dict[vertex_id]
         faces_array = np.array(neighbours_facelist, dtype=np.int64)
         #qem_origin = np.zeros((3, 1))
-        qem_origin = verts[vertex_id, :].reshape(3, 1)
+        qem_origin = verts[vertex_id, :].reshape(3, 1)*0
         A, b = get_A_b(vi, faces_array, centroids, centroid_gradients, qem_origin)
         #print A, b
         if vi==310:
@@ -2778,7 +2781,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
                     gradients_at=None, separate_panels=False, gradients_from_iobj=None,
                     add_noise=[0, 0, 0.], noise_added_before_broadcast=True )
                 pass
-            q()
+            #q()
             """
             def 
                 display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
@@ -2840,7 +2843,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
             assert s[i]/s[0] >= 1.0/tau
             y[i] = utb[i] / s[i]
             #print 1./ s[i], "*"
-            collector.append((1./ s[i], vertex_id))
+            #collector.append((1./ s[i], vertex_id))
         if vertex_id in worst_30:
             #set_trace()
             #print

@@ -3,6 +3,7 @@ VERBOSE = False
 from basic_types import check_vector4_vectorized
 FAST_VERSION = True
 import math
+#from ipdb import set_trace
 
 def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
     #nones_map = centroids[:,0]*0 < 100
@@ -24,6 +25,7 @@ def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
 
 
 def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist ):
+    #set_trace()
     """ max_dist is used.
     See # setCenterOnSurface """
     #""" lambda_val: step size"""
@@ -45,7 +47,7 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist ):
     p2 = 2*start_x - p1
     f2 = iobj.implicitFunction(p2)
     p = p1  #None #p1 # None #p1  #default
-    if f1*f2 < 0:
+    if f1*f2 < 0:  #WHY 'if' ???????????
         direction = (start_x - p1)  # as in Ohtake
         dn = np.linalg.norm(direction)
         if dn > 0:  #dn>0.000000001:
