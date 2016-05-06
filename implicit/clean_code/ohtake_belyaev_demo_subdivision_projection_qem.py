@@ -95,7 +95,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 VERBOSE = False
 
 @profile
-def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
+def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
     Remeber: we may be on a totally irrelevant direction here.
@@ -136,10 +136,10 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_d
     while True:
     #    k += 1
     #    print k
-        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
-        assert max_iter_ >= 2
+    #    max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
+    #    assert max_iter_ >= 2
         # (C) jumps back here.
-        for j in range(max_iter_):
+        for j in range(MAX_ITER):
 
             if not along_1d:
                 direction = iobj.implicitGradient(start_x)
@@ -204,155 +204,6 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_d
 
 
 @profile
-def search_near_ohtake(iobj, start_x, lambda_val, MAX_ITER):  # max_dist
-    """Vectorized function of the search_near_ohtake_old who take a vector (start_x)
-     and return the vector p1_found if we found the centroids"""
-
-    #lambda should be ~ expected distance?  (that's why it should be half of the average edge size, i.e. half of the MC step size)
-    TH1 = 0.001
-    TH2_L = 0.00001
-
-    #start_x_new = start_x.copy()
-
-    #p1_found = np.ndarray(start_x.shape)
-    p1_found = np.zeros(start_x.shape)
-#    p2 = np.ndarray(start_x.shape)
-#    f0 = np.ndarray(start_x.shape[0])
-#    f2 = np.ndarray(start_x.shape[0])
-    direction = np.ndarray(start_x.shape)
-
-    p1 = start_x.copy() #adding the copy : solve one problem of the code
-    #p1 = start_x
-    f1 = iobj.implicitFunction(p1)
-
-    lambda_ = lambda_val * (-np.sign(f1))
-
-#    counting = 0
-
-    for i in range(start_x.shape[0]):
-        xxv = start_x[i,:].reshape(1,3)
-        check_vector4_vectorized(xxv)
-        direction[i,:] = (iobj.implicitGradient(xxv)) #no need for copy here!
-        dn = np.linalg.norm(direction[i,:]) #calculation of the normalization
-
-        if  dn > 0.0:
-            direction[i,:] = (direction[i,:]/dn)
-            direction[i,3] = 1
-
-#        f0 = f1[i]
-        eval_count = 0
-        eval_count += 1
-
-
-        if math.fabs(f1[i]) < TH1:
-            #print i, "Out"
-            p1_found[i,:] = p1[i,:]
-
-        else:
-
-        #    negative_f1 = -1 if f1[i] < 0. else 1
-        #    lambda_ = lambda_val * (-negative_f1)  # negation of input is bad practice
-
-            p2 = p1[i,:].copy()
-            exit_A = False
-            not_found = False
-            number_of_iteration = 0
-            s1 = start_x[i,:].copy()
-
-            while True:
-
-                # (C) jumps back here.
-                for j in range(MAX_ITER):
-                    number_of_iteration += 1
-
-                    xxv2 = start_x[i,:].copy().reshape(1,3)
-                    check_vector3_vectorized(xxv2)
-                    dir1 = iobj.implicitGradient(xxv2) #we have to give a copy of start_x to avoid problems
-                    dir1 = dir1[0,:]
-                    dn1 = np.linalg.norm(dir1.copy())
-
-                    if  dn1 > 0.0:
-                        dir1 = dir1/dn1
-                    dir2 = direction[i,:]
-
-
-                    # if not np.allclose(s2, s1):
-                    #     print i, "222"
-                    #     print start_x_new[i].shape, start_x_new[i].dtype
-                    #     print s1.shape, s1.dtype
-                    if not np.allclose(dir1,dir2):
-                        print i,"patate!"
-                        print dir1, dir2
-                        print dir1/dir1[0], dir2/dir2[0]
-                        print "ALLCLOSE failed"
-                        exit()
-
-
-                    p2 = p1[i,:] + lambda_[i] * dir2
-            #        p2[i,:] = p1[i,:] + lambda_[i] * direction[i]
-
-                    f2 =iobj.implicitFunction(p2.reshape(1,3))
-                    eval_count += 1
-
-                    if f1[i]*f2 < 0.0:
-                        exit_A = True #(A)
-                        break
-
-                    p1[i,:] = p2
-
-                    if number_of_iteration == MAX_ITER:
-                        number_of_iteration = 0
-                        lambda_[i] = lambda_[i] / 2.
-
-                    #    print lambda_[i], TH2_L
-
-                        if np.abs(lambda_[i]) < TH2_L:
-                            print i, "(B)", eval_count
-                            not_found = True
-                            break
-                        else:
-                            p1[i,:] = start_x[i,:].copy()
-                            # assert f0 * f1[i] >= 0
-                            # f1[i] = f0  #This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
-                            p2 = p1[i,:].copy()
-
-                if exit_A:
-                    break
-                if not_found: #np.abs(lambda_)< TH2_l
-                    break
-    #
-            if not not_found:
-
-                #import ipdb; ipdb.set_trace()
-                assert f1[i]*f2 < 0.0
-                if f1[i] > 0:
-                    (p1[i,:], p2) = (p2, p1[i,:])
-                    (f1[i], f2) = (f2, f1[i])
-
-                assert f1[i] < 0
-                assert f2 > 0
-                assert math.fabs(f1[i]) < 1000, str(p1[i,:])
-                assert math.fabs(f2) < 1000, str(p2)
-
-                converged, p1[i,:], p2, iter_log = bisection_prop_2(iobj, p1[i,:].reshape(1,3), p2.reshape(1,3), f1[i], f2, MAX_ITER/2)
-                assert f1[i] < 0
-                assert f2 > 0
-
-                if converged:
-                    p1_found[i,:] = p1[i,:].copy()
-
-                else:
-                    p1_found[i,:] = 0
-
-                #    print p1_found[i,:]
-        #    print direction[i,:], np.linalg.norm(direction[i,:])
-        # if f1[i] == f0:
-        #     counting += 1
-    #    print p1_found[i] - start_x[i]
-#    print counting
-    return p1_found
-
-@profile
 def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 #    here we consider that the max_dist is the average_edge and lambda = average_edge/2
 #    new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
@@ -374,64 +225,9 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
     for i in range(centroids.shape[0]):
 
     #    print i, "Trying to find in the first direction"
-        p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
-        if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
-            p1[i,:].reshape(1,3)
-            f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
-
-                # Mirror image: search the opposite way and accept only if it is closer than the best found.
-            p2[i,:] = 2*centroids_new[i,:] - p1[i,:] #p2 correspond to S in the paper
-            f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,3))
-            p[i,:] = p1[i,:]
-
-
-            if f1[i]*f2[i] < 0:
-                direction_3[i,:] = (centroids_new[i,:] - p1[i,:].copy())  # as in Ohtake
-                dn_3[i] = np.linalg.norm(direction_3[i,:])
-                if dn_3[i] > 0:  #dn>0.000000001:
-                    direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
-            #        print i, "Trying to find in the opposite direction"
-
-                if p3 is not None:
-                    if np.linalg.norm(centroids[i,:] - p3) > np.linalg.norm(centroids[i,:] - p1[i,:]):
-                        p[i,:] = p3
-                            #else:
-                            #    p = p1
-                #else:
-                # #    p = p1
-            #if p[i,:] is not None:
-            if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
-                centroids[i,:] = p[i,:]
-
-
-def set_centers_on_surface_ohtake_not_correct_points(iobj, centroids, average_edge):
-#    here we consider that the max_dist is the average_edge and lambda = average_edge/2
-#    new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
-    lambda_val = average_edge/2
-    check_vector3_vectorized(centroids)
-    #definition of the matrix that are gonna be used in the rest of the programm
-    p1 = np.ndarray(centroids.shape)
-    p2 = np.ndarray(centroids.shape)
-    p3 = np.ndarray(centroids.shape)
-    p = np.ndarray(centroids.shape)
-    f1 = np.ndarray(centroids.shape[0])
-    f2 = np.ndarray(centroids.shape[0])
-    direction_3 = np.ndarray(centroids.shape)
-    dn_3 = np.ndarray(centroids.shape[0])
-
-    centroids_pb = np.ndarray(centroids.shape)
-    old_centroids = centroids.copy()
-    centroids_new = centroids.copy()
-    max_iter = 20
-    k = 0
-    for i in range(centroids.shape[0]):
-
-    #    print i, "Trying to find in the first direction"
         p1[i,:] = search_near_ohtake_old(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter)
         if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
             p1[i,:].reshape(1,3)
-        #    import ipdb; ipdb.set_trace()
             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
 
                 # Mirror image: search the opposite way and accept only if it is closer than the best found.
@@ -439,7 +235,6 @@ def set_centers_on_surface_ohtake_not_correct_points(iobj, centroids, average_ed
             f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,3))
             p[i,:] = p1[i,:]
 
-#            print f1[i], f2[i]
 
             if f1[i]*f2[i] < 0:
                 direction_3[i,:] = (centroids_new[i,:] - p1[i,:].copy())  # as in Ohtake
@@ -449,8 +244,6 @@ def set_centers_on_surface_ohtake_not_correct_points(iobj, centroids, average_ed
                     p3 = search_near_ohtake_old(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter)
             #        print i, "Trying to find in the opposite direction"
 
-
-                    #no max_dist
                 if p3 is not None:
                     if np.linalg.norm(centroids_new[i,:] - p3) > np.linalg.norm(centroids_new[i,:] - p1[i,:]):
                         p[i,:] = p3
@@ -459,15 +252,9 @@ def set_centers_on_surface_ohtake_not_correct_points(iobj, centroids, average_ed
                 #else:
                 # #    p = p1
             #if p[i,:] is not None:
-            if np.linalg.norm(centroids_new[i,:] - p[i,:]) <= average_edge:
-                centroids_new[i,:] = p[i,:]
-        if iobj.implicitFunction(centroids_new[i,:].reshape(1,3)) > 0.00001:
-            k += 1
-            centroids_pb[i,:] = old_centroids[i,:]
-            print i, iobj.implicitFunction(centroids_new[i,:].reshape(1,3)), "Centroid not on the surface"
+            if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
+                centroids[i,:] = p[i,:]
 
-    return centroids_pb
-    print "Number of centroids not on the surface:", k
 
 def compute_triangle_areas(verts, faces, return_normals=False):
     """ facet_normals: can contain NaN if the area is zero"""
@@ -1206,7 +993,7 @@ def demo_combination_plus_qem():
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    if object_name =="cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods":
+    if object_name =="cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
@@ -1214,6 +1001,9 @@ def demo_combination_plus_qem():
 
     elif object_name == "french_fries_vectorized" or object_name == "rods":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.1)
+
+    elif object_name == "bowl_15_holes":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.3)
 
     elif object_name == "cyl3":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
@@ -1253,9 +1043,9 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
     # exit()
 
-    for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-        print("Vertex relaxation applied.");sys.stdout.flush()
+    # for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+    #     verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+    #     print("Vertex relaxation applied.");sys.stdout.flush()
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
@@ -1289,7 +1079,7 @@ def demo_combination_plus_qem():
     #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    #exit()
+    # exit()
 
     #neighbour_faces_of_vertex
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
@@ -1302,6 +1092,10 @@ def demo_combination_plus_qem():
     alpha = 0.
 
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+
+    # for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+    #     new_verts_qem_alpha, facets_not_used, centroids = process2_vertex_resampling_relaxation(new_verts_qem_alpha, facets, iobj)
+    #     print("Vertex relaxation applied.");sys.stdout.flush()
 
     chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
@@ -1316,16 +1110,17 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131,  71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
     #
-    # new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
-    # display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
-    #    pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-    #    mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
-
-    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
+    display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ], pointcloud_opacity=0.2,
        mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
+    exit()
+
+    # display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    #    pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
 
 #from timeit import default_timer as dtimer
 
