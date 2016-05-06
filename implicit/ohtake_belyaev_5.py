@@ -1510,9 +1510,26 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
+def visualise_displacements(mlab, verts_from, verts_to):
+    n = verts_from.shape[0]
+    assert verts_from.shape == (n, 3)
+    assert verts_to.shape == (n, 3)
+
+    xyz1 = verts_from
+    xyz2 = verts_to
+    ddd = xyz2 - xyz1  #displacement
+    arrow_size = np.mean(np.linalg.norm(ddd, axis=1)) * 0.3
+ 
+    xx, yy, zz = xyz1[:, 0], xyz1[:, 1], xyz1[:, 2]
+    uu, vv, ww = ddd[:, 0], ddd[:, 1], ddd[:, 2]
+    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=arrow_size)
+    #line_width=0.5
+
+
+
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate_panels=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
-        add_noise=[], noise_added_before_broadcast=False):
+        add_noise=[], noise_added_before_broadcast=False, fromto=None):
     """Two separate panels"""
 
     print"Mayavi: importing..", ; sys.stdout.flush()
@@ -1675,6 +1692,12 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     if gradients_from_iobj is not None:
         add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
 
+    if not fromto == None:
+        (verts_from, verts_to) = fromto
+        assert verts_from.shape[1] == 3
+        assert verts_to.shape[1] == 3
+        assert verts_to.shape[0] < 10000
+        visualise_displacements(mlab, verts_from, verts_to)
     mlab.show()
     return
 
@@ -2481,7 +2504,7 @@ import mesh_utils
 def demo_everything():
     curvature_epsilon = 1. / 1000. *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT =  0 #1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
     global STEPSIZE
@@ -2497,6 +2520,10 @@ def demo_everything():
 
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+
+    from debug_point_collector import PointCollector
+    iobj = PointCollector(iobj)
+    point_collector = iobj
 
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     #iobj = two_bricks()
@@ -2576,6 +2603,8 @@ def demo_everything():
             #quick_vis(old_verts, old_facets, fpna)
             print coords
 
+        point_collector.reset()
+
         total_subdivided_facets = []
         for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
@@ -2634,6 +2663,18 @@ def demo_everything():
         
         #print collector
         #set_trace()
+
+        #no subdivision for now
+        assert pre_relaxation_verts.shape == verts.shape
+        display_simple_using_mayavi_2( [(verts, facets), (new_verts_qem, facets)],
+           pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+           mayavi_wireframe=[False, False], opacity=[0, 1],
+           gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+           minmax=(RANGE_MIN,RANGE_MAX),
+           add_noise=[0,0], noise_added_before_broadcast=True,
+           fromto=(pre_relaxation_verts, verts) )#fromto=(verts, new_verts_qem)  )
+        exit()
+
 
         if mesh_correction:
             any_mesh_correction = check_degenerate_faces(new_verts_qem, facets, "dontfix")
