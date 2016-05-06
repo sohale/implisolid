@@ -95,7 +95,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 VERBOSE = False
 
 @profile
-def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
+def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
     Remeber: we may be on a totally irrelevant direction here.
@@ -110,8 +110,8 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # m
     TH1 = 0.001
     # MAX_ITER = 20
     #TH2_L = 0.00000001  # Used by Ohtake. But too small
-    TH2_L = 0.00001  #only used in the along_1d mode
-    #TH2_L = 0.1
+    #TH2_L = 0.00001  #only used in the along_1d mode
+    TH2_L = 0.1/2.
     if direction is not None:
         along_1d = True
     else:
@@ -131,13 +131,15 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # m
 
     negative_f1 = -1 if f1 < 0. else +1
     lambda_ = lambda_val * (-negative_f1)  # negation of input is bad practice
-    k = 0
+#    k = 0
     exit_A = False
     while True:
-        k += 1
+    #    k += 1
     #    print k
+        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
+        assert max_iter_ >= 2
         # (C) jumps back here.
-        for j in range(MAX_ITER):
+        for j in range(max_iter_):
 
             if not along_1d:
                 direction = iobj.implicitGradient(start_x)
@@ -366,17 +368,15 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
     direction_3 = np.ndarray(centroids.shape)
     dn_3 = np.ndarray(centroids.shape[0])
 
-    old_centroids = centroids.copy()
     centroids_new = centroids.copy()
     max_iter = 20
 
     for i in range(centroids.shape[0]):
 
     #    print i, "Trying to find in the first direction"
-        p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,3)), None, lambda_val, max_iter)
+        p1[i,:] = search_near_ohtake_old(iobj, centroids[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
         if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
             p1[i,:].reshape(1,3)
-        #    import ipdb; ipdb.set_trace()
             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
 
                 # Mirror image: search the opposite way and accept only if it is closer than the best found.
@@ -384,18 +384,15 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
             f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,3))
             p[i,:] = p1[i,:]
 
-#            print f1[i], f2[i]
 
             if f1[i]*f2[i] < 0:
                 direction_3[i,:] = (centroids_new[i,:] - p1[i,:].copy())  # as in Ohtake
                 dn_3[i] = np.linalg.norm(direction_3[i,:])
                 if dn_3[i] > 0:  #dn>0.000000001:
                     direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter)
+                    p3 = search_near_ohtake_old(iobj, centroids[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
             #        print i, "Trying to find in the opposite direction"
 
-
-                    #no max_dist
                 if p3 is not None:
                     if np.linalg.norm(centroids[i,:] - p3) > np.linalg.norm(centroids[i,:] - p1[i,:]):
                         p[i,:] = p3
@@ -1201,15 +1198,16 @@ def comparison_verts_new_verts(old_verts, new_verts):
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
-    # VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rods"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    if object_name =="cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods":
+        VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
@@ -1287,16 +1285,11 @@ def demo_combination_plus_qem():
     #new_centroids is the output
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
 
-
-    display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-       pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, True,], opacity=[0.5, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
-        # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-        #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
-        #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-        #    minmax=(RANGE_MIN,RANGE_MAX)  )
-#    exit()
+    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
+    #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    #exit()
 
     #neighbour_faces_of_vertex
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
@@ -1323,16 +1316,16 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131,  71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
     #
-    new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
-    display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
-       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
-
-    # display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+    # new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
+    # display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
     #    pointcloud_list=[ hv ], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
+
+    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX)  )
 
 #from timeit import default_timer as dtimer
 
