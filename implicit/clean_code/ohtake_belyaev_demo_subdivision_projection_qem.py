@@ -95,7 +95,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 VERBOSE = False
 
 @profile
-def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # max_dist
+def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
     Remeber: we may be on a totally irrelevant direction here.
@@ -136,10 +136,10 @@ def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER):  # m
     while True:
     #    k += 1
     #    print k
-    #    max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
-    #    assert max_iter_ >= 2
+        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
+        assert max_iter_ >= 2
         # (C) jumps back here.
-        for j in range(MAX_ITER):
+        for j in range(max_iter_):
 
             if not along_1d:
                 direction = iobj.implicitGradient(start_x)
@@ -225,7 +225,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
     for i in range(centroids.shape[0]):
 
     #    print i, "Trying to find in the first direction"
-        p1[i,:] = search_near_ohtake_old(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter)
+        p1[i,:] = search_near_ohtake_old(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
         if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
             p1[i,:].reshape(1,3)
             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
@@ -241,7 +241,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                 dn_3[i] = np.linalg.norm(direction_3[i,:])
                 if dn_3[i] > 0:  #dn>0.000000001:
                     direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake_old(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter)
+                    p3 = search_near_ohtake_old(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
             #        print i, "Trying to find in the opposite direction"
 
                 if p3 is not None:
@@ -249,9 +249,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                         p[i,:] = p3
                             #else:
                             #    p = p1
-                #else:
-                # #    p = p1
-            #if p[i,:] is not None:
+        
             if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
                 centroids[i,:] = p[i,:]
 
@@ -1042,10 +1040,6 @@ def demo_combination_plus_qem():
     #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
     # exit()
-
-    # for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-    #     verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-    #     print("Vertex relaxation applied.");sys.stdout.flush()
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
