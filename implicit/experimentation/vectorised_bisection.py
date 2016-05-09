@@ -33,6 +33,60 @@ def mysign_np(v):
 # 3 new vectorised (x1, x2), polished
 # 4 avoiding gc.
 
+def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER, ROOT_TOLERANCE=0.001, MIN_DISTANCE=0.001):
+    TH1 = MIN_DISTANCE  # 0.001 mm
+    TH3 = ROOT_TOLERANCE  # 0.001 (function value)
+
+    assert p1.shape[0] == 1
+    assert p2.shape[0] == 1
+
+    assert f1 < 0
+    assert f1*f2 < 0, "Opposite signs required"
+    for j in range(MAX_ITER):
+        if np.linalg.norm(p1-p2) < TH1:
+            if j == 0:  # Why was it not needed before??
+                p3 = 0.5 * (p1 + p2)
+            return p3, j  # Yes it happens
+        p3 = 0.5 * (p1 + p2)
+        f3 = iobj.implicitFunction(p3)
+        if np.abs(f3) < TH3:
+            return p3, j
+        elif f1*f3 >= 0:
+            p1 = p3
+            f1 = f3
+        else:
+            p2 = p3
+            f2 = f3
+    #print "Convergence of the bisection did not happen"
+    return None, MAX_ITER
+
+
+def bisection_pointwise0_6(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
+    # A point-wise version (version 1)
+    """ x1_arr_ must be outside and x2_arr_ must be inside the object.
+    Then this function finds points x=x1_arr+(lambda)*(x2_arr_-x1_arr_) where f(x)=0 using the bisection method."""
+    check_vector4_vectorized(x1_arr_)
+    check_vector4_vectorized(x2_arr_)
+    assert x1_arr_.shape[0] == x2_arr_.shape[0]
+    result_x_arr = np.zeros(x1_arr_.shape)
+    EPS = 0.000001  # sign
+
+    n = x1_arr_.shape[0]
+    for i in range(n):
+
+        x1v = x1_arr_[np.newaxis, i, :].copy()
+        x2v = x2_arr_[np.newaxis, i, :].copy()
+
+        v1_arr = iobj.implicitFunction(x1v)[0]
+        v2_arr = iobj.implicitFunction(x2v)[0]
+
+        MAX_ITER = 20
+        result_x_arr[i, :], iterations = bisection_3_standard(iobj, x1v, x2v, v1_arr, v2_arr, MAX_ITER)
+
+    return result_x_arr
+
+#bisection_pointwise1 = bisection_pointwise0
+
 def bisection_pointwise1(iobj, x1_arr_, x2_arr_, ROOT_TOLERANCE=ROOT_TOLERANCE):
     # A point-wise version (version 1)
     """ x1_arr_ must be outside and x2_arr_ must be inside the object.
@@ -458,7 +512,6 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
         #todo: x_mid_arr[indices_boundary[:active_count], :]
 
         #x1_arr and x2_arr should have the same size eventually. the boolean_boundary should be removed from their indices.
-        #the total is np.arange(n)
         v2_arr[indices_inside] = v_mid_arr[indices_inside]
         x2_arr[indices_inside] = x_mid_arr[indices_inside]
         v1_arr[indices_outside] = v_mid_arr[indices_outside]
@@ -470,7 +523,6 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
         assert active_count == active_indices.size
         active_indices = active_indices[indices_eitherside]
-        #print active_count, active_indices.shape
         assert active_count - found_count == active_indices.size
         old_active_count = active_count
         active_count = active_count - found_count
@@ -497,11 +549,13 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
         del old_active_count
 
+        assert len(active_indices) == active_count
         if len(active_indices) == 0:
             break
 
     assert active_indices.size == 0
-    if not optimised_used():
+    optimisation_used = optimised_used()
+    if not optimisation_used:
         v_arr = iobj.implicitFunction(result_x_arr)
         assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
     return result_x_arr
@@ -510,6 +564,11 @@ def bisection_vectorized5(iobj, x1_arr, x2_arr, ROOT_TOLERANCE=ROOT_TOLERANCE):
 
 import numpy as np
 global STEPSIZE
+
+import sys
+
+def flush():
+    sys.stdout.flush()
 
 
 def getifunc():
@@ -566,8 +625,10 @@ def testout(ifunc, q):
 
 def test2():
     global q2
+    print "test2", ; flush()
     q2 = bisection_vectorized1(ifunc, xo, xi)
     assert testout(ifunc, q2)
+    print "()", ; flush()
 
 def test1():
     global maxn_pointwise
@@ -575,13 +636,17 @@ def test1():
         return
 
     global q1
+    #print "test1", ; flush()
     q1 = bisection_pointwise1(ifunc, xo, xi)
+    #print "()" ; flush()
     assert testout(ifunc, q1)
 
 
 def test3():
     global q3
+    #print "test3", ; flush()
     q3 = bisection_vectorized2(ifunc, xo, xi)
+    #print "()" ; flush()
     assert testout(ifunc, q3)
 
     TEST_RESULTS = False
@@ -600,7 +665,9 @@ def test3():
 
 def test5():
     global q5
+    print "test5", ; flush()
     q5 = bisection_vectorized5(ifunc, xo, xi)
+    print "()", ; flush()
     assert testout(ifunc, q5)
 
 
@@ -608,6 +675,16 @@ def test4():
     global q4
     q4 = bisection_vectorized_frozen4(ifunc, xo, xi)
     assert testout(ifunc, q4)
+
+
+def test6():
+    #Back to point-wise
+    global q6
+    print "test6", ; flush()
+    q6 = bisection_pointwise0_6(ifunc, xo, xi)
+    print "()", ; flush()
+    assert testout(ifunc, q6)
+
 
 
 def optimised_used():
@@ -618,7 +695,7 @@ def optimised_used():
         _optimised_used = False
         return True
     assert side_effect()
-    print "optimisation", _optimised_used
+    #print "optimisation", _optimised_used
     return  _optimised_used
 
 
@@ -629,15 +706,17 @@ def experiment1():
     #test3()
     #test2()
     # 20000
+    # Best results: test5(): 4.5 (sec) for 300'000 points
     na = [1,2,5,10, 100,200,400,600, 800,  1000, 2000, 10000, ]  # 100000, 200000, 300000] #, 1000000]
     if USE_KERNPROF:
         na = [10000]
     global n_min
     na = filter(lambda e: e <= n_min, na)
 
-    test_scripts = ['test1()', 'test2()', 'test3()', 'test4()', 'test5()']
-    sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m^-", 4: "r^--"}
-    lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-inplace (old)', 4: 'vec-inplace'}  # vec-no-alloc
+    test_scripts = ['test1()', 'test2()', 'test3()', 'test4()', 'test5()', 'test6()']
+    sty = {2: "r*-", 1: "bs-", 0: ".k-", 3: "m^-", 4: "r^--", 5: ".k:"}
+    lbl = {2: 'numpy vec. (new)', 1: 'numpy vec. (old)', 0: 'point-wise', 3: 'vec-inplace (old)', 4: 'vec-inplace', 5: 'pointwise actually used'}  # vec-no-alloc
+    COUNT = len(test_scripts)-1
 
     tl = []
     for ei in range(len(na)):
@@ -654,7 +733,7 @@ def experiment1():
         repeats = 1 # max(int(math.ceil(10/n)), 2)
         import timeit
         tt = ()
-        for test_i in range(len(test_scripts)):
+        for test_i in range(COUNT):
             #t1 = timeit.timeit(test_scripts[0], "from __main__ import test3", number=repeats)
             #t2 = timeit.timeit(test_scripts[1], "from __main__ import test2", number=repeats)
 
@@ -682,9 +761,12 @@ def experiment1():
     #print ta.shape
     print ta * 1000  # in msec
     print "speedup ratios:"
-    for test_i in range(1, len(test_scripts)):
+    for test_i in range(1, COUNT):
         print lbl[test_i], "ratio = ", ta[:, 0]/ta[:, test_i]
         # print "ratio =", ta[:, 0]/ta[:, test_i]
+    print "abolute time:",
+    test_i = 5-1
+    print lbl[test_i], "(sec) = ", ta[:, test_i]
 
     naa = np.array(na)
 
@@ -700,7 +782,7 @@ def experiment1():
 
     #g0 = plt.loglog(naa, naa/asymp[0]*asymp[1]/100, "b:", label='asympt')
     #sty = {'point-wise':"r*-", 'numpy vectorised':"bs-" }
-    for j in range(len(sty)):
+    for j in range(COUNT):
         #k = sty.keys()[j]
         #plt.loglog(naa, ta[:, j], k, label=sty[k])
         plt.loglog(naa, ta[:, j], sty[j], label=lbl[j])
@@ -714,7 +796,7 @@ def experiment1():
     #g1 = plt.plot(naa, ta[:, 1], "r*-", label='point-wise')
 
     #g2 = plt.plot(naa, ta[:, 0], "bs-", label='numpy vectorised')
-    for ti in range(1, len(test_scripts)):
+    for ti in range(1, COUNT):
         g2 = plt.plot(naa, ta[:, ti], sty[ti], label=lbl[ti])
     plt.plot(naa, naa * asymp_ratio1, "b:", label='asympt')
     g0 = plt.plot(naa, naa * asymp_ratio2 + asymp_bias, "b:", label='asympt')
