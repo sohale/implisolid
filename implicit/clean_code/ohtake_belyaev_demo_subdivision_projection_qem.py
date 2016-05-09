@@ -365,8 +365,6 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         ki = 0
         for j_facet in ja_facets:
             ki += kij(i_facet, j_facet)
-
-        assert not np.isnan(ki)
         wi = 1.0 + c*ki
 
         return wi
@@ -401,7 +399,6 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         three_facets = faces_of_faces[i_facet, :]
         w = wi(i_facet, three_facets, c_)
         wi_total_array[i_facet] = w
-        assert not np.isnan(w)
     print wi_total_array
     # The weights are prepared. Now let's resample vertices
 
@@ -416,26 +413,14 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
         for vertex_index in range(verts.shape[0]):
-
-
-            if vertex_index in faceslist_neighbours_of_vertex:
-                #print faceslist_neighbours_of_vertex[vertex_index]
-                umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=int)
-                w = wi_total_array[umbrella_facets]
-                assert not np.any(np.isnan(umbrella_facets.ravel()))  # pass
-                assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
-
-                assert not np.any(np.isnan(w.ravel()))  # fails
-                w = w / np.sum(w)
-                assert not np.any(np.isnan(w.ravel()))  # fails
-
-                new_verts[vertex_index, :] = \
-                    np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
-            else:
-                pass  # leave new_verts[vertex_index,:] unmodified
-        assert not np.any(np.isnan(new_verts.ravel()))  # fails
+            umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
+            w = wi_total_array[umbrella_facets]
+            #w = w * 0 + 1
+            w = w / np.sum(w)
+            #print w / np.sum(w), w.shape
+            new_verts[vertex_index, :] = \
+                np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
         return new_verts
-
 
     return lift_verts(verts, centroids)
 
@@ -585,6 +570,7 @@ def compute_average_edge_length(verts, faces):
         i2 = (i+1) % 3
         e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis = 1 )
         ea_sum += np.mean(e1)
+
     return ea_sum / 3.
 
 
@@ -668,16 +654,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         qem_origin = verts[vertex_id, :].reshape(3, 1)*0
         A, b = get_A_b(vi, nai, centroids, centroid_gradients, qem_origin)
     #    A, b = get_A_b(vi, nai, centroids, centroid_gradients)
-        #print A, b
 
-#        print "A:", A, "\n"
-#        print "b;",b
-        # print A.shape, b.shape
         u, s, v = np.linalg.svd(A)
-#        print u.shape, s.shape, v.shape
-#        print "u:",u, "\n",
-#        print "s:",s,"\n",
-#        print "v:", v, "\n"
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
 
@@ -687,15 +665,6 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         #print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
     #    print "rank:", rank
-
-        if not  s[0] > 0.000001:
-            print("Warning! sigma_1 == 0" )
-            print(s)
-            print("A", A)
-
-            #not tested
-            result_verts_ranks[vi] = 0
-            new_verts[vi, 0:3] = new_x[:, 0]
 
         assert np.all(s[:rank]/s[0] >= 1.0/tau)
 
@@ -714,6 +683,13 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         new_x = np.dot(np.transpose(v), y)
         #print(x.ravel(), " -> ", new_x.ravel())
         #print("    delta=", (new_x - x).ravel())
+
+        if not  s[0] > 0.000001:
+            print("Warning! sigma_1 == 0" )
+            print(s)
+            print("A", A)
+
+            result_verts_ranks[vi] = 0
 
         assert x.shape == (3, 1)
 
@@ -743,9 +719,6 @@ def compute_centroids(verts, facets):
     expand = verts[facets,:]
     nfacets = facets.shape[0]
     assert expand.shape == (nfacets, 3, 3)
-    #if not np.allclose(verts[facets[:],:], expand):
-    #        print facets
-    #        set_trace()
     assert np.allclose(verts[facets[:],:], expand)
     centroids3 = np.mean( verts[facets[:],:], axis=1)  # again
     centroids = np.concatenate( (centroids3, np.ones((nfacets,1))), axis=1)
@@ -792,20 +765,12 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     global trace_subdivided_facets
     trace_subdivided_facets = []
 
-
-    #raise "not tested yet. re-read/write step by step"
-    #allocate space for them
-
-    #new_verts = verts_old + 3*len(tobe_subdivided_face_indices)
-    #new_facets = facets_old + 3*len(tobe_subdivided_face_indices)
-
     provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
     provisional_new_facets_count = 3*len(tobe_subdivided_face_indices)
     nverts_old = verts_old.shape[0]
     nfaces_old = facets_old.shape[0]
     new_verts = np.zeros((nverts_old+provisional_new_verts_count, 3), dtype=float)
     new_facets = np.zeros((nfaces_old+provisional_new_facets_count, 3), dtype=int)
-    #set_trace()
     new_verts[:nverts_old, :] = verts_old
     new_facets[:nfaces_old, :] = facets_old
 
@@ -830,19 +795,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
         assert vxyz_0123.shape == (6, 3)
 
-        #tobeadded_verts = m0123
 
-        #tobeadded_verts = m123
-        #subdivision = oldtriangle
-
-        #mini_verts = np.concatenate( (oldtriangle, tobeadded_verts), axis=0)
-
-        # adding new verts and facets
-
-        #*********
-        # indices of original points
-        #v012 = facets_old[fi, :]  # range(0, 3)  #
-        #v345 = np.arange(new_vertex_counter, new_vertex_counter+3, dtype=int)   #range(3, 6)
         v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
         v345 = range(new_vertex_counter, new_vertex_counter+3)
 
@@ -855,23 +808,16 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
         # facet's vertex indices
         v012345 = np.array(v012 + v345, dtype=int)
-
         mini_faces_l = [[0, 3, 5], [3, 1, 4], [5, 4, 2], [3, 4, 5]]  # 0,3,1,4,2,5
-
-        mini_faces = v012345[np.array(mini_faces_l)]
+        mini_faces = v012345[np.array(mini_faces_l, dtype=int)]
 
         new_facets[fi, :] = mini_faces[0, :]
         new_facets[new_facet_counter:(new_facet_counter+3), :] = mini_faces[1:(1+3), :]
         assert mini_faces.shape[0] == (1+3)
-        #trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3))
         trace_subdivided_facets += range(new_facet_counter, (new_facet_counter+3)) + [fi]  # include the face which reuses the old face's index
         # trace_subdivided_facets will contain indices of faces
 
         new_facet_counter += 3
-
-
-        #return mini_verts, mini_faces
-        #numsubdiv = 4
 
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
@@ -988,11 +934,11 @@ def comparison_verts_new_verts(old_verts, new_verts):
 def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "screw1"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1003,10 +949,10 @@ def demo_combination_plus_qem():
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
 
     elif object_name == "french_fries_vectorized" or object_name == "rods":
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.1)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.10)
 
     elif object_name == "bowl_15_holes":
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.3)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.26)
 
     elif object_name == "cyl3":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
@@ -1015,23 +961,23 @@ def demo_combination_plus_qem():
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
 
-    # import vectorized, example_objects
-    # c2 = vectorized.UnitCube1(1.)
-    # def rotate_scale_(iobj, scale, center, angle=0.):
-    #     ns = vectorized
-    #     import numpy
-    #     m = numpy.eye(4)
-    #     m[0,0] = 0.1
-    #     iobj = ns.Transformed(iobj, m=m)
-    #     iobj  \
-    #         .resize(scale) \
-    #         .move(center[0], center[1], center[2])
-    #     if angle != 0.:
-    #         iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-    #     return iobj
-    #
-    # c2 = rotate_scale_(c2, 2., [1,1,1])
-    # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    import vectorized, example_objects
+    c2 = vectorized.UnitCube1(1.)
+    def rotate_scale_(iobj, scale, center, angle=0.):
+        ns = vectorized
+        import numpy
+        m = numpy.eye(4)
+        m[0,0] = 0.1
+        iobj = ns.Transformed(iobj, m=m)
+        iobj  \
+            .resize(scale) \
+            .move(center[0], center[1], center[2])
+        if angle != 0.:
+            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+        return iobj
+
+    c2 = rotate_scale_(c2, 2., [1,1,1])
+    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
