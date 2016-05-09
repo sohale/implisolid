@@ -1,3 +1,4 @@
+#Sohail
 #note: 3 points should NOT be projected into ONE point. DEFINITELY. => dont remove the faces. Only two vertices at a time.
 from vtk_mc import vtk_mc
 import sys

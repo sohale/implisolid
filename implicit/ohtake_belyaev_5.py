@@ -1,3 +1,4 @@
+#Sohail
 #note: 3 points should NOT be projected into ONE point. DEFINITELY. => dont remove the faces. Only two vertices at a time.
 from vtk_mc import vtk_mc
 import sys
@@ -1519,7 +1520,7 @@ def visualise_displacements(mlab, verts_from, verts_to):
     xyz2 = verts_to
     ddd = xyz2 - xyz1  #displacement
     arrow_size = np.mean(np.linalg.norm(ddd, axis=1)) * 0.3
- 
+
     xx, yy, zz = xyz1[:, 0], xyz1[:, 1], xyz1[:, 2]
     uu, vv, ww = ddd[:, 0], ddd[:, 1], ddd[:, 2]
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=arrow_size)
@@ -2660,7 +2661,7 @@ def demo_everything():
             vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients, old_centroids_debug=old_centroids)
         #verts = nv1
         #new_verts_qem = verts
-        
+
         #print collector
         #set_trace()
 
@@ -2764,7 +2765,7 @@ def compute_average_edge_length(verts, faces):
 collector = []
 
 #worst_30 = \
-#    np.array([  858,   238,   839,   171,   799,   199,   211,  1068, 
+#    np.array([  858,   238,   839,   171,   799,   199,   211,  1068,
 #        1135,   998,  1276,   812,   243,   794,   643,   296,
 #         957,   529,   294,   453,   960,   531,  1279,  1607,
 #        1066,   303,   809,   413,   245,   700])
@@ -2824,7 +2825,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
                 pass
             #q()
             """
-            def 
+            def
                 display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
                    pointcloud_list=[ ], pointcloud_opacity=0.2,
                    mayavi_wireframe=[True, True, True], opacity=[0.1, 1, 0.2],
