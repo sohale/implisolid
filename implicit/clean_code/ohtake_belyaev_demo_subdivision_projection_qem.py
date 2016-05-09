@@ -6,7 +6,6 @@ import sys
 import math
 
 import numpy as np
-from basic_functions import check_vector4_vectorized, normalize_vector4_vectorized
 from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized
 
 def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
@@ -95,7 +94,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 VERBOSE = False
 
 @profile
-def search_near_ohtake_old(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
+def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
     """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
     The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
     Remeber: we may be on a totally irrelevant direction here.
@@ -225,7 +224,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
     for i in range(centroids.shape[0]):
 
     #    print i, "Trying to find in the first direction"
-        p1[i,:] = search_near_ohtake_old(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
+        p1[i,:] = search_near_ohtake(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
         if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
             p1[i,:].reshape(1,3)
             f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
@@ -241,7 +240,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                 dn_3[i] = np.linalg.norm(direction_3[i,:])
                 if dn_3[i] > 0:  #dn>0.000000001:
                     direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake_old(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
+                    p3 = search_near_ohtake(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
             #        print i, "Trying to find in the opposite direction"
 
                 if p3 is not None:
@@ -249,7 +248,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
                         p[i,:] = p3
                             #else:
                             #    p = p1
-        
+
             if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
                 centroids[i,:] = p[i,:]
 
@@ -359,45 +358,40 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         Adds kij of all centroids of the neighbour facets.
         ja_facets = list of centroid indices (face index).
         i_facet is a face index. """
-        # todo: make a pipj matrix (fxf). Make an acos matrix (fxf). The latter is base on a matrix of gradients: fx3.
-        #
-        #print i_facet, ja_facets
+
         assert i_facet not in ja_facets
         assert len(ja_facets) == 3
-        # ja_facets = neighbour facets of facet i_facet????
+
         ki = 0
         for j_facet in ja_facets:
             ki += kij(i_facet, j_facet)
 
+        assert not np.isnan(ki)
         wi = 1.0 + c*ki
-        # i_facet is facet (Centroid) index. j_facet is its neighbour facet (centroid). There are three j_facet for an i_facet.
-        #print("w_i=", wi)
+
         return wi
     #
     c_ = c  # 2.0  # constant
     vertex_index = 1  # vertex
-    #assert vertex_index >= 0
-    #assert vertex_index <
+
     umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_facets: ", umbrella_facets)
     #wa = np.zeros()
     w_list = []
     for i_facet in umbrella_facets:
-        # neighbour facet i_facet of Vertex vertex_index
+
         print("i_facet", i_facet)
-        #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
         three_facets = faces_of_faces[i_facet, :]
         print(i_facet, three_facets)
         w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
         # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
         print("w_i, i=", i_facet, w)
-        #w_list[i] = w
         w_list.append(w)
         #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
         #todo: store in ...
     #exit()
     print "w_list ",w_list
-    #[1.9250638933714093, 2.0364604083536744, 1.4236331619142932, 3.4392903610759471, 5.4912745754508183, 3.2499307884393014, 5.0003861534703979]
+
     print("===============")
     #
     #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
@@ -407,32 +401,56 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         three_facets = faces_of_faces[i_facet, :]
         w = wi(i_facet, three_facets, c_)
         wi_total_array[i_facet] = w
+        assert not np.isnan(w)
     print wi_total_array
     # The weights are prepared. Now let's resample vertices
 
     vertex_index = 1
-    #todo: umbrella_Facets = sparse matrix
-    #umbrella_facets = np.array(faceslist_neighbours_of_vertex)  #empty
 
     umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
     print "umbrella_facets", umbrella_facets.shape, "****"
     assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
     #return wi_total_array
 
-    #
-
+    # def lift_verts(verts, centroids):
+    #     new_verts = verts.copy()
+    #     # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
+    #     for vertex_index in range(verts.shape[0]):
+    #         umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
+    #         w = wi_total_array[umbrella_facets]
+    #         #w = w * 0 + 1
+    #         w = w / np.sum(w)
+    #         #print w / np.sum(w), w.shape
+    #         new_verts[vertex_index, :] = \
+    #             np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
+    #     return new_verts
     def lift_verts(verts, centroids):
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
         for vertex_index in range(verts.shape[0]):
-            umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
-            w = wi_total_array[umbrella_facets]
-            #w = w * 0 + 1
-            w = w / np.sum(w)
-            #print w / np.sum(w), w.shape
-            new_verts[vertex_index, :] = \
-                np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
+            #print vertex_index
+            #print "  len=", len(faceslist_neighbours_of_vertex)
+            #print "  max=", max(faceslist_neighbours_of_vertex)
+
+            # Note: the vertex may not exist, hence not in  faceslist_neighbours_of_vertex
+            if vertex_index in faceslist_neighbours_of_vertex:
+                #print faceslist_neighbours_of_vertex[vertex_index]
+                umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=int)
+                w = wi_total_array[umbrella_facets]
+                assert not np.any(np.isnan(umbrella_facets.ravel()))  # pass
+                assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
+
+                assert not np.any(np.isnan(w.ravel()))  # fails
+                w = w / np.sum(w)
+                assert not np.any(np.isnan(w.ravel()))  # fails
+
+                new_verts[vertex_index, :] = \
+                    np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
+            else:
+                pass  # leave new_verts[vertex_index,:] unmodified
+        assert not np.any(np.isnan(new_verts.ravel()))  # fails
         return new_verts
+
 
     return lift_verts(verts, centroids)
 
@@ -987,7 +1005,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "french_fries_vectorized"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1087,9 +1105,9 @@ def demo_combination_plus_qem():
 
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
-    # for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-    #     new_verts_qem_alpha, facets_not_used, centroids = process2_vertex_resampling_relaxation(new_verts_qem_alpha, facets, iobj)
-    #     print("Vertex relaxation applied.");sys.stdout.flush()
+    for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+        new_verts_qem_alpha, facets_not_used, centroids = process2_vertex_resampling_relaxation(new_verts_qem_alpha, facets, iobj)
+        print("Vertex relaxation applied.");sys.stdout.flush()
 
     chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
