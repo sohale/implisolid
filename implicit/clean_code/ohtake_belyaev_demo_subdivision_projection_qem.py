@@ -410,29 +410,14 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
     umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
     print "umbrella_facets", umbrella_facets.shape, "****"
     assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
-    #return wi_total_array
 
-    # def lift_verts(verts, centroids):
-    #     new_verts = verts.copy()
-    #     # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
-    #     for vertex_index in range(verts.shape[0]):
-    #         umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
-    #         w = wi_total_array[umbrella_facets]
-    #         #w = w * 0 + 1
-    #         w = w / np.sum(w)
-    #         #print w / np.sum(w), w.shape
-    #         new_verts[vertex_index, :] = \
-    #             np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
-    #     return new_verts
+
     def lift_verts(verts, centroids):
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
         for vertex_index in range(verts.shape[0]):
-            #print vertex_index
-            #print "  len=", len(faceslist_neighbours_of_vertex)
-            #print "  max=", max(faceslist_neighbours_of_vertex)
 
-            # Note: the vertex may not exist, hence not in  faceslist_neighbours_of_vertex
+
             if vertex_index in faceslist_neighbours_of_vertex:
                 #print faceslist_neighbours_of_vertex[vertex_index]
                 umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=int)
@@ -564,11 +549,11 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
 
 
-    def add_random_interior_points(ax, iobj):
+    def add_random_interior_points(ax, iobj, avg_edge_len):
         """ Adding random points """
         n=10000
         import basic_functions
-        print avg_edge_len, "WHY USED BEFORE DEFINED?"
+
         ampl = avg_edge_len
         #ampl = 2
         x = basic_functions.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
@@ -584,7 +569,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         avg_edge_len = compute_average_edge_length(verts, faces)
         visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20.)
     if gradients_from_iobj is not None:
-        add_random_interior_points(mlab, gradients_from_iobj)
+        add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
 
     mlab.show()
     return
@@ -605,7 +590,7 @@ def compute_average_edge_length(verts, faces):
 
 
 #@profile
-def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
+def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
 
     nai = nlist_numpy
     center_array = centroids[nai, :]
@@ -632,7 +617,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
     assert not np.any(np.isinf(normals) )
 
 
-    x0 = np.zeros((3, 1))
+#    x0 = np.zeros((3, 1))
 
     assert normals.shape[1] == 3
     #normals = normals   # (4)x4
@@ -654,7 +639,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients):
         assert nnt.shape == (3, 3)
 
         assert p_i[i].shape == (3, 1)
-        b += -np.dot(nnt, p_i[i] - x0)
+        b += -np.dot(nnt, p_i[i] - qem_origin)
 
     return A, b
 
@@ -680,7 +665,9 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         vi = vertex_id
         nlist = vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
-        A, b = get_A_b(vi, nai, centroids, centroid_gradients)
+        qem_origin = verts[vertex_id, :].reshape(3, 1)*0
+        A, b = get_A_b(vi, nai, centroids, centroid_gradients, qem_origin)
+    #    A, b = get_A_b(vi, nai, centroids, centroid_gradients)
         #print A, b
 
 #        print "A:", A, "\n"
@@ -1005,7 +992,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "french_fries_vectorized"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
