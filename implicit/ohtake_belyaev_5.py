@@ -3143,19 +3143,20 @@ def cube_with_cylinders(SCALE):
     return final_object, RANGE_MIN, RANGE_MAX, STEPSIZE
 
 
-def find_unusual_points(verts):
+def find_unusual_points(verts, k=3):
+    """ k is the order."""
     indices = np.arange(verts.shape[0])
     """ Find the points that their distance from the rest of the points is large.
     The distance is the minimum distance from the rest of the points.
     This test is done only on indices"""
     from sklearn.neighbors import NearestNeighbors
     assert verts.shape == (verts.shape[0], 3)
-    nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(verts)
+    nbrs = NearestNeighbors(n_neighbors=k, algorithm='ball_tree').fit(verts)
     distances1, ind1 = nbrs.kneighbors(verts[indices, :])
     #print distances1, ind1
     #distances1[:, 1]  #[:,0] are all zero
-    d1 = distances1[:, 1]
-    i1 = ind1[:, 1]
+    d1 = distances1[:, k-1]
+    i1 = ind1[:, k-1]
     ten_most_far1 = np.argsort(d1)[-10:]
     #print ten_most_far1
     print indices[ten_most_far1]
@@ -3163,19 +3164,19 @@ def find_unusual_points(verts):
     from sklearn.neighbors import KDTree
     kdt = KDTree(verts, leaf_size=30, metric='euclidean')
     #ind2= kdt.query(verts[indices, :], k=2, return_distance=False)
-    dist2, ind2 = kdt.query(verts[indices, :], k=2, return_distance=True)
-    dist2, ind2 = dist2[:, 1], ind2[:, 1]
+    dist2, ind2 = kdt.query(verts[indices, :], k=k, return_distance=True)
+    dist2, ind2 = dist2[:, k-1], ind2[:, k-1]
     ten_most_far2 = np.argsort(dist2)[-10:]
     #print ten_most_far2
     print indices[ten_most_far2]
     #set_trace()
     #print "returning"
-
+    assert np.all(indices[ten_most_far1] == indices[ten_most_far2])
 
     from sklearn.neighbors import KDTree
     kdt = KDTree(verts, leaf_size=30, metric='euclidean')
-    dist3, ind3 = kdt.query(verts[indices, :], k=3, return_distance=True)
-    dist3, ind3 = dist3[:, 2], ind3[:, 2]
+    dist3, ind3 = kdt.query(verts[indices, :], k=k, return_distance=True)
+    dist3, ind3 = dist3[:, k-1], ind3[:, k-1]
     ten_most_far3 = np.argsort(dist3)[-10:]
 
     return indices[ten_most_far3]
