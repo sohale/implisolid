@@ -3,13 +3,16 @@ VERBOSE = False
 from basic_types import check_vector4_vectorized
 FAST_VERSION = True
 import math
-#from ipdb import set_trace
+from ipdb import set_trace
+
 
 def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
     #nones_map = centroids[:,0]*0 < 100
     print "Projecting the centroids:"
     for i in range(centroids.shape[0]):
         print i,
+        if i==873:
+            set_trace()
         e = average_edge
         lm = e/2
         max_dist = e
@@ -47,6 +50,7 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist ):
     p2 = 2*start_x - p1
     f2 = iobj.implicitFunction(p2)
     p = p1  #None #p1 # None #p1  #default
+    #see : setCenterOnSurface
     if f1*f2 < 0:  #WHY 'if' ???????????
         direction = (start_x - p1)  # as in Ohtake
         dn = np.linalg.norm(direction)
@@ -71,6 +75,53 @@ def project_point_bidir_ohtake(iobj, start_x, lambda_val, max_dist ):
      if np.linalg.norm(start_x - p) > max_dist:
         return None
     return p
+
+def project_point_bidir_ohtake_v2(iobj, start_x, lambda_val, max_dist ):
+    #set_trace()
+    """ max_dist is used. lambda_val is the step size.
+    See # setCenterOnSurface """
+    check_vector4_vectorized(start_x)
+    assert start_x.shape[0] == 1
+    max_iter = 20  # todo: config["proj:max_iter"]
+
+    if FAST_VERSION:
+        p1 = search_near__ohtake_max_dist(iobj, start_x, None, lambda_val, max_iter, max_dist )
+    else:
+        p1 = search_near__ohtake(iobj, start_x, None, lambda_val, max_iter)
+    if p1 is None:
+        return None  # Should we return nothing if nothing found??
+    f1 = iobj.implicitFunction(p1)
+
+    # Mirror image: search the opposite way and accept only if it is closer than the best found.
+    p2 = 2*start_x - p1
+    f2 = iobj.implicitFunction(p2)
+    p = p1  #None #p1 # None #p1  #default
+    #see : setCenterOnSurface
+
+    if f1*f2 < 0:  #WHY 'if' ???????????  NO
+        direction = (start_x - p1)  # as in Ohtake
+        dn = np.linalg.norm(direction)
+        if dn > 0:  #dn>0.000000001:
+            direction = direction/dn
+
+            #broken#
+            if FAST_VERSION: #
+                p3 = search_near__ohtake_max_dist(iobj, start_x, direction, lambda_val, max_iter, max_dist)
+            else:
+                p3 = search_near__ohtake(iobj, start_x, direction, lambda_val, max_iter)
+            #no max_dist #
+#
+            if p3 is not None: #
+                if np.linalg.norm(start_x - p3) > np.linalg.norm(start_x - p1): #
+                    p = p3 #
+                ##else:
+                ##    p = p1
+    ##else:
+    ##    p = p1
+    if p is not None:
+        if np.linalg.norm(start_x - p) > max_dist:
+            return None
+    return p #
 
 
 def search_near__ohtake_max_dist(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):

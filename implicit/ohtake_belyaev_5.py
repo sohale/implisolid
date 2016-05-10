@@ -2655,7 +2655,7 @@ def demo_everything():
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
         pre_proj_centroids = new_centroids.copy()
-        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
+        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*2., nones_map)
         #new_centroids is the output
 
         visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
@@ -2837,10 +2837,10 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
             result_verts_ranks[vi] = -1  # never returned
             continue   # leave it alone
         neighbours_facelist = vertex_neighbour_facelist_dict[vertex_id]
-        faces_array = np.array(neighbours_facelist, dtype=np.int64)
+        neighbours_faces = np.array(neighbours_facelist, dtype=np.int64)
         #qem_origin = np.zeros((3, 1))
         qem_origin = verts[vertex_id, :].reshape(3, 1)*0
-        A, b = get_A_b(vi, faces_array, centroids, centroid_gradients, qem_origin)
+        A, b = get_A_b(vi, neighbours_faces, centroids, centroid_gradients, qem_origin)
         #print A, b
 
         ###
@@ -2931,10 +2931,15 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         if vi==179: #254: #179: #81: #310:
             print "here"
             def q():
-                fa = facets[faces_array,:]
-                pc = centroids[faces_array, :]
-                pc_old = old_centroids_debug[faces_array, :]
-                #old_centroids_debug
+                set_trace()
+                print "neighbours_faces:", neighbours_faces
+                for x in neighbours_faces:
+                    #873
+                    print "face", x, ":", facets[x, :], "centroid ", centroids[x, :]
+                fa = facets[neighbours_faces, :]
+                pc = centroids[neighbours_faces, :]
+                pc_old = old_centroids_debug[neighbours_faces, :]
+                # old_centroids_debug
                 global giobj
 
                 display_simple_using_mayavi_2(
@@ -2972,20 +2977,20 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         assert result_verts_ranks.size == 0 or np.min(result_verts_ranks) >= 1
     return new_verts
 
-def get_A_b(vertex_id, faces_array, centroids, centroid_gradients, qem_origin):
+def get_A_b(vertex_id, neighbours_faces, centroids, centroid_gradients, qem_origin):
     #refactor: faces_array contains faces.  -> neightbours_facelist or neightbours_faces
     #neighbours_facelist = self.vertex_neighbour_facelist_dict[vertex_id]
-    #faces_array = np.array(neighbours_facelist, dtype=int)
-    #faces_array = faces_array
+    #neighbours_faces = np.array(neighbours_facelist, dtype=int)
+    #neighbours_faces = neighbours_faces
     assert qem_origin.shape == (3, 1)
-    center_array = centroids[faces_array, :]
+    center_array = centroids[neighbours_faces, :]
 
     #note some centers may not be projected successfully in the previous step
     not_projected_successfully = np.isnan(center_array[:].ravel())
     if np.any(not_projected_successfully):
         pass
 
-    normals = centroid_gradients[faces_array, :]  #why do we have repeats??
+    normals = centroid_gradients[neighbours_faces, :]  #why do we have repeats??
     #note : not normalised. But it works.
 
     norms = np.linalg.norm(normals, ord=2, axis=1)
