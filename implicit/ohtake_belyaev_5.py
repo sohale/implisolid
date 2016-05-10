@@ -1518,6 +1518,7 @@ def visualise_displacements(mlab, verts_from, verts_to):
 
     xyz1 = verts_from
     xyz2 = verts_to
+    set_trace()
     ddd = xyz2 - xyz1  #displacement
     arrow_size = np.mean(np.linalg.norm(ddd, axis=1)) * 0.3
 
@@ -1530,7 +1531,7 @@ def visualise_displacements(mlab, verts_from, verts_to):
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate_panels=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
-        add_noise=[], noise_added_before_broadcast=False, fromto=None):
+        add_noise=[], noise_added_before_broadcast=False, fromto=None, random_interior_point=False, labels=None):
     """Two separate panels"""
 
     print"Mayavi: importing..", ; sys.stdout.flush()
@@ -1660,7 +1661,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
             mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
 
-        visualise_centroid_ids = True
+        visualise_centroid_ids = False
         if visualise_centroid_ids:
             for fii in range(faces.shape[0]):
                 if fii in [65, 274, 310, 362]:
@@ -1669,6 +1670,12 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
                     centroid = np.mean(v123, axis=0)
                     mlab.text3d(centroid[0],centroid[1],centroid[2], str(fii), scale=0.1 * 0.2)
 
+        if not labels == None:
+            (labels_xyz, labels_ids) = labels
+            for vii in range(labels_xyz.shape[0]):
+                if vii in labels_ids:
+                    v123 = labels_xyz[vii, :]
+                    mlab.text3d(v123[0], v123[1], v123[2], str(vii), scale=0.03)
 
     def add_random_interior_points(ax, iobj, avg_edge_len):
         """ Adding random points """
@@ -1689,9 +1696,11 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     if gradients_at is not None:
         verts1, faces1 = vf_list[0]
         avg_edge_len = compute_average_edge_length(verts, faces)
-        visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20.)
+        print "avg_edge_len", avg_edge_len
+        visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20. *10.)
     if gradients_from_iobj is not None:
-        add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
+        if random_interior_point:
+            add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
 
     if not fromto == None:
         (verts_from, verts_to) = fromto
@@ -2505,7 +2514,7 @@ import mesh_utils
 def demo_everything():
     curvature_epsilon = 1. / 1000. *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT =  0 #1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT =  1 #1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
     global STEPSIZE
@@ -2520,7 +2529,10 @@ def demo_everything():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+
+    global giobj
+    giobj = iobj
 
     from debug_point_collector import PointCollector
     iobj = PointCollector(iobj)
@@ -2643,11 +2655,10 @@ def demo_everything():
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
         pre_proj_centroids = new_centroids.copy()
-        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge, nones_map)
+        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
         #new_centroids is the output
 
         visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
-
 
         if mesh_correction:
             check_degenerate_faces(verts, facets, "assert")
@@ -2666,15 +2677,36 @@ def demo_everything():
         #set_trace()
 
         #no subdivision for now
-        assert pre_relaxation_verts.shape == verts.shape
-        display_simple_using_mayavi_2( [(verts, facets), (new_verts_qem, facets)],
-           pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
-           mayavi_wireframe=[False, False], opacity=[0, 1],
-           gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-           minmax=(RANGE_MIN,RANGE_MAX),
-           add_noise=[0,0], noise_added_before_broadcast=True,
-           fromto=(pre_relaxation_verts, verts) )#fromto=(verts, new_verts_qem)  )
-        exit()
+        if SUBDIVISION_ITERATIONS_COUNT == 0:
+            print "immediately after QEM *(without subdivision)"
+            assert pre_relaxation_verts.shape == verts.shape
+            display_simple_using_mayavi_2( [(verts, facets), (new_verts_qem, facets)],
+               pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+               mayavi_wireframe=[False, False], opacity=[0, 1],
+               gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+               minmax=(RANGE_MIN,RANGE_MAX),
+               add_noise=[0,0], noise_added_before_broadcast=True,
+               fromto=(pre_relaxation_verts, verts) )#fromto=(verts, new_verts_qem)  )
+        else:
+            print "immediately after QEM *"
+            ui = np.unique(facets.ravel())
+            #up = find_unusual_points(verts, ui)
+            up_i_10 = find_unusual_points(verts[ui, :])
+            up = ui[up_i_10]
+            #assert np.all(up == up_)
+
+            print "u_p=", up
+
+            display_simple_using_mayavi_2([(verts, facets), (new_verts_qem, facets)],
+               pointcloud_list=[new_verts_qem[up, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+               mayavi_wireframe=[False, True], opacity=[0.4, 1],
+               gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+               minmax=(RANGE_MIN, RANGE_MAX),
+               add_noise=[0, 0], noise_added_before_broadcast=True,
+               labels=(new_verts_qem, up) )
+               # labels is a very powerful method for visualising.
+
+        #exit()
 
 
         if mesh_correction:
@@ -2758,6 +2790,7 @@ def compute_average_edge_length(verts, faces):
         e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis=1)  # bug fixed! axis=1 was missing.
         assert e1.shape == (nfaces,)
         ea_sum += np.mean(e1)
+
     #set_trace()
     return ea_sum / 3.
 
@@ -2809,31 +2842,6 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         qem_origin = verts[vertex_id, :].reshape(3, 1)*0
         A, b = get_A_b(vi, faces_array, centroids, centroid_gradients, qem_origin)
         #print A, b
-        if vi==310:
-            print "here"
-            def q():
-                fa = facets[faces_array,:]
-                pc = centroids[faces_array, :]
-                pc_old = old_centroids_debug[faces_array, :]
-                #old_centroids_debug
-                display_simple_using_mayavi_2(
-                    [(verts, fa), (verts, fa), (verts, facets),],
-                    pointcloud_list=[ pc, pc_old ], pointcloud_opacity=0.2, pointsizes=[0.2*0.2, 0.2*0.1]*2,
-                    mayavi_wireframe=[False, True, False], opacity=[0.2, 1, 0.1],
-                    gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-                    add_noise=[0, 0, 0.], noise_added_before_broadcast=True )
-                pass
-            #q()
-            """
-            def
-                display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
-                   pointcloud_list=[ ], pointcloud_opacity=0.2,
-                   mayavi_wireframe=[True, True, True], opacity=[0.1, 1, 0.2],
-                   gradients_at=None, separate_panels=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
-                   noise_added_before_broadcast=True
-                   )
-            """
-            pass
 
         ###
         #A, b = self.get_A_b(vi)
@@ -2903,6 +2911,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         if np.linalg.norm(displacement) > STEPSIZE*3:
             #vi==310: norm is > 10.
             #set_trace()
+            collector.append((vi, np.linalg.norm(displacement)))
             pass
 
 
@@ -2916,6 +2925,37 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
             pass
         result_verts_ranks[vi] = rank
 
+
+
+        #254,
+        if vi==179: #254: #179: #81: #310:
+            print "here"
+            def q():
+                fa = facets[faces_array,:]
+                pc = centroids[faces_array, :]
+                pc_old = old_centroids_debug[faces_array, :]
+                #old_centroids_debug
+                global giobj
+
+                display_simple_using_mayavi_2(
+                    [(verts, fa), (verts, fa), (verts, facets),],
+                    pointcloud_list=[ pc, pc_old, new_verts[np.newaxis, vi, 0:3] ], pointcloud_opacity=0.2, pointsizes=[0.2*0.2, 0.2*0.1, 0.07]*2,
+                    mayavi_wireframe=[False, True, False], opacity=[0.2, 1, 0.1],
+                    gradients_at=pc[:, :3], separate_panels=False, gradients_from_iobj=giobj,
+                    add_noise=[0, 0, 0.], noise_added_before_broadcast=True, random_interior_point=False )
+                pass
+            q()
+            """
+            def
+                display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],
+                   pointcloud_list=[ ], pointcloud_opacity=0.2,
+                   mayavi_wireframe=[True, True, True], opacity=[0.1, 1, 0.2],
+                   gradients_at=None, separate_panels=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
+                   noise_added_before_broadcast=True
+                   )
+            """
+            pass
+
         #exit()
     if result_verts_ranks.size > 0:
         print("max rank = ", np.max(result_verts_ranks))
@@ -2926,6 +2966,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         print("max,min rank = []")
 
 
+    print np.array(collector)
+    #set_trace()
     if False:
         assert result_verts_ranks.size == 0 or np.min(result_verts_ranks) >= 1
     return new_verts
@@ -3100,6 +3142,43 @@ def cube_with_cylinders(SCALE):
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object, RANGE_MIN, RANGE_MAX, STEPSIZE
 
+
+def find_unusual_points(verts):
+    indices = np.arange(verts.shape[0])
+    """ Find the points that their distance from the rest of the points is large.
+    The distance is the minimum distance from the rest of the points.
+    This test is done only on indices"""
+    from sklearn.neighbors import NearestNeighbors
+    assert verts.shape == (verts.shape[0], 3)
+    nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(verts)
+    distances1, ind1 = nbrs.kneighbors(verts[indices, :])
+    #print distances1, ind1
+    #distances1[:, 1]  #[:,0] are all zero
+    d1 = distances1[:, 1]
+    i1 = ind1[:, 1]
+    ten_most_far1 = np.argsort(d1)[-10:]
+    #print ten_most_far1
+    print indices[ten_most_far1]
+
+    from sklearn.neighbors import KDTree
+    kdt = KDTree(verts, leaf_size=30, metric='euclidean')
+    #ind2= kdt.query(verts[indices, :], k=2, return_distance=False)
+    dist2, ind2 = kdt.query(verts[indices, :], k=2, return_distance=True)
+    dist2, ind2 = dist2[:, 1], ind2[:, 1]
+    ten_most_far2 = np.argsort(dist2)[-10:]
+    #print ten_most_far2
+    print indices[ten_most_far2]
+    #set_trace()
+    #print "returning"
+
+
+    from sklearn.neighbors import KDTree
+    kdt = KDTree(verts, leaf_size=30, metric='euclidean')
+    dist3, ind3 = kdt.query(verts[indices, :], k=3, return_distance=True)
+    dist3, ind3 = dist3[:, 2], ind3[:, 2]
+    ten_most_far3 = np.argsort(dist3)[-10:]
+
+    return indices[ten_most_far3]
 
 #python -O -m kernprof -v -l ohtake_belyaev_3.py
 if __name__ == '__main__':
