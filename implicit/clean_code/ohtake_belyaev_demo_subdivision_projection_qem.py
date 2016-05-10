@@ -265,21 +265,45 @@ def compute_triangle_areas(verts, faces, return_normals=False):
         expand[:, 1, :] - expand[:, 0, :],
         expand[:, 2, :] - expand[:, 0, :],
         axis=1)
+
     facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
     degenerates_count = len(facet_areas[facet_areas < DEGENERACY_THRESHOLD])
-    facet_areas[facet_areas < DEGENERACY_THRESHOLD] = np.nan  # -1
-    if degenerates_count > 0:
-        print("degenerate triangles", degenerates_count)
-    if not return_normals:
-        #print "11"
-        return facet_areas
-    else:
-        print facet_areas.shape
-        assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
-        facet_normals = a / np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
-        #print "22"
-        return facet_areas, facet_normals
 
+    non_nul_facet_aera = np.ndarray(nfaces - degenerates_count)
+    non_degenerated_indice = []
+    k = 0
+    for i in range(nfaces):
+        if facet_areas[i] > DEGENERACY_THRESHOLD:
+            non_nul_facet_aera[k] = facet_areas[i]
+            non_degenerated_indice.append(i)
+            k += 1
+
+    new_expand = verts[faces[non_degenerated_indice],:]
+    new_a = np.cross(
+        new_expand[:, 1, :] - new_expand[:, 0, :],
+        new_expand[:, 2, :] - new_expand[:, 0, :],
+        axis=1)
+
+    if not return_normals:
+        return non_nul_facet_aera
+    else:
+        print non_nul_facet_aera.shape
+        assert non_nul_facet_aera[:, np.newaxis].shape == (nfaces - degenerates_count, 1)
+        facet_normals = new_a / np.tile(non_nul_facet_aera[:, np.newaxis], (1, 3)) / 2.0
+        #print "22"
+        return non_nul_facet_aera, facet_normals
+
+
+def deleting_empty_trianlge(faces):
+    DEGENERACY_THRESHOLD = 0.00001
+    nfaces = faces.shape[0]
+    new_faces = np.ndarray()
+    for i in range(nfaces):
+        if faces[i] > DEGENERACY_THRESHOLD:
+            new_faces.append(faces[i])
+
+
+    return new_faces
 
 def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
@@ -846,7 +870,6 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
 
-
     degenerate_faces = np.isnan(facet_areas)
     assert np.all(np.isnan(facet_areas[degenerate_faces]))
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
@@ -870,9 +893,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         [0.5,  0,  0.5]   # 5
         ])  # .transpose()
 
-
     e_array = np.zeros((nf,))
 
+#    for fi in range(nf):
+    #    if degenerate_faces[fi] == True:
+        #    print fi, degenerate_faces[fi], facet_areas[fi]
+#        print fi, degenerate_faces[fi], facet_areas[fi]
+#    exit()
     for fi in range(nf):
     #    print fi, degenerate_faces[fi]
         assert not degenerate_faces[fi]
@@ -891,13 +918,19 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         subdiv_centroids = m0123
         #print subdiv_centroids
 
-        assert not degenerate_faces[fi]
-        mm = - iobj.implicitGradient(subdiv_centroids)[:, 0:3]
+    #    assert not degenerate_faces[fi]
+        mm = - iobj.implicitGradient(subdiv_centroids)
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
-        mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        nn_tile = np.tile(nn[:,np.newaxis], (1, 3))
+        nn_tile[nn_tile<0.00000001] = 100000.
+    #    mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        mm = mm/nn_tile
         mm = mm.transpose()  # 3x4
-        e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+        if np.any(np.isnan(n)):
+            e = 0.
+        else:
+            e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
 
         #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
 
@@ -938,7 +971,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "screw1"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj =  make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -949,7 +982,7 @@ def demo_combination_plus_qem():
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
 
     elif object_name == "french_fries_vectorized" or object_name == "rods":
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.10)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.11)
 
     elif object_name == "bowl_15_holes":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.26)
@@ -961,23 +994,23 @@ def demo_combination_plus_qem():
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
 
-    import vectorized, example_objects
-    c2 = vectorized.UnitCube1(1.)
-    def rotate_scale_(iobj, scale, center, angle=0.):
-        ns = vectorized
-        import numpy
-        m = numpy.eye(4)
-        m[0,0] = 0.1
-        iobj = ns.Transformed(iobj, m=m)
-        iobj  \
-            .resize(scale) \
-            .move(center[0], center[1], center[2])
-        if angle != 0.:
-            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
-        return iobj
-
-    c2 = rotate_scale_(c2, 2., [1,1,1])
-    iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
+    # import vectorized, example_objects
+    # c2 = vectorized.UnitCube1(1.)
+    # def rotate_scale_(iobj, scale, center, angle=0.):
+    #     ns = vectorized
+    #     import numpy
+    #     m = numpy.eye(4)
+    #     m[0,0] = 0.1
+    #     iobj = ns.Transformed(iobj, m=m)
+    #     iobj  \
+    #         .resize(scale) \
+    #         .move(center[0], center[1], center[2])
+    #     if angle != 0.:
+    #         iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+    #     return iobj
+    #
+    # c2 = rotate_scale_(c2, 2., [1,1,1])
+    # iobj = vectorized.CrispUnion( example_objects.rcube_vec(1.), c2 )
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -995,13 +1028,13 @@ def demo_combination_plus_qem():
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
         e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
-
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
         which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
 
         verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
+
         verts, facets = verts4_subdivided, facets3_subdivided
         print("Subdivision applied.");sys.stdout.flush()
 
@@ -1018,8 +1051,8 @@ def demo_combination_plus_qem():
     new_centroids = old_centroids.copy()
     #new_centroids = set_centers_on_surface_ohtake_not_correct_points(iobj, new_centroids, average_edge)
     #new_centroids is the output
+    #set_centers_on_surface_ohtake(iobj, new_centroids, average_edge*2)
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
-
     # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
     #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
@@ -1058,7 +1091,7 @@ def demo_combination_plus_qem():
     new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
     display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
        pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       mayavi_wireframe=[False,True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX)  )
     exit()
 
