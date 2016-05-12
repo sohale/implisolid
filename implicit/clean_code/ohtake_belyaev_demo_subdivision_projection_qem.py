@@ -333,11 +333,6 @@ def build_faces_of_faces(facets):
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
         make_edge_lookup_old(facets)
 
-    # need: faces_of_faces
-    # e__nf_x_3 = edges_of_faces[facets]
-    # print e__nf_x_3.shape
-    # assert e__nf_x_3.shape == (nfaces, 3, 3)
-    print edges_of_faces.shape
     nfaces = facets.shape[0]
     assert edges_of_faces.shape == (nfaces, 3)
     # f1 = faces_of_edges[edges_of_faces, 0]  # first face of all edges of all faces : nf x 3 -> nf
@@ -1044,9 +1039,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
-    bad_facets_count = np.sum(degenerate_faces)
-    # assert bad_facets_count == 0
-    return e_array, bad_facets_count
+    return e_array
 
 
 # delete some artefacts dues in the sharps part of the mesh
@@ -1069,7 +1062,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rods"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "sphere_example"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1124,8 +1117,9 @@ def demo_combination_plus_qem():
 
     total_subdivided_facets = []
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
-        e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
+        e_array = compute_facets_subdivision_curvatures(verts, facets, iobj)
+
+        # e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
         which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
 

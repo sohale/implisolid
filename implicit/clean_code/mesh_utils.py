@@ -37,9 +37,8 @@ def make_edge_lookup_old(faces):
     # eulookup[eu_paired_int] = edge number index
     # raise
     print "Warning: not tested enough"
-
     nfaces = faces.shape[0]
-    assert nfaces % 2 == 0
+    # assert nfaces % 2 == 0
     num_edges = nfaces * 3 / 2
     if True:    # VERBOSE:
         print("nfaces= ", nfaces, "num_edges:", num_edges)
@@ -49,7 +48,9 @@ def make_edge_lookup_old(faces):
     vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
 
     modulo = long(num_edges)    # *2
+#    import ipdb; ipdb.set_trace()
     eulookup = -np.ones((modulo * num_edges + num_edges,))
+
 
     edge_counter = 0
     for fi in range(len(faces)):
