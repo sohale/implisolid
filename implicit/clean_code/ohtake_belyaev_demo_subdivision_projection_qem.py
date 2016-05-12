@@ -6,7 +6,8 @@ import sys
 import math
 
 import numpy as np
-from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized
+from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized, normalize_vector4_vectorized
+
 
 def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
     TH1 = 0.001
@@ -19,7 +20,7 @@ def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
     assert f1*f2 < 0, "Opposite signs required"
     for j in range(MAX_ITER):
         if np.linalg.norm(p1-p2) < TH1:
-            if j ==0:
+            if j == 0:
                 p3 = 0.5 * (p1 + p2)
             return p3, j
         p3 = 0.5 * (p1 + p2)
@@ -32,11 +33,11 @@ def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
         else:
             p2 = p3
             f2 = f3
-    #print "Convergence of the bisection did not happen"
+    # print "Convergence of the bisection did not happen"
     return None, MAX_ITER
 
 
-#@profile
+# @profile
 def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
 
     """ The proportional bisection method. See searchNearPoint1D() """
@@ -63,7 +64,7 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
         if np.abs(f3) < TH3:
             return True, p3, None, j
 
-        #print f1, f2, " -> fp:", fp  # Sometimes (0.96) it searches too close to f2, and fp converges to 1
+        # print f1, f2, " -> fp:", fp  # Sometimes (0.96) it searches too close to f2, and fp converges to 1
         if f3 < 0.:
             if VERBOSE:
                 print "A",
@@ -74,15 +75,15 @@ def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
             (p2, f2) = (p3, f3)
 
         dt = p2 - p1
-        #should be moved above
+        # should be moved above
 
         if np.linalg.norm(dt) < TH2:
             return True, p3, None, j
 
     if VERBOSE:
         print "Convergence based on the proportional method did not happen"
-    #return (False, p1, p2)
-    p,ni = bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER*4)
+    # return (False, p1, p2)
+    p, ni = bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER*4)
     if p is not None:
         if VERBOSE:
             print "Bisection converged "
@@ -104,12 +105,12 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist)
     :param direction: description
     @param np.array direction
     """
-    #lambda should be ~ expected distance?  (that's why it should be half of the average edge size, i.e. half of the MC step size)
+    # lambda should be ~ expected distance?  (that's why it should be half of the average edge size, i.e. half of the MC step size)
 
     TH1 = 0.001
     # MAX_ITER = 20
-    #TH2_L = 0.00000001  # Used by Ohtake. But too small
-    #TH2_L = 0.00001  #only used in the along_1d mode
+    # TH2_L = 0.00000001  # Used by Ohtake. But too small
+    # TH2_L = 0.00001  #only used in the along_1d mode
     TH2_L = 0.1/2.
     if direction is not None:
         along_1d = True
@@ -133,9 +134,9 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist)
 #    k = 0
     exit_A = False
     while True:
-    #    k += 1
-    #    print k
-        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2),2)
+        # k += 1
+        # print k
+        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2), 2)
         assert max_iter_ >= 2
         # (C) jumps back here.
         for j in range(max_iter_):
@@ -143,12 +144,12 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist)
             if not along_1d:
                 direction = iobj.implicitGradient(start_x)
                 dn = np.linalg.norm(direction)
-                if dn>0.0:  # 00000001:
+                if dn > 0.0:  # 00000001:
                     direction = direction/dn
                 else:
                     pass  # Finding is not going to happen. But it's fine.
             p2 = p2 + lambda_ * direction
-            #p2[:, 3] = 1
+            # p2[:, 3] = 1
             f2 = iobj.implicitFunction(p2)
             eval_count += 1
 
@@ -159,28 +160,28 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist)
             p1 = p2
 
         else:
-            #for loop ended becasue of MAX_ITER
+            # for loop ended becasue of MAX_ITER
 
-            #(C): next iteration with adaptively decreased lambda_. Revert and start over again using a smaller lambda
+            # (C): next iteration with adaptively decreased lambda_. Revert and start over again using a smaller lambda
             lambda_ = lambda_ / 2.
-            #either quit:
+            # either quit:
             if np.abs(lambda_) < TH2_L:
-    #            print i, "(B)", eval_count
+                # print i, "(B)", eval_count
                 print "(B)", eval_count
                 return None   #
-            #or back to start
+            # or back to start
             p1 = start_x
             assert f0 * f1 >= 0
-            f1 = f0  #This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
+            f1 = f0  # This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
             p2 = p1
 
-            #restart the loop
-            #(C).
+            # restart the loop
+            # (C).
 
-        #(A)
+        # (A)
         if exit_A:  # f1*f2 < 0.0:
             break
-    #(A)
+    # ( A)
     assert f1*f2 < 0.0
     if f1 > 0:
         (p1, p2) = (p2, p1)
@@ -204,11 +205,11 @@ def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist)
 
 @profile
 def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
-#    here we consider that the max_dist is the average_edge and lambda = average_edge/2
-#    new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
+    # here we consider that the max_dist is the average_edge and lambda = average_edge/2
+    # new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
     lambda_val = average_edge/2
     check_vector3_vectorized(centroids)
-    #definition of the matrix that are gonna be used in the rest of the programm
+    # definition of the matrix that are gonna be used in the rest of the programm
     p1 = np.ndarray(centroids.shape)
     p2 = np.ndarray(centroids.shape)
     p3 = np.ndarray(centroids.shape)
@@ -223,34 +224,33 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 
     for i in range(centroids.shape[0]):
 
-    #    print i, "Trying to find in the first direction"
-        p1[i,:] = search_near_ohtake(iobj, centroids_new[i,:].reshape((1,3)), None, lambda_val, max_iter, lambda_val*2)
-        if p1[i,:] is not None: #make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
-            p1[i,:].reshape(1,3)
-            f1[i] = iobj.implicitFunction(p1[i,:].reshape(1,3))
+        # print i, "Trying to find in the first direction"
+        p1[i, :] = search_near_ohtake(iobj, centroids_new[i, :].reshape((1, 3)), None, lambda_val, max_iter, lambda_val*2)
+        if p1[i, :] is not None:  # make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
+            p1[i, :].reshape(1, 3)
+            f1[i] = iobj.implicitFunction(p1[i, :].reshape(1, 3))
 
-                # Mirror image: search the opposite way and accept only if it is closer than the best found.
-            p2[i,:] = 2*centroids_new[i,:] - p1[i,:] #p2 correspond to S in the paper
-            f2[i] = iobj.implicitFunction(p2[i,:].reshape(1,3))
-            p[i,:] = p1[i,:]
-
+            # Mirror image: search the opposite way and accept only if it is closer than the best found.
+            p2[i, :] = 2*centroids_new[i, :] - p1[i, :]  # p2 correspond to S in the paper
+            f2[i] = iobj.implicitFunction(p2[i, :].reshape(1, 3))
+            p[i, :] = p1[i, :]
 
             if f1[i]*f2[i] < 0:
-                direction_3[i,:] = (centroids_new[i,:] - p1[i,:].copy())  # as in Ohtake
-                dn_3[i] = np.linalg.norm(direction_3[i,:])
-                if dn_3[i] > 0:  #dn>0.000000001:
-                    direction_3[i,:] = direction_3[i,:]/dn_3[i]
-                    p3 = search_near_ohtake(iobj, centroids_new[i,:].reshape(1,3), direction_3[i,:].reshape(1,3), lambda_val, max_iter, lambda_val*2)
+                direction_3[i, :] = (centroids_new[i, :] - p1[i, :].copy())  # as in Ohtake
+                dn_3[i] = np.linalg.norm(direction_3[i, :])
+                if dn_3[i] > 0:  # dn>0.000000001:
+                    direction_3[i, :] = direction_3[i, :]/dn_3[i]
+                    p3 = search_near_ohtake(iobj, centroids_new[i, :].reshape(1, 3), direction_3[i, :].reshape(1, 3), lambda_val, max_iter, lambda_val*2)
             #        print i, "Trying to find in the opposite direction"
 
                 if p3 is not None:
-                    if np.linalg.norm(centroids_new[i,:] - p3) > np.linalg.norm(centroids_new[i,:] - p1[i,:]):
-                        p[i,:] = p3
-                            #else:
-                            #    p = p1
+                    if np.linalg.norm(centroids_new[i, :] - p3) > np.linalg.norm(centroids_new[i, :] - p1[i, :]):
+                        p[i, :] = p3
+                        # else:
+                        # p = p1
 
-            if np.linalg.norm(centroids[i,:] - p[i,:]) <= average_edge:
-                centroids[i,:] = p[i,:]
+            if np.linalg.norm(centroids[i, :] - p[i, :]) <= average_edge:
+                centroids[i, :] = p[i, :]
 
 
 def compute_triangle_areas(verts, faces, return_normals=False):
@@ -280,7 +280,7 @@ def compute_triangle_areas(verts, faces, return_normals=False):
             non_degenerated_indice.append(i)
             k += 1
 
-    new_expand = verts[faces[non_degenerated_indice],:]
+    new_expand = verts[faces[non_degenerated_indice], :]
     new_a = np.cross(
         new_expand[:, 1, :] - new_expand[:, 0, :],
         new_expand[:, 2, :] - new_expand[:, 0, :],
@@ -314,14 +314,15 @@ def compute_triangle_areas_old(verts, faces, return_normals=False):
     if degenerates_count > 0:
         print("degenerate triangles", degenerates_count)
     if not return_normals:
-        #print "11"
+        # print "11"
         return facet_areas
     else:
         print facet_areas.shape
         assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
         facet_normals = a / np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
-        #print "22"
+        # print "22"
         return facet_areas, facet_normals
+
 
 def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
@@ -338,25 +339,26 @@ def build_faces_of_faces(facets):
     print edges_of_faces.shape
     nfaces = facets.shape[0]
     assert edges_of_faces.shape == (nfaces, 3)
-    f1 = faces_of_edges[edges_of_faces, 0]  # first face of all edges of all faces : nf x 3 -> nf
-    f2 = faces_of_edges[edges_of_faces, 1]  # second face of all edges of all faces: nf x 3 -> nf   #3 for 3 sides (edges)
+    # f1 = faces_of_edges[edges_of_faces, 0]  # first face of all edges of all faces : nf x 3 -> nf
+    # f2 = faces_of_edges[edges_of_faces, 1]  # second face of all edges of all faces: nf x 3 -> nf   #3 for 3 sides (edges)
     # one of the two (0:2) is equal to index=face. [index,3, 0:2 ]
     f12 = faces_of_edges[edges_of_faces, :]
     print f12.shape
     assert f12.shape == (nfaces, 3, 2)
-    #print f12[0:5, :, :]
-    #strip f12 from repeats of the same face as one of its neighbours (at each side: 3 sides). Hence, the size changes from (nfaces,3,2) to (nfaces,3)
-    faceindex_eye = np.tile( np.arange(nfaces)[:, np.newaxis, np.newaxis], (1, 3, 2))
+    # print f12[0:5, :, :]
+    # strip f12 from repeats of the same face as one of its neighbours (at each side: 3 sides). Hence, the size changes from (nfaces,3,2) to (nfaces,3)
+    faceindex_eye = np.tile(np.arange(nfaces)[:, np.newaxis, np.newaxis], (1, 3, 2))
     assert faceindex_eye.shape == (nfaces, 3, 2)
     f12 = f12 + 1
     f12[f12 == faceindex_eye+1] = 0  # np.nan
     # print f12[0:5, :, :]
     assert np.allclose(np.prod(f12, axis=2), 0)  # check of each row has at least a zero
     f_uniq = np.sum(f12, axis=2)  # 0s will not be added
-    #print f_uniq[0:5,:]
+    # f_uniq[0:5,:]
     # f_uniq now contains the neighbour of each face. one face at each side of each face: nfaces x 3 -> face
     assert np.sum(f_uniq.ravel() == 0) == 0  # all faces have at least one neighbour at each side.
     return f_uniq - 1  # fix back the indices
+
 
 def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
     """ faceslist_neighbours_of_vertex: *** """
@@ -382,13 +384,13 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         assert np.abs(np.linalg.norm(mi) - 1.0) < 0.0000001
         assert np.abs(np.linalg.norm(mj) - 1.0) < 0.0000001
         mimj = np.dot(np.transpose(mi), mj)
-        #mimj[mimj>1.0] = 1.0
+        # mimj[mimj>1.0] = 1.0
         if mimj > 1.0:
             mimj = 1.0
         pipj = np.linalg.norm(pi - pj)
         if pipj == 0:
             return 0
-        #print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
+        # print "pipj ", pipj, "  arccos= ",np.arccos(mimj)/np.pi*180 #why is it zero??
         assert pipj == np.linalg.norm(pi - pj, ord=2)
 
         kij = np.arccos(mimj) / pipj  # radians?
@@ -416,7 +418,7 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
 
     umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_facets: ", umbrella_facets)
-    #wa = np.zeros()
+    # wa = np.zeros()
     w_list = []
     for i_facet in umbrella_facets:
 
@@ -427,14 +429,14 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
         print("w_i, i=", i_facet, w)
         w_list.append(w)
-        #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
-        #todo: store in ...
-    #exit()
-    print "w_list ",w_list
+        # todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
+        # todo: store in ...
+    # exit()
+    print "w_list ", w_list
 
     print("===============")
     #
-    #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
+    # w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
     nfaces = centroids.shape[0]
     wi_total_array = np.zeros((nfaces,))
     for i_facet in range(nfaces):
@@ -448,8 +450,7 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
 
     umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
     print "umbrella_facets", umbrella_facets.shape, "****"
-    assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
-
+    assert np.allclose(wi_total_array[umbrella_facets] - np.array(w_list), 0)
 
     def lift_verts(verts, centroids):
         new_verts = verts.copy()
@@ -457,18 +458,20 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         for vertex_index in range(verts.shape[0]):
             umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index])
             w = wi_total_array[umbrella_facets]
-            #w = w * 0 + 1
+            # w = w * 0 + 1
             w = w / np.sum(w)
-            #print w / np.sum(w), w.shape
+            # print w / np.sum(w), w.shape
             new_verts[vertex_index, :] = \
                 np.dot(w, centroids[umbrella_facets, 0:3])  # (n) * (n x 3)
         return new_verts
 
     return lift_verts(verts, centroids)
 
-#evaluate_centroid_gradients
+# evaluate_centroid_gradients
+
+
 def compute_centroid_gradients(centroids, iobj, normalise=True):
-    centroids = centroids[:,:3]
+    centroids = centroids[:, :3]
     assert centroids is not None
 
     check_vector3_vectorized(centroids)
@@ -481,6 +484,7 @@ def compute_centroid_gradients(centroids, iobj, normalise=True):
     else:
         return centroid_gradients
 
+
 def visualise_gradients(mlab, pos, iobj, arrow_size):
     lm = arrow_size  # 1.  # STEPSIZE
     pos3 = pos
@@ -489,17 +493,18 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     pnormals = normalize_vector4_vectorized(pnormals)
     check_vector3_vectorized(pos3)
     xyz = pos3
-    uvw = pnormals [:,0:3] / 2.
+    uvw = pnormals[:, 0:3] / 2.
     xx, yy, zz = xyz[:, 0], xyz[:, 1], xyz[:, 2]
     uu, vv, ww = uvw[:, 0], uvw[:, 1], uvw[:, 2]
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
-def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
-        separate=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
+def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), mayavi_wireframe=False, opacity=1.0, separate=True,
+ gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
 
-    print("Mayavi."); sys.stdout.flush()
+    print("Mayavi.")
+    sys.stdout.flush()
 
     from mayavi import mlab
 
@@ -510,7 +515,6 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         opacities = opacity  # 1.0
     else:
         opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
-
 
     for fi in range(len(vf_list)):
         if separate:
@@ -542,54 +546,51 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
                          [vert[2] for vert in verts],
                          faces,
                          representation="surface" if not wire_frame1 else "wireframe",
-                         opacity=opacities[fi], scale_factor = 100.0)
-        #opacity = 0.2 #0.1
-
-
-        #allpoints are plottedon all panels?
-        color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0,1,0)]
+                         opacity=opacities[fi], scale_factor=100.0)
+        # opacity = 0.2 #0.1
+        # allpoints are plottedon all panels?
+        color_list = [(1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 0, 1), (0, 1, 0)]
         i = 0
         for c in pointcloud_list:
-            #if separate:
+            # if separate:
             #    if i != fi:
             #        continue
-            #print c[:,0:3]
-            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity )
-            i+=1
+            # print c[:,0:3]
+            mlab.points3d(c[:, 0], c[:, 1], c[:, 2], color=color_list[i], scale_factor=pointsizes[i], opacity=pointcloud_opacity)
+            i += 1
         del i
 
         if minmax is not None:
             (RANGE_MIN, RANGE_MAX) = minmax
-            x = np.linspace(RANGE_MIN,RANGE_MAX,2).reshape(2,1)
-            y = np.zeros((2,1))
-            z = np.zeros((2,1))
+            x = np.linspace(RANGE_MIN, RANGE_MAX, 2).reshape(2, 1)
+            y = np.zeros((2, 1))
+            z = np.zeros((2, 1))
 
-            mlab.plot3d(x, y, z,line_width=3,name="x-axis")
-            mlab.plot3d(y, x, z,line_width=3,name="y-axis")
-            mlab.plot3d(z, y, x,line_width=3,name="z-axis")
+            mlab.plot3d(x, y, z, line_width=3, name="x-axis")
+            mlab.plot3d(y, x, z, line_width=3, name="y-axis")
+            mlab.plot3d(z, y, x, line_width=3, name="z-axis")
 
-            mlab.text3d(RANGE_MAX,0,0, "x", scale=0.3)
-            mlab.text3d(0,RANGE_MAX,0, "y", scale=0.3)
-            mlab.text3d(0,0,RANGE_MAX, "z", scale=0.3)
-            mlab.text3d(RANGE_MIN,0,0, "-x", scale=0.3)
-            mlab.text3d(0,RANGE_MIN,0, "-y", scale=0.3)
-            mlab.text3d(0,0,RANGE_MIN, "-z", scale=0.3)
-
+            mlab.text3d(RANGE_MAX, 0, 0, "x", scale=0.3)
+            mlab.text3d(0, RANGE_MAX, 0, "y", scale=0.3)
+            mlab.text3d(0, 0, RANGE_MAX, "z", scale=0.3)
+            mlab.text3d(RANGE_MIN, 0, 0, "-x", scale=0.3)
+            mlab.text3d(0, RANGE_MIN, 0, "-y", scale=0.3)
+            mlab.text3d(0, 0, RANGE_MIN, "-z", scale=0.3)
 
     def add_random_interior_points(ax, iobj, avg_edge_len):
         """ Adding random points """
-        n=10000
+        n = 10000
         import basic_functions
 
         ampl = avg_edge_len
-        #ampl = 2
+        # ampl = 2
         x = basic_functions.make_random_vector_vectorized(n, ampl, 1, type="rand", normalize=False)
         v = iobj.implicitFunction(x)
-        x_sel =  x[ v >= 0 , :]
-        if x_sel.size ==0:
+        x_sel = x[v >= 0, :]
+        if x_sel.size == 0:
             print("No points")
             return
-        ax.points3d(x_sel[:,0], x_sel[:,1], x_sel[:,2], color=(0,0,0), scale_factor=0.2)
+        ax.points3d(x_sel[:, 0], x_sel[:, 1], x_sel[:, 2], color=(0, 0, 0), scale_factor=0.2)
 
     if gradients_at is not None:
         verts1, faces1 = vf_list[0]
@@ -601,6 +602,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     mlab.show()
     return
 
+
 def compute_average_edge_length(verts, faces):
     nfaces = faces.shape[0]
     expand = verts[faces, :]
@@ -610,54 +612,52 @@ def compute_average_edge_length(verts, faces):
     for i in range(3):
         i1 = i
         i2 = (i+1) % 3
-        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis = 1 )
+        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis=1)
         ea_sum += np.mean(e1)
 
     return ea_sum / 3.
 
+# @profile
 
 
-#@profile
 def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
 
     nai = nlist_numpy
     center_array = centroids[nai, :]
 
-    #note some centers may not be projected successfully in the previous step
+    # note some centers may not be projected successfully in the previous step
     not_projected_successfully = np.isnan(center_array[:].ravel())
     if np.any(not_projected_successfully):
         pass
 
-    normals = centroid_gradients[nai, :]  #why do we have repeats??
-    #note : not normalised. But it works.
+    normals = centroid_gradients[nai, :]  # why do we have repeats??
+    # note : not normalised. But it works.
 
     norms = np.linalg.norm(normals, ord=2, axis=1)
-    #can be either 0, 1 or Nan
-    if np.any(norms < 0.000001):  #can be exactly 0.0
+    # can be either 0, 1 or Nan
+    if np.any(norms < 0.000001):  # can be exactly 0.0
         print("Error: bad normal", normals)
 
-    TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
-    #can be 0,0,0, inf, nonsharp, degenerate, ...
-    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
-
-
-    assert not np.any(np.isnan(normals) )
-    assert not np.any(np.isinf(normals) )
+    # TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
+    # can be 0,0,0, inf, nonsharp, degenerate, ...
+    # degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
+    assert not np.any(np.isnan(normals))
+    assert not np.any(np.isinf(normals))
 
 
 #    x0 = np.zeros((3, 1))
 
     assert normals.shape[1] == 3
-    #normals = normals   # (4)x4
-    #grad = Ax+b
+    # normals = normals   # (4)x4
+    # grad = Ax+b
     A = np.zeros((3, 3))
     b = np.zeros((3, 1))
-    #assert len(center_array) == len(normals)
+    # assert len(center_array) == len(normals)
     assert normals.shape == center_array.shape
     n_i = normals[:, :, np.newaxis]
     p_i = center_array[:, :, np.newaxis]
 
-    A = np.dot(np.reshape(n_i,(normals.shape[0],3)).T, np.reshape(n_i,(normals.shape[0],3)))
+    A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
 
     for i in range(normals.shape[0]):
 
@@ -671,16 +671,16 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
 
     return A, b
 
+# @profile
 
 
-#@profile
 def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
-    #based on quadratic_optimise_vertices(self, alpha=1.0)
-    assert not centroids is None
-    assert not vertex_neighbours_list is None
-    assert not centroid_gradients is None
+    # based on quadratic_optimise_vertices(self, alpha=1.0)
+    assert centroids is not None
+    assert vertex_neighbours_list is not None
+    assert centroid_gradients is not None
 
-    #alpha = 1.0
+    # alpha = 1.0
     nvert = verts.shape[0]
     assert nvert == len(vertex_neighbours_list)
 
@@ -704,7 +704,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
     #    tau = 10. **0.37
         tau = 10. ** 3.
         s[s / s[0] < 1.0/tau] = 0
-        #print(s , s[0] , tau)
+        # print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
     #    print "rank:", rank
 
@@ -717,17 +717,17 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         utb = np.dot(-np.transpose(u), b)
 
         for i in range(rank):
-            assert np.dot(-np.transpose(u), b).shape == (3,1)
-            #print s[i] , 1.0/tau
-            #assert s[i] >= 1.0/tau #fails when s[0] is small
+            assert np.dot(-np.transpose(u), b).shape == (3, 1)
+            # print s[i] , 1.0/tau
+            # assert s[i] >= 1.0/tau #fails when s[0] is small
             assert s[i]/s[0] >= 1.0/tau
             y[i] = utb[i] / s[i]
         new_x = np.dot(np.transpose(v), y)
-        #print(x.ravel(), " -> ", new_x.ravel())
-        #print("    delta=", (new_x - x).ravel())
+        # print(x.ravel(), " -> ", new_x.ravel())
+        # print("    delta=", (new_x - x).ravel())
 
-        if not  s[0] > 0.000001:
-            print("Warning! sigma_1 == 0" )
+        if not s[0] > 0.000001:
+            print("Warning! sigma_1 == 0")
             print(s)
             print("A", A)
 
@@ -737,16 +737,16 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
         new_verts[vi, 0:3] = new_x[:, 0]
 
-        if not np.all(np.abs(utb.ravel()[rank:] ) < 0.0001):
-            #print("s", s.ravel()/s[0], "   utb", utb.ravel()/s[0])
+        if not np.all(np.abs(utb.ravel()[rank:]) < 0.0001):
+            # print("s", s.ravel()/s[0], "   utb", utb.ravel()/s[0])
             pass
         result_verts_ranks[vi] = rank
 
-        #exit()
+        # exit()
     print("max rank = ", np.max(result_verts_ranks))
     print("min rank = ", np.min(result_verts_ranks))
     if not np.min(result_verts_ranks) >= 1:
-        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed." )
+        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed.")
 
     if False:
         assert np.min(result_verts_ranks) >= 1
@@ -755,16 +755,18 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
 
 import mesh_utils
 
+
 def compute_centroids(verts, facets):
     # see Mesh1::build_centroids
-    #self.calculate_face_areas()
-    expand = verts[facets,:]
+    # self.calculate_face_areas()
+    expand = verts[facets, :]
     nfacets = facets.shape[0]
     assert expand.shape == (nfacets, 3, 3)
-    assert np.allclose(verts[facets[:],:], expand)
-    centroids3 = np.mean( verts[facets[:],:], axis=1)  # again
-    centroids = np.concatenate( (centroids3, np.ones((nfacets,1))), axis=1)
+    assert np.allclose(verts[facets[:], :], expand)
+    centroids3 = np.mean(verts[facets[:], :], axis=1)  # again
+    centroids = np.concatenate((centroids3, np.ones((nfacets, 1))), axis=1)
     return centroids
+
 
 def process2_vertex_resampling_relaxation(verts, facets, iobj):
     assert not np.any(np.isnan(verts))
@@ -775,11 +777,12 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj):
     faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
 
     faces_of_faces = build_faces_of_faces(facets)
-    #print faces_of_faces.shape, "*x3"
+    # print faces_of_faces.shape, "*x3"
 
     new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
 
     return new_verts, facets, centroids  # why does it return facets?
+
 
 def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices):
 
@@ -795,13 +798,13 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
     DIP = 0.05*0
     subdiv_vert_matrix = np.array([
-        [1.,   0.,  0.],  # 0
-        [0.,   1.,  0.],  # 1
-        [0.,   0.,  1.],  # 2
+        [1., 0., 0.],  # 0
+        [0., 1., 0.],  # 1
+        [0., 0., 1.],  # 2
 
-        [0.5/(1.+DIP),  0.5/(1.+DIP),  DIP/(1.+DIP)],  # 3
-        [DIP/(1.+DIP),  0.5/(1.+DIP),  0.5/(1.+DIP)],  # 4
-        [0.5/(1.+DIP),  DIP/(1.+DIP),  0.5/(1.+DIP)]   # 5
+        [0.5/(1.+DIP), 0.5/(1.+DIP), DIP/(1.+DIP)],  # 3
+        [DIP/(1.+DIP), 0.5/(1.+DIP), 0.5/(1.+DIP)],  # 4
+        [0.5/(1.+DIP), DIP/(1.+DIP), 0.5/(1.+DIP)]   # 5
         ])  # .transpose()
 
     global trace_subdivided_facets
@@ -816,9 +819,9 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     new_verts[:nverts_old, :] = verts_old
     new_facets[:nfaces_old, :] = facets_old
 
-    #on number of added vertices:
-    #problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
-    #also later check for faces with repeated edges. (which can be another cause of null normals)
+    # on number of added vertices:
+    # problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
+    # also later check for faces with repeated edges. (which can be another cause of null normals)
 
     new_vertex_counter = nverts_old
     new_facet_counter = nfaces_old
@@ -832,11 +835,10 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         # new verices
         m0123 = np.dot(np.dot(centroidmaker_matrix, subdiv_vert_matrix), VVV)
         assert m0123.shape == (4, 3)
-        subdiv_centroids = m0123
+        # subdiv_centroids = m0123
 
         vxyz_0123 = np.dot(subdiv_vert_matrix, VVV)  # not efficient
         assert vxyz_0123.shape == (6, 3)
-
 
         v012 = facets_old[fi, :].tolist()  # range(0, 3)  #
         v345 = range(new_vertex_counter, new_vertex_counter+3)
@@ -862,7 +864,9 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
         new_facet_counter += 3
 
         if fi % 100 == 0:
-            print fi, "\r", ;import sys; sys.stdout.flush()
+            print fi, "\r",
+            import sys
+            sys.stdout.flush()
 
     print new_verts.shape[0], new_vertex_counter
 
@@ -874,8 +878,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     assert provisional_new_facets_count+nfaces_old == new_facet_counter
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_facet_counter
     return new_verts, new_facets
-
-
 
 # def compute_facets_subdivision_curvatures(verts, facets, iobj):
 #     """ Deviation of Mesh from object gradients """
@@ -969,6 +971,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 #     #assert bad_facets_count == 0
 #     return e_array, bad_facets_count
 
+
 def compute_facets_subdivision_curvatures(verts, facets, iobj):
     """ Deviation of Mesh from object gradients """
 
@@ -985,7 +988,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     assert np.all(np.isnan(facet_areas[degenerate_faces]))
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
     assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
-    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces),:])))
+    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces), :])))
 
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -995,13 +998,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         ]) / 3.
 
     subdiv_vert_matrix = np.array([
-        [1.,   0.,  0.],  # 0
-        [0.,   1.,  0.],  # 1
-        [0.,   0.,  1.],  # 2
+        [1., 0., 0.],  # 0
+        [0., 1., 0.],  # 1
+        [0., 0., 1.],  # 2
 
-        [0.5,  0.5,  0],  # 3
-        [0,  0.5,  0.5],  # 4
-        [0.5,  0,  0.5]   # 5
+        [0.5, 0.5, 0],  # 3
+        [0, 0.5, 0.5],  # 4
+        [0.5, 0, 0.5]   # 5
         ])  # .transpose()
 
     e_array = np.zeros((nf,))
@@ -1012,23 +1015,23 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 
         triangle = verts[facets[fi, :]]  # numverts x 3
         assert triangle.shape == (3, 3)
-        #print triangle.shape
+        # print triangle.shape
 
         assert triangle.shape == (3, 3)
         VVV = triangle  # (nv=3) x 3
-        #print np.dot( centroidmaker_matrix, subdiv_vert_matrix)
-        #exit()
-        m0123 = np.dot( centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV) )
+        # print np.dot( centroidmaker_matrix, subdiv_vert_matrix)
+        # exit()
+        m0123 = np.dot(centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV))
         assert m0123.shape == (4, 3)
         subdiv_centroids = m0123
-        #print subdiv_centroids
+        # print subdiv_centroids
 
     #    assert not degenerate_faces[fi]
         mm = - iobj.implicitGradient(subdiv_centroids)
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
-        nn_tile = np.tile(nn[:,np.newaxis], (1, 3))
-        nn_tile[nn_tile<0.00000001] = 100000.
+        nn_tile = np.tile(nn[:, np.newaxis], (1, 3))
+        nn_tile[nn_tile < 0.00000001] = 100000.
     #    mm = mm / np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
         mm = mm/nn_tile
         mm = mm.transpose()  # 3x4
@@ -1037,35 +1040,33 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         else:
             e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
 
-        #assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
+        # assert np.all(np.dot(n, mm) > -0.0000001 ), "ingrown normal!"
 
-        #e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
+        # e = np.sum(1 - np.abs(np.dot(n, mm)))   # sum(,x4)   #forgot the abs!
         e_array[fi] = e
-        #if e<0:
+        # if e<0:
         #    set_trace()
-
-
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
-    #print str(nf) + "   "
-    #print e_array
+    # print str(nf) + "   "
+    # print e_array
     l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
     bad_facets_count = np.sum(degenerate_faces)
-    #assert bad_facets_count == 0
+    # assert bad_facets_count == 0
     return e_array, bad_facets_count
 
 
-#delete some artefacts dues in the sharps part of the mesh
+# delete some artefacts dues in the sharps part of the mesh
 def comparison_verts_new_verts(old_verts, new_verts):
-    THL = 10. **(0.001)#find experimentally
+    THL = 10. ** (0.001)  # find experimentally
     nverts = old_verts.shape[0]
     assert old_verts.shape == new_verts.shape
 
     for i in range(nverts):
-        if np.abs(np.linalg.norm(old_verts[i,:] - new_verts[i,:])) > THL:
-            new_verts[i,:] = old_verts[i,:]
+        if np.abs(np.linalg.norm(old_verts[i, :] - new_verts[i, :])) > THL:
+            new_verts[i, :] = old_verts[i, :]
 
     return new_verts
 
@@ -1077,11 +1078,11 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"#"sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
-    iobj =  make_example_vectorized(object_name)
+    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    if object_name =="cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
+    if object_name == "cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
@@ -1098,7 +1099,6 @@ def demo_combination_plus_qem():
 
     elif object_name == "cyl1":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
-
 
     # import vectorized, example_objects
     # c2 = vectorized.UnitCube1(1.)
@@ -1136,7 +1136,7 @@ def demo_combination_plus_qem():
         e_array, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
         e_array[np.isnan(e_array)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
-        which_facets = np.arange(facets.shape[0])[ e_array > curvature_epsilon ]
+        which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
 
         verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
@@ -1155,9 +1155,9 @@ def demo_combination_plus_qem():
     old_centroids = np.mean(verts[facets[:], :], axis=1)
 
     new_centroids = old_centroids.copy()
-    #new_centroids = set_centers_on_surface_ohtake_not_correct_points(iobj, new_centroids, average_edge)
-    #new_centroids is the output
-    #set_centers_on_surface_ohtake(iobj, new_centroids, average_edge*2)
+    # new_centroids = set_centers_on_surface_ohtake_not_correct_points(iobj, new_centroids, average_edge)
+    # new_centroids is the output
+    # set_centers_on_surface_ohtake(iobj, new_centroids, average_edge*2)
     set_centers_on_surface_ohtake(iobj, new_centroids, average_edge)
     # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
     #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
@@ -1165,13 +1165,13 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN,RANGE_MAX)  )
     # exit()
 
-    #neighbour_faces_of_vertex
+    # neighbour_faces_of_vertex
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
     centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
     new_verts_qem = \
         vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
-        #verts = nv1
+        # verts = nv1
 
     alpha = 0.
 
@@ -1191,14 +1191,14 @@ def demo_combination_plus_qem():
     else:
         chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
-    highlighted_vertices = np.array([131,  71, 132])  # np.arange(100, 200)
+    highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
-    #
+
     new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
-    display_simple_using_mayavi_2( [(new_verts_final, facets),(new_verts_qem, facets), ],
-       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False,True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
+    display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
+       pointcloud_list=[hv], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False, True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN, RANGE_MAX))
     exit()
 
     # display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
