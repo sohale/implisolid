@@ -1,12 +1,12 @@
 import numpy as np
-
-from basic_functions import make_vector4, normalize_vector, make_vector3, check_vector4
-
+import screw
+from basic_functions import make_vector4, normalize_vector, make_vector3, check_vector4, make_random_vector
 import simple_blend
-
 import vector3
+from vector3 import SimpleCylinder
 
-#definition of the vectorized objects
+# definition of the vectorized objects
+
 
 def dice(dice_scale):
     dice_size = 2.0*dice_scale
@@ -28,11 +28,11 @@ def dice(dice_scale):
 
     """ 1 """
     c = hole(c, 1, 0, 0)  # 1
-    #c = hole(c, 0, 1, 0)  # 2
+    # c = hole(c, 0, 1, 0)  # 2
     c = hole(c, 0, 0, 1)  # 3
-    #c = hole(c, -1, 0, 0)  # 4
+    # c = hole(c, -1, 0, 0)  # 4
     c = hole(c, 0, -1, 0)  # 5
-    #c = hole(c, 0, 0, -1)  # 6
+    # c = hole(c, 0, 0, -1)  # 6
 
     """ 2 """
     d = 0.3
@@ -67,7 +67,6 @@ def dice(dice_scale):
     return c
 
 
-
 def rdice_vec(scale, rotated=True):
 
     d = dice(scale)
@@ -91,9 +90,11 @@ def rcube_vec(scale, rotated=True):
         iobj.rotate(10 * 2, along=make_vector3(1, 1, 1), units="deg")
     return iobj
 
+
 def udice_vec(scale=1.):
-   """ Un-rotated dice """
-   return rdice_vec(scale, rotated=False)
+    """ Un-rotated dice """
+    return rdice_vec(scale, rotated=False)
+
 
 def blend_example2(scale=1.):
     # not tested for scale != 1.
@@ -125,7 +126,7 @@ def ell_example1(scale):
 
     iobj = vector3.Ellipsoid(m1)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
     return iobj
 
@@ -164,6 +165,7 @@ def first_csg(scale):
 
     iobj = vector3.CrispSubtract(vector3.CrispUnion(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2)), vector3.Ellipsoid(m3))
     return iobj
+
 
 def bowl_15_holes(scale_ignored):
 
@@ -221,9 +223,9 @@ def bowl_15_holes(scale_ignored):
         iobj = vector3.CrispSubtract(iobj, small_obj)
         # iobj = CrispUnion( iobj, small_obj )
 
-    xa = vector3.repeat_vect3(10, make_vector3(1, 1, 1))
-    ga = iobj.implicitGradient(xa)
-    va = iobj.implicitFunction(xa)
+#    xa = vector3.repeat_vect3(10, make_vector3(1, 1, 1))
+#    ga = iobj.implicitGradient(xa)
+#    va = iobj.implicitFunction(xa)
     # print(va)
     # print(ga)
     return iobj
@@ -261,6 +263,7 @@ def blend_example2_discs(scale):
 
     return iobj
 
+
 def french_fries_vectorized(scale):
     def rod():
         c = vector3.UnitCube1()
@@ -289,7 +292,7 @@ def french_fries_vectorized(scale):
 
 
 def rods(scale):
-    #the scale needs to be equal to 2 in order to have a nice object
+    # the scale needs to be equal to 2 in order to have a nice object
     def rod():
         c = vector3.UnitCube1()
         m2 = np.eye(4)
@@ -313,8 +316,6 @@ def rods(scale):
             u = vector3.CrispUnion(u, c)
     return u
 
-
-import screw
 
 def screw1(scale_ignored):
     a = np.array([0, 0, 0])
@@ -345,8 +346,6 @@ def screw2(SCALE=1.):
 # Cylinder
 ##################################################
 
-from vector3 import SimpleCylinder
-
 
 def cyl1(scale_ignored):
     SCALE = 8.  # mm
@@ -356,13 +355,14 @@ def cyl1(scale_ignored):
 
     A = make_vector4(0, 0, -c_len / 2.0)  # bug: aa is wrong
     w = make_vector4(0, 1, 0)
-    w = w / np.linalg.norm(w[0:3]); w[3] = 1
+    w = w / np.linalg.norm(w[0:3])
+    w[3] = 1
     u = make_vector4(1, 0, 0)
 
     c = SimpleCylinder(A, w, u, radius, radius, c_len)
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
-    return c#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return c
 
 
 def rotation_matrix(angle, along, units="rad", around=None):
@@ -372,7 +372,7 @@ def rotation_matrix(angle, along, units="rad", around=None):
         elif units == "deg":
             angle = angle / 360.0 * np.pi * 2.0
         else:
-            raise UsageError()
+            raise ValueError()
 
         if around is None:
             # center = 0
@@ -434,8 +434,10 @@ def cyl2(scale_ignored):
         u = make_vector4(1, 0, 0)
 
         def make_uv(w, u):
-            w = w / np.linalg.norm(w[0:3]); w[3] = 1
-            u = u / np.linalg.norm(u[0:3]); u[3] = 1
+            w = w / np.linalg.norm(w[0:3])
+            w[3] = 1
+            u = u / np.linalg.norm(u[0:3])
+            u[3] = 1
             # print w, "u=",u
             assert np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001  # cannot be parallel
             v3 = np.cross(w[:3], u[:3])
@@ -469,8 +471,8 @@ def cyl2(scale_ignored):
             un = c
         else:
             un = vector3.CrispUnion(un, c)
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
-    return un#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+#        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
+    return un
 
 
 def cage_rods(rod_r, rod_len, cage_r, N):
@@ -497,7 +499,8 @@ def cyl3(scale):
     cage_r = 10.
     rod_len = 10.
     N = 20
-    return cage_rods(rod_r, rod_len, cage_r, N)#, (-32 / 2, +32 / 2, 1.92 / 4.0)
+    return cage_rods(rod_r, rod_len, cage_r, N)
+    # (-32 / 2, +32 / 2, 1.92 / 4.0)
 
 
 def cyl4(scale):
@@ -515,9 +518,10 @@ def cyl4(scale):
     ifunc = vector3.CrispUnion(base_cyl, t)
 
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0)   #15 sec!  2.5 millions voxels
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
 
-    return ifunc#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return ifunc
+
 
 def cube_with_cylinders(scale):
 
@@ -528,26 +532,28 @@ def cube_with_cylinders(scale):
     c_len = 2 * SCALE
 
     A = make_vector4(-c_len/2.0, 0, 0)
-    #A = make_vector4(0, 0, c_len / 2.0)  # bug: aa is wrong
-    w = make_vector4(1,0 , 0)
-    w = w / np.linalg.norm(w[0:3]); w[3] = 1
+    # A = make_vector4(0, 0, c_len / 2.0)  # bug: aa is wrong
+    w = make_vector4(1, 0, 0)
+    w = w / np.linalg.norm(w[0:3])
+    w[3] = 1
     u = make_vector4(0, 1, 0)
 
     cyl = SimpleCylinder(A, w, u, radius, radius, c_len)
 
     A2 = make_vector4(0, -c_len/2.0, 0)
-    w2 = make_vector4(1,0 , 0)
-    w2 = w / np.linalg.norm(w[0:3]); w[3] = 1
+    w2 = make_vector4(1, 0, 0)
+    w2 = w / np.linalg.norm(w[0:3])
+    w[3] = 1
     u2 = make_vector4(0, 1, 0)
 
     cyl_2 = SimpleCylinder(A2, u2, w2, radius, radius, c_len)
     cube = vector3.UnitCube1(size=sz1)
     union = vector3.CrispSubtract(cube, cyl_2)
-    final_object = vector3.CrispUnion(union,cyl)
+    final_object = vector3.CrispUnion(union, cyl)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object
-    #, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+
 
 # **************************************************************************************************
 
@@ -571,9 +577,9 @@ examples = {
     "screw2": 2,
     "udice_vec": 2,
     "rods": 2,
-    "cyl1" :2,
-    "cyl2" :2,
-    "cyl3" :2,
+    "cyl1": 2,
+    "cyl2": 2,
+    "cyl3": 2,
     "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
 
@@ -587,11 +593,12 @@ def make_example_vectorized(name, scale=1.0):
     assert not type(res) is tuple
     return res
 
-def test_creation_of_all_Examples():
-    for name in examples:
-        scale = 1.
-        res = globals()[name](scale)
-        # print("OK.")
+
+# def test_creation_of_all_Examples():
+#     for name in examples:
+#         scale = 1.
+# #        res = globals()[name](scale)
+#         # print("OK.")
 
 def get_all_examples(types_list):
     """ types_list i.e. [1] or [2] or [2,3] or [1,3] r [1,2,3] """
@@ -602,11 +609,11 @@ def get_all_examples(types_list):
             usable_examples += [e]
             # print("e=", e)
 
-            if examples[e] in [2]:
-                iobj = make_example_vectorized(e)
-                x = vector3.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
-                g = iobj.implicitGradient(x)
-                v = iobj.implicitFunction(x)
+#             if examples[e] in [2]:
+#                 iobj = make_example_vectorized(e)
+#                 x = vector3.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
+# #                g = iobj.implicitGradient(x)
+# #                v = iobj.implicitFunction(x)
 
         i += 1
     assert i > 0

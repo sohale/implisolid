@@ -1,5 +1,5 @@
 import numpy as np
-from basic_functions import check_vector4_vectorized, check_scalar_vectorized
+from basic_functions import check_scalar_vectorized
 from basic_functions import check_matrix3_vectorized, check_vector3_vectorized
 
 from implicit import ImplicitFunction
@@ -104,7 +104,7 @@ class CrispUnion(ImplicitFunction):
 
         return h
 
-#not tested
+# not tested
 
 
 class CrispIntersection(ImplicitFunction):
@@ -157,6 +157,6 @@ class CrispIntersection(ImplicitFunction):
         check_matrix3_vectorized(h)
         return h
 
-    #todo: non-crisp np.greater, i.e. smooth transition min.
+    # todo: non-crisp np.greater, i.e. smooth transition min.
 
 __all__ = ['CrispSubtract', 'CrispIntersection', 'CrispUnion']

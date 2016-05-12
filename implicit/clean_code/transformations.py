@@ -236,9 +236,9 @@ def rotation_matrix(angle, direction, point=None):
     R = numpy.diag([cosa, cosa, cosa])
     R += numpy.outer(direction, direction) * (1.0 - cosa)
     direction *= sina
-    R += numpy.array([[ 0.0,         -direction[2],  direction[1]],
-                      [ direction[2], 0.0,          -direction[0]],
-                      [-direction[1], direction[0],  0.0]])
+    R += numpy.array([[0.0, -direction[2], direction[1]],
+                      [direction[2], 0.0, -direction[0]],
+                      [-direction[1], direction[0], 0.0]])
     M = numpy.identity(4)
     M[:3, :3] = R
     if point is not None:
@@ -292,10 +292,7 @@ def unit_vector(data, axis=None, out=None):
         return data
 
 
-
-
 if __name__ == "__main__":
     import doctest
-    import random  # used in doctests
     numpy.set_printoptions(suppress=True, precision=5)
     doctest.testmod()

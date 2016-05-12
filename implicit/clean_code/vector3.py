@@ -1,13 +1,14 @@
 __all__ = []
 
-import implicit_vectorized
-from implicit_vectorized import *
-__all__.extend(implicit_vectorized.__all__)
+import implicit
+from implicit import *
+__all__.extend(implicit.__all__)
 
+print __all__ 
 
-from crisp_csg_vectorized import *
-import crisp_csg_vectorized
-__all__.extend(crisp_csg_vectorized.__all__)
+from crisp_csg import *
+import crisp_csg
+__all__.extend(crisp_csg.__all__)
 
 
 from basic_functions import repeat_vect3, check_matrix3_vectorized, check_vector3_vectorized
@@ -18,9 +19,9 @@ import simple_blend
 __all__.extend(simple_blend.__all__)
 
 #from simple_blend import *
-from ellipsoid_vectorized import *
-import ellipsoid_vectorized
-__all__.extend(ellipsoid_vectorized.__all__)
+from ellipsoid import *
+import ellipsoid
+__all__.extend(ellipsoid.__all__)
 
 from screw import *
 import screw
@@ -41,21 +42,21 @@ def is_implicit_type(iobj_vec):
 __all__.extend(["is_implicit_type"])
 
 
-#from implicit_vectorized import *
-#import implicit_vectorized
-#__all__.extend(implicit_vectorized.__all__)
+# from implicit_vectorized import *
+# import implicit_vectorized
+# __all__.extend(implicit_vectorized.__all__)
 
 
-#__all__.extend(ellipsoid_vectorized.__all__)
-#__all__.extend(simple_blend.__all__)
+# __all__.extend(ellipsoid_vectorized.__all__)
+# __all__.extend(simple_blend.__all__)
 
 
-#from basic_functions import *
+# from basic_functions import *
 
 
-#print(crisp_csg_vectorized.CrispSubtract)
+# print(crisp_csg_vectorized.CrispSubtract)
 
-#__all__.extend([
+# __all__.extend([
 #    'normalize_vector4_vectorized',
 #    'make_random_vector_vectorized',
 #    'almost_equal4_vectorized',

@@ -12,19 +12,18 @@ from primitives import UnitCube1
 
 import nonvec
 
-
-import ellipsoid_vectorized
+import ellipsoid
 
 from basic_functions import check_vector4_vectorized, check_scalar_vectorized, make_random_vector_vectorized, repeat_vect4
 
-#import simple_blend
-import vectorized
+# import simple_blend
+import vector3
 
 import numerical_utils
 
-#import example_objects
+# import example_objects
 
-NUMERICAL_GRADIENT_TOLERANCE = 0.0001 # 0.00001   # 0.001
+NUMERICAL_GRADIENT_TOLERANCE = 0.0001  # 0.00001   # 0.001
 assert NUMERICAL_GRADIENT_TOLERANCE > 0.0000059
 assert NUMERICAL_GRADIENT_TOLERANCE > 0.00000001
 

@@ -1,6 +1,6 @@
 import numpy as np
 from implicit import ImplicitFunction
-from basic_functions import check_vector3_vectorized, check_vector3, check_vector4
+from basic_functions import check_vector3_vectorized, check_vector4, check_vector2
 from implicit_config import config
 
 # todo: class CutCone
@@ -45,17 +45,18 @@ class SimpleCylinder(ImplicitFunction):
         norm_tol = 0.00000001  # 1000 km
         assert np.abs(np.linalg.norm(w)-1.0) < norm_tol
         assert np.abs(np.linalg.norm(u)-1.0) < norm_tol
-        self.UVW = np.concatenate( (self.u, self.v, self.w), axis=1 )
-        self.UVW_inv = np.linalg.inv( self.UVW )
+        self.UVW = np.concatenate((self.u, self.v, self.w), axis=1)
+        self.UVW_inv = np.linalg.inv(self.UVW)
         assert self.c_len > 0
         assert self.integrity_invariant()
 
     def integrity_invariant(self):
-        #config = threeD_printing_config_profile
+        # config = threeD_printing_config_profile
         norm_tol = 0.00000001  # 1000 km
         matrix_inv_tol = 0.000001
-        #sane = True
+        # sane = True
         sd = {"sane": True}
+
         def check(boolean, reason):
             sd["sane"] = sd["sane"] and boolean
             if not boolean:
@@ -87,7 +88,7 @@ class SimpleCylinder(ImplicitFunction):
         assert x.shape == (count, 3)
         assert aa.shape == (count, 3)
         t_ = np.dot(x - aa, self.w)  # Nx1
-        assert t_.shape == (count,1)
+        assert t_.shape == (count, 1)
         t = t_[:, 0]  # N,
         assert t.shape == (count,)
         t_arr_1xN = t.reshape((1, count))
@@ -112,16 +113,16 @@ class SimpleCylinder(ImplicitFunction):
         if not return_grad:
             return fval
         else:
-            c_t0 = np.logical_and(t0 <= t1,  t0 <= r_)
-            c_t1 = np.logical_and(t1 <= t0,  t1 <= r_)
-            c_r = np. logical_and(r_ <= t0,  r_ <= t1)
+            c_t0 = np.logical_and(t0 <= t1, t0 <= r_)
+            c_t1 = np.logical_and(t1 <= t0, t1 <= r_)
+            c_r = np. logical_and(r_ <= t0, r_ <= t1)
             assert c_t0.ndim == 1
             assert c_t1.ndim == 1
-            c_t0 = np.tile(c_t0[:,np.newaxis], (1,3) )
-            c_t1 = np.tile(c_t1[:,np.newaxis], (1,3) )
-            c_r = np.tile(c_r[:,np.newaxis], (1,3) )
-            grad_t0 = np.tile(self.w[np.newaxis,:,0], (count,1))
-            grad_t1 = np.tile(-self.w[np.newaxis,:,0], (count,1))
+            c_t0 = np.tile(c_t0[:, np.newaxis], (1, 3))
+            c_t1 = np.tile(c_t1[:, np.newaxis], (1, 3))
+            c_r = np.tile(c_r[:, np.newaxis], (1, 3))
+            grad_t0 = np.tile(self.w[np.newaxis, :, 0], (count, 1))
+            grad_t1 = np.tile(-self.w[np.newaxis, :, 0], (count, 1))
             grad_r = np.transpose(p) - x
 #            print c_t0.shape, "c_t0"
 #            print c_t1.shape, "c_t1"
@@ -129,9 +130,9 @@ class SimpleCylinder(ImplicitFunction):
 #            print grad_r.shape, "g_r"
 #            print grad_t1.shape, "g_t1"
 
-            a =  (c_t0) * grad_t0
+            a = (c_t0) * grad_t0
             b = (c_t1) * grad_t1
-            c =  (c_r) * grad_r
+            c = (c_r) * grad_r
             g3 = a+b+c
 
             check_vector3_vectorized(g3)
@@ -143,7 +144,7 @@ class SimpleCylinder(ImplicitFunction):
         return g
 
     def curvature(self, x):
-        check_vect2(x)
+        check_vector2(x)
         raise NotImplementedError()
 
 

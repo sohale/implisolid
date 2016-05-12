@@ -169,7 +169,7 @@ def make_edge_lookup_old(faces):
         # face[*]=*
         assert eu_paired_int >= 0
         if VERBOSE:
-            print(eu_paired_int,eulookup[eu_paired_int], e_id)
+            print(eu_paired_int, eulookup[eu_paired_int], e_id)
         assert np.abs(eulookup[eu_paired_int]) == e_id
 
     assert np.all(np.ravel(edges_of_faces) > -1)
@@ -179,7 +179,7 @@ def make_edge_lookup_old(faces):
     # eulookup[eu_paired_int] = edge number index
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
 
-#import vectorized
+# import vectorized
 
 if __name__ == '__main__':
     pass

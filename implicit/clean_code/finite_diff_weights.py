@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#See: git@github.com:quantheory/finitediff.git
+# See: git@github.com:quantheory/finitediff.git
 
 import numpy as np
 
 __all__ = ['weights']
+
 
 def weights(k, x0, xs):
     """Calculate weights for the finite difference approximation.
@@ -50,11 +51,11 @@ def weights(k, x0, xs):
         if j == 0:
             # The approximation to the 0th derivative given only one
             # function value is trivially to just use that value.
-            w[0,0] = 1
+            w[0, 0] = 1
         else:
-            w[0,j] = - xs[j-1] * w[0,j-1] * product_ratio[j]
+            w[0, j] = - xs[j-1] * w[0, j-1] * product_ratio[j]
             for i in range(1, j+1):
-                w[0,j-i] = xs[j] * w[0,j-i] / (xs[j] - xs[j-i])
+                w[0, j-i] = xs[j] * w[0, j-i] / (xs[j] - xs[j-i])
         for m in range(1, k+1):
             # Generate weights for each derivative using the
             # previous one.
@@ -62,9 +63,7 @@ def weights(k, x0, xs):
             # and l is the number of points used in this round,
             # minus one.
             l = j+m
-            w[m,l] = (m*w[m-1, l-1] - xs[l-1]*w[m, l-1]) \
-                        * product_ratio[l]
+            w[m, l] = (m*w[m-1, l-1] - xs[l-1]*w[m, l-1]) * product_ratio[l]
             for i in range(1, l+1):
-                w[m,l-i] = (xs[l] * w[m,l-i] - m*w[m-1,l-i]) \
-                            / (xs[l] - xs[l-i])
+                w[m, l-i] = (xs[l] * w[m, l-i] - m*w[m-1, l-i]) / (xs[l] - xs[l-i])
     return w[k, :]

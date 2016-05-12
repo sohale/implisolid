@@ -6,10 +6,10 @@ TOLERANCE = 0.0000001
 INTEGRITY_TOLERANCES_NORM = 0.00000000001
 
 
-##3d printing using FDA
-#config_FDA={}
-#config_FDA["max_iter"] = 20
-#config_FDA["numerical_min_length"] = 0.1
+# 3d printing using FDA
+# config_FDA={}
+# config_FDA["max_iter"] = 20
+# config_FDA["numerical_min_length"] = 0.1
 
 class config_FDA(object):
 
@@ -21,4 +21,3 @@ class config_FDA(object):
 
 
 config = config_FDA()
-

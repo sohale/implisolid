@@ -1,21 +1,17 @@
 import numpy as np
 from implicit import ImplicitFunction
-from basic_functions import check_vector4_vectorized, check_vector4, repeat_vect4, make_vector4
-from basic_functions import check_vector3_vectorized, check_vector3, repeat_vect3, make_vector3
+from basic_functions import check_vector3_vectorized, check_vector3, repeat_vect3, make_vector3, check_vector2
 
 import vector3
 from implicit_config import config
 
 
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorized="unspecified"):
-    #0.1 is not enough for delta_t
+    # 0.1 is not enough for delta_t
     check_vector3(pos0)
     assert is_vectorized != "unspecified"
     if is_vectorized:
         assert issubclass(type(iobj), vector3.ImplicitFunctionVectorized)
-    else:
-        assert issubclass(type(iobj), nonvec.ImplicitFunctionPointwise)
-
     m = order  # sample points: -m,...,-1,0,1,2,...,+m
 
     _VERBOSE = False
@@ -41,59 +37,55 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
         for i in sample_points:
             dd = dxyz[d]
             pos[ci, :] = pos[ci, :] + (dd * delta_t * float(i))
-            #w[ci] = findef(i,n)
+            # w[ci] = findef(i,n)
             ci += 1
-
-
     if is_vectorized:
         v = iobj.implicitFunction(pos)    # v .shape: (3,11)
     else:
         v = np.zeros((pos.shape[0],))
         for i in range(pos.shape[0]):
-            v1 = iobj.implicitFunction(pos[i,:])    # v .shape: (3,11)
+            v1 = iobj.implicitFunction(pos[i, :])    # v .shape: (3,11)
             v[i] = v1
     v3 = np.reshape(v, (3, n), order='C')  # v3 .shape: (11,)
-    #print( np.diff(v, axis=0) / delta_t )
-    #print( np.diff(v3, axis=1) / delta_t )
+    # print( np.diff(v, axis=0) / delta_t )
+    # print( np.diff(v3, axis=1) / delta_t )
 
-
-
-    #Lipchitz_L
-    #Lipschitz constant = Lipchitz_B
-    Lipchitz_B = 50
+    # Lipchitz_L
+    # Lipschitz constant = Lipchitz_B
+    # Lipchitz_B = 50
     Lipchitz_beta = 1  # order. Keep it 1
-    #H\:older continuous:   |f(h)-f(0)| <= B|h|^beta
-    b_h_beta = Lipchitz_B*(np.abs(delta_t)**Lipchitz_beta)
-    #print("v3=",v3)
-    #print("diff=",np.diff(v3, axis=1) )
-    #print(b_h_beta)
+    # H\:older continuous:   |f(h)-f(0)| <= B|h|^beta
+    # b_h_beta = Lipchitz_B*(np.abs(delta_t)**Lipchitz_beta)
+    # print("v3=",v3)
+    # print("diff=",np.diff(v3, axis=1) )
+    # print(b_h_beta)
 
-    d0 = np.abs( np.diff(v3, axis=1) )
-    #lipschitz_condition = d <= b_h_beta
+    d0 = np.abs(np.diff(v3, axis=1))
+    # lipschitz_condition = d <= b_h_beta
     nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
     #nonsmooth_ness2 = np.mean(nonsmooth_ness, axis=1)
 
-    d = np.abs( np.diff(v3, n=1, axis=1) ) / np.abs(delta_t)
-    d = d - np.tile( np.mean(d, axis=1, keepdims=True), (1, d.shape[1]) )
+    d = np.abs(np.diff(v3, n=1, axis=1)) / np.abs(delta_t)
+    d = d - np.tile(np.mean(d, axis=1, keepdims=True), (1, d.shape[1]))
     d = np.abs(d) / np.abs(delta_t)
-    d = d - np.tile( np.mean(d, axis=1, keepdims=True), (1, d.shape[1]) )
-    #d = np.abs(d)
-    #d = np.abs( np.diff(d, n=1, axis=1) ) / np.abs(delta_t)
-    #nonsmooth_ness = d / (np.abs(delta_t)**Lipchitz_beta)
-    #if(np.max(np.ravel(d))) > 50:
+    d = d - np.tile(np.mean(d, axis=1, keepdims=True), (1, d.shape[1]))
+    # d = np.abs(d)
+    # d = np.abs( np.diff(d, n=1, axis=1) ) / np.abs(delta_t)
+    # nonsmooth_ness = d / (np.abs(delta_t)**Lipchitz_beta)
+    # if(np.max(np.ravel(d))) > 50:
     #    print("warning")
     #    print(nonsmooth_ness)
 
-    #print(d)
+    # print(d)
     if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
         print "warning: nonsmooth ",
-        #print(nonsmooth_ness)  # lots of zeros and one big value
+        # print(nonsmooth_ness)  # lots of zeros and one big value
 
     """ Calculating the numerical derivative using finite difference (convolution with weights) """
-    #convolusion
+    # convolusion
     grad_cnv = np.dot(v3, findiff_weights)
-    #grad_cnv = np.reshape(grad_cnv, (1,3))[:,np.newaxis]
-    #grad_cnv = np.concatenate( ( grad_cnv[np.newaxis,:], np.reshape(np.array([1]),(1,1)) ), axis=1)
+    # grad_cnv = np.reshape(grad_cnv, (1,3))[:,np.newaxis]
+    # grad_cnv = np.concatenate( ( grad_cnv[np.newaxis,:], np.reshape(np.array([1]),(1,1)) ), axis=1)
 
     # def v3_to_v14(v):
     #     """ Converts shape from (3,) into a (1,4) vector4 """
@@ -101,18 +93,18 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     #     return np.concatenate((v[np.newaxis, :], np.reshape(np.array([1]), (1, 1))), axis=1)
     #
     # grad_cnv = v3_to_v14(grad_cnv)
-    #print("weights: ",findiff_weights)
+    # print("weights: ",findiff_weights)
 
     #Detecting sharp edges (non-smooth points, i.e. corners and edges and ridges)
     if np.max(np.abs(grad_cnv)) > 100:
         pass
-        #print("*******  max(grad) > 100")
-        #print(np.abs(grad_cnv))
-    #else:
+        # print("*******  max(grad) > 100")
+        # print(np.abs(grad_cnv))
+    # else:
     #    print(np.abs(grad_cnv))
 
     if _VERBOSE:
-        #np.set_printoptions( precision=9 )
+        # np.set_printoptions( precision=9 )
         np.set_printoptions(formatter={'all': lambda x: ''+("%2.19f" % (x,))})
 
     """ Calculating the numerical derivative using 'mean of diff' """
@@ -126,22 +118,23 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     if _VERBOSE:
         print("grad_analytical: ", g)
 
-        #print( grad_cnv.shape )
-        #print( g.shape )
-        #print( grad_mean.shape )
+        # print( grad_cnv.shape )
+        # print( g.shape )
+        # print( grad_mean.shape )
 
         print("Errors:")
         print("conv error: ", g - grad_cnv)
-        #Amazing precision: [[0.0000000000001995071 -0.0000000038590481921 0.0000000000000008882  0.0000000000000000000]]
+        # Amazing precision: [[0.0000000000001995071 -0.0000000038590481921 0.0000000000000008882  0.0000000000000000000]]
 
 #        print("mean error: ", g - v3_to_v14(grad_mean))
-        #Terrible error: [-0.262   2.12266  0 ]
+        # Terrible error: [-0.262   2.12266  0 ]
 
-        #v3 * findiff_weights
+        # v3 * findiff_weights
 
         print("to be continued")
 
     return grad_cnv
+
 
 class Screw(ImplicitFunction):
     def __init__(self, A, w, u, slen, r0, delta, twist_rate, phi0=0.0, phi_func=None):
@@ -200,21 +193,21 @@ class Screw(ImplicitFunction):
 
     def implicitFunction(self, xa):
         check_vector3_vectorized(xa)
-        #print(self.w.shape)
+        # print(self.w.shape)
         assert self.w.shape == (3, 1)
         assert self.A.shape == (3, 1)
         x = xa
-        #print(x.shape)
+        # print(x.shape)
         count = x.shape[0]
         assert x.shape == (count, 3)
-        #x - self.A
-        #t = np.dot(np.transpose(self.w), x - self.A)
+        # x - self.A
+        # t = np.dot(np.transpose(self.w), x - self.A)
         aa = np.tile(np.transpose(self.A), (count, 1))
 
         assert x.shape == (count, 3)
         assert aa.shape == (count, 3)
         t = np.dot(x - aa, self.w.ravel())
-        #print(t.shape)
+        # print(t.shape)
         assert t.shape == (count,)
         t1 = np.dot(x - aa, self.w).reshape((1, count))
         assert t1.shape == (1, count)
@@ -232,13 +225,13 @@ class Screw(ImplicitFunction):
         inside_ness = t / self.slen
         # print(self.slen)
 
-        #todo: see Cylinder
-        #inside_ness[inside_ness<1] = 1
-        #inside_ness[t<0] = 1 + t[t<0]
-        #inside_ness = (inside_ness-1)*100+1
-        #inside_ness[inside_ness>1] = 1
+        # todo: see Cylinder
+        # inside_ness[inside_ness<1] = 1
+        # inside_ness[t<0] = 1 + t[t<0]
+        # inside_ness = (inside_ness-1)*100+1
+        # inside_ness[inside_ness>1] = 1
         inside_ness = 1 - 2 * np.abs(inside_ness-0.5)
-        #inside_ness = (inside_ness-1)*100+1
+        # inside_ness = (inside_ness-1)*100+1
         inside_ness = (inside_ness > 0)*1.0
 
         pi2 = np.pi*2
@@ -258,7 +251,7 @@ class Screw(ImplicitFunction):
         return g
 
     def curvature(self, x):
-        check_vect2(x)
+        check_vector2(x)
         raise NotImplementedError()
 
 __all__ = ['Screw']

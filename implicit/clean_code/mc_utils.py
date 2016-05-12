@@ -4,6 +4,7 @@ The MC algorithm itself is not called in this module. """
 import numpy as np
 import sys
 
+
 VERBOSE = True
 
 
@@ -27,13 +28,10 @@ def _prepare_grid(rng):
 
     return xyza
 
-@profile
+
+# @profile
 def make_grid(iobj, rng, old=None):
-    assert old is not None
-    if old:
-        xyza = _prepare_grid_old(rng)
-    else:
-        xyza = _prepare_grid(rng)
+    xyza = _prepare_grid(rng)
 
     vgrid_v = iobj.implicitFunction(xyza)
     vgrid = np.reshape(vgrid_v, (len(rng), len(rng), len(rng)), order='C')

@@ -50,7 +50,7 @@ class Ellipsoid(ImplicitFunction):
 
     def hessianMatrix(self, p):
         check_vector3_vectorized(p)
-        raise VirtualException()
+        raise Exception()
 
     def __str__(self):
         return "Ellipsoid(vectorized)" + str(self.matrix)  # .split().join(";")
@@ -115,7 +115,7 @@ class Transformed(ImplicitFunction, Transformable):
         h1 = self.base_object.hessianMatrix(tp)
         h = np.dot(h1, self.invmatrix)  # which one is correct?
         h = np.dot(self.invmatrix, np.tanspose(h1))   # which one is correct?
-        raise VirtualException()
+        raise Exception()
         return h
 
 

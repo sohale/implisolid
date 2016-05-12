@@ -1,4 +1,6 @@
 import numpy as np
+#from stl import mesh
+
 
 """Creates and exports STL files based on polygonized implicit objects.
 STL files can be used directly in a slicer like Cura for printing.
@@ -6,12 +8,12 @@ To install the packages:
 pip install numpy-stl
 """
 
+
 def write_stl(verts, faces, filename):
     pass
 
+
 def load_stl(stl_fn, save_stl_fn):
-    import numpy
-    from stl import mesh
 
     # Using an existing stl file:
     your_mesh = mesh.Mesh.from_file(stl_fn)
@@ -19,7 +21,7 @@ def load_stl(stl_fn, save_stl_fn):
     # Or creating a new mesh (make sure not to overwrite the `mesh` import by
     # naming it `mesh`):
     VERTICE_COUNT = 100
-    data = numpy.zeros(VERTICE_COUNT, dtype=mesh.Mesh.dtype)
+    data = np.zeros(VERTICE_COUNT, dtype=mesh.Mesh.dtype)
     your_mesh = mesh.Mesh(data, remove_empty_areas=False)
 
     # The mesh normals (calculated automatically)
@@ -59,24 +61,25 @@ def load_stl(stl_fn, save_stl_fn):
 # show_stl('tests/stl_binary/HalfDonut.stl')
 
 
-# def plot_stlmesh(m):
-#     from matplotlib import pyplot
-#     from mpl_toolkits import mplot3d
-#
-#     # Create a new plot
-#     figure = pyplot.figure()
-#     axes = mplot3d.Axes3D(figure)
-#
-#     # Render the cube faces
-#     # for m in meshes:
-#     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(m.vectors))
-#
-#     # Auto scale to the mesh size
-#     scale = np.concatenate([m]).flatten(-1)
-#     axes.auto_scale_xyz(scale, scale, scale)
-#
-#     pyplot.show()
-#
+def plot_stlmesh(m):
+    from matplotlib import pyplot
+    from mpl_toolkits import mplot3d
+
+    # Create a new plot
+    figure = pyplot.figure()
+    axes = mplot3d.Axes3D(figure)
+
+    # Render the cube faces
+    # for m in meshes:
+    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(m.vectors))
+
+    # Auto scale to the mesh size
+    scale = np.concatenate([m]).flatten(-1)
+    axes.auto_scale_xyz(scale, scale, scale)
+
+    pyplot.show()
+
+
 def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1, 1), mayavi_wireframe=False):
     from mayavi import mlab
     mlab.triangular_mesh([vert[0] for vert in verts],
@@ -95,19 +98,22 @@ def display_simple_using_mayavi_vf1(verts, faces, minmax=(-1, 1), mayavi_wirefra
     mlab.show()     # figure=fig,
 #
 
-# def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
-#     """ Uses Scikit's MC algorithm,which has minor bugs. """
-#     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
-#     import mc_utils
-#     vgrid = mc_utils.make_grid(iobj, rng, old=True)
-#     from skimage import measure
-#     verts, faces = measure.marching_cubes(vgrid, 0)
-#     verts = ((verts) * STEPSIZE + rng[0])
-#     print("OLD: swapping x,y")
-#     verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
-#     return verts, faces
 
-@profile
+def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
+    """ Uses Scikit's MC algorithm,which has minor bugs. """
+    rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
+    import mc_utils
+    vgrid = mc_utils.make_grid(iobj, rng, old=True)
+    from skimage import measure
+    verts, faces = measure.marching_cubes(vgrid, 0)
+    verts = ((verts) * STEPSIZE + rng[0])
+    print("OLD: swapping x,y")
+    verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
+    return verts, faces
+
+# @profile
+
+
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils
@@ -119,8 +125,8 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
         vgrid = np.swapaxes(vgrid, 1, 2)
         vgrid = np.swapaxes(vgrid, 0, 1)
         return vgrid
-        #print("no swap")
-        #return vgrid
+        # print("no swap")
+        # return vgrid
 
 #
 # def make_mc_values_grid_mayavi(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
@@ -128,6 +134,7 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
 #     import mc_utils
 #     vgrid = mc_utils.make_grid(iobj, rng, old=True)
 #     return np.swapaxes(vgrid, 0, 1)
+
 
 def test3():
     exname = "screw3"
@@ -157,8 +164,6 @@ def m2stl_mesh(verts, faces):
 
 def test4():
     # simply marching cubes
-    from stl import mesh
-    import math
 
     exname = "screw3"
     import example_objects
@@ -175,11 +180,8 @@ def test4():
     # display_simple_using_mayavi_vf1(verts, faces)
 
 
-
 def test5_screw():
     # simply marching cubes
-    from stl import mesh
-    import math
 
     exname = "screw3"
     import example_objects
@@ -201,9 +203,6 @@ def test5_screw():
 
 def test6_blend():
     """Printed nicely."""
-    # simply marching cubes
-    from stl import mesh
-    import math
 
     exname = "blend_example2_discs"  # "blend_example2"
     import example_objects
@@ -212,7 +211,7 @@ def test6_blend():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-2. * 8, +4. * 8, 0.4 * 8 / 5)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-    #verts = optimise_mesh(verts, faces, iobj)
+    # verts = optimise_mesh(verts, faces, iobj)
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:
@@ -225,9 +224,6 @@ def test6_blend():
 
 def test7_dice():
     """ Dice prints well. I used NEtfabb to correct the STL though. """
-    from stl import mesh
-    import math
-
     """ It is interesting that the result DOES depend on size (Scaling
     everything inslucing the grid step size). It works well when scale is x1
     and works perfect when scale is x2. But if x3, it starts to look rubbish.
@@ -252,7 +248,6 @@ def test7_dice():
     # When rescale is doubled (=2.), average edge size 0.824 -> 1.647 .
     # Seems the latter is when it works very well.
 
-
     print "average_edge_size", average_edge_size(verts, faces)  # 0.86 -> 1.72
 
     m = m2stl_mesh(verts, faces)
@@ -268,9 +263,6 @@ def test7_dice():
 def test8_bigdice():
     """ A larger dice. May need support though.
     Neat, high resolution, a bit heavy. """
-    from stl import mesh
-    import math
-
     # -8.8, 7.2
     dicesize = 16.
     exname = "udice_vec"  # "blend_example2"
@@ -282,7 +274,7 @@ def test8_bigdice():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-22, +20., 0.8)
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
-    #verts = optimise_mesh(verts, faces, iobj)
+    # verts = optimise_mesh(verts, faces, iobj)
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:
@@ -296,8 +288,6 @@ def test8_bigdice():
 
 def test9_icesl1():
     """ Comparing with IceSL. """
-    from stl import mesh
-    import math
 
     import vectorized
     ns = vectorized
