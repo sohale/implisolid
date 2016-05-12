@@ -1,9 +1,9 @@
 import numpy as np
-from implicit_vectorized import ImplicitFunctionVectorized
+from implicit import ImplicitFunction
 from basic_functions import check_vector4_vectorized, check_vector4, repeat_vect4, make_vector4
 from basic_functions import check_vector3_vectorized, check_vector3, repeat_vect3, make_vector3
 
-import vectorized
+import vector3
 from implicit_config import config
 
 
@@ -12,7 +12,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     check_vector3(pos0)
     assert is_vectorized != "unspecified"
     if is_vectorized:
-        assert issubclass(type(iobj), vectorized.ImplicitFunctionVectorized)
+        assert issubclass(type(iobj), vector3.ImplicitFunctionVectorized)
     else:
         assert issubclass(type(iobj), nonvec.ImplicitFunctionPointwise)
 
@@ -143,7 +143,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
 
     return grad_cnv
 
-class Screw(ImplicitFunctionVectorized):
+class Screw(ImplicitFunction):
     def __init__(self, A, w, u, slen, r0, delta, twist_rate, phi0=0.0, phi_func=None):
         """ class name is: vectorized.Screw
             twist_rate:  mm per cycle.

@@ -1,12 +1,12 @@
 import numpy as np
-from implicit_vectorized import ImplicitFunctionVectorized
+from implicit import ImplicitFunction
 from basic_functions import check_vector3_vectorized, check_vector3, check_vector4
 from implicit_config import config
 
 # todo: class CutCone
 
 
-class SimpleCylinder(ImplicitFunctionVectorized):
+class SimpleCylinder(ImplicitFunction):
 
     def __init__(self, A, w, u, radius_u, radius_v, c_len):
         """ The cross section of a SimpleCylinder is always a circle.

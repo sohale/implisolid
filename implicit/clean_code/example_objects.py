@@ -4,13 +4,13 @@ from basic_functions import make_vector4, normalize_vector, make_vector3, check_
 
 import simple_blend
 
-import vectorized
+import vector3
 
 #definition of the vectorized objects
 
 def dice(dice_scale):
     dice_size = 2.0*dice_scale
-    c = vectorized.UnitCube1(size=dice_size)
+    c = vector3.UnitCube1(size=dice_size)
 
     def hole_crisp(c, i, j, k):
         m = np.eye(4)
@@ -20,8 +20,8 @@ def dice(dice_scale):
         m[2, 2] = dot_size
         distance = (0.5-0.05)*dice_size
         m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
-        s1 = vectorized.Ellipsoid(m)
-        c = vectorized.CrispSubtract(c, s1)
+        s1 = vector3.Ellipsoid(m)
+        c = vector3.CrispSubtract(c, s1)
         return c
 
     hole = hole_crisp
@@ -72,7 +72,7 @@ def rdice_vec(scale, rotated=True):
 
     d = dice(scale)
     return d
-    iobj = vectorized.Transformed(d)
+    iobj = vector3.Transformed(d)
     iobj  \
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
@@ -81,9 +81,9 @@ def rdice_vec(scale, rotated=True):
 
 
 def rcube_vec(scale, rotated=True):
-    d = vectorized.UnitCube1(size=2.0 * scale)
+    d = vector3.UnitCube1(size=2.0 * scale)
 
-    iobj = vectorized.Transformed(d)
+    iobj = vector3.Transformed(d)
     iobj  \
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
@@ -108,8 +108,8 @@ def blend_example2(scale=1.):
     m2[2, 2] = 0.4 * scale
     m2[3, 3] = 1
 
-    a, b = vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)
-    iobj = vectorized.SimpleBlend(a, b)
+    a, b = vector3.Ellipsoid(m1), vector3.Ellipsoid(m2)
+    iobj = vector3.SimpleBlend(a, b)
 
     return iobj
 
@@ -123,7 +123,7 @@ def ell_example1(scale):
     m1[0:3, 3] = [0, 1 * scale, 0]
     m1[3, 3] = 1
 
-    iobj = vectorized.Ellipsoid(m1)
+    iobj = vector3.Ellipsoid(m1)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
 
@@ -131,15 +131,15 @@ def ell_example1(scale):
 
 
 def sphere_example(scale=1.):
-    iobj = vectorized.UnitSphere()
+    iobj = vector3.UnitSphere()
 
     return iobj
 
 
 def cube_example(scale=1.):
-    iobj = vectorized.UnitCube1()
+    iobj = vector3.UnitCube1()
 
-    iobj = vectorized.Transformed(iobj) \
+    iobj = vector3.Transformed(iobj) \
         .move(-0.1 * scale, -0.1 * scale, -0.1 * scale) .resize(3 * scale) \
         .rotate(-20, along=make_vector3(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
 
@@ -162,7 +162,7 @@ def first_csg(scale):
     m3[0:3, 3] = [1.5 * scale, 0, 0]
     m3[3, 3] = 1
 
-    iobj = vectorized.CrispSubtract(vectorized.CrispUnion(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2)), vectorized.Ellipsoid(m3))
+    iobj = vector3.CrispSubtract(vector3.CrispUnion(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2)), vector3.Ellipsoid(m3))
     return iobj
 
 def bowl_15_holes(scale_ignored):
@@ -175,20 +175,20 @@ def bowl_15_holes(scale_ignored):
     m_big = np.eye(4) * big_radius
     m_big[0:3, 3] = [0, 0, 0]
     m_big[3, 3] = 1
-    iobj = vectorized.Ellipsoid(m_big)
+    iobj = vector3.Ellipsoid(m_big)
 
     """ Cut a sphere out pf it """
     m_big2 = np.eye(4) * big_radius2
     m_big2[0:3, 3] = [0, 0, 0]
     m_big2[3, 3] = 1
 
-    iobj = vectorized.CrispSubtract(iobj, vectorized.Ellipsoid(m_big2))
+    iobj = vector3.CrispSubtract(iobj, vector3.Ellipsoid(m_big2))
 
     """ Cut the top part"""
     m_big3 = np.eye(4) * 10
     m_big3[0:3, 3] = [0, 0, 10.2]
     m_big3[3, 3] = 1
-    iobj = vectorized.CrispSubtract(iobj, vectorized.Ellipsoid(m_big3))
+    iobj = vector3.CrispSubtract(iobj, vector3.Ellipsoid(m_big3))
 
     """ Cut 15 small spheres from it """
     for i in range(0, 15):
@@ -217,11 +217,11 @@ def bowl_15_holes(scale_ignored):
         # print( np.sqrt(np.dot(c,c)) )
         m_small[0:3, 3] = c[0:3]
         m_small[3, 3] = 1
-        small_obj = vectorized.Ellipsoid(m_small)
-        iobj = vectorized.CrispSubtract(iobj, small_obj)
+        small_obj = vector3.Ellipsoid(m_small)
+        iobj = vector3.CrispSubtract(iobj, small_obj)
         # iobj = CrispUnion( iobj, small_obj )
 
-    xa = vectorized.repeat_vect3(10, make_vector3(1, 1, 1))
+    xa = vector3.repeat_vect3(10, make_vector3(1, 1, 1))
     ga = iobj.implicitGradient(xa)
     va = iobj.implicitFunction(xa)
     # print(va)
@@ -239,7 +239,7 @@ def blend_example1(scale_ignored):
     m2[0:3, 3] = [2.5, 0, 0]
     m2[3, 3] = 1
 
-    iobj = vectorized.SimpleBlend(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2))
+    iobj = vector3.SimpleBlend(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2))
 
     return iobj
 
@@ -256,20 +256,20 @@ def blend_example2_discs(scale):
     m2[2, 2] = 0.4 * scale
     m2[3, 3] = 1
 
-    iobj = vectorized.SimpleBlend(vectorized.Ellipsoid(m1), vectorized.Ellipsoid(m2))
-    assert vectorized.SimpleBlend == simple_blend.SimpleBlend
+    iobj = vector3.SimpleBlend(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2))
+    assert vector3.SimpleBlend == simple_blend.SimpleBlend
 
     return iobj
 
 def french_fries_vectorized(scale):
     def rod():
-        c = vectorized.UnitCube1()
+        c = vector3.UnitCube1()
         m2 = np.eye(4) * scale
         m2[0, 0] = 0.1 * scale
         m2[1, 1] = 0.1 * scale
         m2[0:3, 3] = [+0.1 / 2.0 * 2 * scale, +0.1 / 2.0 * 2 * scale, + 1.0 / 2.0 * 2 * scale]
         m2[3, 3] = 1
-        iobj = vectorized.Transformed(c, m2)
+        iobj = vector3.Transformed(c, m2)
         # .move(-0.1/2.0, -0.1/2.0, -1.0/2.0)
         iobj  \
             .move(-0.2 * scale, -0.2 * scale, 0) \
@@ -284,19 +284,19 @@ def french_fries_vectorized(scale):
         if u is None:
             u = c
         else:
-            u = vectorized.CrispUnion(u, c)
+            u = vector3.CrispUnion(u, c)
     return u
 
 
 def rods(scale):
     #the scale needs to be equal to 2 in order to have a nice object
     def rod():
-        c = vectorized.UnitCube1()
+        c = vector3.UnitCube1()
         m2 = np.eye(4)
         m2[0, 0] = 0.1 * scale
         m2[1, 1] = 0.1 * scale
         m2[2, 2] = scale
-        iobj = vectorized.Transformed(c, m2)
+        iobj = vector3.Transformed(c, m2)
         iobj  \
             .move(-0, -0.3*scale, -1.0*scale) \
             .resize(2) \
@@ -310,7 +310,7 @@ def rods(scale):
         if u is None:
             u = c
         else:
-            u = vectorized.CrispUnion(u, c)
+            u = vector3.CrispUnion(u, c)
     return u
 
 
@@ -345,7 +345,7 @@ def screw2(SCALE=1.):
 # Cylinder
 ##################################################
 
-from vectorized import SimpleCylinder
+from vector3 import SimpleCylinder
 
 
 def cyl1(scale_ignored):
@@ -460,15 +460,15 @@ def cyl2(scale_ignored):
         newlen = c_len * 5
         c1 = SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
         delta, twist_rate = radius * 0.2, 2
-        from vectorized import Screw
+        from vector3 import Screw
         c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 
-        c = vectorized.CrispUnion(c1, c)
+        c = vector3.CrispUnion(c1, c)
 
         if un is None:
             un = c
         else:
-            un = vectorized.CrispUnion(un, c)
+            un = vector3.CrispUnion(un, c)
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
     return un#, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
@@ -487,7 +487,7 @@ def cage_rods(rod_r, rod_len, cage_r, N):
         if un is None:
             un = c
         else:
-            un = vectorized.CrispUnion(un, c)
+            un = vector3.CrispUnion(un, c)
     return un
 
 
@@ -512,7 +512,7 @@ def cyl4(scale):
         make_vector4(1, 0, 0),
         11., 11.,
         1.)
-    ifunc = vectorized.CrispUnion(base_cyl, t)
+    ifunc = vector3.CrispUnion(base_cyl, t)
 
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0)   #15 sec!  2.5 millions voxels
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
@@ -541,9 +541,9 @@ def cube_with_cylinders(scale):
     u2 = make_vector4(0, 1, 0)
 
     cyl_2 = SimpleCylinder(A2, u2, w2, radius, radius, c_len)
-    cube = vectorized.UnitCube1(size=sz1)
-    union = vectorized.CrispSubtract(cube, cyl_2)
-    final_object = vectorized.CrispUnion(union,cyl)
+    cube = vector3.UnitCube1(size=sz1)
+    union = vector3.CrispSubtract(cube, cyl_2)
+    final_object = vector3.CrispUnion(union,cyl)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object
@@ -604,7 +604,7 @@ def get_all_examples(types_list):
 
             if examples[e] in [2]:
                 iobj = make_example_vectorized(e)
-                x = vectorized.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
+                x = vector3.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
                 g = iobj.implicitGradient(x)
                 v = iobj.implicitFunction(x)
 

@@ -5,15 +5,15 @@ from implicit_config import TOLERANCE
 from primitives import ImplicitFunctionPointwise
 
 from primitives import UnitSphere
-from implicit_vectorized import ImplicitFunctionVectorized
+from implicit import ImplicitFunction
 
 
-class SimpleBlend (ImplicitFunctionVectorized):
+class SimpleBlend (ImplicitFunction):
     """ A simplistic blend using the exp() function """
 
     def __init__(self, a, b, afactor=1.0, bfactor=1.0):
-        assert isinstance(a, ImplicitFunctionVectorized)
-        assert isinstance(b, ImplicitFunctionVectorized)
+        assert isinstance(a, ImplicitFunction)
+        assert isinstance(b, ImplicitFunction)
         self.a = a
         self.b = b
         self.afactor = afactor
