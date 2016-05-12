@@ -1,9 +1,8 @@
 import numpy as np
-import screw
+
 from basic_functions import make_vector4, normalize_vector, make_vector3, check_vector4, make_random_vector
 import simple_blend
 import vector3
-from vector3 import SimpleCylinder
 
 # definition of the vectorized objects
 
@@ -316,6 +315,8 @@ def rods(scale):
             u = vector3.CrispUnion(u, c)
     return u
 
+import screw
+
 
 def screw1(scale_ignored):
     a = np.array([0, 0, 0])
@@ -345,6 +346,7 @@ def screw2(SCALE=1.):
 ##################################################
 # Cylinder
 ##################################################
+from vector3 import SimpleCylinder
 
 
 def cyl1(scale_ignored):
