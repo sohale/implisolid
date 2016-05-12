@@ -2655,7 +2655,8 @@ def demo_everything():
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
         pre_proj_centroids = new_centroids.copy()
-        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*2., nones_map)
+        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
+        #set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge*2., nones_map)
         #new_centroids is the output
 
         visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
@@ -2841,7 +2842,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         #qem_origin = np.zeros((3, 1))
         qem_origin = verts[vertex_id, :].reshape(3, 1)
         A, b = get_A_b(vi, neighbours_faces, centroids, centroid_gradients, qem_origin)
-        print "Ax+b=0: A,b:", A, b
+        #print "Ax+b=0: A,b:", A, b
 
         ###
         #A, b = self.get_A_b(vi)
@@ -2880,7 +2881,7 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
 
         x = verts[vi, 0:3, np.newaxis] - qem_origin
         assert x.shape == (3, 1)
-        print "x_OLD", x
+        #print "x_OLD", x
         global x_old
         x_old = x
         y = np.dot(v, x).copy()
