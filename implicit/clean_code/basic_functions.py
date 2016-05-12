@@ -67,7 +67,7 @@ def check_vector2(p):
     assert p.shape == (2,), "Vector must be a numpy array of (3) elements"
     assert not np.any(np.isnan(p.ravel()))
     assert not np.any(np.isinf(p.ravel()))
-    
+
 
 def check_vector4_vectorized(p):
     assert not issubclass(p.dtype.type, np.integer)

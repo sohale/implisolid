@@ -4,7 +4,6 @@ import implicit
 from implicit import *
 __all__.extend(implicit.__all__)
 
-print __all__ 
 
 from crisp_csg import *
 import crisp_csg

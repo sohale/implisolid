@@ -263,7 +263,7 @@ def blend_example2_discs(scale):
     return iobj
 
 
-def french_fries_vectorized(scale):
+def french_fries(scale):
     def rod():
         c = vector3.UnitCube1()
         m2 = np.eye(4) * scale
@@ -572,7 +572,7 @@ examples = {
     "blend_example1": 2,
     "bowl_15_holes": 2,
     "first_csg": 2,
-    "french_fries_vectorized": 2,
+    "french_fries": 2,
     "rdice_vec": 2,
     "rcube_vec": 2,
     "screw1": 2,

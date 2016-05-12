@@ -269,13 +269,14 @@ def compute_triangle_areas(verts, faces, return_normals=False):
     facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
     degenerates_count = len(facet_areas[facet_areas < DEGENERACY_THRESHOLD])
 
-    non_nul_facet_aera = np.ndarray(nfaces - degenerates_count)
-    non_degenerate_faces = np.ndarray((nfaces - degenerates_count, 3))
+    non_nul_indices = nfaces - degenerates_count  # the number of indices who have a facets with a non nul area
+    non_nul_facet_area = np.ndarray(non_nul_indices)
+    non_degenerate_faces = np.ndarray((non_nul_indices, 3), dtype=int)
     non_degenerated_indice = []
     k = 0
     for i in range(nfaces):
         if facet_areas[i] > DEGENERACY_THRESHOLD:
-            non_nul_facet_aera[k] = facet_areas[i]
+            non_nul_facet_area[k] = facet_areas[i]
             non_degenerate_faces[k] = faces[i]
             non_degenerated_indice.append(i)
             k += 1
@@ -287,13 +288,13 @@ def compute_triangle_areas(verts, faces, return_normals=False):
         axis=1)
 
     if not return_normals:
-        return non_nul_facet_aera
+        return non_nul_facet_area
     else:
-        print non_nul_facet_aera.shape
-        assert non_nul_facet_aera[:, np.newaxis].shape == (nfaces - degenerates_count, 1)
-        facet_normals = new_a / np.tile(non_nul_facet_aera[:, np.newaxis], (1, 3)) / 2.0
+        print non_nul_facet_area.shape
+        assert non_nul_facet_area[:, np.newaxis].shape == (non_nul_indices, 1)
+        facet_normals = new_a / np.tile(non_nul_facet_area[:, np.newaxis], (1, 3)) / 2.0
 
-        return non_nul_facet_aera, facet_normals, non_degenerate_faces, nfaces - degenerates_count
+        return non_nul_facet_area, facet_normals, non_degenerate_faces, non_nul_indices
 
 
 def compute_triangle_areas_old(verts, faces, return_normals=False):
@@ -976,19 +977,13 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     """ Deviation of Mesh from object gradients """
 
     facet_areas, facet_normals, non_degenerated_faces, non_degenerated_indices = compute_triangle_areas(verts, facets, return_normals=True)
-    import ipdb; ipdb.set_trace()
+
     facets = non_degenerated_faces
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
     assert facet_normals.shape == (nf, 3)
 
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
-
-    degenerate_faces = np.isnan(facet_areas)
-    assert np.all(np.isnan(facet_areas[degenerate_faces]))
-    assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
-    assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
-    assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces), :])))
 
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -1010,12 +1005,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     e_array = np.zeros((nf,))
 
     for fi in range(nf):
-        assert not degenerate_faces[fi]
         n = facet_normals[fi, :]
-
         triangle = verts[facets[fi, :]]  # numverts x 3
         assert triangle.shape == (3, 3)
-        # print triangle.shape
 
         assert triangle.shape == (3, 3)
         VVV = triangle  # (nv=3) x 3
@@ -1026,7 +1018,6 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
         subdiv_centroids = m0123
         # print subdiv_centroids
 
-    #    assert not degenerate_faces[fi]
         mm = - iobj.implicitGradient(subdiv_centroids)
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
@@ -1075,20 +1066,20 @@ def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "rods"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    if object_name == "cube_with_cylinders" or object_name == "french_fries_vectorized" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
+    if object_name == "cube_with_cylinders" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
 
-    elif object_name == "french_fries_vectorized" or object_name == "rods":
+    elif object_name == "french_fries" or object_name == "rods":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.11)
 
     elif object_name == "bowl_15_holes":
@@ -1144,7 +1135,7 @@ def demo_combination_plus_qem():
         verts, facets = verts4_subdivided, facets3_subdivided
         print("Subdivision applied.");sys.stdout.flush()
 
-        total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
+        # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)

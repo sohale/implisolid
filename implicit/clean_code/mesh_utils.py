@@ -11,9 +11,11 @@ def centroids(verts, faces):
     return c
 
 # The only useful method in our method. This needs to be done once and can be reused.
+
+
 def make_neighbour_faces_of_vertex(faces):
     """ neighbour_faces_of_vertex is a list. index=vertex, v1,v2,v3 """
-    vertex_count = np.max(np.max(faces)) + 1
+    # vertex_count = np.max(np.max(faces)) + 1
     neighbour_faces_of_vertex = {}  # np.zeros( (vertex_count,3) , dtype=np.type) - 1
     for fi in range(faces.shape[0]):
         for vi in range(3):
@@ -33,7 +35,7 @@ def make_edge_lookup_old(faces):
     # faces_of_edges : index = edge number, value = face number1, face number2
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
     # eulookup[eu_paired_int] = edge number index
-    #raise
+    # raise
     print "Warning: not tested enough"
 
     nfaces = faces.shape[0]
@@ -62,7 +64,7 @@ def make_edge_lookup_old(faces):
             assert e[1] >= 0
             assert not e[1] == e[0]
             eu_pair_int = int(eu[0] + eu[1] * modulo)
-            eu_pair_int_revsersed = int(eu[1] + eu[0] * modulo)
+            # eu_pair_int_revsersed = int(eu[1] + eu[0] * modulo)
             eu_pair_int_signed = eu_pair_int
             if not e[1] > e[0]:
                 # eu_pair_int_signed = -eu_pair_int
@@ -90,7 +92,7 @@ def make_edge_lookup_old(faces):
                 e_id = edge_counter
                 edges_of_faces[fi, vj] = e_id
 
-                #print faces_of_edges.shape, e_id, edge_counter, num_edges
+                # print faces_of_edges.shape, e_id, edge_counter, num_edges
                 faces_of_edges[e_id, 0] = fi
                 assert not vj == v2j
                 # assert vertpairs_of_edges[e_id] == eu_pair_int, "vertpairs_of_edges[e_id] == eu_pair_int:  vertpairs_of_edges[%d]=%d == %d"%(e_id, vertpairs_of_edges[e_id], eu_pair_int)

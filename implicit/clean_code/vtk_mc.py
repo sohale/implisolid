@@ -1,19 +1,18 @@
 
 import numpy as np
-#from ipdb import set_trace
-#see http://nullege.com/codes/show/src@p@y@pyformex-0.9.0@pyformex@plugins@vtk_itf.py/36/vtk.util.numpy_support.vtk_to_numpy
-
+# from ipdb import set_trace
+# see http://nullege.com/codes/show/src@p@y@pyformex-0.9.0@pyformex@plugins@vtk_itf.py/36/vtk.util.numpy_support.vtk_to_numpy
 
 def vtk_mc(gridvals, rrr):
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = rrr
 
     from vtk import *
-
+    
     data_numpy = gridvals
 
-    #np.save("dice.npy", data_numpy)
+    # np.save("dice.npy", data_numpy)
 
-    #spacing = STEPSIZE  # 1. #5  # STEPSIZE
+    # spacing = STEPSIZE  # 1. #5  # STEPSIZE
     spacing = 1
 
     x_dim, y_dim, z_dim = data_numpy.shape
@@ -59,7 +58,7 @@ def vtk_mc(gridvals, rrr):
         va[i, :] = p
         va[i, :] = va[i, :] * STEPSIZE + RANGE_MIN
 
-    #va = va[:, [0,1,2]]
+    # va = va[:, [0,1,2]]
 
     fcount = mesh_data.GetNumberOfCells()
     fa = np.zeros((fcount, 3), dtype=int)
@@ -98,9 +97,10 @@ def vtk_mc(gridvals, rrr):
 from stl_tests import display_simple_using_mayavi_vf1
 import sys
 
+
 def vtk_mc_test():
 
-    #set_trace()
+    # set_trace()
     dicesize = 16.
     exname = "udice_vec"  # "blend_example2"
     import example_objects
@@ -114,20 +114,20 @@ def vtk_mc_test():
     numpy_array = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     gridvals = numpy_array
 
-    #gridvals = make_npy_file_dice()
-    verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE) )
+    # gridvals = make_npy_file_dice()
+    verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print ("MC calculated")
     sys.stdout.flush()
 
     from mesh_utils import mesh_invariant
     mesh_invariant(faces)
 
-    #from stl_tests import make_mc_mesh_scikit
-    #verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
+    # from stl_tests import make_mc_mesh_scikit
+    # verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
 
     display_simple_using_mayavi_vf1(verts, faces)
 
 if __name__ == '__main__':
-    #cyl_test_example1()
-    #vtk_mc()
+    # cyl_test_example1()
+    # vtk_mc()
     vtk_mc_test()
