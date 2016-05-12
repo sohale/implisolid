@@ -2839,9 +2839,9 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         neighbours_facelist = vertex_neighbour_facelist_dict[vertex_id]
         neighbours_faces = np.array(neighbours_facelist, dtype=np.int64)
         #qem_origin = np.zeros((3, 1))
-        qem_origin = verts[vertex_id, :].reshape(3, 1)*0
+        qem_origin = verts[vertex_id, :].reshape(3, 1)
         A, b = get_A_b(vi, neighbours_faces, centroids, centroid_gradients, qem_origin)
-        #print A, b
+        print "Ax+b=0: A,b:", A, b
 
         ###
         #A, b = self.get_A_b(vi)
@@ -2878,10 +2878,14 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
 
         assert np.all(s[:rank]/s[0] >= 1.0/tau)
 
-        x = verts[vi, 0:3, np.newaxis]
+        x = verts[vi, 0:3, np.newaxis] - qem_origin
         assert x.shape == (3, 1)
-
+        print "x_OLD", x
+        global x_old
+        x_old = x
         y = np.dot(v, x).copy()
+        #x,y are default x,y elements (in case of degeneracy)
+
         utb = np.dot(-np.transpose(u), b)
         #print("rank", rank, "1/tau=", 1./tau)
         #print s
@@ -2931,6 +2935,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         if vi==179: #254: #179: #81: #310:
             print "here"
             def q():
+                print "x", x_old
+                print "new_x", new_x - qem_origin
                 set_trace()
                 print "neighbours_faces:", neighbours_faces
                 for x in neighbours_faces:
