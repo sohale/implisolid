@@ -233,27 +233,46 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     best_result_x = np.ones((n, 3))
     active_indices = np.arange(0, n, dtype=int)
     active_count = n
+    print n
     del n
 
     still_nonsuccess_indices = active_indices
 
     print "points: ", active_count, ".",
     already_success = fc_a*0 > 1.  # all False
+    success = already_success.copy()  # falses  #.copy() is necessary
     assert not np.any(already_success)
 
     print "left(found)",
     for alpha in alpha_list:
             x1_half = x0 + (max_dist*alpha)*dx1_c
-            active_indices = still_nonsuccess_indices
+            FAST = True
+            if FAST:
+                active_indices = still_nonsuccess_indices
+                #set_trace()
 
-            # Todo: For those that have changed sign, check if they are closer actually.
-            xa4 = augment4(x1_half)
-            f_a = iobj.implicitFunction(xa4)
-            signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
-            #success = signs_a * signs_c <= 0.
-            success = signs_a * signs_c <= 0.
+                # Todo: For those that have changed sign, check if they are closer actually.
+                xa4 = augment4(x1_half[active_indices, :])
+                f_a = iobj.implicitFunction(xa4)
+                signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
+                #success = signs_a * signs_c <= 0.
+                success0 = signs_a * signs_c[active_indices] <= 0.
+                success[:] = False
+                #success[success0] = True
+                assert np.all(success == False)
+                assert np.all(success[active_indices] == False)
+                success[active_indices] = success0
+                print "success:", np.sum(success),
+            else:
+                # Todo: For those that have changed sign, check if they are closer actually.
+                xa4 = augment4(x1_half)
+                f_a = iobj.implicitFunction(xa4)
+                signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
+                success = signs_a * signs_c <= 0.
+                print "success:", np.sum(success),
             assert success.ndim == 1
             #print "success", np.sum(success)
+            #print "already_success", np.sum(already_success)
 
             new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
             #already_success === old success
@@ -269,6 +288,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             #nonsuccess_indices = np.nonzero(success)[0]
             still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
             best_result_x[new_success_indices, :] = x1_half[new_success_indices, :]
+            #print "new success>>", new_success_indices.size, "<<  ",
+            print "already>>", np.sum(already_success.size), "<<  ",
             #todo: also try som ein already_success and improve by replacing those that are CLOSER.
             #already_success_but_open_to_improvement = ...
             #best_so_far = ...
@@ -284,8 +305,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # if still_nonsuccess_indices.shape[0] > 0:
     best_result_x[still_nonsuccess_indices, :] = x0[still_nonsuccess_indices, :]  # failed to converge
 
-    TEST = False
-    if TEST:
+    TEST = True
+    if TEST and not optimised_used():
         xa1 = augment4(x0)
         f1 = iobj.implicitFunction(xa1)
         xa2 = augment4(best_result_x)
@@ -293,8 +314,9 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         s = f1*f2
         print s[still_nonsuccess_indices]
         s[still_nonsuccess_indices] = -1.
-        print s[s > 0]
+        #print s[s > 0]
         assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
+        print "OK"
 
     #centroids[:, :3] = best_result_x[:, :]
     assert np.all(centroids[:, 3] == 1.)
