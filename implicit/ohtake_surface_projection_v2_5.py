@@ -212,33 +212,25 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         #zeros, negatives.
         success = f_a * fc_a <= 0.  # May miss forget about accidental zeros. In that case, use the slightely further points.
         assert success.ndim == 1
-
-        #new successes
-        #success_indices = np.nonzero(success)[0]
-        new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
-        #already_success === old success
-
     """
     step_size = max_dist / 2. * 2.
 
-    la = []
-    #print
+    alpha_list = []
     assert step_size > 0.001
     while step_size > 0.001:
         step_size = step_size * 0.5
-        #max_step = min(MAX_ITER, int(math.ceil(max_dist/math.fabs(step_size) + 0.001)) )
         max_step = min(MAX_ITER, int(math.floor(max_dist/math.fabs(step_size) + 0.001)) )
         assert max_step >= 2  # at least one step
         #if max_step
         #violated only at first time but the first point is already done.
         for i in range(1, max_step+1, 2): #Step size is two, to avoid aready visited points
             alpha = float(i)*step_size
-            #print i, alpha/average_edge
-            la += [alpha/average_edge]
-            la += [-alpha/average_edge]
+            # print i, alpha/average_edge
+            alpha_list += [alpha/average_edge]
+            alpha_list += [-alpha/average_edge]
             # alpha is prepared
-    lanp = np.array(la)
-    lanp.sort()
+    #lanp = np.array(alpha_list)
+    #lanp.sort()
     #print lanp
     #print np.diff(lanp) * (2**9)
 
@@ -249,31 +241,26 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     active_count = n
     del n
 
-    print "points: ", active_count
+    print "points: ", active_count, ".",
     already_success = fc_a*0 > 1.  # all False
     assert not np.any(already_success)
 
-    for alpha in la:
-            #print "still_nonsuccess_indices.shape", still_nonsuccess_indices.shape
-
-            # dx1_c = - g_direction_a * signs_c[:, np.newaxis]
+    print "left(found)",
+    for alpha in alpha_list:
             x1_half = x0 + (max_dist*alpha)*dx1_c
 
-            # Those that have changes sign, check if they are closer actually.
-
+            # Todo: For those that have changed sign, check if they are closer actually.
             xa4 = augment4(x1_half)
             f_a = iobj.implicitFunction(xa4)
             signs_a = (f_a >= THRESHOLD_zero_interval)*1. + (f_a <= -THRESHOLD_zero_interval)*(-1.)
-            #success = f_a * fc_a <= 0.  # May miss forget about accidental zeros. In that case, use the slightely further points.
             success = signs_a * signs_c <= 0.
-            #print np.array((signs_a, signs_c))
             assert success.ndim == 1
             #print "success", np.sum(success)
-            #set_trace()
 
             new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
             #already_success === old success
-            print "found ", new_success_indices.size,
+            #print "found ", new_success_indices.size,
+            #print "(%d)"%new_success_indices.size,
 
             #collect zeros
             #efficient verison: only from new_success_indices
@@ -290,7 +277,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
             #for next round
             already_success = np.logical_or(success, already_success)  # Union
-            print "left:", still_nonsuccess_indices.shape, ".",
+            #print "left:", still_nonsuccess_indices.shape, ".",
+            print ("%d(+%d) "%(still_nonsuccess_indices.size, new_success_indices.size)),
             #print "already_success", np.sum(already_success)
             if still_nonsuccess_indices.shape[0] == 0:
                 break
@@ -311,8 +299,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
     #centroids[:, :3] = best_result_x[:, :]
     assert np.all(centroids[:, 3] == 1.)
-    print "."
-    flush()
+    print "."; flush()
 
     #Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
 
@@ -362,20 +349,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     centroids[relevants_boolean, :] = bsresults[:, :]  # x4
     return
 
-
-    #g_a = iobj.implicitGradient(x1_)[:, :3]
-    #glen_a = np.linalg.norm(g_a, axis=1)
-    #glen_a[np.abs(glen_a) < THRESHOLD_minimum_gradient_len] = 1.
-    #g_normalization_factors = 1. / glen_a[:, np.newaxis]
-    #g_direction_a = g_a * g_normalization_factors
-
-
-
     #visualise_scalar_distribution([f_plot1, f_a])
-    visualise_scatter(f_plot1, f_a)
+    #visualise_scatter(f_plot1, f_a)
     #visualise_scatter(f_plot1, f_plot1*0.2)
-
-    exit()
+    #exit()
 
 set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
 
