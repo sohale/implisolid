@@ -149,15 +149,7 @@ def make_edge_lookup_old(faces):
         assert fi in faces_of_edges[e1, :]
         assert fi in faces_of_edges[e2, :]
         va = faces[fi, :]
-        # *********
 
-        # def e_id(e_tuple):
-        #    eu = (e_tuple[0], e_tuple[1]) if e_tuple[1]>e_tuple[0] else (e_tuple[1], e_tuple[0])  #unique edge id
-        #    eu_pair_int = eu[0] + eu[1] * modulo
-        #    return eu_pair_int
-        # e_id0 = e_id( e0 )
-        # e_id1 = e_id( e1 )
-        # e_id2 = e_id( e2 )
         e_id0 = e0
         e_id1 = e1
         e_id2 = e2
@@ -181,8 +173,6 @@ def make_edge_lookup_old(faces):
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
     # eulookup[eu_paired_int] = edge number index
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
-
-# import vectorized
 
 if __name__ == '__main__':
     pass

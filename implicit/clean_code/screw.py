@@ -11,7 +11,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     check_vector3(pos0)
     assert is_vectorized != "unspecified"
     if is_vectorized:
-        assert issubclass(type(iobj), vector3.ImplicitFunctionVectorized)
+        assert issubclass(type(iobj), vector3.ImplicitFunction)
     m = order  # sample points: -m,...,-1,0,1,2,...,+m
 
     _VERBOSE = False
