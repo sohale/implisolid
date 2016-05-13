@@ -1199,7 +1199,11 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
     else:
         #print facet_areas.shape
         assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
-        facet_normals = a / np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
+        at = np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
+        facet_normals = a / at
+        at_autobroadcast = facet_areas[:, np.newaxis] / 2.0
+        facet_normals2 = a / at_autobroadcast
+        assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
         return facet_areas, facet_normals
 
 
@@ -2522,14 +2526,15 @@ def demo_everything():
     iobj = make_example_vectorized(
         #"rcube_vec")  #
         #"rdice_vec")  #
-        "cube_example") # problem: zero facet areas.  otherwise, it works.
-        #"ell_example1")  #+
+        #"cube_example") # problem: zero facet areas.  otherwise, it works.
+        "ell_example1")  #+
         # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
     #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    print "STEPSIZE", STEPSIZE
 
     global giobj
     giobj = iobj
@@ -2641,7 +2646,8 @@ def demo_everything():
                 #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
 
         #from ohtake_surface_projection import set_centers_on_surface__ohtake
-        from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
+        #from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
+        from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake_v3s
 
         average_edge = compute_average_edge_length(verts, facets)
 
@@ -2655,8 +2661,8 @@ def demo_everything():
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
         pre_proj_centroids = new_centroids.copy()
-        set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
-        #set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge*2., nones_map)
+        #set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
+        set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge*2., nones_map)
         #new_centroids is the output
 
         visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
