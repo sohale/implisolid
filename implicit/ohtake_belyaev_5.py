@@ -2547,7 +2547,7 @@ def demo_everything():
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-    #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
     print "STEPSIZE", STEPSIZE
 
     global giobj
@@ -2689,6 +2689,9 @@ def demo_everything():
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map)
             #new_centroids is the output
         print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t1.interval/t2.interval)
+
+        print ("Ratio= "+str(t1.interval/t2.interval))*30
+
         #9 times faster
         #11 times faster: 7.12189273357336, 0.6463103363521201, 'RATIO =', 11.019308114071752)
         # "-O" => 3.90 times faster
@@ -2696,6 +2699,7 @@ def demo_everything():
 
         #assert np.all(new_centroids1 == new_centroids2)
         new_centroids = new_centroids2
+        #exit()
 
         if False:
             visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)

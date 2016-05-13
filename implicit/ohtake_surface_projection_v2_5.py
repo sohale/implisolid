@@ -533,7 +533,8 @@ def set_centers_on_surface__ohtake(iobj, centroids, average_edge, nones_map):
     for i in range(centroids.shape[0]):
         print i,
         if i==873:
-            set_trace()
+            #set_trace()
+            pass
         e = average_edge
         lm = e/2.
         max_dist = e
