@@ -150,19 +150,13 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     """ see set_centers_on_surface__ohtake() """
     print "Projecting the centroids: new age"
 
-    print "s",
-    flush()
+    #print "s", ; flush()
 
     THRESHOLD_minimum_gradient_len = 0.000001  # kill gradients smaller than this
     THRESHOLD_zero_interval = 0.0001  # f == TH is NOT zero.
     MAX_ITER = 20
 
     max_dist = average_edge
-    #n = centroids.shape[0]
-    #result_x = np.ones((n, 4))
-    #active_indices = np.arange(0, n, dtype=int)
-    #active_count = n
-    #del n
 
     x = centroids
 
@@ -178,12 +172,12 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     g_direction_a = g_a * g_normalization_factors
     #The directions toward the center
 
-    step_size = max_dist / 2.  # average_edge / 2.
+    #step_size = max_dist / 2.  # average_edge / 2.
 
 
     #signs = 1.*(f_a >= THRESHOLD_zero_interval) - 1.*(f_a <= -THRESHOLD_zero_interval)
     #signs_c = (fc_a >= THRESHOLD_zero_interval)*step_size - (fc_a <= -THRESHOLD_zero_interval)*step_size
-    signs_c = (fc_a >= THRESHOLD_zero_interval)*1. - (fc_a <= -THRESHOLD_zero_interval)*1.
+    signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
     #todo: stop moving when hit zero
     x0 = x[:, :3]
     #Move opposite the direction toward center if the value is positive.
@@ -207,7 +201,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     for xa in candidates:
         xa4 = augment4(xa)
         f_a = iobj.implicitFunction(xa4)
-        signs = (f_a >= THRESHOLD_zero_interval)*1. - (f_a <= -THRESHOLD_zero_interval)*1.
+        signs = (f_a > THRESHOLD_zero_interval)*1. - (f_a < -THRESHOLD_zero_interval)*1.
         signs = signs*step_size
         #zeros, negatives.
         success = f_a * fc_a <= 0.  # May miss forget about accidental zeros. In that case, use the slightely further points.
@@ -241,6 +235,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     active_count = n
     del n
 
+    still_nonsuccess_indices = active_indices
+
     print "points: ", active_count, ".",
     already_success = fc_a*0 > 1.  # all False
     assert not np.any(already_success)
@@ -248,11 +244,13 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     print "left(found)",
     for alpha in alpha_list:
             x1_half = x0 + (max_dist*alpha)*dx1_c
+            active_indices = still_nonsuccess_indices
 
             # Todo: For those that have changed sign, check if they are closer actually.
             xa4 = augment4(x1_half)
             f_a = iobj.implicitFunction(xa4)
-            signs_a = (f_a >= THRESHOLD_zero_interval)*1. + (f_a <= -THRESHOLD_zero_interval)*(-1.)
+            signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
+            #success = signs_a * signs_c <= 0.
             success = signs_a * signs_c <= 0.
             assert success.ndim == 1
             #print "success", np.sum(success)
@@ -264,7 +262,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
             #collect zeros
             #efficient verison: only from new_success_indices
-            #zeros_boolean = np.abs(f_a) < THRESHOLD_zero_interval
+            #zeros_boolean = np.abs(f_a) <= THRESHOLD_zero_interval
 
             #result_x[active_indices[new_success_indices]]
             #active_indices = np.nonzero(np.logical_not(success))[0]
@@ -280,6 +278,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             #print "left:", still_nonsuccess_indices.shape, ".",
             print ("%d(+%d) "%(still_nonsuccess_indices.size, new_success_indices.size)),
             #print "already_success", np.sum(already_success)
+            #active_indices = still_nonsuccess_indices
             if still_nonsuccess_indices.shape[0] == 0:
                 break
     # if still_nonsuccess_indices.shape[0] > 0:
@@ -295,13 +294,14 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         print s[still_nonsuccess_indices]
         s[still_nonsuccess_indices] = -1.
         print s[s > 0]
-        assert np.all(s < +THRESHOLD_zero_interval)  # can contain almost-zeros. Don't include the == because it is NOT zero
+        assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
 
     #centroids[:, :3] = best_result_x[:, :]
     assert np.all(centroids[:, 3] == 1.)
-    print "."; flush()
+    #print "."; flush()
 
-    #Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
+    # ------------
+    # Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
 
     #collect the zero ones
     xa1 = augment4(x0)
@@ -314,7 +314,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     zeros1 = np.abs(f1) <= THRESHOLD_zero_interval
     best_result_x[zeros1, :3] = x0[zeros1, :3]
     zeros12 = np.logical_or(zeros1, zeros2)  # output
-    assert np.all(iobj.implicitFunction(augment4(best_result_x[zeros12, :])) <= THRESHOLD_zero_interval)
+    assert np.all(np.abs(iobj.implicitFunction(augment4(best_result_x[zeros12, :]))) <= THRESHOLD_zero_interval)
 
     #ROOT_TOLERANCE = 0.000001
     ROOT_TOLERANCE = THRESHOLD_zero_interval  # because of the assert
@@ -336,7 +336,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     s = f1*f2
     assert np.all(s <= +THRESHOLD_zero_interval)
 
-    swap = f2 < THRESHOLD_zero_interval
+    #Swap negatives and positives
+    swap = f2 < -THRESHOLD_zero_interval
     temp = x2_v4[swap, :]
     x2_v4[swap, :] = x0_v4[swap, :]
     x0_v4[swap, :] = temp

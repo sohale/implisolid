@@ -2684,6 +2684,7 @@ def demo_everything():
 
         with Timer() as t1:
             set_centers_on_surface__ohtake(iobj, new_centroids1, average_edge*1., nones_map)
+            pass
         with Timer() as t2:
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map)
             #new_centroids is the output
@@ -2691,6 +2692,7 @@ def demo_everything():
         #9 times faster
         #11 times faster: 7.12189273357336, 0.6463103363521201, 'RATIO =', 11.019308114071752)
         # "-O" => 3.90 times faster
+        #7 times faster
 
         #assert np.all(new_centroids1 == new_centroids2)
         new_centroids = new_centroids2
