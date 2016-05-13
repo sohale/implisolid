@@ -6,6 +6,20 @@ import numpy as np
 from basic_types import check_vector4_vectorized
 from basic_types import normalize_vector4_vectorized
 
+
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.clock()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.clock()
+        self.interval = self.end - self.start
+
+
+
 mesh_quality_settings = {
     "min_edge_len":  0.000001   # 0.01  # 0.001 microns   # 0.001, 0.007
     }
@@ -2645,9 +2659,13 @@ def demo_everything():
                 #    check_degenerate_faces(verts, facets_not_used, "assert")
                 #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
 
+        #non-vectorized version
         #from ohtake_surface_projection import set_centers_on_surface__ohtake
-        #from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
+        from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
+
+        #vectorized version
         from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake_v3s
+
 
         average_edge = compute_average_edge_length(verts, facets)
 
@@ -2660,12 +2678,25 @@ def demo_everything():
 
         nones_map = old_centroids[:, 0]*0 > 100  # all False
         new_centroids = old_centroids.copy()
+        new_centroids1 = new_centroids.copy()
+        new_centroids2 = new_centroids.copy()
         pre_proj_centroids = new_centroids.copy()
-        #set_centers_on_surface__ohtake(iobj, new_centroids, average_edge*1., nones_map)
-        set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge*2., nones_map)
-        #new_centroids is the output
 
-        visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
+        with Timer() as t1:
+            set_centers_on_surface__ohtake(iobj, new_centroids1, average_edge*1., nones_map)
+        with Timer() as t2:
+            set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map)
+            #new_centroids is the output
+        print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t1.interval/t2.interval)
+        #9 times faster
+        #11 times faster: 7.12189273357336, 0.6463103363521201, 'RATIO =', 11.019308114071752)
+        # "-O" => 3.90 times faster
+
+        #assert np.all(new_centroids1 == new_centroids2)
+        new_centroids = new_centroids2
+
+        if False:
+            visualise_distance_histogram(pre_proj_centroids, new_centroids, facets)
 
         if mesh_correction:
             check_degenerate_faces(verts, facets, "assert")
@@ -2962,7 +2993,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
                     gradients_at=pc[:, :3], separate_panels=False, gradients_from_iobj=giobj,
                     add_noise=[0, 0, 0.], noise_added_before_broadcast=True, random_interior_point=False )
                 pass
-            q()
+            if False:
+                q()
             """
             def
                 display_simple_using_mayavi_2( [(verts, facets), (verts, facets[face_idx, :]), (verts, facets[face_idx, :])],

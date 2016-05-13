@@ -194,25 +194,14 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
 
     """
-    x1 = x0 + dx1_c * step_size
-
     f_a = fc_a # ???
     taubin = f_a/glen_a
     x1_taubin = x0 - g_direction_a * taubin[:, np.newaxis]
-
     x1_half = x0 + 0.5*dx1_c * step_size
-
     x1_half_opposite = x0 - 0.5*dx1_c * step_size
-
     #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
-
     # boundary:
-
-    already_success = f_a*0 > 1.  # all False
-    assert not np.any(already_success)
-
-
-
+    ...
     candidates = [x1]  # [x1, x1_taubin, x1_half, x1_half_opposite]
 
     for xa in candidates:
@@ -229,14 +218,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
         #already_success === old success
 
-        #result_x[active_indices[new_success_indices]]
-        #active_indices = np.nonzero(np.logical_not(success))[0]
-        #nonsuccess_indices = np.nonzero(success)[0]
-        still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
-        result_x[new_success_indices, :] = xa4
-        #for next round
-        already_success = np.logical_or(success, np.logical_not(already_success))
-        #best_so_far = ...
     """
     step_size = max_dist / 2. * 2.
 
@@ -316,7 +297,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # if still_nonsuccess_indices.shape[0] > 0:
     best_result_x[still_nonsuccess_indices, :] = x0[still_nonsuccess_indices, :]  # failed to converge
 
-    TEST = True
+    TEST = False
     if TEST:
         xa1 = augment4(x0)
         f1 = iobj.implicitFunction(xa1)
@@ -439,8 +420,7 @@ def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
 
     iteration = 1
     while True:
-        print "iteration", iteration
-        print mysign_np(v2_arr[:active_count], ROOT_TOLERANCE)
+        #print "iteration", iteration
         assert np.all(mysign_np(v2_arr[:active_count], ROOT_TOLERANCE) * mysign_np(v1_arr[:active_count], ROOT_TOLERANCE) < 0 - EPS)  # greater or equal
         assert np.all(v1_arr[:active_count] < 0-ROOT_TOLERANCE)
         assert active_indices.shape[0] == x1_arr[:active_count].shape[0]
