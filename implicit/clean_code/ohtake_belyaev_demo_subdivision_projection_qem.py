@@ -1000,8 +1000,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
     l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
-    bad_facets_count = np.sum(degenerate_faces)
-    # assert bad_facets_count == 0
+
     return e_array, need_subidivision
 
 
@@ -1085,7 +1084,6 @@ def demo_combination_plus_qem():
 
         # which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
         print curvature_epsilon, which_facets.shape
-        exit()
 
         verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
@@ -1095,9 +1093,6 @@ def demo_combination_plus_qem():
 
         # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
-        for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
-            print("Vertex relaxation applied.");sys.stdout.flush()
 
     average_edge = compute_average_edge_length(verts, facets)
 
@@ -1144,16 +1139,16 @@ def demo_combination_plus_qem():
     hv = new_verts_qem[highlighted_vertices, :]
 
     new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
-    display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
-       pointcloud_list=[hv], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN, RANGE_MAX))
-    exit()
+    # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
+    #    pointcloud_list=[hv], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False, True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN, RANGE_MAX))
+    # exit()
     #
-    # display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
-    #    pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-    #    mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
+    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
+       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX)  )
 
 #from timeit import default_timer as dtimer
 
