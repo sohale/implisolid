@@ -243,7 +243,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     success = already_success.copy()  # falses  #.copy() is necessary
     assert not np.any(already_success)
 
-    print "left(found)",
+    #print "left(found)",
     for alpha in alpha_list:
             x1_half = x0 + (max_dist*alpha)*dx1_c
             FAST = True
@@ -262,14 +262,14 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
                 assert np.all(success == False)
                 assert np.all(success[active_indices] == False)
                 success[active_indices] = success0
-                print "success:", np.sum(success),
+                #print "success:", np.sum(success),
             else:
                 # Todo: For those that have changed sign, check if they are closer actually.
                 xa4 = augment4(x1_half)
                 f_a = iobj.implicitFunction(xa4)
                 signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
                 success = signs_a * signs_c <= 0.
-                print "success:", np.sum(success),
+                #print "success:", np.sum(success),
             assert success.ndim == 1
             #print "success", np.sum(success)
             #print "already_success", np.sum(already_success)
@@ -289,7 +289,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
             best_result_x[new_success_indices, :] = x1_half[new_success_indices, :]
             #print "new success>>", new_success_indices.size, "<<  ",
-            print "already>>", np.sum(already_success.size), "<<  ",
+            #print "already>>", np.sum(already_success.size), "<<  ",
             #todo: also try som ein already_success and improve by replacing those that are CLOSER.
             #already_success_but_open_to_improvement = ...
             #best_so_far = ...
@@ -305,7 +305,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # if still_nonsuccess_indices.shape[0] > 0:
     best_result_x[still_nonsuccess_indices, :] = x0[still_nonsuccess_indices, :]  # failed to converge
 
-    TEST = True
+    TEST = False
     if TEST and not optimised_used():
         xa1 = augment4(x0)
         f1 = iobj.implicitFunction(xa1)
