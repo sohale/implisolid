@@ -1256,14 +1256,14 @@ def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
     containing the face index of neighbours of each face.
     Since each face has exactly three neighbours, the size of the result is n x 3."""
-    from mesh_utils import make_edge_lookup_old
+    from mesh_utils import make_edge_lookup
     #pudb.set_trace()
     #set_trace()
     #set_trace()
     check_faces(facets)
     check_faces3(facets)
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
-        make_edge_lookup_old(facets)
+        make_edge_lookup(facets)
         # ****
 
     # need: face_neighbours_of_faces_Fx3
@@ -2542,15 +2542,15 @@ def demo_everything():
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec")  #
-        #"rdice_vec")  #
+        "rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
-        "ell_example1")  #+
+        #"ell_example1")  #+
         #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
     #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
     print "STEPSIZE", STEPSIZE
     #set_trace()
 
@@ -2830,6 +2830,14 @@ def demo_everything():
         #   pointcloud_list=[ hv ], pointcloud_opacity=0.2,
         #   mayavi_wireframe=[False, True], opacity=[0.2, 1, 0.9], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
         #   minmax=(RANGE_MIN,RANGE_MAX)  )
+
+
+        display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets), (new_verts_qem, facets), (new_verts_qem, facets), ],
+           pointcloud_list=[],
+           mayavi_wireframe=[False, False, True,], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+           minmax=(RANGE_MIN,RANGE_MAX),
+           add_noise=[0.05*ifnoisy, 0, 0.05*ifnoisy], noise_added_before_broadcast=True  )
+
 
         #]iobj = make_example_vectorized("ell_example1")
 

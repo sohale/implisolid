@@ -25,3 +25,4 @@ config = config_FDA()
 
 #lookup_array_size
 #MAX_MATRIX_SIZE
+MAX_MATRIX_SIZE = 50000000  # int

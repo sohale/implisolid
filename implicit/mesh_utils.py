@@ -1,6 +1,7 @@
 import numpy as np
 from basic_types import check_vector4_vectorized
 from ipdb import set_trace
+import implicit_config
 
 VERBOSE = False
 
@@ -38,6 +39,7 @@ def flip_face(faces, verts, face_idx):
 class TooMemoryIntensive(Exception):
     pass
 
+
 def make_edge_lookup_old(faces):
     """ """
     # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
@@ -58,14 +60,14 @@ def make_edge_lookup_old(faces):
     vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
 
     #set_trace()
-    MAX_MATRIX_SIZE = 50000000
+    #MAX_MATRIX_SIZE = 50000000
 
     modulo = long(num_edges)    # *2
     lookup_array_size = modulo * num_edges + num_edges
     print "lookup_array_size",lookup_array_size
-    if lookup_array_size > MAX_MATRIX_SIZE:
+    if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
         raise TooMemoryIntensive()
-    eulookup = -np.ones((lookup_array_size,))
+    eulookup = -np.ones((lookup_array_size,), dtype=int)
 
     edge_counter = 0
     for fi in range(len(faces)):
@@ -213,7 +215,11 @@ def make_edge_lookup_sparse(faces):
     vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
 
     modulo = long(num_edges)    # *2
-    eulookup = -np.ones((modulo * num_edges + num_edges,))
+    lookup_array_size = modulo * num_edges + num_edges
+    print "lookup_array_size",lookup_array_size
+    if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
+        raise TooMemoryIntensive()
+    eulookup = np.zeros((lookup_array_size,), dtype=int)
 
     edge_counter = 0
     for fi in range(len(faces)):
@@ -241,7 +247,7 @@ def make_edge_lookup_sparse(faces):
                 print(" e=", e, " eu_pair_int=", eu_pair_int)
 
             # print("********** ", eu_pair_int)
-            if eulookup[eu_pair_int] < 0:
+            if eulookup[eu_pair_int]-1 < 0:
                 new_edge = True
             else:
                 new_edge = False
@@ -264,13 +270,13 @@ def make_edge_lookup_sparse(faces):
                 vertpairs_of_edges[e_id] = np.abs(eu_pair_int_signed)  # eu
                 # something wrong here.
 
-                assert eulookup[eu_pair_int] == -1, "        %d " % (eulookup[eu_pair_int],)
-                eulookup[eu_pair_int] = e_id    # edge number?
+                assert eulookup[eu_pair_int]-1 == -1, "        %d " % (eulookup[eu_pair_int],)
+                eulookup[eu_pair_int] = e_id + 1    # edge number?
 
                 edge_counter += 1
 
             else:
-                e_id = eulookup[eu_pair_int]
+                e_id = eulookup[eu_pair_int]-1
                 assert e_id >= 0
                 edges_of_faces[fi, vj] = e_id
                 faces_of_edges[e_id, 1] = fi
@@ -284,21 +290,18 @@ def make_edge_lookup_sparse(faces):
                     print(vertpairs_of_edges[e_id], eu_pair_int_signed)
                 assert vertpairs_of_edges[e_id] == -eu_pair_int_signed or \
                     vertpairs_of_edges[e_id] == +eu_pair_int_signed     # eu
-                assert eulookup[eu_pair_int] == e_id
+                assert eulookup[eu_pair_int] == e_id + 1
 
             if VERBOSE:
                 print("edges_of_faces ", edges_of_faces)
                 print("faces_of_edges ", faces_of_edges)
                 # print("vertpairs_of_edges ", vertpairs_of_edges)
-                print("eulookup ", eulookup)
+                print("eulookup ", eulookup-1)
             if True:
                 eu_paired_int = vertpairs_of_edges[e_id]
                 (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
                 if VERBOSE:
                     print("vertpair:", eu_paired_int, " -> ", v1, v2)
-            # if VERBOSE and new_edge:
-            #    import os
-            #    os.system("pause")
 
     for fi in range(len(faces)):
         e123 = edges_of_faces[fi, :]
@@ -312,15 +315,7 @@ def make_edge_lookup_sparse(faces):
         assert fi in faces_of_edges[e1, :]
         assert fi in faces_of_edges[e2, :]
         va = faces[fi, :]
-        # *********
 
-        # def e_id(e_tuple):
-        #    eu = (e_tuple[0], e_tuple[1]) if e_tuple[1]>e_tuple[0] else (e_tuple[1], e_tuple[0])  #unique edge id
-        #    eu_pair_int = eu[0] + eu[1] * modulo
-        #    return eu_pair_int
-        # e_id0 = e_id( e0 )
-        # e_id1 = e_id( e1 )
-        # e_id2 = e_id( e2 )
         e_id0 = e0
         e_id1 = e1
         e_id2 = e2
@@ -332,18 +327,27 @@ def make_edge_lookup_sparse(faces):
         eu_paired_int = np.abs(vertpairs_of_edges[e_id])
         (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
         assert eu_paired_int == v1 + v2 * modulo
-        # face[*]=*
         assert eu_paired_int >= 0
         if VERBOSE:
-            print(eu_paired_int,eulookup[eu_paired_int], e_id)
-        assert np.abs(eulookup[eu_paired_int]) == e_id
+            print(eu_paired_int, eulookup[eu_paired_int]-1, e_id)
+        assert np.abs(eulookup[eu_paired_int]) == e_id+1
 
     assert np.all(np.ravel(edges_of_faces) > -1)
     # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
     # faces_of_edges : index = edge number, value = face number, face number
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
-    # eulookup[eu_paired_int] = edge number index
+    # eulookup[eu_paired_int] = edge number index + 1
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
+
+
+def make_edge_lookup(faces):
+    (edges_of_faces1, faces_of_edges1, vertpairs_of_edges1) = make_edge_lookup_old(faces)
+    (edges_of_faces2, faces_of_edges2, vertpairs_of_edges2) = make_edge_lookup_sparse(faces)
+    assert np.allclose(edges_of_faces1, edges_of_faces2)
+    assert np.allclose(faces_of_edges1, faces_of_edges2)
+    assert np.allclose(vertpairs_of_edges1, vertpairs_of_edges2)
+    set_trace()
+    return (edges_of_faces2, faces_of_edges2, vertpairs_of_edges2)
 
 
 def invariants():
