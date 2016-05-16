@@ -22,3 +22,6 @@ class config_FDA(object):
 
 config = config_FDA()
 
+
+#lookup_array_size
+#MAX_MATRIX_SIZE

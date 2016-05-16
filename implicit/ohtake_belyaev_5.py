@@ -1259,6 +1259,7 @@ def build_faces_of_faces(facets):
     from mesh_utils import make_edge_lookup_old
     #pudb.set_trace()
     #set_trace()
+    #set_trace()
     check_faces(facets)
     check_faces3(facets)
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
@@ -2469,6 +2470,28 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
     return verts2, facets2
 
 
+from vectorized import ImplicitFunctionVectorized
+
+class DummyImplicit(ImplicitFunctionVectorized):
+    def __init__(self):
+        pass
+
+    def implicitFunction(self, p):
+        check_vector4_vectorized(p)
+        return p[:, 0] * 0. - 1.
+
+    def implicitGradient(self, p):
+        check_vector4_vectorized(p)
+        g = p * 0. + 1.
+        check_vector4_vectorized(g)
+        return g
+
+    def hessianMatrix(self, p):
+        check_vector4(p)
+        h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)
+        return h
+
+
 def test_example_meshes():
 
     #np.random.seed(seed=19)
@@ -2479,26 +2502,6 @@ def test_example_meshes():
 
     v = noisy(v, 0.05)
     #v = v + (np.random.rand(v.shape[0],v.shape[1])*2.-1.) * 0.05
-
-    from vectorized import ImplicitFunctionVectorized
-    class DummyImplicit(ImplicitFunctionVectorized):
-        def __init__(self):
-            pass
-
-        def implicitFunction(self, p):
-            check_vector4_vectorized(p)
-            return p[:, 0] * 0. - 1.
-
-        def implicitGradient(self, p):
-            check_vector4_vectorized(p)
-            g = p * 0. + 1.
-            check_vector4_vectorized(g)
-            return g
-
-        def hessianMatrix(self, p):
-            check_vector4(p)
-            h = np.array([[0, 0, 0],  [0, 0, 0],  [0, 0, 0]], ndmin=2)
-            return h
 
     def make_Cube():
         import vectorized
@@ -2542,20 +2545,22 @@ def demo_everything():
         #"rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         "ell_example1")  #+
-        # "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+        #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
 
-    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
+    #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
     iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
     print "STEPSIZE", STEPSIZE
+    #set_trace()
 
     global giobj
     giobj = iobj
 
     from debug_point_collector import PointCollector
-    iobj = PointCollector(iobj)
-    point_collector = iobj
+    point_collector = PointCollector(DummyImplicit)
+    #iobj = PointCollector(iobj)
+    #point_collector = iobj
 
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     #iobj = two_bricks()
@@ -2611,6 +2616,7 @@ def demo_everything():
             VERTEX_RELAXATION_ADD_NOISE = False
             if VERTEX_RELAXATION_ADD_NOISE:
                 verts = verts + (np.random.rand(verts.shape[0], verts.shape[1])*2.-1.)/2.* (STEPSIZE/8.)
+            #set_trace()
             verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
             assert not np.any(np.isnan(verts.ravel()))  # fails
             print("Vertex relaxation applied.");sys.stdout.flush()
@@ -2683,14 +2689,22 @@ def demo_everything():
         pre_proj_centroids = new_centroids.copy()
 
         with Timer() as t1:
-            set_centers_on_surface__ohtake(iobj, new_centroids1, average_edge*1., nones_map)
-            pass
+            print
+            print "1"*100; sys.stdout.flush()
+            #set_centers_on_surface__ohtake(iobj, new_centroids1, average_edge*1., nones_map)
+            #pass
+            print
+            print "---"*100; sys.stdout.flush()
         with Timer() as t2:
+            print
+            print "2"*100; sys.stdout.flush()
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map)
             #new_centroids is the output
+            print
+            print "---"*100; sys.stdout.flush()
         print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t1.interval/t2.interval)
 
-        print ("Ratio= "+str(t1.interval/t2.interval))*30
+        print (" Ratio= "+str(t1.interval/t2.interval))*30   # Linter's bug
 
         #9 times faster
         #11 times faster: 7.12189273357336, 0.6463103363521201, 'RATIO =', 11.019308114071752)
@@ -2709,6 +2723,7 @@ def demo_everything():
             verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
 
         #faceslist_neighbours_of_vertex
+        #Why is this method called twice?
         vertex_neighbour_facelist_dict = mesh_utils.make_neighbour_faces_of_vertex(facets)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
         #nv1  =
@@ -2724,7 +2739,8 @@ def demo_everything():
         if SUBDIVISION_ITERATIONS_COUNT == 0:
             print "immediately after QEM *(without subdivision)"
             assert pre_relaxation_verts.shape == verts.shape
-            display_simple_using_mayavi_2( [(verts, facets), (new_verts_qem, facets)],
+            if False:
+             display_simple_using_mayavi_2( [(verts, facets), (new_verts_qem, facets)],
                pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                mayavi_wireframe=[False, False], opacity=[0, 1],
                gradients_at=None, separate_panels=False, gradients_from_iobj=None,
@@ -2740,8 +2756,8 @@ def demo_everything():
             #assert np.all(up == up_)
 
             print "u_p=", up
-
-            display_simple_using_mayavi_2([(verts, facets), (new_verts_qem, facets)],
+            if False:
+             display_simple_using_mayavi_2([(verts, facets), (new_verts_qem, facets)],
                pointcloud_list=[new_verts_qem[up, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                mayavi_wireframe=[False, True], opacity=[0.4, 1],
                gradients_at=None, separate_panels=False, gradients_from_iobj=None,
