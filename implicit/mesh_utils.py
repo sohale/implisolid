@@ -36,6 +36,16 @@ def flip_face(faces, verts, face_idx):
     pass
 
 
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.clock()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.clock()
+        self.interval = self.end - self.start
 class TooMemoryIntensive(Exception):
     pass
 
@@ -200,8 +210,10 @@ def make_edge_lookup_old(faces):
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
 
 
+import scipy.sparse as sp
 def make_edge_lookup_sparse(faces):
     """ does make_edge_lookup_old() using sparse matrices. An alternatve solution would be using adictionary."""
+    # Todo: Rewrite using asparse matrix (e.g. DOK) as Adjacency matrix. In that case, `modulo` will not be used.
     print "Sparse verion:"
 
     nfaces = faces.shape[0]
@@ -216,11 +228,11 @@ def make_edge_lookup_sparse(faces):
 
     modulo = long(num_edges)    # *2
     lookup_array_size = modulo * num_edges + num_edges
-    print "lookup_array_size",lookup_array_size
-    if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
-        raise TooMemoryIntensive()
-    eulookup = np.zeros((lookup_array_size,), dtype=int)
-
+    #print "lookup_array_size",lookup_array_size
+    #if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
+    #    raise TooMemoryIntensive()
+    #eulookup = np.zeros((lookup_array_size,), dtype=int)
+    eulookup = sp.dok_matrix((lookup_array_size, 1), dtype=int)
     edge_counter = 0
     for fi in range(len(faces)):
         for vj in range(3):
@@ -247,7 +259,7 @@ def make_edge_lookup_sparse(faces):
                 print(" e=", e, " eu_pair_int=", eu_pair_int)
 
             # print("********** ", eu_pair_int)
-            if eulookup[eu_pair_int]-1 < 0:
+            if eulookup[eu_pair_int, 0]-1 < 0:
                 new_edge = True
             else:
                 new_edge = False
@@ -270,13 +282,13 @@ def make_edge_lookup_sparse(faces):
                 vertpairs_of_edges[e_id] = np.abs(eu_pair_int_signed)  # eu
                 # something wrong here.
 
-                assert eulookup[eu_pair_int]-1 == -1, "        %d " % (eulookup[eu_pair_int],)
-                eulookup[eu_pair_int] = e_id + 1    # edge number?
+                assert eulookup[eu_pair_int, 0]-1 == -1, "        %d " % (eulookup[eu_pair_int, 0],)
+                eulookup[eu_pair_int, 0] = e_id + 1    # edge number?
 
                 edge_counter += 1
 
             else:
-                e_id = eulookup[eu_pair_int]-1
+                e_id = eulookup[eu_pair_int, 0]-1
                 assert e_id >= 0
                 edges_of_faces[fi, vj] = e_id
                 faces_of_edges[e_id, 1] = fi
@@ -290,7 +302,7 @@ def make_edge_lookup_sparse(faces):
                     print(vertpairs_of_edges[e_id], eu_pair_int_signed)
                 assert vertpairs_of_edges[e_id] == -eu_pair_int_signed or \
                     vertpairs_of_edges[e_id] == +eu_pair_int_signed     # eu
-                assert eulookup[eu_pair_int] == e_id + 1
+                assert eulookup[eu_pair_int, 0] == e_id + 1
 
             if VERBOSE:
                 print("edges_of_faces ", edges_of_faces)
@@ -329,25 +341,33 @@ def make_edge_lookup_sparse(faces):
         assert eu_paired_int == v1 + v2 * modulo
         assert eu_paired_int >= 0
         if VERBOSE:
-            print(eu_paired_int, eulookup[eu_paired_int]-1, e_id)
-        assert np.abs(eulookup[eu_paired_int]) == e_id+1
+            print(eu_paired_int, eulookup[eu_paired_int, 0]-1, e_id)
+        assert np.abs(eulookup[eu_paired_int, 0]) == e_id+1
 
     assert np.all(np.ravel(edges_of_faces) > -1)
     # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
     # faces_of_edges : index = edge number, value = face number, face number
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
-    # eulookup[eu_paired_int] = edge number index + 1
+    # eulookup[eu_paired_int, 0] = edge number index + 1
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
 
-
+"""
 def make_edge_lookup(faces):
-    (edges_of_faces1, faces_of_edges1, vertpairs_of_edges1) = make_edge_lookup_old(faces)
-    (edges_of_faces2, faces_of_edges2, vertpairs_of_edges2) = make_edge_lookup_sparse(faces)
+    with Timer() as t1:
+            (edges_of_faces1, faces_of_edges1, vertpairs_of_edges1) = make_edge_lookup_old(faces)
+    with Timer() as t2:
+            (edges_of_faces2, faces_of_edges2, vertpairs_of_edges2) = make_edge_lookup_sparse(faces)
+    # 2.3 - 2.5 times slower
+    print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t2.interval/t1.interval)
+
     assert np.allclose(edges_of_faces1, edges_of_faces2)
     assert np.allclose(faces_of_edges1, faces_of_edges2)
     assert np.allclose(vertpairs_of_edges1, vertpairs_of_edges2)
     set_trace()
     return (edges_of_faces2, faces_of_edges2, vertpairs_of_edges2)
+"""
+
+make_edge_lookup = make_edge_lookup_sparse
 
 
 def invariants():
