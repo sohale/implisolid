@@ -557,6 +557,27 @@ def cube_with_cylinders(scale):
     return final_object
 
 
+def union_of_two_cubes(scale):
+    c2 = vector3.UnitCube1(1.)
+
+    def rotate_scale_(iobj, scale, center, angle=0.):
+        ns = vector3
+        import numpy
+        m = numpy.eye(4)
+        m[0, 0] = 0.1
+        iobj = ns.Transformed(iobj, m=m)
+        iobj  \
+            .resize(scale) \
+            .move(center[0], center[1], center[2])
+        if angle != 0.:
+            iobj.rotate(angle, along=make_vector4(1, 1, 1), units="deg")
+        return iobj
+
+    c2 = rotate_scale_(c2, 2., [1, 1, 1])
+    iobj = vector3.CrispUnion(rcube_vec(1.), c2)
+    return iobj
+
+
 # **************************************************************************************************
 
 
@@ -584,6 +605,7 @@ examples = {
     "cyl3": 2,
     "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
+    "union_of_two_cubes": 2,
 
 }
 
