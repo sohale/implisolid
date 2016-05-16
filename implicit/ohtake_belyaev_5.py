@@ -2533,9 +2533,9 @@ def test_example_meshes():
 import mesh_utils
 
 def demo_everything():
-    curvature_epsilon = 1. / 1000. *10. # a>eps  1/a > 1/eps = 2000
+    curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT =  1 #1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
     global STEPSIZE
@@ -2645,6 +2645,7 @@ def demo_everything():
 
         total_subdivided_facets = []
         for i in range(SUBDIVISION_ITERATIONS_COUNT):
+            set_trace()
 
             verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
             global trace_subdivided_facets  # third implicit output
