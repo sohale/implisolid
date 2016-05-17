@@ -51,7 +51,6 @@ def make_edge_lookup_old(faces):
 #    import ipdb; ipdb.set_trace()
     eulookup = -np.ones((modulo * num_edges + num_edges,))
 
-
     edge_counter = 0
     for fi in range(len(faces)):
         for vj in range(3):

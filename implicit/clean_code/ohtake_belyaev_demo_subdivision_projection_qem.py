@@ -544,40 +544,13 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
     return
 
 
-def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_THRESHOLD=None):
-    """ facet_normals: can contain NaN if the area is zero.
-    If AREA_DEGENERACY_THRESHOLD is None or negative, the NaN is not assiged in output """
-    # see mesh1.py ::     def calculate_face_areas(self)
-    nfaces = faces.shape[0]
-    expand = verts[faces, :]
-    assert expand.shape == (nfaces, 3, 3)
-    assert expand[:, 2, :].shape == (nfaces, 3)
-    a = np.cross(
-        expand[:, 1, :] - expand[:, 0, :],
-        expand[:, 2, :] - expand[:, 0, :],
-        axis=1)
-    facet_areas = np.linalg.norm(a, axis=1, ord=2) / 2.0
-    #fixme: It is unnecessary to set them to NaN
-    if AREA_DEGENERACY_THRESHOLD is not None:
-        degenerates_count = len(facet_areas[facet_areas < AREA_DEGENERACY_THRESHOLD])
-        facet_areas[facet_areas < AREA_DEGENERACY_THRESHOLD] = np.nan  # -1
-        if degenerates_count > 0:
-            pass
-
-    if not return_normals:
-        return facet_areas
-    else:
-        #print facet_areas.shape
-        assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
-        facet_normals = a / np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
-        return facet_areas, facet_normals
-
-def compute_triangle_areas_old(verts, faces, return_normals=False):
+def compute_triangle_areas(verts, faces, return_normals=False):
     """ facet_normals: can contain NaN if the area is zero"""
     # see mesh1.py ::     def calculate_face_areas(self)
     DEGENERACY_THRESHOLD = 0.00001
     nfaces = faces.shape[0]
     expand = verts[faces, :]
+
     assert expand.shape == (nfaces, 3, 3)
     assert expand[:, 2, :].shape == (nfaces, 3)
     a = np.cross(
@@ -1095,7 +1068,6 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     new_vertex_counter = nverts_old
     new_facet_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
-
         fi = tobe_subdivided_face_indices[subdiv_i]
         oldtriangle = verts_old[facets_old[fi, :], :]  # numverts x 3
         assert oldtriangle.shape == (3, 3)
@@ -1152,7 +1124,7 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon):
     """ Deviation of Mesh from object gradients """
 
-    facet_areas, facet_normals = compute_triangle_areas_old(verts, facets, return_normals=True)
+    facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
 
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
@@ -1161,11 +1133,6 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
     assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(np.isnan(np.linalg.norm(facet_normals, axis=1)))])))
 
     degenerate_faces = np.isnan(facet_areas)
-
-    # assert np.all(np.isnan(facet_areas[degenerate_faces]))
-    # assert np.all(np.logical_not(np.isnan(facet_areas[np.logical_not(degenerate_faces)])))
-    # assert np.all(np.isnan(facet_normals[degenerate_faces, :]))
-    # assert np.all(np.logical_not(np.isnan(facet_normals[np.logical_not(degenerate_faces), :])))
 
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -1184,7 +1151,6 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
         [0.5, 0, 0.5]   # 5
         ])  # .transpose()
 
-    #e_array = np.zeros((nf,))
     e_array = np.ndarray(nf)
 
     for fi in range(nf):
@@ -1196,12 +1162,10 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
 
         triangle = verts[facets[fi, :], :]  # numverts x 3
         assert triangle.shape == (3, 3)
-        # print triangle.shape
 
         assert triangle.shape == (3, 3)
-        VVV = triangle  # (nv=3) x 3
-        # print np.dot( centroidmaker_matrix, subdiv_vert_matrix)
-        # exit()
+        VVV = triangle
+
         m0123 = np.dot(centroidmaker_matrix, np.dot(subdiv_vert_matrix, VVV))
         assert m0123.shape == (4, 3)
         subdiv_centroids = m0123
@@ -1229,11 +1193,8 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
         if fi % 100 == 0:
             print fi, "\r", ;import sys; sys.stdout.flush()
 
-    # for i in range(nf):
-    #     print i, e_array[i]
-
     num_subivision = len(e_array[e_array > curvature_epsilon])
-    need_subidivision = np.ndarray(num_subivision)
+    need_subidivision = np.ndarray(num_subivision, dtype=int)
 
     k = 0
     for i in range(nf):
@@ -1241,12 +1202,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon
             need_subidivision[k] = i
             k += 1
 
-    # print str(nf) + "   "
-    # print e_array
     l = e_array[np.logical_not(np.isnan(e_array))].tolist()
     l.sort()
     print "curvature: min,max = ", l[0], l[-1]   # 3.80127650325e-08, 0.0240651184551
-
     return e_array, need_subidivision
 
 
@@ -1268,7 +1226,7 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
     object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
@@ -1315,7 +1273,7 @@ def demo_combination_plus_qem():
         e_array, which_facets = compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon)
 
         # which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
-        print curvature_epsilon, which_facets.shape
+        print "Curvature epsilon:", curvature_epsilon, "which facets need to be subdivided", which_facets.shape
 
         verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
         global trace_subdivided_facets  # third implicit output
@@ -1325,7 +1283,6 @@ def demo_combination_plus_qem():
 
         # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
-
     average_edge = compute_average_edge_length(verts, facets)
 
     old_centroids = np.mean(verts[facets[:], :], axis=1)
@@ -1333,11 +1290,6 @@ def demo_combination_plus_qem():
     new_centroids = old_centroids.copy()
 
     set_centers_on_surface__ohtake_v3s_002(iobj, new_centroids, average_edge)
-    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-    #    pointcloud_list=[ new_centroids ], pointcloud_opacity=0.2,
-    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    # exit()
 
     # neighbour_faces_of_vertex
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
@@ -1345,7 +1297,7 @@ def demo_combination_plus_qem():
 
     new_verts_qem = \
         vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
-    # verts = nv1
+
     alpha = 0.
 
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
@@ -1361,7 +1313,25 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
 
-    new_verts_final = comparison_verts_new_verts(verts, new_verts_qem)
+    total_subdivided_facets = []
+    for i in range(SUBDIVISION_ITERATIONS_COUNT):
+        e_array, which_facets = compute_facets_subdivision_curvatures(new_verts_qem, facets, iobj, curvature_epsilon)
+
+        # which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
+        print "Curvature epsilon:", curvature_epsilon, "which facets need to be subdivided", which_facets.shape
+
+        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(new_verts_qem, facets, which_facets)
+        global trace_subdivided_facets  # third implicit output
+
+        verts, facets = verts4_subdivided, facets3_subdivided
+        print("Subdivision applied.");sys.stdout.flush()
+        # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
+
+    new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+
+    highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
+    hv = new_verts_qem[highlighted_vertices, :]
+
     # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
     #    pointcloud_list=[hv], pointcloud_opacity=0.2,
     #    mayavi_wireframe=[False, True], opacity=[0.2, 0.5, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,

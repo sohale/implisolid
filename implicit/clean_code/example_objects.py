@@ -424,22 +424,15 @@ def cyl2(scale_ignored):
         center[3] = 1
         R = rotation_matrix(i * 90. / (M - 1.), make_vector4(1, 0, 0), units="deg", around=center)
 
-        # Rinf = R
-        # for i in range(15):
-        #    Rinf = np.dot(Rinf,Rinf)
-        # print "Rinf", Rinf
-        # print "w1", w, np.linalg.norm(w[:3])
-        # print R
+
         w = np.dot(R, np.transpose(w))
         # print "w2", w, np.linalg.norm(w[:3])
         # u = make_vector4(0, 0, 1)   #will not work well for 90deg
         u = make_vector4(1, 0, 0)
 
         def make_uv(w, u):
-            w = w / np.linalg.norm(w[0:3])
-            w[3] = 1
-            u = u / np.linalg.norm(u[0:3])
-            u[3] = 1
+            w = w / np.linalg.norm(w[0:3]); w[3] = 1
+            u = u / np.linalg.norm(u[0:3]); u[3] = 1
             # print w, "u=",u
             assert np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001  # cannot be parallel
             v3 = np.cross(w[:3], u[:3])
@@ -473,7 +466,7 @@ def cyl2(scale_ignored):
             un = c
         else:
             un = vector3.CrispUnion(un, c)
-#        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
+    #    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
     return un
 
 
@@ -606,7 +599,6 @@ examples = {
     "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
-
 }
 
 
@@ -618,12 +610,6 @@ def make_example_vectorized(name, scale=1.0):
     return res
 
 
-# def test_creation_of_all_Examples():
-#     for name in examples:
-#         scale = 1.
-# #        res = globals()[name](scale)
-#         # print("OK.")
-
 def get_all_examples(types_list):
     """ types_list i.e. [1] or [2] or [2,3] or [1,3] r [1,2,3] """
     usable_examples = []
@@ -632,13 +618,6 @@ def get_all_examples(types_list):
         if examples[e] in types_list:
             usable_examples += [e]
             # print("e=", e)
-
-#             if examples[e] in [2]:
-#                 iobj = make_example_vectorized(e)
-#                 x = vector3.repeat_vect3(1, make_vector3(0.5, 0.5, 0.5))
-# #                g = iobj.implicitGradient(x)
-# #                v = iobj.implicitFunction(x)
-
         i += 1
     assert i > 0
     return usable_examples
