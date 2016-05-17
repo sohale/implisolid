@@ -1731,12 +1731,17 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
     return
 
 
+#python -O -m kernprof -v -l ohtake_belyaev_5.py
+#@profile
+
 def compute_facets_subdivision_curvatures(verts, facets, iobj):
     """ Calculates a measure of deviation of the Triangle from object gradients.
     returns: curvature for all triangles.
     This function does not create the subdivisions.
     It just computes. The function subdivide_multiple_facets() does the actual subdivision. """
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
+
+    simple_histogram(facet_areas, "facet_areas")
 
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
@@ -1781,6 +1786,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     curvatures_array = np.zeros((nf,))
     for fi in range(nf):
         n = facet_normals[fi, :]  # n: (3,)
+        nlen = np.linalg.norm(n)
+        if nlen > 0:
+            n = n / nlen
         if mesh_correction:
             if degenerate_faces[fi]:
                 curvatures_array[fi] = 0
@@ -1824,6 +1832,9 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
             e = 0.
         else:
             e = facet_areas[fi] * np.sum(1. - np.abs(np.dot(n, mm))) / 4.  # sum(,x4)
+            if e < 0:
+                set_trace()
+            assert e >= 0
 
         # The only reason for NaN should be the exactly-zero gradients
 
@@ -1853,6 +1864,8 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
     #assert bad_facets_count == 0
 
     #assert np.sum(np.isnan(curvatures_array)) == 0, "NaN"
+
+    simple_histogram(curvatures_array, "curvatures_array")
 
     return curvatures_array, bad_facets_count
 
@@ -2405,13 +2418,30 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     return appended_faces
 
 
+def simple_histogram(c, title=None, special_values=[]):
+    import matplotlib.pyplot as plt
+    #special_values
+
+    plt.hist(c, 20*10)
+    #plt.plot([STEPSIZE, STEPSIZE/2.], [2.5, 2.5], "r*")
+    if title is not None:
+        plt.title(title)
+    plt.show()
+
+
 global highlight
 highlight = []
 def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probability=1.):
     assert not np.any(np.isnan(facets.ravel()))
     assert not np.any(np.isnan(verts.ravel()))  # fails
 
+    #set_trace()
+    print "computing curvatures"; sys.stdout.flush()
     curvatures, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj)
+    print "computing curvatures done."; sys.stdout.flush()
+    #set_trace()
+
+    #simple_histogram(curvatures, "curvatures")
 
     assert np.sum(np.isnan(curvatures)) == 0, "NaN"
     curvatures[np.isnan(curvatures)] = 0  # treat NaN curvatures as zero curvature => no subdivision
@@ -2565,6 +2595,10 @@ def demo_everything():
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     #iobj = two_bricks()
 
+    # ****************************************************
+    # Marching Cubes
+    # ****************************************************
+
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
@@ -2587,6 +2621,7 @@ def demo_everything():
 
     for rep in range(15):
 
+
         if mesh_correction:
           if not take_it_easy:
             #check_faces(facets)
@@ -2602,6 +2637,9 @@ def demo_everything():
                 assert not any_mesh_correction
             check_degenerate_faces(verts, facets, "assert")
 
+        # *******************************************************
+        # VERTEX RELAXATION
+        # *******************************************************
 
         #old_verts, old_facets = verts, facets
         assert not np.any(np.isnan(verts.ravel()))  # fine
@@ -2631,6 +2669,10 @@ def demo_everything():
 
         #visualise_distance_histogram(pre_relaxation_verts, verts, facets)
 
+        # *******************************************************
+        # SUBDIVISION
+        # *******************************************************
+
         if mesh_correction:
             assert len(failure_pairs) == 0, "weighted resampling did not work for some faces"
         if False:
@@ -2645,8 +2687,9 @@ def demo_everything():
 
         total_subdivided_facets = []
         for i in range(SUBDIVISION_ITERATIONS_COUNT):
-            set_trace()
+            #set_trace()
 
+            print "subdivision:"
             verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
             global trace_subdivided_facets  # third implicit output
             verts4_subdivided = verts  # ??
@@ -2665,14 +2708,17 @@ def demo_everything():
                 #    print("Vertex relaxation2 applied again.");sys.stdout.flush()
                 #    check_degenerate_faces(verts, facets_not_used, "assert")
                 #    verts, facets_not_used, any_mesh_correction = check_degenerate_faces(verts, facets_not_used, "fix")
+        print "subdivision done."
+
+        # *******************************************************
+        # PROJECTION
+        # *******************************************************
 
         #non-vectorized version
         #from ohtake_surface_projection import set_centers_on_surface__ohtake
         from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
-
         #vectorized version
         from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake_v3s
-
 
         average_edge = compute_average_edge_length(verts, facets)
 
@@ -2722,6 +2768,10 @@ def demo_everything():
         if mesh_correction:
             check_degenerate_faces(verts, facets, "assert")
             verts, facets, any_mesh_correction = check_degenerate_faces(verts, facets, "fix")
+
+        # *********************************
+        # QEM
+        # *********************************
 
         #faceslist_neighbours_of_vertex
         #Why is this method called twice?
@@ -3262,7 +3312,6 @@ def find_unusual_points(verts, k=3):
 
     return indices[ten_most_far3]
 
-#python -O -m kernprof -v -l ohtake_belyaev_3.py
 if __name__ == '__main__':
     fix_windws_control_C()
 
