@@ -1234,7 +1234,7 @@ def demo_combination_plus_qem():
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     if object_name == "cube_with_cylinders" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
-        VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+        VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
@@ -1327,10 +1327,10 @@ def demo_combination_plus_qem():
         print("Subdivision applied.");sys.stdout.flush()
         # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
-    new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+        #new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
-    highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
-    hv = new_verts_qem[highlighted_vertices, :]
+        highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
+        hv = verts[highlighted_vertices, :]
 
     # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
     #    pointcloud_list=[hv], pointcloud_opacity=0.2,
@@ -1338,10 +1338,10 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    display_simple_using_mayavi_2( [(new_verts_qem_alpha, facets),(new_verts_qem, facets), ],
-       pointcloud_list=[ hv ], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False,False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN,RANGE_MAX)  )
+    display_simple_using_mayavi_2([(new_verts_qem_alpha, facets), (new_verts_qem, facets), ],
+       pointcloud_list=[hv], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN,RANGE_MAX))
 
 #from timeit import default_timer as dtimer
 
