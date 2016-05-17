@@ -1741,7 +1741,7 @@ def compute_facets_subdivision_curvatures_old(verts, facets, iobj):
     It just computes. The function subdivide_multiple_facets() does the actual subdivision. """
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
 
-    simple_histogram(facet_areas, "facet_areas")
+    #simple_histogram(facet_areas, "facet_areas")
 
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
@@ -1865,7 +1865,7 @@ def compute_facets_subdivision_curvatures_old(verts, facets, iobj):
 
     #assert np.sum(np.isnan(curvatures_array)) == 0, "NaN"
 
-    simple_histogram(curvatures_array, "curvatures_array")
+    #simple_histogram(curvatures_array, "curvatures_array")
 
     return curvatures_array, bad_facets_count
 
@@ -1876,7 +1876,7 @@ def augment4(x):
 def compute_facets_curvatures_vectorized(verts, facets, iobj):
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
 
-    simple_histogram(facet_areas, "facet_areas")
+    #simple_histogram(facet_areas, "facet_areas")
 
     nf = facets.shape[0]
     assert facet_areas.shape == (nf,)
@@ -2055,7 +2055,7 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
 
     #assert np.sum(np.isnan(curvatures_array)) == 0, "NaN"
 
-    simple_histogram(curvatures_array, "curvatures_array")
+    #simple_histogram(curvatures_array, "curvatures_array")
 
     return curvatures_array, bad_facets_count
 
