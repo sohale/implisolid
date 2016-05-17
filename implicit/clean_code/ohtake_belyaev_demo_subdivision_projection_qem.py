@@ -39,8 +39,6 @@ def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
 
     result_x_arr = np.ones(x1_arr.shape)
 
-    EPS = 0.000001  # sign
-
     n = x1_arr.shape[0]
     active_indices = np.arange(0, n)  # mid
     active_count = n
@@ -333,9 +331,9 @@ def build_faces_of_faces(facets):
     """ builds lookup tables. The result if an array of nfaces x 3,
     containing the face index of neighbours of each face.
     Since each face has exactly three neighbours, the size of the result is n x 3."""
-    from mesh_utils import make_edge_lookup_old
+    from mesh_utils import make_edge_lookup_sparse
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
-        make_edge_lookup_old(facets)
+        make_edge_lookup_sparse(facets)
 
     nfaces = facets.shape[0]
     assert edges_of_faces.shape == (nfaces, 3)
@@ -637,7 +635,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroids_gradients, qem_origin):
     n_i = normals[:, :, np.newaxis]
     p_i = center_array[:, :, np.newaxis]
 
-    #A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
+    A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
 
     for i in range(normals.shape[0]):
 
@@ -645,7 +643,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroids_gradients, qem_origin):
         nnt = np.dot(n_i[i], np.transpose(n_i[i]))
 
         assert nnt.shape == (3, 3)
-        A += nnt
+
         assert p_i[i].shape == (3, 1)
         b += -np.dot(nnt, p_i[i] - qem_origin)
 
@@ -666,14 +664,13 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
     assert verts.shape == (nvert, 3)
     new_verts = np.zeros((nvert, 3))
 
-
     for vertex_id in range(nvert):
 
         vi = vertex_id
         nlist = vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
         qem_origin = verts[vertex_id, :].reshape(3, 1)*0
-        # A, b = get_A_b(vi, nai, centroids, centroid_gradients, qem_origin)
+
         A, b = get_A_b(vi, nai, centroids, centroids_gradients, qem_origin)
 
         u, s, v = np.linalg.svd(A)
