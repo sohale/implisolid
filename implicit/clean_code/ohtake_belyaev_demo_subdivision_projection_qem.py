@@ -944,9 +944,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
 
-    #    tau = 10. **0.37
-        # tau = 10. ** 3.
-        tau = 10. ** 2.
+        #tau = 10. ** 2.
+        tau = 680  # 10. ** 2.83
         s[s / s[0] < 1.0/tau] = 0
         # print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
@@ -1230,7 +1229,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "union_of_two_cubes"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
