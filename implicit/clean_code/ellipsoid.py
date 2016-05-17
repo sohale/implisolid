@@ -26,24 +26,22 @@ class Ellipsoid(ImplicitFunction):
         tp = np.dot(self.invmatrix, np.transpose(pa))  # inefficient. todo: multiply from right => will be efficient
         tp = np.transpose(tp)
         tp = tp[:, :3]
-    #    print pa, tp
         v = self.sphere.implicitFunction(tp)
         check_scalar_vectorized(v)
-#        print v
         return v
 
-    def implicitGradient(self, pa):  # -> Vector3D :
+    def implicitGradient(self, pa):
         check_vector3_vectorized(pa)
         pa = np.concatenate((pa, np.ones((pa.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(pa))
-        tp = np.transpose(tp)  # inefficient
+        tp = np.transpose(tp)
         tp = tp[:, :3]
         g = self.sphere.implicitGradient(tp)
-        check_vector3_vectorized(g)  # not needed
+        check_vector3_vectorized(g)
 
         g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
         v4 = np.dot(np.transpose(self.invmatrix), np.transpose(g))
-        v4 = np.transpose(v4)  # not efficient
+        v4 = np.transpose(v4)
         v3 = v4[:, :3]
         check_vector3_vectorized(v3)
         return v3
@@ -53,7 +51,7 @@ class Ellipsoid(ImplicitFunction):
         raise Exception()
 
     def __str__(self):
-        return "Ellipsoid(vectorized)" + str(self.matrix)  # .split().join(";")
+        return "Ellipsoid(vectorized)" + str(self.matrix)
 
 
 class Transformed(ImplicitFunction, Transformable):
@@ -62,11 +60,8 @@ class Transformed(ImplicitFunction, Transformable):
         if is_python3():
             super().__init__(initialMatrix=m)
         else:
-            # super(self.__class__, self).__init__(initialMatrix=m)
             super(Transformed, self).__init__(initialMatrix=m)
-            # print(self.__class__)
 
-        # print(type(base_object))
         assert issubclass(type(base_object), ImplicitFunction)
         self.base_object = base_object
 
@@ -88,7 +83,7 @@ class Transformed(ImplicitFunction, Transformable):
         check_scalar_vectorized(v)
         return v
 
-    def implicitGradient(self, p):  # -> Vector3D :
+    def implicitGradient(self, p):
         check_vector3_vectorized(p)
         p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, np.transpose(p))
@@ -96,12 +91,11 @@ class Transformed(ImplicitFunction, Transformable):
         tp = tp[:, :3]
         g = self.base_object.implicitGradient(tp)
         check_vector3_vectorized(g)
-        # g[:, 3] = 0  # important
 
         g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
 
         v4 = np.dot(np.transpose(self.invmatrix), np.transpose(g))
-        v4 = np.transpose(v4)  # not efficient
+        v4 = np.transpose(v4)
         v3 = v4[:, :3]
         check_vector3_vectorized(v3)
         return v3

@@ -85,7 +85,7 @@ def check_vector3_vectorized(p):
     assert not issubclass(p.dtype.type, np.integer)
     assert p.ndim == 2
     assert p.shape[1:] == (3,), "Vector must be a numpy array of (Nx3) elements"
-#    assert not np.any( np.isnan(p.ravel()) )
+    assert not np.any(np.isnan(p.ravel()))
     assert not np.any(np.isinf(p.ravel()))
 
 
@@ -97,7 +97,7 @@ def check_scalar_vectorized(v, N=None):
         assert v.shape == (n, 1), "values must be a numpy array of (N,) or (Nx1) elements"
     if N is not None:
         assert v.shape[0] == N
-#    assert not np.any( np.isnan(v.ravel()) )
+    assert not np.any(np.isnan(v.ravel()))
     assert not np.any(np.isinf(v.ravel()))
 
 
@@ -148,7 +148,6 @@ def normalize_vector3(v, snapToZero=False):
     assert not np.any(np.isinf(v.ravel()))
 
     r = v.copy()
-    # r[:] = np.sign(r[:]) * np.abs(r[:]) ** POW
     r = r / np.sqrt(np.dot(r, r))
     assert (r[0]*r[0] + r[1]*r[1] + r[2]*r[2] - 1) < 0.00000000001
     if snapToZero:
@@ -158,8 +157,6 @@ def normalize_vector3(v, snapToZero=False):
     return r
 
 
-# todo: http://floating-point-gui.de/errors/comparison/
-# todo: write tests for this
 def make_random_vector(norm, POW, type="rand"):
     if type == "rand":
         r = np.random.rand(3)*2 - 1
@@ -208,7 +205,6 @@ def make_random_vector_vectorized(N, norm, POW, type="rand", normalize=True):
         raise ValueError("nknown random distribution")
 
     r[:, 0:3] = np.sign(r[:, 0:3]) * np.abs(r[:, 0:3]) ** POW
-    # r[:,0:3] = r[0:3] / np.tile( np.sqrt( np.sum(r[:,0:3] * r[:,0:3], axis=1, keepdims=True) ) , (1,3) )
     n3 = np.sqrt(np.sum(r[:, 0:3] * r[:, 0:3], axis=1, keepdims=True))
     if normalize:
         r[:, 0:3] = r[:, 0:3] / np.tile(n3, (1, 3))
@@ -231,7 +227,6 @@ def make_random_vector3_vectorized(N, norm, POW, type="rand", normalize=True):
         raise ValueError("nknown random distribution")
 
     r = np.sign(r) * np.abs(r) ** POW
-    # r[:,0:3] = r[0:3] / np.tile( np.sqrt( np.sum(r[:,0:3] * r[:,0:3], axis=1, keepdims=True) ) , (1,3) )
     n3 = np.sqrt(np.sum(r * r, axis=1, keepdims=True))
     if normalize:
         r = r / np.tile(n3, (1, 3))
@@ -249,7 +244,6 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     assert not np.any(np.isnan(v))
     assert not np.any(np.isinf(v))
 
-    # norms = np.linalg.norm(v[:,0:3], axis = 1, keepdims=True, ord=2)
     norms = np.sqrt(np.sum(v[:, 0:3]*v[:, 0:3], axis=1, keepdims=True))
     denominator = np.tile(norms, (1, 4))
     if zero_normal == "leave_zero_norms":
@@ -267,9 +261,6 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     r = v * c
     assert r.shape[0] == N
     df = np.sum(r[:, 0:3] * r[:, 0:3], axis=1)
-    # print(df.shape)
-    # print(df)
-    # print(non_zero_i)
     e1a = np.all(np.abs(df[non_zero_i]-1.0) < 0.00000000001)
     e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
 
@@ -282,7 +273,7 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
         print(denominator)
         print(np.sum(r[:, 0:3] * r[:, 0:3], axis=1))
 
-    assert e1a and e0a  # np.all(np.logical_or(e1a, e0a))
+    assert e1a and e0a
     r[:, 3] = 1
     return r
 
@@ -310,9 +301,6 @@ def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
     r = v * c
     assert r.shape[0] == N
     df = np.sum(r * r, axis=1)
-    # print(df.shape)
-    # print(df)
-    # print(non_zero_i)
     e1a = np.all(np.abs(df[non_zero_i]-1.0) < 0.00000000001)
     e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
 
@@ -325,7 +313,7 @@ def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
         print(denominator)
         print(np.sum(r*r, axis=1))
 
-    assert e1a and e0a  # np.all(np.logical_or(e1a, e0a))
+    assert e1a and e0a
     return r
 
 

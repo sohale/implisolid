@@ -6,7 +6,6 @@ import vector3
 
 # definition of the vectorized objects
 
-
 def dice(dice_scale):
     dice_size = 2.0*dice_scale
     c = vector3.UnitCube1(size=dice_size)
@@ -116,7 +115,6 @@ def blend_example2(scale=1.):
 
 def ell_example1(scale):
     scale = 1.0
-    # scale not tested
     m1 = np.eye(4) * 1.3 * scale
     m1[1, 1] = 0.4 * scale
     m1[1, 2] = 0.4 * scale
@@ -147,7 +145,6 @@ def cube_example(scale=1.):
 
 
 def first_csg(scale):
-    # scale not tested
     m1 = np.eye(4) * 2 * scale
     m1[1, 1] = 0.4 * scale
     m1[0:3, 3] = [0, 0, 0]
@@ -331,7 +328,6 @@ def screw1(scale_ignored):
 
 
 def screw2(SCALE=1.):
-    # not tested for SCALE != 1.
     a = np.array([0, 0, 0])     # only works with [0,0,0]
     w = np.array([0, 0, -1])
     u = np.array([1, 0, 0])
@@ -341,12 +337,6 @@ def screw2(SCALE=1.):
     twist_rate = 0.4 * 2 / 2.0 * SCALE
     screw_len = 2 * SCALE
     return screw.Screw(a, w, u, screw_len, r0, delta, twist_rate)   # phi0) , phi0=0
-
-
-##################################################
-# Cylinder
-##################################################
-from vector3 import SimpleCylinder
 
 
 def cyl1(scale_ignored):
@@ -361,7 +351,7 @@ def cyl1(scale_ignored):
     w[3] = 1
     u = make_vector4(1, 0, 0)
 
-    c = SimpleCylinder(A, w, u, radius, radius, c_len)
+    c = vector3.SimpleCylinder(A, w, u, radius, radius, c_len)
 #    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
 
     return c
@@ -455,7 +445,7 @@ def cyl2(scale_ignored):
             return v
         # c = SimpleCylinder(A, w, u, radius, radius, c_len)
         newlen = c_len * 5
-        c1 = SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
+        c1 = vector3.SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
         delta, twist_rate = radius * 0.2, 2
         from vector3 import Screw
         c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
@@ -479,7 +469,7 @@ def cage_rods(rod_r, rod_len, cage_r, N):
         A = make_vector4(x, y, -rod_len / 2.)
         w = make_vector4(0, 0, 1)
         u = make_vector4(1, 0, 0)
-        c = SimpleCylinder(A, w, u, rod_r, rod_r, rod_len)
+        c = vector3.SimpleCylinder(A, w, u, rod_r, rod_r, rod_len)
 
         if un is None:
             un = c
@@ -504,7 +494,7 @@ def cyl4(scale):
     from twist_z import TwistZ
     t = TwistZ(cage, 0.02)  # cycles per mm
     # 0.06 is too much  0.02 is reasonable
-    base_cyl = SimpleCylinder(
+    base_cyl = vector3.SimpleCylinder(
         make_vector4(0, 0, -10),  # A
         make_vector4(0, 0, -1),  # w
         make_vector4(1, 0, 0),
@@ -533,7 +523,7 @@ def cube_with_cylinders(scale):
     w[3] = 1
     u = make_vector4(0, 1, 0)
 
-    cyl = SimpleCylinder(A, w, u, radius, radius, c_len)
+    cyl = vector3.SimpleCylinder(A, w, u, radius, radius, c_len)
 
     A2 = make_vector4(0, -c_len/2.0, 0)
     w2 = make_vector4(1, 0, 0)
@@ -541,7 +531,7 @@ def cube_with_cylinders(scale):
     w[3] = 1
     u2 = make_vector4(0, 1, 0)
 
-    cyl_2 = SimpleCylinder(A2, u2, w2, radius, radius, c_len)
+    cyl_2 = vector3.SimpleCylinder(A2, u2, w2, radius, radius, c_len)
     cube = vector3.UnitCube1(size=sz1)
     union = vector3.CrispSubtract(cube, cyl_2)
     final_object = vector3.CrispUnion(union, cyl)

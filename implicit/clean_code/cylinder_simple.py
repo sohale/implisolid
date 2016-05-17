@@ -5,7 +5,6 @@ from implicit_config import config
 
 # todo: class CutCone
 
-
 class SimpleCylinder(ImplicitFunction):
 
     def __init__(self, A, w, u, radius_u, radius_v, c_len):
@@ -51,10 +50,8 @@ class SimpleCylinder(ImplicitFunction):
         assert self.integrity_invariant()
 
     def integrity_invariant(self):
-        # config = threeD_printing_config_profile
         norm_tol = 0.00000001  # 1000 km
         matrix_inv_tol = 0.000001
-        # sane = True
         sd = {"sane": True}
 
         def check(boolean, reason):
@@ -89,7 +86,7 @@ class SimpleCylinder(ImplicitFunction):
         assert aa.shape == (count, 3)
         t_ = np.dot(x - aa, self.w)  # Nx1
         assert t_.shape == (count, 1)
-        t = t_[:, 0]  # N,
+        t = t_[:, 0]  #
         assert t.shape == (count,)
         t_arr_1xN = t.reshape((1, count))
         assert t_arr_1xN.shape == (1, count)
@@ -105,9 +102,7 @@ class SimpleCylinder(ImplicitFunction):
         t1 = self.c_len - t
         r_ = self.radius_u - r
 
-    #    print t0.shape, t1.shape, r_.shape
         m3 = np.concatenate((t0[:, np.newaxis], t1[:, np.newaxis], r_[:, np.newaxis]), axis=1)
-#        print m3.shape
         fval = np.min(m3, axis=1)
 
         if not return_grad:
@@ -140,7 +135,6 @@ class SimpleCylinder(ImplicitFunction):
 
     def implicitGradient(self, x):
         f, g = self.implicitFunction(x, return_grad=True)
-#        print("gradient", g.shape)
         return g
 
     def curvature(self, x):

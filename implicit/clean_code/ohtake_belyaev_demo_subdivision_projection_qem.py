@@ -1229,7 +1229,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "union_of_two_cubes"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1256,32 +1256,10 @@ def demo_combination_plus_qem():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-    old_verts, old_facets = verts, facets
-    #
-    # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],
-    #    pointcloud_list=[],
-    #    mayavi_wireframe=[False, True,], opacity=[1, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN,RANGE_MAX)  )
-    # exit()
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
-
-    total_subdivided_facets = []
-    for i in range(SUBDIVISION_ITERATIONS_COUNT):
-        e_array, which_facets = compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon)
-
-        # which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
-        print "Curvature epsilon:", curvature_epsilon, "which facets need to be subdivided", which_facets.shape
-
-        verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(verts, facets, which_facets)
-        global trace_subdivided_facets  # third implicit output
-
-        verts, facets = verts4_subdivided, facets3_subdivided
-        print("Subdivision applied.");sys.stdout.flush()
-
-        # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
     average_edge = compute_average_edge_length(verts, facets)
 
@@ -1302,13 +1280,7 @@ def demo_combination_plus_qem():
 
     new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
-    chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
 
-    # move the following code into subdivide_multiple_facets() (?)
-    if chosen_facet_indices.size == 0:
-        chosen_subset_of_facets = np.zeros((0,), dtype=int)
-    else:
-        chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
@@ -1331,6 +1303,14 @@ def demo_combination_plus_qem():
 
         highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
         hv = verts[highlighted_vertices, :]
+
+    chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
+
+    # move the following code into subdivide_multiple_facets() (?)
+    if chosen_facet_indices.size == 0:
+        chosen_subset_of_facets = np.zeros((0,), dtype=int)
+    else:
+        chosen_subset_of_facets = facets[chosen_facet_indices, :]
 
     # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
     #    pointcloud_list=[hv], pointcloud_opacity=0.2,
