@@ -43,7 +43,7 @@ class TwistZ(ImplicitFunction, Transformable1):
             ca[:, np.newaxis]*p[:, 0, np.newaxis] - sa[:, np.newaxis]*p[:, 1, np.newaxis],
             sa[:, np.newaxis]*p[:, 0, np.newaxis] + ca[:, np.newaxis]*p[:, 1, np.newaxis],
             p[:, 2, np.newaxis],), axis=1)
-
+                                                                                                                                                                                                                                                                                                                                                            
         v = self.base_object.implicitFunction(p2)
         check_scalar_vectorized(v)
         return v

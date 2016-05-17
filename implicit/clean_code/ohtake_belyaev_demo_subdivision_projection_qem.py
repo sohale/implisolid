@@ -29,243 +29,6 @@ def mysign_np(v):
     return np.sign(v) * (np.abs(v) > ROOT_TOLERANCE)
 
 
-def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
-    TH1 = 0.001
-    TH3 = 0.001
-
-    assert p1.shape[0] == 1
-    assert p2.shape[0] == 1
-
-    assert f1 < 0
-    assert f1*f2 < 0, "Opposite signs required"
-    for j in range(MAX_ITER):
-        if np.linalg.norm(p1-p2) < TH1:
-            if j == 0:
-                p3 = 0.5 * (p1 + p2)
-            return p3, j
-        p3 = 0.5 * (p1 + p2)
-        f3 = iobj.implicitFunction(p3)
-        if np.abs(f3) < TH3:
-            return p3, j
-        elif f1*f3 >= 0:
-            p1 = p3
-            f1 = f3
-        else:
-            p2 = p3
-            f2 = f3
-
-    return None, MAX_ITER
-
-
-# @profile
-def bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER):
-
-    """ The proportional bisection method. See searchNearPoint1D() """
-    # The following is used with MAX_ITER==10 in Ohtake.
-    TH2 = 0.0001  # distance between p1,p2
-    TH3 = 0.001   # for abs(f3)
-
-    assert p1.shape[0] == 1
-    assert p2.shape[0] == 1
-
-    dt = p2 - p1
-
-    assert f1 < 0
-    assert f1*f2 < 0, "Opposite signs required"
-
-    for j in range(MAX_ITER):
-
-        assert f1 < 0
-        assert f1*f2 < 0
-        fp = f1/(f1-f2)
-        p3 = p1 + dt * fp
-        f3 = iobj.implicitFunction(p3)
-
-        if np.abs(f3) < TH3:
-            return True, p3, None, j
-
-        # print f1, f2, " -> fp:", fp  # Sometimes (0.96) it searches too close to f2, and fp converges to 1
-        if f3 < 0.:
-            if VERBOSE:
-                print "A",
-            (p1, f1) = (p3, f3)
-        else:
-            if VERBOSE:
-                print "B",
-            (p2, f2) = (p3, f3)
-
-        dt = p2 - p1
-        # should be moved above
-
-        if np.linalg.norm(dt) < TH2:
-            return True, p3, None, j
-
-    if VERBOSE:
-        print "Convergence based on the proportional method did not happen"
-    # return (False, p1, p2)
-    p, ni = bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER*4)
-    if p is not None:
-        if VERBOSE:
-            print "Bisection converged "
-        return True, p, None, 0  # very unlikely
-    else:
-        return False, p1, p2, -ni
-
-
-VERBOSE = False
-
-@profile
-def search_near_ohtake(iobj, start_x, direction, lambda_val, MAX_ITER, max_dist):  # max_dist
-    """Returns either the point, or None, if not found. lambda_val is the expected distance from the surface.
-    The resommended value is half of the average edge length, but a better way is half of the MC'step size (because the expected error is half of the MC grid voxel size).
-    Remeber: we may be on a totally irrelevant direction here.
-    'direction' should be normalised. lambda*direction is used. Note that lambda is negated by default.
-    Note: along_1d mode is in fact the same. It's just initialises direction=gradient(start_x).
-    Does both searchNearPoint1D and searchNearPoint()
-    :param direction: description
-    @param np.array direction
-    """
-
-    TH1 = 0.001
-    TH2_L = 0.1/2.
-    if direction is not None:
-        along_1d = True
-    else:
-        along_1d = False
-
-    eval_count = 0
-
-    p1 = start_x
-    f1 = iobj.implicitFunction(p1)
-    eval_count += 1
-    f0 = f1
-
-    if math.fabs(f1) < TH1:
-        return p1
-
-    p2 = p1  # no need actually
-
-    negative_f1 = -1 if f1 < 0. else +1
-    lambda_ = lambda_val * (-negative_f1)  # negation of input is bad practice
-
-    exit_A = False
-    while True:
-        max_iter_ = max(min(MAX_ITER, int(math.ceil(max_dist/math.fabs(lambda_)))+2), 2)
-        assert max_iter_ >= 2
-        # (C) jumps back here.
-        for j in range(max_iter_):
-
-            if not along_1d:
-                direction = iobj.implicitGradient(start_x)
-                dn = np.linalg.norm(direction)
-                if dn > 0.0:  # 00000001:
-                    direction = direction/dn
-                else:
-                    pass
-            p2 = p2 + lambda_ * direction
-
-            f2 = iobj.implicitFunction(p2)
-            eval_count += 1
-
-            if f1*f2 < 0.0:
-                # (A)
-                exit_A = True
-                break
-            p1 = p2
-
-        else:
-            # for loop ended becasue of MAX_ITER
-
-            # (C): next iteration with adaptively decreased lambda_. Revert and start over again using a smaller lambda
-            lambda_ = lambda_ / 2.
-
-            if np.abs(lambda_) < TH2_L:
-                print "(B)", eval_count
-                return None   #
-
-            p1 = start_x
-            assert f0 * f1 >= 0
-            f1 = f0  # This was missing in Ohtake, because the sign of f1 is not expected to change. So I added the assert above.
-            p2 = p1
-
-            # restart the loop
-            # (C).
-
-        # (A)
-        if exit_A:  # f1*f2 < 0.0:
-            break
-    # (A)
-    assert f1*f2 < 0.0
-    if f1 > 0:
-        (p1, p2) = (p2, p1)
-        (f1, f2) = (f2, f1)
-
-    assert f1 < 0
-    assert f2 > 0
-    assert math.fabs(f1) < 1000, str(p1)
-    assert math.fabs(f2) < 1000, str(p2)
-
-    converged, p1, p2, iter_log = bisection_prop_2(iobj, p1, p2, f1, f2, MAX_ITER/2)
-    assert f1 < 0
-    assert f2 > 0
-
-    if converged:
-        assert p2 is None
-        return p1
-    else:
-        return None
-
-
-@profile
-def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
-    # here we consider that the max_dist is the average_edge and lambda = average_edge/2
-    # new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
-    lambda_val = average_edge/2
-    check_vector3_vectorized(centroids)
-    # definition of the matrix that are gonna be used in the rest of the programm
-    p1 = np.ndarray(centroids.shape)
-    p2 = np.ndarray(centroids.shape)
-    p3 = np.ndarray(centroids.shape)
-    p = np.ndarray(centroids.shape)
-    f1 = np.ndarray(centroids.shape[0])
-    f2 = np.ndarray(centroids.shape[0])
-    direction_3 = np.ndarray(centroids.shape)
-    dn_3 = np.ndarray(centroids.shape[0])
-
-    centroids_new = centroids.copy()
-    max_iter = 20
-
-    for i in range(centroids.shape[0]):
-
-        # print i, "Trying to find in the first direction"
-        p1[i, :] = search_near_ohtake(iobj, centroids_new[i, :].reshape((1, 3)), None, lambda_val, max_iter, lambda_val*2)
-        if p1[i, :] is not None:  # make sure that p are found by the program and they respect the condition enforce by check_vector4_vectorized
-            p1[i, :].reshape(1, 3)
-            f1[i] = iobj.implicitFunction(p1[i, :].reshape(1, 3))
-
-            # Mirror image: search the opposite way and accept only if it is closer than the best found.
-            p2[i, :] = 2*centroids_new[i, :] - p1[i, :]  # p2 correspond to S in the paper
-            f2[i] = iobj.implicitFunction(p2[i, :].reshape(1, 3))
-            p[i, :] = p1[i, :]
-
-            if f1[i]*f2[i] < 0:
-                direction_3[i, :] = (centroids_new[i, :] - p1[i, :].copy())  # as in Ohtake
-                dn_3[i] = np.linalg.norm(direction_3[i, :])
-                if dn_3[i] > 0:  # dn>0.000000001:
-                    direction_3[i, :] = direction_3[i, :]/dn_3[i]
-                    p3 = search_near_ohtake(iobj, centroids_new[i, :].reshape(1, 3), direction_3[i, :].reshape(1, 3), lambda_val, max_iter, lambda_val*2)
-            #        print i, "Trying to find in the opposite direction"
-
-                if p3 is not None:
-                    if np.linalg.norm(centroids_new[i, :] - p3) > np.linalg.norm(centroids_new[i, :] - p1[i, :]):
-                        p[i, :] = p3
-                        # else:
-                        # p = p1
-
-            if np.linalg.norm(centroids[i, :] - p[i, :]) <= average_edge:
-                centroids[i, :] = p[i, :]
-
-
 def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
     """ based on bisection_vectorized5. Note that this functin assumes there is no root in x1 and x2."""
     check_vector3_vectorized(x1_arr)
@@ -840,18 +603,18 @@ def compute_average_edge_length(verts, faces):
 # @profile
 
 
-def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
+def get_A_b(vertex_id, nlist_numpy, centroids, centroids_gradients, qem_origin):
 
     nai = nlist_numpy
-    center_array = centroids[nai, :]
 
+    center_array = centroids[nai, :]
     # note some centers may not be projected successfully in the previous step
     not_projected_successfully = np.isnan(center_array[:].ravel())
     if np.any(not_projected_successfully):
         pass
 
-    normals = centroid_gradients[nai, :]  # why do we have repeats??
-    # note : not normalised. But it works.
+    normals = centroids_gradients[nai, :]  # why do we have repeats??
+    # note : not normalised. But it works.new_weight[i])
 
     norms = np.linalg.norm(normals, ord=2, axis=1)
     # can be either 0, 1 or Nan
@@ -874,7 +637,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
     n_i = normals[:, :, np.newaxis]
     p_i = center_array[:, :, np.newaxis]
 
-    A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
+    #A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
 
     for i in range(normals.shape[0]):
 
@@ -882,7 +645,7 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
         nnt = np.dot(n_i[i], np.transpose(n_i[i]))
 
         assert nnt.shape == (3, 3)
-
+        A += nnt
         assert p_i[i].shape == (3, 1)
         b += -np.dot(nnt, p_i[i] - qem_origin)
 
@@ -891,10 +654,10 @@ def get_A_b(vertex_id, nlist_numpy, centroids, centroid_gradients, qem_origin):
 # @profile
 
 
-def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroid_gradients):
+def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centroids_gradients):
     assert centroids is not None
     assert vertex_neighbours_list is not None
-    assert centroid_gradients is not None
+    assert centroids_gradients is not None
 
     nvert = verts.shape[0]
     assert nvert == len(vertex_neighbours_list)
@@ -903,20 +666,23 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
     assert verts.shape == (nvert, 3)
     new_verts = np.zeros((nvert, 3))
 
+
     for vertex_id in range(nvert):
 
         vi = vertex_id
         nlist = vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
         qem_origin = verts[vertex_id, :].reshape(3, 1)*0
-        A, b = get_A_b(vi, nai, centroids, centroid_gradients, qem_origin)
+        # A, b = get_A_b(vi, nai, centroids, centroid_gradients, qem_origin)
+        A, b = get_A_b(vi, nai, centroids, centroids_gradients, qem_origin)
 
         u, s, v = np.linalg.svd(A)
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
 
-        # tau = 10. ** 2.
-        tau = 680  # 10. ** 2.83
+        # experimental value
+        tau = 680.  # 10. ** 2.83
+
         s[s / s[0] < 1.0/tau] = 0
         rank = np.sum(s / s[0] > 1.0/tau)
 
@@ -1171,6 +937,16 @@ def comparison_verts_new_verts(old_verts, new_verts):
 
     return new_verts
 
+
+def simple_histogram(c, title=None, special_values=[]):
+    import matplotlib.pyplot as plt
+    # special_values
+
+    plt.hist(c, 20*10)
+    if title is not None:
+        plt.title(title)
+    plt.show()
+
 @profile
 def demo_combination_plus_qem():
     """ Now with QEM """
@@ -1180,7 +956,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
