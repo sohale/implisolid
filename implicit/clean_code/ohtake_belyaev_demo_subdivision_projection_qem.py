@@ -945,7 +945,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbours_list, centro
         assert s[0] == np.max(s)
 
     #    tau = 10. **0.37
-        tau = 10. ** 3.
+        # tau = 10. ** 3.
+        tau = 10. ** 2.
         s[s / s[0] < 1.0/tau] = 0
         # print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
@@ -1226,7 +1227,7 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
     object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
@@ -1327,7 +1328,7 @@ def demo_combination_plus_qem():
         print("Subdivision applied.");sys.stdout.flush()
         # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
 
-        #new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+        # new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
 
         highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
         hv = verts[highlighted_vertices, :]
