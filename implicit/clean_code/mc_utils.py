@@ -29,7 +29,6 @@ def _prepare_grid(rng):
     return xyza
 
 
-# @profile
 def make_grid(iobj, rng, old=None):
     xyza = _prepare_grid(rng)
 

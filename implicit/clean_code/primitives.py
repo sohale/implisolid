@@ -42,8 +42,6 @@ class SignedDistanceImplicitPointwise(object):
 class PrimitiveBase(ImplicitFunctionPointwise):
     pass
 
-# UnitSphere is not a SignedDistanceImplicitPointwise
-
 
 class UnitSphere(PrimitiveBase):
 
@@ -75,7 +73,7 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
         def side(x, y, z):
             p0 = (make_vector3(x, y, z) + 0.0)
             p0 = p0 / 2.0 * size
-            # n0 points inwards
+
             n0 = -make_vector3(x, y, z)
             n0 = n0
             self.p0 += [p0]
@@ -84,30 +82,22 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
             def norm2(v):
                 return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
 
-            # print(norm2(self.n0[-1][0:3]))
             assert norm2(self.n0[-1]) - 1 == 0.0
 
-        # for x in range( -1,2 ):
-        #    for y in range( -1,2 ):
-        #        for z in range( -1,2 ):
-        #           side(x,y,z)
         side(1, 0, 0)
         side(-1, 0, 0)
         side(0, 1, 0)
         side(0, -1, 0)
         side(0, 0, 1)
         side(0, 0, -1)
-        # print ( self.p0 )
-        # print ( self.n0 )
 
     def integrity_invariant(self):
         integrity = True
         for i in range(6):
             integrity = integrity and np.abs(norm2(self.n0[i]) - 1) < INTEGRITY_TOLERANCES_NORM
-        # todo: Check convexity
+
         return integrity
 
-    # todo: evaluate gradient and implicit function at the same time
     def implicitFunction(self, p):
         check_vector3(p)
         chosen_i = None
@@ -138,7 +128,6 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
                 grad = n0
 
         assert chosen_i is not None
-        # not tested
         check_vector3(grad)
         return grad
 

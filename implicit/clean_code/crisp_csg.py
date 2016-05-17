@@ -69,7 +69,6 @@ class CrispUnion(ImplicitFunction):
         c = np.greater(va, vb)
         v = va * c + vb * (1-c)
 
-    #    print va, vb,
         check_scalar_vectorized(v)
 
         return v
@@ -92,9 +91,9 @@ class CrispUnion(ImplicitFunction):
     def hessianMatrix(self, p):
 
         check_vector3_vectorized(p)
-        va = self.a.implicitFunction(p)  # why not used???
+        va = self.a.implicitFunction(p)
         vb = self.b.implicitFunction(p)
-        c = np.greater(va, vb)  # shape: (N,)
+        c = np.greater(va, vb)
         c = np.tile(np.expand_dims(c, axis=1), (1, 3))
 
         ha = self.a.hessianMatrix(p)
@@ -103,8 +102,6 @@ class CrispUnion(ImplicitFunction):
         check_matrix3_vectorized(h)
 
         return h
-
-# not tested
 
 
 class CrispIntersection(ImplicitFunction):

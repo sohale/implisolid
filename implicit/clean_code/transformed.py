@@ -31,27 +31,19 @@ class Transformable(object):
         self.matrix = matrix
         self.invmatrix = make_inverse(self.matrix)
 
-    # def rotate_euler(x, y, z, type="EulerXYZ"):
-    #    assert type == "EulerXYZ"
-    #    raise
-    #    return self
-
     def rotate(self, angle, along, units="rad"):
         if units == "rad":
             pass
         elif units == "deg":
             angle = angle / 360.0 * np.pi*2.0
         else:
-            raise ValueError()  # UsageError
+            raise ValueError()
 
         check_vector3(along)
         rm = tf.rotation_matrix(angle, along)
         self.matrix = np.dot(rm, self.matrix)
         self.invmatrix = make_inverse(self.matrix)
 
-        # print(angle /(3.1415926536*2) * 360 )
-        # print(rm)
-        # print(self.matrix)
         return self
 
     def move(self, x, y, z):
@@ -64,12 +56,9 @@ class Transformable(object):
         self.invmatrix = make_inverse(self.matrix)
         return self
 
-# class Transformed(ImplicitFunctionPointwise, Transformable):
-
 
 class Transformed(ImplicitFunctionPointwise, Transformable):
     """ See the @Ellipsoid class. Just replace base_sphere with base_object. Note: super and self have shared members self.matric and self.invmatrix."""
-    # Rotated. LinearTransformation. HomogeneousCoordinates
     def __init__(self, base_object, m=None):
         """ """
         if is_python3():
@@ -77,9 +66,6 @@ class Transformed(ImplicitFunctionPointwise, Transformable):
         else:
             super(Transformed, self).__init__(initialMatrix=m)
 
-        # assert type(baseImplicitClass) is type
-        # assert issubclass(baseImplicitClass, ImplicitFunctionPointwise)
-        # self.base_object = baseImplicitClass()
         assert issubclass(type(base_object), ImplicitFunctionPointwise)
         self.base_object = base_object
 
@@ -98,7 +84,7 @@ class Transformed(ImplicitFunctionPointwise, Transformable):
         v = self.base_object.implicitFunction(tp)
         return v
 
-    def implicitGradient(self, p):  # -> Vector3D :
+    def implicitGradient(self, p):
         check_vector3(p)
         p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, p)
@@ -107,7 +93,7 @@ class Transformed(ImplicitFunctionPointwise, Transformable):
         return v3
 
     def hessianMatrix(self, p):
-        # warning: not tested
+
         check_vector3(p)
         p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
         tp = np.dot(self.invmatrix, p)

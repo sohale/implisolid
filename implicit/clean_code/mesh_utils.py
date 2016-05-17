@@ -4,18 +4,12 @@ VERBOSE = False
 
 
 def centroids(verts, faces):
-    # print("faces: ", faces.shape)
-    # print(verts[faces[:],:].shape)
     c = np.mean(verts[faces[:], :], axis=1)
-    # print(c.shape)
     return c
-
-# The only useful method in our method. This needs to be done once and can be reused.
 
 
 def make_neighbour_faces_of_vertex(faces):
     """ neighbour_faces_of_vertex is a list. index=vertex, v1,v2,v3 """
-    # vertex_count = np.max(np.max(faces)) + 1
     neighbour_faces_of_vertex = {}  # np.zeros( (vertex_count,3) , dtype=np.type) - 1
     for fi in range(faces.shape[0]):
         for vi in range(3):
@@ -31,11 +25,7 @@ def make_neighbour_faces_of_vertex(faces):
 
 def make_edge_lookup_old(faces):
     """ """
-    # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
-    # faces_of_edges : index = edge number, value = face number1, face number2
-    # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
-    # eulookup[eu_paired_int] = edge number index
-    # raise
+
     print "Warning: not tested enough"
     nfaces = faces.shape[0]
     # assert nfaces % 2 == 0
@@ -47,8 +37,7 @@ def make_edge_lookup_old(faces):
     faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
     vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
 
-    modulo = long(num_edges)    # *2
-#    import ipdb; ipdb.set_trace()
+    modulo = long(num_edges)
     eulookup = -np.ones((modulo * num_edges + num_edges,))
 
     edge_counter = 0
@@ -58,25 +47,20 @@ def make_edge_lookup_old(faces):
                 print("------------")
             v2j = (vj + 1) % 3
             e = (faces[fi, vj], faces[fi, v2j])
-            # eu = (vj, v2j) if vj>v2j else (v2j, vj)  #unique edge id
-            eu = (e[0], e[1]) if e[1] > e[0] else (e[1], e[0])  # unique edge id
+            eu = (e[0], e[1]) if e[1] > e[0] else (e[1], e[0])
             assert e[0] >= 0
             assert e[1] >= 0
             assert not e[1] == e[0]
             eu_pair_int = int(eu[0] + eu[1] * modulo)
-            # eu_pair_int_revsersed = int(eu[1] + eu[0] * modulo)
             eu_pair_int_signed = eu_pair_int
             if not e[1] > e[0]:
-                # eu_pair_int_signed = -eu_pair_int
                 eu_pair_int_signed = eu_pair_int
             eu_pair_int_signed = eu_pair_int
 
             if VERBOSE:
                 print("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
-                # dont confuse e_id and eu_pair_int. vertpairs_of_edges[e_id] == eu_pair_int
                 print(" e=", e, " eu_pair_int=", eu_pair_int)
 
-            # print("********** ", eu_pair_int)
             if eulookup[eu_pair_int] < 0:
                 new_edge = True
             else:
@@ -86,22 +70,16 @@ def make_edge_lookup_old(faces):
                 print("new_edge= ", new_edge, " edge_counter=", edge_counter)
 
             if new_edge:
-                # vertpairs_of_edges = ***
-
-                # add a new edge
                 e_id = edge_counter
                 edges_of_faces[fi, vj] = e_id
 
-                # print faces_of_edges.shape, e_id, edge_counter, num_edges
                 faces_of_edges[e_id, 0] = fi
                 assert not vj == v2j
-                # assert vertpairs_of_edges[e_id] == eu_pair_int, "vertpairs_of_edges[e_id] == eu_pair_int:  vertpairs_of_edges[%d]=%d == %d"%(e_id, vertpairs_of_edges[e_id], eu_pair_int)
                 assert vertpairs_of_edges[e_id] == -1
                 vertpairs_of_edges[e_id] = np.abs(eu_pair_int_signed)  # eu
-                # something wrong here.
 
                 assert eulookup[eu_pair_int] == -1, "        %d " % (eulookup[eu_pair_int],)
-                eulookup[eu_pair_int] = e_id    # edge number?
+                eulookup[eu_pair_int] = e_id
 
                 edge_counter += 1
 
@@ -125,16 +103,12 @@ def make_edge_lookup_old(faces):
             if VERBOSE:
                 print("edges_of_faces ", edges_of_faces)
                 print("faces_of_edges ", faces_of_edges)
-                # print("vertpairs_of_edges ", vertpairs_of_edges)
                 print("eulookup ", eulookup)
             if True:
                 eu_paired_int = vertpairs_of_edges[e_id]
                 (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
                 if VERBOSE:
                     print("vertpair:", eu_paired_int, " -> ", v1, v2)
-            # if VERBOSE and new_edge:
-            #    import os
-            #    os.system("pause")
 
     for fi in range(len(faces)):
         e123 = edges_of_faces[fi, :]
@@ -160,17 +134,12 @@ def make_edge_lookup_old(faces):
         eu_paired_int = np.abs(vertpairs_of_edges[e_id])
         (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
         assert eu_paired_int == v1 + v2 * modulo
-        # face[*]=*
         assert eu_paired_int >= 0
         if VERBOSE:
             print(eu_paired_int, eulookup[eu_paired_int], e_id)
         assert np.abs(eulookup[eu_paired_int]) == e_id
 
     assert np.all(np.ravel(edges_of_faces) > -1)
-    # edges_of_faces : index = face number, value = [edge number, edge number, edge number]
-    # faces_of_edges : index = edge number, value = face number, face number
-    # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
-    # eulookup[eu_paired_int] = edge number index
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
 
 if __name__ == '__main__':
