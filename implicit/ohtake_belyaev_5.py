@@ -2563,14 +2563,22 @@ def demo_everything():
         #"rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         #"ell_example1")  #+
-        "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        #"french_fries_vectorized")
+        #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+        "french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
+    STEPSIZE = STEPSIZE / 2.
+
 
     #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-    #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+
+    from vectorized import Transformed
+    iobj = Transformed(iobj)
+    #set_trace()
+    iobj.rotate(14, along=np.array([1., 1., 1., 1]), units="deg")
+
     print "STEPSIZE", STEPSIZE
     #set_trace()
 
