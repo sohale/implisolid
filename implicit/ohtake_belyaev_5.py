@@ -2783,7 +2783,9 @@ def demo_everything():
             f_c = iobj.implicitFunction(centroids)
             #nzeros_c = np.nonzero(np.abs(f_c) <= 0.0001)[0]  # THRESHOLD_zero_interval
             nzeros_c = np.nonzero(np.abs(f_c) > 0.01)[0]
-            print nzeros_c.shape
+            print "nonzero indices:",
+            print "count:",nzeros_c.shape
+            print nzeros_c
 
             #c3 = centroids[z12, :3]
             c3 = centroids[nzeros_c, :3]

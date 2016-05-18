@@ -123,9 +123,9 @@ def set_centers_on_surface__ohtake_v3s_001(iobj, centroids, average_edge, nones_
     #signs = 1.*(f_a > THRESHOLD_zero_interval) - 1.*(f_a < -THRESHOLD_zero_interval)
     signs = (f_a > THRESHOLD_zero_interval)*step_size - (f_a < -THRESHOLD_zero_interval)*step_size
     #todo: stop moving when hit zero
-    x0 = x[:, :3]
+    x0_v3 = x[:, :3]
     #Move opposite the direction toward center if the value is positive.
-    x1 = x0 - g_normalized_a * signs[:, np.newaxis] #* step_size
+    x1 = x0_v3 - g_normalized_a * signs[:, np.newaxis] #* step_size
 
     x1_ = augment4(x1)
     f_a = iobj.implicitFunction(x1_)
@@ -179,7 +179,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #signs_c = (fc_a >= THRESHOLD_zero_interval)*step_size - (fc_a <= -THRESHOLD_zero_interval)*step_size
     signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
     #todo: stop moving when hit zero
-    x0 = x[:, :3]
+    x0_v3 = x[:, :3]
     #Move opposite the direction toward center if the value is positive.
 
     #del step_size
@@ -190,9 +190,9 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     """
     f_a = fc_a # ???
     taubin = f_a/glen_a
-    x1_taubin = x0 - g_direction_a * taubin[:, np.newaxis]
-    x1_half = x0 + 0.5*dx1_c * step_size
-    x1_half_opposite = x0 - 0.5*dx1_c * step_size
+    x1_taubin = x0_v3 - g_direction_a * taubin[:, np.newaxis]
+    x1_half = x0_v3 + 0.5*dx1_c * step_size
+    x1_half_opposite = x0_v3 - 0.5*dx1_c * step_size
     #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
     # boundary:
     ...
@@ -229,7 +229,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #print np.diff(lanp) * (2**9)
 
     # The algorithm
-    n = x0.shape[0]
+    n = x0_v3.shape[0]
     best_result_x = np.ones((n, 3))
     active_indices = np.arange(0, n, dtype=int)
     active_count = n
@@ -243,9 +243,11 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     success = already_success.copy()  # falses  #.copy() is necessary
     assert not np.any(already_success)
 
+    TEST = True  # and not optimised_used():
+
     #print "left(found)",
     for alpha in alpha_list:
-            x1_half = x0 + (max_dist*alpha)*dx1_c
+            x1_half = x0_v3 + (max_dist*alpha)*dx1_c
             FAST = True
             if FAST:
                 active_indices = still_nonsuccess_indices
@@ -300,22 +302,40 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             print ("%d(+%d) "%(still_nonsuccess_indices.size, new_success_indices.size)),
             #print "already_success", np.sum(already_success)
             #active_indices = still_nonsuccess_indices
+
+            if TEST:
+                x2 = augment4(best_result_x[already_success, :])
+                f2 = iobj.implicitFunction(x2)
+                f2[np.abs(f2) < THRESHOLD_zero_interval] = 0.
+                x1 = centroids[already_success, :]
+                assert x1.shape[1] == 4
+                f1 = iobj.implicitFunction(x1)
+                f1[np.abs(f1) < THRESHOLD_zero_interval] = 0.
+                #print f1
+                #print f2
+                print "bad accepted indices:", (f1*f2)[f1 * f2 > 0]
+                #assert np.all((f1*f2)[f1 * f2 > 0])
+                assert np.all(f1 * f2 <= 0)
+                del f1, f2, x1, x2
+
             if still_nonsuccess_indices.shape[0] == 0:
                 break
     # if still_nonsuccess_indices.shape[0] > 0:
-    best_result_x[still_nonsuccess_indices, :] = x0[still_nonsuccess_indices, :]  # failed to converge
+    best_result_x[still_nonsuccess_indices, :] = x0_v3[still_nonsuccess_indices, :]  # failed to converge
 
-    TEST = False
-    if TEST and not optimised_used():
-        xa1 = augment4(x0)
-        f1 = iobj.implicitFunction(xa1)
+    if TEST:
+        xa1 = augment4(x0_v3)
+        f1_test = iobj.implicitFunction(xa1)
         xa2 = augment4(best_result_x)
-        f2 = iobj.implicitFunction(xa2)
-        s = f1*f2
+        f2_test = iobj.implicitFunction(xa2)
+        s = f1_test*f2_test
         print s[still_nonsuccess_indices]
         s[still_nonsuccess_indices] = -1.
         #print s[s > 0]
         assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
+        del s
+        del f1_test
+        del f2_test
         print "OK"
 
     #centroids[:, :3] = best_result_x[:, :]
@@ -326,71 +346,88 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
 
     #collect the zero ones
-    xa1 = augment4(x0)
+    xa1 = augment4(x0_v3)
     f1 = fc_a  # iobj.implicitFunction(xa1)
     assert np.all(f1 == iobj.implicitFunction(xa1), axis=None)
     xa2 = augment4(best_result_x)
     f2 = iobj.implicitFunction(xa2)
-    zeros2 = np.abs(f2) <= THRESHOLD_zero_interval
+    zeros2_bool = np.abs(f2) <= THRESHOLD_zero_interval
     # Copy the zeros onto results
-    zeros1 = np.abs(f1) <= THRESHOLD_zero_interval
-    best_result_x[zeros1, :3] = x0[zeros1, :3]
-    zeros12 = np.logical_or(zeros1, zeros2)  # output
-    assert np.all(np.abs(iobj.implicitFunction(augment4(best_result_x[zeros12, :]))) <= THRESHOLD_zero_interval)
+    zeros1_bool = np.abs(f1) <= THRESHOLD_zero_interval
+    best_result_x[zeros1_bool, :3] = x0_v3[zeros1_bool, :3]
+    zeros1or2 = np.logical_or(zeros1_bool, zeros2_bool)  # output
+    del zeros1_bool, zeros2_bool
+    assert np.all(np.abs(iobj.implicitFunction(augment4(best_result_x[zeros1or2, :]))) <= THRESHOLD_zero_interval)
 
     #ROOT_TOLERANCE = 0.000001
     ROOT_TOLERANCE = THRESHOLD_zero_interval  # because of the assert
-    #relevants_boolean = already_success[not.logical_not(zeros12[already_success])]
-    #relevants_boolean = np.delete(already_success, np.nonzero(zeros12)[0])
-    relevants_boolean = np.logical_and(already_success, np.logical_not(zeros12))
+    #relevants_bool = already_success[not.logical_not(zeros1or2[already_success])]
+    #relevants_bool = np.delete(already_success, np.nonzero(zeros1or2)[0])
+    relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
     #print np.nonzero(np.logical_not(already_success))[0]
-    #print np.nonzero(relevants_boolean)[0]
-    #print np.nonzero(zeros12)[0]
-    assert np.all(np.abs(f2[relevants_boolean]) > +THRESHOLD_zero_interval)
-    assert np.all(np.abs(f2[zeros12]) <= +THRESHOLD_zero_interval)
+    #print np.nonzero(relevants_bool)[0]
+    #print np.nonzero(zeros1or2)[0]
+    assert np.all(np.abs(f2[relevants_bool]) > +THRESHOLD_zero_interval)
+    assert np.all(np.abs(f2[zeros1or2]) <= +THRESHOLD_zero_interval)
 
-    assert np.all( mysign_np(f2[relevants_boolean], THRESHOLD_zero_interval) * mysign_np(f1[relevants_boolean], THRESHOLD_zero_interval) < 0)
+    print "--"*10
+    print "relevants_bool:", np.sum(relevants_bool)
+    #relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
+    #set_trace()
 
-    x2_v4 = augment4(best_result_x[relevants_boolean, :])
-    x0_v4 = centroids[relevants_boolean, :]
-    f1 = iobj.implicitFunction(x0_v4)
-    f2 = iobj.implicitFunction(x2_v4)
-    s = f1*f2
-    assert np.all(s <= +THRESHOLD_zero_interval)
+    assert np.all( mysign_np(f2[relevants_bool], THRESHOLD_zero_interval) * mysign_np(f1[relevants_bool], THRESHOLD_zero_interval) < 0)
+    del f1
+
+    x2_relevant_v4 = augment4(best_result_x[relevants_bool, :])
+    x1_relevant_v4 = centroids[relevants_bool, :]
+    f1_relevants = iobj.implicitFunction(x1_relevant_v4)  # for assert only
+    f2_relevants = iobj.implicitFunction(x2_relevant_v4)
+
+    assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
+    del f1_relevants
 
     #Swap negatives and positives
-    swap = f2 < -THRESHOLD_zero_interval
-    temp = x2_v4[swap, :]
-    x2_v4[swap, :] = x0_v4[swap, :]
-    x0_v4[swap, :] = temp
-    temp_f = f2[swap]
-    f2[swap] = f1[swap]
-    f1[swap] = temp_f
+    swap_bool = f2_relevants < -THRESHOLD_zero_interval
+    # performance: boolean or indices?
+    temp = x2_relevant_v4[swap_bool, :]
+    x2_relevant_v4[swap_bool, :] = x1_relevant_v4[swap_bool, :]
+    x1_relevant_v4[swap_bool, :] = temp
+    del temp
+    #temp_f = f2_relevants[swap_bool]
+    #f2_relevants[swap_bool] = f1_relevants[swap_bool]
+    #f1_relevants[swap_bool] = temp_f
+    #del temp_f
+    del f2_relevants
 
-    bsresults = bisection_vectorized5_(iobj, x0_v4, x2_v4, ROOT_TOLERANCE)
-    assert bsresults.shape[0] == np.sum(relevants_boolean)
-    centroids[relevants_boolean, :] = bsresults[:, :]  # x4
+    x_bisect = bisection_vectorized5_(iobj, x1_relevant_v4, x2_relevant_v4, ROOT_TOLERANCE)
+    assert x_bisect.shape[0] == np.sum(relevants_bool)
+    centroids[relevants_bool, :] = x_bisect[:, :]  # x4
+    #set_trace()
+    print centroids.shape, best_result_x.shape
+    #centroids[zeros1or2, :3] = best_result_x[zeros1or2, :]  # x3
+
+    #relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
 
     """
     if debug_vf is not None:
         _vs, _fs = debug_vf
         from visual5 import *
-        c3 = centroids[zeros12, :3]
+        c3 = centroids[zeros1or2, :3]
         #(np.zeros((0, 4)), np.zeros((0, 3), dtype=int))
         display_simple_using_mayavi_2([(_vs, _fs)],
-                   pointcloud_list=[centroids[zeros12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+                   pointcloud_list=[centroids[zeros1or2, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                    mayavi_wireframe=[False,], opacity=[0.4,],
                    gradients_at=c3,
                    #separate_panels=False,
                    gradients_from_iobj=iobj,
                    #minmax=(RANGE_MIN, RANGE_MAX),
                    #add_noise=[0, 0], noise_added_before_broadcast=True,
-                   labels=(centroids, zeros12), grad_arrow_len=0.2/2.)
+                   labels=(centroids, zeros1or2), grad_arrow_len=0.2/2.)
 
         set_trace()
     """
     return
-    #return zeros12
+    #return zeros1or2
 
     #visualise_scalar_distribution([f_plot1, f_a])
     #visualise_scatter(f_plot1, f_a)
