@@ -1,6 +1,6 @@
 from implicit import ImplicitFunction
 import numpy as np
-from basic_functions import check_scalar_vectorized, check_vector3_vectorized
+from basic_functions import check_scalar_vectorized, check_vector3_vectorized, make_inverse
 
 
 class Transformable1(object):
@@ -20,6 +20,9 @@ class TwistZ(ImplicitFunction, Transformable1):
 
         assert issubclass(type(base_object), ImplicitFunction)
         self.base_object = base_object
+
+        m = np.eye(4)
+        self.invmatrix = make_inverse(m)
 
         assert isinstance(self.base_object, ImplicitFunction)
 
@@ -49,8 +52,23 @@ class TwistZ(ImplicitFunction, Transformable1):
         return v
 
     def implicitGradient(self, p):  # -> Vector3D :
+        check_vector3_vectorized(p)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
+        tp = np.dot(self.invmatrix, np.transpose(p))
+        tp = np.transpose(tp)
+        tp = tp[:, :3]
+        g = self.base_object.implicitGradient(tp)
 
-        return None
+        check_vector3_vectorized(g)
+
+        g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
+        v4 = np.dot(np.transpose(self.invmatrix), (np.transpose(g)))
+        v4 = np.transpose(v4)
+        v3 = v4[:, :3]
+
+        check_vector3_vectorized(v3)
+        return v3
+        #return None
 
 
 __all__ = ['Ellipsoid', 'Transformed']

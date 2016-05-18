@@ -956,11 +956,11 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rdice_vec"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "twist_object"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    if object_name == "cube_with_cylinders" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
+    if object_name == "cube_with_cylinders" or object_name == "twist_object" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
@@ -983,6 +983,13 @@ def demo_combination_plus_qem():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
+
+    # display_simple_using_mayavi_2([(verts, facets), ],
+    #    pointcloud_list=[],
+    #    mayavi_wireframe=[False], opacity=[1], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN, RANGE_MAX))
+    # exit()
+
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
         assert not np.any(np.isnan(verts.ravel()))  # fails
@@ -1003,9 +1010,7 @@ def demo_combination_plus_qem():
     new_verts_qem = \
         vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
 
-    alpha = 0.
-
-    new_verts_qem_alpha = (new_verts_qem * alpha + verts * (1-alpha))
+    verts_before_qem = verts
 
     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
@@ -1043,7 +1048,7 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    display_simple_using_mayavi_2([(new_verts_qem_alpha, facets), (new_verts_qem, facets), ],
+    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
        pointcloud_list=[hv], pointcloud_opacity=0.2,
        mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN, RANGE_MAX))
