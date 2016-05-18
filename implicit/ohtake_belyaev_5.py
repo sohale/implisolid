@@ -2598,7 +2598,7 @@ def demo_everything():
     # ****************************************************
 
     from stl_tests import make_mc_values_grid
-    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
+    gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old="3")
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 

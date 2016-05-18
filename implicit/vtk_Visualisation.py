@@ -12,6 +12,8 @@ def make_npy_file_dice():
 
     from stl_tests import make_mc_values_grid
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-22, +20., 0.8)
+    #Caution: The only place in which old=True #fixme #todo
+    assert False, "Caution: The only place in which old=True. Use old=False or the new form"
     numpy_array = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True)
     return numpy_array
 

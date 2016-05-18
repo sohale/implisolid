@@ -112,10 +112,13 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     return verts, faces
 
 #@profile
-def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
+def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=None):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils
     vgrid = mc_utils.make_grid(iobj, rng, old=old)
+    assert old is not "unspecified"  # if Unspecified, use old=True in the function call (ont change this function)
+    if old == "3":
+        return vgrid
     if old:
         return np.swapaxes(vgrid, 0, 1)
     else:
