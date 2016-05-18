@@ -92,15 +92,5 @@ class Transformed(ImplicitFunctionPointwise, Transformable):
         v3 = np.dot(np.transpose(self.invmatrix), g)
         return v3
 
-    def hessianMatrix(self, p):
-
-        check_vector3(p)
-        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
-        tp = np.dot(self.invmatrix, p)
-        h1 = self.base_object.hessianMatrix(tp)
-        h = np.dot(h1, self.invmatrix)  # which one is correct?
-        h = np.dot(self.invmatrix, h1)   # which one is correct?
-        raise Exception()
-        return h
 
 __all__ = ['Transformable', 'Transformed']

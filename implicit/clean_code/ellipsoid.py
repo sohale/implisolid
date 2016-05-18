@@ -46,10 +46,6 @@ class Ellipsoid(ImplicitFunction):
         check_vector3_vectorized(v3)
         return v3
 
-    def hessianMatrix(self, p):
-        check_vector3_vectorized(p)
-        raise Exception()
-
     def __str__(self):
         return "Ellipsoid(vectorized)" + str(self.matrix)
 
@@ -99,18 +95,6 @@ class Transformed(ImplicitFunction, Transformable):
         v3 = v4[:, :3]
         check_vector3_vectorized(v3)
         return v3
-
-    def hessianMatrix(self, p):
-        check_vector3_vectorized(p)
-        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
-        tp = np.dot(self.invmatrix, np.transpose(p))
-        tp = np.transpose(tp)
-
-        h1 = self.base_object.hessianMatrix(tp)
-        h = np.dot(h1, self.invmatrix)  # which one is correct?
-        h = np.dot(self.invmatrix, np.tanspose(h1))   # which one is correct?
-        raise Exception()
-        return h
 
 
 __all__ = ['Ellipsoid', 'Transformed']

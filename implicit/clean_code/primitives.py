@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_functions import check_vector3, check_matrix3, make_vector3
+from basic_functions import check_vector3, make_vector3
 from implicit_config import INTEGRITY_TOLERANCES_NORM
 
 
@@ -54,12 +54,6 @@ class UnitSphere(PrimitiveBase):
         grad = -2*p
         check_vector3(grad)
         return grad
-
-    def hessianMatrix(self, p):
-        check_vector3(p)
-        h = np.array([[-2, 0, 0], [0, -2, 0], [0, 0, -2]], ndmin=2)
-        check_matrix3(h)
-        return h
 
     def integrity_invariant(self):
         return True
@@ -130,12 +124,6 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
         assert chosen_i is not None
         check_vector3(grad)
         return grad
-
-    def hessianMatrix(self, p):
-        check_vector3(p)
-        h = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]], ndmin=2)
-        check_matrix3(h)
-        return h
 
 
 __all__ = ['UnitSphere', 'UnitCube1', 'ImplicitFunctionPointwise']

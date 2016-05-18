@@ -6,6 +6,7 @@ import vector3
 
 # definition of the vectorized objects
 
+
 def dice(dice_scale):
     dice_size = 2.0*dice_scale
     c = vector3.UnitCube1(size=dice_size)
@@ -414,7 +415,6 @@ def cyl2(scale_ignored):
         center = A  # + make_vector4(0, 0, c_len/2.0)
         center[3] = 1
         R = rotation_matrix(i * 90. / (M - 1.), make_vector4(1, 0, 0), units="deg", around=center)
-
 
         w = np.dot(R, np.transpose(w))
         # print "w2", w, np.linalg.norm(w[:3])

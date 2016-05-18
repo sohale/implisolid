@@ -1,6 +1,6 @@
 import numpy as np
 from basic_functions import check_scalar_vectorized
-from basic_functions import check_matrix3_vectorized, check_vector3_vectorized
+from basic_functions import check_vector3_vectorized
 
 from implicit import ImplicitFunction
 
@@ -38,21 +38,6 @@ class CrispSubtract(ImplicitFunction):
         check_vector3_vectorized(grad)
         return grad
 
-    def hessianMatrix(self, p):
-        check_vector3_vectorized(p)
-        va = self.a.implicitFunction(p)
-        vb = - self.b.implicitFunction(p)
-
-        c = 1 - np.greater(va, vb)
-        c = np.tile(c[:, np.newaxis, np.newaxis], (1, 3, 3))
-        assert c.shape[1:] == (3, 3)
-
-        ha = self.a.hessianMatrix(p)
-        hb = -self.b.hessianMatrix(p)
-        h = ha * c + hb * (1-c)
-        check_matrix3_vectorized(h)
-        return h
-
 
 class CrispUnion(ImplicitFunction):
     def __init__(self, a, b):
@@ -88,21 +73,6 @@ class CrispUnion(ImplicitFunction):
 
         return grad
 
-    def hessianMatrix(self, p):
-
-        check_vector3_vectorized(p)
-        va = self.a.implicitFunction(p)
-        vb = self.b.implicitFunction(p)
-        c = np.greater(va, vb)
-        c = np.tile(np.expand_dims(c, axis=1), (1, 3))
-
-        ha = self.a.hessianMatrix(p)
-        hb = self.b.hessianMatrix(p)
-        h = ha * c + hb * (1-c)
-        check_matrix3_vectorized(h)
-
-        return h
-
 
 class CrispIntersection(ImplicitFunction):
     """ """
@@ -137,22 +107,6 @@ class CrispIntersection(ImplicitFunction):
         check_vector3_vectorized(grad)
         return grad
 
-    def hessianMatrix(self, p):
-        check_vector3_vectorized(p)
-
-        va = self.a.implicitFunction(p)
-        vb = self.b.implicitFunction(p)
-
-        c = 1 - np.greater(va, vb)
-        c = np.tile(c[:, np.newaxis, np.newaxis], (1, 3, 3))
-        assert c.shape[1:] == (3, 3)
-
-        ha = self.a.hessianMatrix(p)
-        hb = self.b.hessianMatrix(p)
-        h = ha * c + hb * (1-c)
-
-        check_matrix3_vectorized(h)
-        return h
 
     # todo: non-crisp np.greater, i.e. smooth transition min.
 

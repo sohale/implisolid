@@ -10,8 +10,8 @@ import crisp_csg
 __all__.extend(crisp_csg.__all__)
 
 
-from basic_functions import repeat_vect3, check_matrix3_vectorized, check_vector3_vectorized
-__all__.extend(['repeat_vect3', 'check_matrix3_vectorized', 'check_vector3_vectorized'])
+from basic_functions import repeat_vect3, check_vector3_vectorized
+__all__.extend(['repeat_vect3', 'check_vector3_vectorized'])
 
 from simple_blend import *
 import simple_blend

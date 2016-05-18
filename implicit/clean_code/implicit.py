@@ -1,6 +1,6 @@
 import numpy as np
 
-from basic_functions import check_vector3_vectorized, check_matrix3_vectorized, check_matrix3
+from basic_functions import check_vector3_vectorized
 from basic_functions import check_vector3, make_vector3
 
 
@@ -38,13 +38,6 @@ class UnitSphere(ImplicitFunction):
         grad = -2*pv
 
         return grad
-
-    def hessianMatrix(self, vp):
-        h = np.array([[[-2, 0, 0], [0, -2, 0], [0, 0, -2]]], ndmin=3)
-        print(h)
-        print(h.shape)
-        check_matrix3_vectorized(h)
-        return h
 
 
 class UnitCube1(ImplicitFunction, SignedDistanceImplicit):
@@ -89,44 +82,6 @@ class UnitCube1(ImplicitFunction, SignedDistanceImplicit):
         va = np.amin(temp, axis=1)
         return va
 
-        """
-        n = p.shape[0]
-        #temp = np.zeros((n,6,3))
-        mp0 = np.zeros((1,6,3))
-        for i in range(len(self.p0)):
-            p0 = self.p0[i]
-            #n0 = self.n0[i]
-            mp0[0,i,:] = - p0
-
-        #temp = np.zeros((n,6,3))
-        temp = np.tile(p[:,np.newaxis,:], (1,6,1))
-        temp = temp - np.tile(mp0, (n,:,:))  # x-p0
-        temp = np.dot( temp, n0)
-        for i in range(len(self.p0)):
-            p0 = self.p0[i]
-            n0 = self.n0[i]
-
-            temp[:,i,:] = p[i,0:3] - p0
-            #vi = np.dot(x-p0, n0)
-        pass
-        """
-        """
-        chosen_i = None
-        v = +np.infty
-        for i in range(len(self.p0)):
-            p0 = self.p0[i]
-            n0 = self.n0[i]
-            vi = np.dot( p-p0, n0 )
-            if vi < v:
-                v = vi
-                chosen_i = i
-
-
-        assert not chosen_i is None
-
-        return v
-        """
-
     def implicitGradient(self, p):
         check_vector3_vectorized(p)
 
@@ -152,33 +107,6 @@ class UnitCube1(ImplicitFunction, SignedDistanceImplicit):
 
         check_vector3_vectorized(g)
         return g
-
-        """
-        check_vector4(p)
-        chosen_i = None
-        v = +np.infty
-        for i in range(len(self.p0)):
-            p0 = self.p0[i]
-            n0 = self.n0[i]
-            vi = np.dot( p-p0, n0 )
-            if vi < v:
-                v = vi
-                chosen_i = i
-                grad = n0
-
-        assert not chosen_i is None
-
-        #not tested
-        grad[3] = 1
-        check_vector4(grad)
-        return grad
-        """
-
-    def hessianMatrix(self, p):
-        check_vector3(p)
-        h = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]], ndmin=2)
-        check_matrix3(h)
-        return h
 
 
 __all__ = ['ImplicitFunction', 'UnitSphere', 'UnitCube1']

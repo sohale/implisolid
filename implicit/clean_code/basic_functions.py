@@ -27,14 +27,6 @@ def check_matrix4(m):
     assert not np.any(np.isinf(m.ravel()))
 
 
-# This function is made for the hessianMatrix h
-def check_matrix3_vectorized(h):
-    assert h.ndim == 3, "not 3d"
-    assert h.shape[1:] == (3, 3), "not :x3x3"
-    assert not np.any(np.isnan(h.ravel()))
-    assert not np.any(np.isinf(h.ravel()))
-
-
 def check_vector4(p):
     assert not issubclass(p.dtype.type, np.integer)
     assert p.shape == (4,), "Vector must be a numpy array of (4) elements"
@@ -109,10 +101,6 @@ def make_vector3(x, y, z):
         return np.array((float(x[0]), float(y[1]), float(z[1])))
 
     return np.array((float(x), float(y), float(z)))
-
-
-def check_matrix3(m):
-    assert m.shape == (3, 3)
 
 
 def normalize_vector(v, snapToZero=False):

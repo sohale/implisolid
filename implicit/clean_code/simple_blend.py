@@ -1,5 +1,5 @@
 import numpy as np
-from basic_functions import check_scalar_vectorized, check_vector3_vectorized, check_matrix3_vectorized
+from basic_functions import check_scalar_vectorized, check_vector3_vectorized
 
 from implicit import ImplicitFunction
 
@@ -44,13 +44,5 @@ class SimpleBlend (ImplicitFunction):
         check_vector3_vectorized(grad)
         return grad
 
-    def hessianMatrix(self, p):
-        check_vector3_vectorized(p)
-        ha = self.a.hessianMatrix(p)
-        hb = self.b.hessianMatrix(p)
-        # todo
-        h = ha * self.afactor + hb * self.bfactor
-        check_matrix3_vectorized(h)
-        return h
 
 __all__ = ['SimpleBlend']

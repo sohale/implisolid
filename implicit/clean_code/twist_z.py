@@ -43,7 +43,7 @@ class TwistZ(ImplicitFunction, Transformable1):
             ca[:, np.newaxis]*p[:, 0, np.newaxis] - sa[:, np.newaxis]*p[:, 1, np.newaxis],
             sa[:, np.newaxis]*p[:, 0, np.newaxis] + ca[:, np.newaxis]*p[:, 1, np.newaxis],
             p[:, 2, np.newaxis],), axis=1)
-                                                                                                                                                                                                                                                                                                                                                            
+
         v = self.base_object.implicitFunction(p2)
         check_scalar_vectorized(v)
         return v
@@ -51,17 +51,6 @@ class TwistZ(ImplicitFunction, Transformable1):
     def implicitGradient(self, p):  # -> Vector3D :
 
         return None
-
-    def hessianMatrix(self, p):
-        # warning: not tested
-        # check_vector3_vectorized(p)
-        # tp = np.dot(self.invmatrix, vector3.make_vector4(np.transpose(p)))
-        # tp = np.transpose(tp)
-        # h1 = self.base_object.hessianMatrix(tp)
-        # h = np.dot(h1, self.invmatrix)  # which one is correct?
-        # h = np.dot(self.invmatrix, vec3.make_v4(np.tanspose(h1)))   # which one is correct?
-        raise Exception()
-    #    return h1
 
 
 __all__ = ['Ellipsoid', 'Transformed']

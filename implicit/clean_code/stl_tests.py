@@ -1,5 +1,5 @@
 import numpy as np
-#from stl import mesh
+# from stl import mesh
 
 
 """Creates and exports STL files based on polygonized implicit objects.
