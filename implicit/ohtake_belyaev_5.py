@@ -2712,11 +2712,20 @@ def demo_everything():
         with Timer() as t2:
             print
             print "2"*100; sys.stdout.flush()
-            set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*2., nones_map)
+            #global _vs
+            #global _fs
+            #_vs, _fs = verts, facets
+
+            z12 = set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*2., nones_map)
+                #debug_vf=(verts, facets))
             #new_centroids is the output
             print
             print "---"*100; sys.stdout.flush()
         print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t1.interval/t2.interval)
+
+
+
+
 
         #print (" Ratio= "+str(t1.interval/t2.interval))*30   # Linter's bug
 
@@ -2753,6 +2762,34 @@ def demo_everything():
 
         #print collector
         #set_trace()
+
+        if True:
+            #THRESHOLD_zero_interval = 0.0001
+            #zeros2 = np.abs(f2) <= THRESHOLD_zero_interval
+            #zeros1 = np.abs(f1) <= THRESHOLD_zero_interval
+            #zeros12 = np.logical_or(zeros1, zeros2)  # output
+            #todo:
+
+            #Visualising the centroid points that the peojection has filed on them
+            f_c = iobj.implicitFunction(centroids)
+            #nzeros_c = np.nonzero(np.abs(f_c) <= 0.0001)[0]  # THRESHOLD_zero_interval
+            nzeros_c = np.nonzero(np.abs(f_c) > 0.01)[0]
+            print nzeros_c.shape
+
+            c3 = centroids[z12, :3]
+            display_simple_using_mayavi_2([(new_verts_qem, facets), (new_verts_qem, facets)],
+                       mayavi_wireframe=[False, True], opacity=[0.4, 0.3],
+                       gradients_at=c3,
+                       separate_panels=False,
+                       gradients_from_iobj=iobj,
+                       #minmax=(RANGE_MIN, RANGE_MAX),
+                       #add_noise=[0, 0], noise_added_before_broadcast=True,
+                       #pointcloud_list=[centroids[z12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+                       pointcloud_list=[centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+                       #labels=(centroids, z12), grad_arrow_len=0.2/2.)
+                        labels=(centroids, nzeros_c), grad_arrow_len=0.2/2.)
+            exit()
+
 
         #no subdivision for now
         if SUBDIVISION_ITERATIONS_COUNT == 0:

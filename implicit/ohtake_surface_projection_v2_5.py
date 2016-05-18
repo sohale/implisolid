@@ -146,7 +146,7 @@ def set_centers_on_surface__ohtake_v3s_001(iobj, centroids, average_edge, nones_
     exit()
 
 
-def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_map):
+def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_map, debug_vf=None):
     """ see set_centers_on_surface__ohtake() """
     print "Projecting the centroids: new age"
 
@@ -370,7 +370,27 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     bsresults = bisection_vectorized5_(iobj, x0_v4, x2_v4, ROOT_TOLERANCE)
     assert bsresults.shape[0] == np.sum(relevants_boolean)
     centroids[relevants_boolean, :] = bsresults[:, :]  # x4
+
+    """
+    if debug_vf is not None:
+        _vs, _fs = debug_vf
+        from visual5 import *
+        c3 = centroids[zeros12, :3]
+        #(np.zeros((0, 4)), np.zeros((0, 3), dtype=int))
+        display_simple_using_mayavi_2([(_vs, _fs)],
+                   pointcloud_list=[centroids[zeros12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
+                   mayavi_wireframe=[False,], opacity=[0.4,],
+                   gradients_at=c3,
+                   #separate_panels=False,
+                   gradients_from_iobj=iobj,
+                   #minmax=(RANGE_MIN, RANGE_MAX),
+                   #add_noise=[0, 0], noise_added_before_broadcast=True,
+                   labels=(centroids, zeros12), grad_arrow_len=0.2/2.)
+
+        set_trace()
+    """
     return
+    #return zeros12
 
     #visualise_scalar_distribution([f_plot1, f_a])
     #visualise_scatter(f_plot1, f_a)

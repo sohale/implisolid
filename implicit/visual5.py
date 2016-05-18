@@ -9,6 +9,9 @@ def noisy(v, ampl):
     v = v + (np.random.rand(v.shape[0],v.shape[1])*2.-1.) * ampl
     return v
 
+from basic_types import normalize_vector4_vectorized
+from basic_types import check_vector4_vectorized
+
 def visualise_gradients(mlab, pos, iobj, arrow_size):
     lm = arrow_size  # 1.  # STEPSIZE
     pos4 = np.concatenate((pos, np.ones((pos.shape[0],1))),axis=1)
@@ -46,7 +49,7 @@ def visualise_displacements(mlab, verts_from, verts_to):
 
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate_panels=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
-        add_noise=[], noise_added_before_broadcast=False, fromto=None, random_interior_point=False, labels=None):
+        add_noise=[], noise_added_before_broadcast=False, fromto=None, random_interior_point=False, labels=None, grad_arrow_len=None):
     """Two separate panels"""
 
     #print"Mayavi: importing..", ; sys.stdout.flush()
@@ -61,6 +64,8 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         opacities = opacity  # 1.0
     else:
         opacities = [opacity] + [0.2]*(len(vf_list)-1)  # 1.0, 0.2 #0.1
+
+    assert len(opacities) == len(vf_list)
 
     for fi in range(len(vf_list)):
         if separate_panels:
@@ -158,7 +163,9 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
                         opacity=opacities[fi], scale_factor = 100.0)
         #opacity = 0.2 #0.1
 
-
+    #del fi
+    del vf_list
+    if True:
         if minmax is not None:
             (RANGE_MIN, RANGE_MAX) = minmax
             x = np.linspace(RANGE_MIN,RANGE_MAX,2).reshape(2,1)
@@ -187,10 +194,17 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
 
         if not labels == None:
             (labels_xyz, labels_ids) = labels
-            for vii in range(labels_xyz.shape[0]):
-                if vii in labels_ids:
-                    v123 = labels_xyz[vii, :]
-                    mlab.text3d(v123[0], v123[1], v123[2], str(vii), scale=0.03)
+            if labels_ids.size > 400:
+                print "**** SKIPPING LABELS *****"
+                vii = labels_ids[0]
+                v123 = labels_xyz[vii, :]
+                text = "** SKIPPING LABELS (>400) **"
+                mlab.text3d(v123[0], v123[1], v123[2], text, scale=0.03*5)
+            else:
+                for vii in range(labels_xyz.shape[0]):
+                    if vii in labels_ids:
+                        v123 = labels_xyz[vii, :]
+                        mlab.text3d(v123[0], v123[1], v123[2], str(vii), scale=0.03)
 
     def add_random_interior_points(ax, iobj, avg_edge_len):
         """ Adding random points """
@@ -209,10 +223,12 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
         ax.points3d(x_sel[:,0], x_sel[:,1], x_sel[:,2], color=(0,0,0), scale_factor=0.2)
 
     if gradients_at is not None:
-        verts1, faces1 = vf_list[0]
-        avg_edge_len = compute_average_edge_length(verts, faces)
-        print "avg_edge_len", avg_edge_len
-        visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20. *10.)
+        if grad_arrow_len is None:
+            verts1, faces1 = vf_list[0]
+            avg_edge_len = compute_average_edge_length(verts, faces)
+            print "avg_edge_len", avg_edge_len
+            grad_arrow_len = avg_edge_len / 20. *10.
+        visualise_gradients(mlab, gradients_at, gradients_from_iobj, grad_arrow_len)
     if gradients_from_iobj is not None:
         if random_interior_point:
             add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
@@ -236,3 +252,23 @@ def quick_vis(verts, facets, face_idx):
        gradients_at=None, separate_panels=False, gradients_from_iobj=None, add_noise=[0, 0, 0.01],
        noise_added_before_broadcast=True
        )
+
+
+# for visualisation only
+"""
+def compute_average_edge_length(verts, faces):
+    nfaces = faces.shape[0]
+    expand = verts[faces, :]
+    assert expand.shape == (nfaces, 3, 3)
+    assert expand[:, 2, :].shape == (nfaces, 3)
+    ea_sum = 0.
+    for i in range(3):
+        i1 = i
+        i2 = (i+1) % 3
+        e1 = np.linalg.norm(expand[:, i1, :] - expand[:, i2, :], axis=1)  # bug fixed! axis=1 was missing.
+        assert e1.shape == (nfaces,)
+        ea_sum += np.mean(e1)
+
+    #set_trace()
+    return ea_sum / 3.
+"""
