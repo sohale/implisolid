@@ -2716,7 +2716,8 @@ def demo_everything():
             #global _fs
             #_vs, _fs = verts, facets
 
-            z12 = set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*2., nones_map)
+            #z12 =
+            set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*2., nones_map)
                 #debug_vf=(verts, facets))
             #new_centroids is the output
             print
@@ -2776,7 +2777,8 @@ def demo_everything():
             nzeros_c = np.nonzero(np.abs(f_c) > 0.01)[0]
             print nzeros_c.shape
 
-            c3 = centroids[z12, :3]
+            #c3 = centroids[z12, :3]
+            c3 = centroids[nzeros_c, :3]
             display_simple_using_mayavi_2([(new_verts_qem, facets), (new_verts_qem, facets)],
                        mayavi_wireframe=[False, True], opacity=[0.4, 0.3],
                        gradients_at=c3,
@@ -2788,7 +2790,6 @@ def demo_everything():
                        pointcloud_list=[centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        #labels=(centroids, z12), grad_arrow_len=0.2/2.)
                         labels=(centroids, nzeros_c), grad_arrow_len=0.2/2.)
-            exit()
 
 
         #no subdivision for now
