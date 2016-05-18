@@ -45,8 +45,12 @@ class MeshOptimizer(object):
     def register_gradient(self, grd):
         self.gradient = grd
 
+    # def load_symbolic_example(self):
+    #     def ifunc(x):
+
+
     @profile
-    def load_example(self, example_name="rcube_vec", res=1):
+    def load_example(self, example_name="ell_example1", res=1):
         """
             res: controls step size of mc grid
             example_name: name of example to build, available names can be

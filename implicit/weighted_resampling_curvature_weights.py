@@ -7,7 +7,7 @@ from ipdb import set_trace
 
 def initialize():
     opt = MeshOptimizer()
-    opt.load_example(res=0.5)
+    opt.load_example(res=2.5)
     opt.run(calc_proj=True, calc_opt=False, update_centroids=False)
     # opt.vertices = compute_weighted_resampling(opt)
     print "number of vertices,number of centroids:, " + repr(len(opt.vertices)) + repr(len(opt.centroids))
@@ -38,7 +38,22 @@ def build_csr_matrix(vertices, neighbors):
 
 @profile
 def compute_weighted_resampling(opt, sparse_compressed, c=10, num_iters=10):
-    """ c is the user-specified constant """
+    """
+        This function computes the weighted resampling process for a mesh specified by opt and sparse_compressed
+
+
+        ARGUMENTS
+
+        opt              : MeshOptimizer object that holds information about the mesh, such as
+                           vertices, faces, triangles, implicitFunction, implicitGradient (almost similar to iobj)
+        sparse_compressed: is the sparse matrix in CSR format of faces neighbors to vertices
+        c                : is the user-specified constant
+        num_iters        : the number of iterations for the weighted resampling
+
+        RETURNS
+
+        The function does not return a value, instead it updates the mesh vertices in place.
+    """
     sparse = sparse_compressed.toarray()
 
     nbr_list = build_neighbor_list_c2c(opt.centroids, opt.faces, opt.vertex_neighbours_list)
@@ -72,31 +87,33 @@ def compute_weighted_resampling(opt, sparse_compressed, c=10, num_iters=10):
         # set_trace()
         new_verts = np.dot(sparse_of_weights, projections)
         new_verts /= norm_factor.reshape(len(opt.vertices),1)
-    #     from mayavi import mlab
-    #
-    #     mlab.figure()
-    #     mlab.triangular_mesh([vert[0] for vert in opt.vertices],
-    #                      [vert[1] for vert in opt.vertices],
-    #                      [vert[2] for vert in opt.vertices],
-    #                      opt.faces, representation="surface")
-    #
-    #     mlab.figure()
-    #     mlab.triangular_mesh([vert[0] for vert in new_verts],
-    #                      [vert[1] for vert in new_verts],
-    #                      [vert[2] for vert in new_verts],
-    #                      opt.faces, representation="surface")
+        from mayavi import mlab
+
+        mlab.figure()
+        mlab.triangular_mesh([vert[0] for vert in opt.vertices],
+                         [vert[1] for vert in opt.vertices],
+                         [vert[2] for vert in opt.vertices],
+                         opt.faces, representation="surface")
+
+        mlab.figure()
+        mlab.triangular_mesh([vert[0] for vert in new_verts],
+                         [vert[1] for vert in new_verts],
+                         [vert[2] for vert in new_verts],
+                         opt.faces, representation="surface")
     #-note
     #
     #     # set_trace()
 
         opt.vertices = new_verts
-    # mlab.show()
+    mlab.show()
+
+
 @profile
 def build_normals(opt, point_matrix):
     dim1, dim2 = point_matrix.shape
     assert not np.any(np.isnan(point_matrix)), "there should not be any NaN values"
     point_matrix = point_matrix.reshape(dim1, 4)
-    n = (opt.gradient(point_matrix))[:, :3].reshape(dim1, 3)
+np    n = (opt.gradient(point_matrix))[:, :3].reshape(dim1, 3)
     n /= np.linalg.norm(n, axis=1).reshape(dim1, 1)
     return n
 

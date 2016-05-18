@@ -6,6 +6,7 @@ from basic_types import make_inverse, check_vector4, check_matrix4, is_python3
 #from lib.transformations import *
 from lib import transformations as tf
 
+
 class Transformable(object):
     """ #interface only. Use Builder pattern."""
 
@@ -14,12 +15,12 @@ class Transformable(object):
             t = Transformatble()  or t = Transformable(t) or t = Transformable(m) """
         assert initialTransformable is None or initialMatrix is None
 
-        if not initialMatrix is None:
+        if initialMatrix is not None:
             check_matrix4(initialMatrix)
             matrix = initialMatrix
-        elif not initialTransformable is None:
+        elif initialTransformable is not None:
             assert issubclass(type(initialTransformable), Transformable)
-            assert not initialTransformable is None
+            assert initialTransformable is not None
             matrix = initialTransformable.matrix
         else:
             matrix = np.eye(4)
@@ -38,13 +39,13 @@ class Transformable(object):
         if units == "rad":
             pass
         elif units == "deg":
-            angle = angle / 360.0 * np.pi*2.0
+            angle = angle / 360.0 * np.pi * 2.0
         else:
             raise UsageError()  # UsageError
 
         check_vector4(along)
         rm = tf.rotation_matrix(angle, along[0:3])
-        self.matrix = np.dot(rm , self.matrix)
+        self.matrix = np.dot(rm, self.matrix)
         self.invmatrix = make_inverse(self.matrix)
 
         #print(angle /(3.1415926536*2) * 360 )

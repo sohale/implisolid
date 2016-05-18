@@ -13,11 +13,14 @@ class PolygonizationError(Exception):
 
 
 def _prepare_grid(rng):
+    """
+    rng: like the output of np.arange()
+    """
     assert rng.size < 200
     if rng.size > 200:
         raise PolygonizationError(("Grid too large ( >200 ): ", rng.size))
 
-    (yy, xx, zz) = np.meshgrid(rng, rng, rng)
+    (xx, yy, zz) = np.meshgrid(rng, rng, rng)
     xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel()]))
     assert xyza.shape[1:] == (3,)
 

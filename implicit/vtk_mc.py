@@ -215,7 +215,7 @@ def vtk_mc(gridvals, rrr):
 
     # contour.Delete()
 
-    va = va[:, [1, 0, 2]]
+    va = va[:, [1, 2, 0]]
 
     return va, fa
 

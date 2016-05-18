@@ -1,5 +1,5 @@
 import numpy as np
-
+import profile_support
 from basic_types import make_inverse, is_python3
 import implicit_vectorized
 from basic_types import check_matrix4
@@ -19,6 +19,7 @@ class Ellipsoid(ImplicitFunctionVectorized):
         self.sphere = implicit_vectorized.UnitSphere()
         assert isinstance(self.sphere, implicit_vectorized.ImplicitFunctionVectorized)
 
+    @profile
     def implicitFunction(self, pa):
         check_vector4_vectorized(pa)
         tp = np.dot(self.invmatrix, np.transpose(pa))  # inefficient. todo: multiply from right => will be efficient

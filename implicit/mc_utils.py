@@ -1,6 +1,6 @@
 """ Utilities to facilitate using the Marching Cubes algorithm.
 The MC algorithm itself is not called in this module. """
-
+import profile_support
 import numpy as np
 import sys
 

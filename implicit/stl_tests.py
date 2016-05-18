@@ -1,4 +1,5 @@
 import numpy as np
+import profile_support
 
 """Creates and exports STL files based on polygonized implicit objects.
 STL files can be used directly in a slicer like Cura for printing.
@@ -6,8 +7,10 @@ To install the packages:
 pip install numpy-stl
 """
 
+
 def write_stl(verts, faces, filename):
     pass
+
 
 def load_stl(stl_fn, save_stl_fn):
     import numpy

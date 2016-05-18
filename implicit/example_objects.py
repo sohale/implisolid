@@ -35,8 +35,8 @@ def dice(dice_scale, ns=nonvec):
         distance = (0.5-0.05)*dice_size
         m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
         s1 = ns.Ellipsoid(m)
-        c = ns.CrispSubtract(c, s1)
         return c
+        c = ns.CrispSubtract(c, s1)
 
     def hole_r(c, i, j, k):
         m = np.eye(4)
@@ -271,6 +271,7 @@ def ell_example1(scale):
 
 
 def sphere_example(scale_ignored):
+
     iobj = vectorized.UnitSphere()
     iobj_ = nonvec.UnitSphere()
     return (iobj, iobj_)
@@ -379,6 +380,21 @@ def bowl_15_holes(scale_ignored):
     # print(ga)
     return iobj
 
+def twisted_cube_example(ns=vectorized):
+    from twist_z import TwistZ
+    # Create a cube
+    scale = 1
+    cube = vectorized.UnitCube1(size=2)
+    # rotate cube
+    rotated_cube = \
+    iobj = ns.Transformed(cube)
+    iobj  \
+        .move(-0.2 * scale, -0.2 * scale, 0) \
+        .resize(0.9)
+    iobj.rotate(45, along=make_vector4(1, 0, 0), units="deg")
+    iobj.rotate(45, along=make_vector4(0, 1, 0), units="deg")
+    twisted_object = TwistZ(iobj, 0.2)
+    return twisted_object
 
 def blend_example1():
     m1 = np.eye(4) * 1
