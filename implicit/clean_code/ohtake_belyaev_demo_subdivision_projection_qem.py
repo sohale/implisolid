@@ -110,6 +110,7 @@ def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
     return result_x_arr
 
 
+
 def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
     """ see set_centers_on_surface__ohtake() """
     print "Projecting the centroids: new age"
@@ -134,7 +135,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
 
     signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
 
-    x0 = x[:, :3]
+    x0 = x
 
     dx1_c = - g_direction_a * signs_c[:, np.newaxis]
 
@@ -198,11 +199,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
                 active_indices = still_nonsuccess_indices
                 # set_trace()
                 # Todo: For those that have changed sign, check if they are closer actually.
-                f_a = iobj.implicitFunction(x1_half)
+                f_a = iobj.implicitFunction(x1_half[active_indices, :])
                 signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
                 # success = signs_a * signs_c <= 0.
-            #    import ipdb; ipdb.set_trace()
-                success0 = signs_a[active_indices] * signs_c[active_indices] <= 0.
+                success0 = signs_a * signs_c[active_indices] <= 0.
                 success[:] = False
                 # success[success0] = True
                 assert np.all(success == False)
