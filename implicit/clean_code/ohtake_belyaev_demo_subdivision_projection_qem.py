@@ -381,6 +381,9 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
 
         if mimj > 1.0:
             mimj = 1.0
+        if mimj < -1.0:
+            mimj = -1.0
+
         pipj = np.linalg.norm(pi - pj)
         if pipj == 0:
             return 0
@@ -953,7 +956,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "bowl_15_holes"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -964,10 +967,10 @@ def demo_combination_plus_qem():
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
 
     elif object_name == "french_fries" or object_name == "rods":
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.11)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.11)  # 0.05
 
     elif object_name == "bowl_15_holes":
-        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.26)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.15)
 
     elif object_name == "cyl3":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
