@@ -4,12 +4,8 @@ from basic_types import check_vector4_vectorized
 FAST_VERSION = True
 import math
 from ipdb import set_trace
-
-
-import sys
-
-def flush():
-    sys.stdout.flush()
+from utils import optimised_used
+from utils import flush
 
 
 objname = "ell_example1" #"make_bricks"  # "cube_with_cylinders"
@@ -146,7 +142,7 @@ def set_centers_on_surface__ohtake_v3s_001(iobj, centroids, average_edge, nones_
     exit()
 
 
-def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_map, debug_vf=None):
+def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_map, debug_vf=None, mesh_normals=None):
     """ see set_centers_on_surface__ohtake() """
     print "Projecting the centroids: new age"
 
@@ -155,6 +151,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     THRESHOLD_minimum_gradient_len = 0.000001  # kill gradients smaller than this
     THRESHOLD_zero_interval = 0.0001  # f == TH is NOT zero.
     MAX_ITER = 20
+    USE_MESH_NORMALS = True
 
     max_dist = average_edge
 
@@ -184,15 +181,15 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
     #del step_size
 
-    dx1_c = - g_direction_a * signs_c[:, np.newaxis]
+    dx0_c_grad = - g_direction_a * signs_c[:, np.newaxis]
 
 
     """
     f_a = fc_a # ???
     taubin = f_a/glen_a
     x1_taubin = x0_v3 - g_direction_a * taubin[:, np.newaxis]
-    x1_half = x0_v3 + 0.5*dx1_c * step_size
-    x1_half_opposite = x0_v3 - 0.5*dx1_c * step_size
+    x1_half = x0_v3 + 0.5*dx0_c_grad * step_size
+    x1_half_opposite = x0_v3 - 0.5*dx0_c_grad * step_size
     #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
     # boundary:
     ...
@@ -242,11 +239,23 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     success = already_success.copy()  # falses  #.copy() is necessary
     assert not np.any(already_success)
 
+    if USE_MESH_NORMALS:
+        assert mesh_normals is not None
+        dx0c_mesh_normals = mesh_normals
+        assert np.allclose(np.linalg.norm(dx0c_mesh_normals, axis=1), 1.)
+
     TEST = True  # and not optimised_used():
 
     #print "left(found)",
-    for alpha in alpha_list:
-            x1_half = x0_v3 + (max_dist*alpha)*dx1_c
+    for it in [0, 1] if USE_MESH_NORMALS else [0]:
+        if it == 0:
+            dxc = dx0_c_grad
+        else:
+            dxc = dx0c_mesh_normals
+            print
+            print "now mesh normals"
+        for alpha in alpha_list:
+            x1_half = x0_v3 + (max_dist*alpha)*dxc
             FAST = True
             if FAST:
                 active_indices = still_nonsuccess_indices
@@ -438,18 +447,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #exit()
 
 set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
-
-
-def optimised_used():
-    global _optimised_used
-    _optimised_used = True
-    def side_effect():
-        global _optimised_used
-        _optimised_used = False
-        return True
-    assert side_effect()
-    #print "optimisation", _optimised_used
-    return  _optimised_used
 
 
 def mysign_np(v, ROOT_TOLERANCE):

@@ -6,18 +6,10 @@ import numpy as np
 from basic_types import check_vector4_vectorized
 from basic_types import normalize_vector4_vectorized
 
+from utils import Timer
 
-import time
-
-
-class Timer:
-    def __enter__(self):
-        self.start = time.clock()
-        return self
-
-    def __exit__(self, *args):
-        self.end = time.clock()
-        self.interval = self.end - self.start
+from utils import optimised_used
+TEST_ON = not optimised_used()
 
 
 mesh_quality_settings = {
@@ -1203,12 +1195,14 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
     else:
         #print facet_areas.shape
         assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
-        at = np.tile(facet_areas[:, np.newaxis], (1, 3)) / 2.0
-        facet_normals = a / at
-        at_autobroadcast = facet_areas[:, np.newaxis] / 2.0
+        at_autobroadcast = facet_areas[:, np.newaxis] * 2.0
         facet_normals2 = a / at_autobroadcast
-        assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
-        return facet_areas, facet_normals
+        if TEST_ON:
+            at = np.tile(facet_areas[:, np.newaxis], (1, 3)) * 2.0
+            facet_normals = a / at
+            assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
+        #facet_normals2[np.isnan(facet_areas), :] = 0.
+        return facet_areas, facet_normals2
 
 
 def compute_centroids(verts, facets):
@@ -2553,7 +2547,7 @@ import mesh_utils
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 1  # 1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
     global STEPSIZE
@@ -2724,8 +2718,16 @@ def demo_everything():
             #global _fs
             #_vs, _fs = verts, facets
 
+            facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
+            n = np.linalg.norm(facet_normals[np.logical_not(np.isnan(facet_areas)), :], axis=1)
+            assert np.allclose(np.linalg.norm(facet_normals[np.logical_not(np.isnan(facet_areas)), :], axis=1), 1.)  #is not zero
+            facet_normals[np.isnan(facet_areas), :] = 1./np.sqrt(3.)  # not tested
+            del facet_areas
+            assert facet_normals.shape[1] == 3
+            assert np.allclose(np.linalg.norm(facet_normals, axis=1), 1.)
+
             #z12 =
-            set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map)
+            set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map, mesh_normals=facet_normals.copy())
                 #debug_vf=(verts, facets))
             #new_centroids is the output
             print
