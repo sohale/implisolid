@@ -19,18 +19,6 @@ def make_inverse(m):
     return invm
 
 
-def make_inverse3(m):
-    assert not issubclass(m.dtype.type, np.integer)
-    assert m.shape == (3, 3), "Matrix must be 3x3"
-    invm = np.linalg.inv(m)
-    assert np.allclose(np.dot(invm, m), np.eye(3), atol=TOLERANCE), "Matrix inversion failed: Matrix is singular or bad conditioned"
-    assert np.allclose(np.dot(m, invm), np.eye(3), atol=TOLERANCE), "Matrix inversion failed: Matrix is singular or bad conditioned"
-    error = np.sum(np.abs(np.dot(invm, m) - np.eye(3)))
-    if VERBOSE:
-        print("Error of the inverse matrix: %2.20f" % error)
-    return invm
-
-
 def check_matrix4(m):
     assert not issubclass(m.dtype.type, np.integer)
     assert m.shape == (4, 4), "Matrix must be 4x4"
@@ -331,15 +319,6 @@ def repeat_vect3(N, v3):
     xa = np.tile(np.expand_dims(_x, axis=0), (N, 1))
     assert xa.shape[0] == N
     return xa
-
-
-def almost_equal4(a, b, TOLERANCE):
-    assert not np.any(np.isnan(a.ravel()))
-    assert not np.any(np.isinf(b.ravel()))
-    assert not issubclass(a.dtype.type, np.integer)
-    check_vector4(a)
-    check_vector4(b)
-    return np.sum(np.abs(a - b)) < TOLERANCE
 
 
 def almost_equal1(a, b, TOLERANCE):

@@ -1,7 +1,7 @@
 import numpy as np
 
-from basic_functions import check_vector3_vectorized, check_matrix3_vectorized, make_vector3, check_matrix3
-from basic_functions import check_vector3
+from basic_functions import check_vector3_vectorized, check_matrix3_vectorized, check_matrix3
+from basic_functions import check_vector3, make_vector3
 
 
 class ImplicitFunction(object):
@@ -53,7 +53,7 @@ class UnitCube1(ImplicitFunction, SignedDistanceImplicit):
         self.n0 = []
 
         def side(x, y, z):
-            p0 = (make_vector3(x, y, z) + 0.0)
+            p0 = make_vector3(x, y, z)
             p0 = p0 / 2.0 * size
             n0 = -make_vector3(x, y, z)
             n0 = n0
