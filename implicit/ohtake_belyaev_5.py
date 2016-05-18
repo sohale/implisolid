@@ -2546,7 +2546,7 @@ import mesh_utils
 
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
     SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
@@ -2685,6 +2685,8 @@ def demo_everything():
         # *******************************************************
         bigprint("projection")
 
+        preprojection_vf = (verts, facets)
+
         #non-vectorized version
         #from ohtake_surface_projection import set_centers_on_surface__ohtake
         from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake
@@ -2795,7 +2797,7 @@ def demo_everything():
 
             #c3 = new_centroids[z12, :3]
             c3 = new_centroids[nzeros_c, :3]
-            display_simple_using_mayavi_2([(new_verts_qem, facets), (new_verts_qem, facets)],
+            display_simple_using_mayavi_2([(new_verts_qem, facets), (preprojection_vf[0], preprojection_vf[1])],
                        mayavi_wireframe=[False, True], opacity=[0.4, 0.3],
                        gradients_at=c3,
                        separate_panels=False,
