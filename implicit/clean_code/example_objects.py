@@ -1,8 +1,9 @@
 import numpy as np
 
-from basic_functions import make_vector4, normalize_vector, check_vector4, make_random_vector
+from basic_functions import make_vector4, normalize_vector, check_vector4, make_random_vector, make_vector3
 import simple_blend
 import vector3
+from twist_z import TwistZ
 
 # definition of the vectorized objects
 
@@ -75,7 +76,7 @@ def rdice_vec(scale, rotated=True):
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
 
-    iobj.rotate(20, along=(1, 1, 1), units="deg")
+    iobj.rotate(20, along=make_vector3(1, 1, 1), units="deg")
     return iobj
 
 
@@ -87,7 +88,8 @@ def rcube_vec(scale, rotated=True):
         .move(-0.2 * scale, -0.2 * scale, 0) \
         .resize(0.9)
     if rotated:
-        iobj.rotate(10 * 2, along=(1, 1, 1), units="deg")
+        iobj.rotate(10 * 2, along=make_vector3(1, 1, 1), units="deg")
+        #iobj.rotate(60, along=make_vector3(1, 1, 1), units="deg")
     return iobj
 
 
@@ -141,7 +143,7 @@ def cube_example(scale=1.):
 
     iobj = vector3.Transformed(iobj) \
         .move(-0.1 * scale, -0.1 * scale, -0.1 * scale) .resize(3 * scale) \
-        .rotate(-20, along=(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
+        .rotate(-20, along=make_vector3(1, 1, 1), units="deg") .move(0.2 * scale, 0, 0)
 
     return iobj
 
@@ -562,6 +564,15 @@ def union_of_two_cubes(scale):
     return iobj
 
 
+def crisp_cube_sphere(scale_ignored):
+
+    c1 = vector3.UnitCube1(1.7)
+    c2 = vector3.UnitSphere()
+    iobj = vector3.CrispSubtract(c1, c2)
+
+    return iobj
+
+
 # **************************************************************************************************
 
 
@@ -590,6 +601,7 @@ examples = {
     "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
+    "crisp_cube_sphere": 2,
 }
 
 

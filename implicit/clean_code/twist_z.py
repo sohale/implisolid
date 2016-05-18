@@ -33,14 +33,14 @@ class TwistZ(ImplicitFunction, Transformable1):
         check_vector3_vectorized(p)
 
         N = p.shape[0]
-        print "self.lamda", self.lamda
+        # print "self.lamda", self.lamda
         theta = p[:, 2] * self.lamda
-        print theta.shape
-        assert theta.shape == (N,)
+        # print theta.shape
+        # assert theta.shape == (N,)
         ca = np.cos(theta)
         sa = np.sin(theta)
-        print theta.shape, "theta"
-        print theta
+        # print theta.shape, "theta"
+        # print theta
 
         p2 = np.concatenate((
             ca[:, np.newaxis]*p[:, 0, np.newaxis] - sa[:, np.newaxis]*p[:, 1, np.newaxis],
