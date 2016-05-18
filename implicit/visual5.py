@@ -19,7 +19,11 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     pnormals = normalize_vector4_vectorized(pnormals)
     check_vector4_vectorized(pos4)
     xyz = pos
-    uvw = pnormals [:,0:3] / 2.
+    #uvw = pnormals [:,0:3] / 2.
+    n = np.linalg.norm(pnormals[:, 0:3], axis=1, keepdims=True)
+    n[np.abs(n) < 0.000001] = 1.
+    n[np.isnan(n)] = 1.
+    uvw = pnormals [:,0:3] / n
     xx, yy, zz = xyz[:, 0], xyz[:, 1], xyz[:, 2]
     uu, vv, ww = uvw[:, 0], uvw[:, 1], uvw[:, 2]
     #ax.quiver

@@ -2546,7 +2546,7 @@ import mesh_utils
 
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
     SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
@@ -2664,6 +2664,8 @@ def demo_everything():
 
         #visualise_distance_histogram(pre_relaxation_verts, verts, facets)
 
+        if VERTEX_RELAXATION_ITERATIONS_COUNT == 0:
+            centroids = compute_centroids(verts, facets)
 
         if mesh_correction:
             assert len(failure_pairs) == 0, "weighted resampling did not work for some faces"
@@ -2726,6 +2728,7 @@ def demo_everything():
             assert facet_normals.shape[1] == 3
             assert np.allclose(np.linalg.norm(facet_normals, axis=1), 1.)
 
+            print "average_edge", average_edge, STEPSIZE  # 0.089840676527 0.1
             #z12 =
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids2, average_edge*1., nones_map, mesh_normals=facet_normals.copy())
                 #debug_vf=(verts, facets))
@@ -2802,7 +2805,7 @@ def demo_everything():
                        #pointcloud_list=[new_centroids[z12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        pointcloud_list=[new_centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        #labels=(new_centroids, z12), grad_arrow_len=0.2/2.)
-                        labels=(new_centroids, nzeros_c), grad_arrow_len=0.2/2.)
+                        labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1.)  #
 
 
         #no subdivision for now

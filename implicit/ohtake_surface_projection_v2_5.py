@@ -248,13 +248,17 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
     #print "left(found)",
     for it in [0, 1] if USE_MESH_NORMALS else [0]:
+
         if it == 0:
             dxc = dx0_c_grad
+            alpha_list1 = alpha_list
         else:
-            dxc = dx0c_mesh_normals
+            dxc = dx0c_mesh_normals #* 0.5
             print
             print "now mesh normals"
-        for alpha in alpha_list:
+            alpha_list1 = alpha_list[:10]
+
+        for alpha in alpha_list1:
             x1_half = x0_v3 + (max_dist*alpha)*dxc
             FAST = True
             if FAST:
