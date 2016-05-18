@@ -233,7 +233,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     best_result_x = np.ones((n, 3))
     active_indices = np.arange(0, n, dtype=int)
     active_count = n
-    print n
     del n
 
     still_nonsuccess_indices = active_indices
@@ -313,7 +312,9 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
                 f1[np.abs(f1) < THRESHOLD_zero_interval] = 0.
                 #print f1
                 #print f2
-                print "bad accepted indices:", (f1*f2)[f1 * f2 > 0]
+                bad_accepted =  (f1*f2)[f1 * f2 > 0]
+                if bad_accepted.size > 0:
+                        print "bad accepted f1*f2:", (f1*f2)[f1 * f2 > 0]
                 #assert np.all((f1*f2)[f1 * f2 > 0])
                 assert np.all(f1 * f2 <= 0)
                 del f1, f2, x1, x2
@@ -329,7 +330,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         xa2 = augment4(best_result_x)
         f2_test = iobj.implicitFunction(xa2)
         s = f1_test*f2_test
-        print s[still_nonsuccess_indices]
+        #print s[still_nonsuccess_indices]
         s[still_nonsuccess_indices] = -1.
         #print s[s > 0]
         assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
@@ -370,8 +371,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     assert np.all(np.abs(f2[relevants_bool]) > +THRESHOLD_zero_interval)
     assert np.all(np.abs(f2[zeros1or2]) <= +THRESHOLD_zero_interval)
 
-    print "--"*10
-    print "relevants_bool:", np.sum(relevants_bool)
+    #print "--"*10
+    #print "relevants_bool:", np.sum(relevants_bool)
     #relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
     #set_trace()
 
@@ -400,11 +401,13 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     del f2_relevants
 
     x_bisect = bisection_vectorized5_(iobj, x1_relevant_v4, x2_relevant_v4, ROOT_TOLERANCE)
+    assert np.all(np.abs(iobj.implicitFunction(x_bisect) ) < THRESHOLD_zero_interval)
     assert x_bisect.shape[0] == np.sum(relevants_bool)
     centroids[relevants_bool, :] = x_bisect[:, :]  # x4
+    #print np.nonzero(np.logical_not(relevants_bool))[0]
     #set_trace()
-    print centroids.shape, best_result_x.shape
-    #centroids[zeros1or2, :3] = best_result_x[zeros1or2, :]  # x3
+    print "centroids:", centroids.shape, "best_result_x:", best_result_x.shape, "relevants_bool:", np.sum(relevants_bool), "+", np.sum(np.logical_not(relevants_bool)), "zeros1or2=", np.sum(zeros1or2)
+    centroids[zeros1or2, :3] = best_result_x[zeros1or2, :]  # x3
 
     #relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
 

@@ -113,7 +113,7 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
 
 # @profile
 
-
+#todo: use "3" or avoid using old=True
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils
