@@ -127,7 +127,7 @@ class Object3D(object):
         x, y, z = np.mgrid[-dim:dim:slices, -dim:dim:slices, -dim:dim:slices]
         mlab.figure()
         mlab.contour3d(x, y, z, self.function.fnc_numpy, contours=[0])
-        mlab.show()
+        # mlab.show()
 
     def build_marching_cubes(self):
         minn, maxx, step = -2.5, 2.5, 0.1
@@ -161,7 +161,7 @@ class UnitCube(Object3D):
     def __init__(self, sideLen=1):
         super(UnitCube, self).__init__(bound_dim=2.2 * sideLen)     # set the bound_dim a bit more than twice the side length
         x, y, z = symbols('x y z')
-        self.function = ImplicitFunction("{sideLen} - (x ** 20 + y ** 20 + z ** 20)** (1/20.)".yformat(sideLen=sideLen))
+        self.function = ImplicitFunction("{sideLen} - (x ** 20 + y ** 20 + z ** 20)** (1/20.)".format(sideLen=sideLen))
 
 
 class Torus(Object3D):
@@ -189,11 +189,23 @@ class Citrus(Object3D):
         self.function = ImplicitFunction("x**2 + z**2 - (4*y**3) * (1 - 0.5*y)**3")
 
 
-class Cylinder(Object3D):
+class CylinderOpen(Object3D):
     def __init__(self, radius=1):
-        super(Cylinder, self).__init__(bound_dim=2.2)
+        super(CylinderOpen, self).__init__(bound_dim=2.2)
         x, y, z = symbols('x y z')
         self.function = ImplicitFunction("x ** 2 + y ** 2 - {radius}**2".format(radius=radius))
+
+
+class Cylinder(Object3D):
+    def __init__(self, cx=1, cy=0.5, cz=0.5, c=1):
+        """
+        c: controls radius
+        cx: controls length
+        cy, cz : control y and z axis radius
+        """
+        super(Cylinder, self).__init__(bound_dim=10)
+        x, y, z = symbols('x y z')
+        self.function = ImplicitFunction("(x/{cx})**50 + ({cy}*y**2 + {cz}*z**2) - {c}".format(cx=cx, cy=cy, cz=cz, c=c))
 
 
 class Intersection(Object3D):
