@@ -224,6 +224,11 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #lanp.sort()
     #print lanp
     #print np.diff(lanp) * (2**9)
+    print "Alphas:"
+    for i in range(len(alpha_list)):
+        print "[%d]%g"%(i, alpha_list[i]),
+    print
+    print
 
     # The algorithm
     n = x0_v3.shape[0]
@@ -258,7 +263,9 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             print "now mesh normals"
             alpha_list1 = alpha_list[:10]
 
+        counter = -1
         for alpha in alpha_list1:
+            counter += 1
             x1_half = x0_v3 + (max_dist*alpha)*dxc
             FAST = True
             if FAST:
@@ -311,7 +318,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             #for next round
             already_success = np.logical_or(success, already_success)  # Union
             #print "left:", still_nonsuccess_indices.shape, ".",
-            print ("%d(+%d) "%(still_nonsuccess_indices.size, new_success_indices.size)),
+            print ("[%d](+%d)%d "%(counter, new_success_indices.size, still_nonsuccess_indices.size,)),
             #print "already_success", np.sum(already_success)
             #active_indices = still_nonsuccess_indices
 
