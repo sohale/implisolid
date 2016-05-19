@@ -2546,7 +2546,7 @@ import mesh_utils
 
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 3
     SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 

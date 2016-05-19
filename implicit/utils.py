@@ -25,3 +25,4 @@ class Timer:
 import sys
 def flush():
     sys.stdout.flush()
+

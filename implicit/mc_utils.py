@@ -17,15 +17,15 @@ def _prepare_grid(rng):
         raise PolygonizationError(("Grid too large ( >200 ): ", rng.size))
 
     (yy, xx, zz) = np.meshgrid(rng, rng, rng)
-    xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
-    assert xyza.shape[1:] == (4,)
+    xyz_nparray = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
+    assert xyz_nparray.shape[1:] == (4,)
 
     if VERBOSE:
-        print(xyza.shape)
+        print(xyz_nparray.shape)
         print("done alloc")
         sys.stdout.flush()
 
-    return xyza
+    return xyz_nparray
 
 
 def _prepare_grid_old(rng):
@@ -35,21 +35,21 @@ def _prepare_grid_old(rng):
 
     (xx, yy, zz) = np.meshgrid(rng, rng, rng)
     #xyz = np.mgrid( rng, rng, rng )
-    #xyza = xyz.reshape((len(rng)**3, 3))
-    #xyza = np.concat( ( np.expand_dims( xyza, axis=3 ), ones(len(rng)**3,1)  ), axis=3 )
-    #assert xyza.shape == (len(rng), len(rng), len(rng), 4)
+    #xyz_nparray = xyz.reshape((len(rng)**3, 3))
+    #xyz_nparray = np.concat( ( np.expand_dims( xyz_nparray, axis=3 ), ones(len(rng)**3,1)  ), axis=3 )
+    #assert xyz_nparray.shape == (len(rng), len(rng), len(rng), 4)
 
     #X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j] #??
 
-    xyza = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
-    assert xyza.shape[1:] == (4,)
+    xyz_nparray = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel(), (xx*0+1).ravel()]))
+    assert xyz_nparray.shape[1:] == (4,)
 
     if VERBOSE:
-        print(xyza.shape)
+        print(xyz_nparray.shape)
         print("done alloc")
         sys.stdout.flush()
 
-    return xyza
+    return xyz_nparray
 
 
 def slow_grid__dont_use():
@@ -64,15 +64,15 @@ def slow_grid__dont_use():
                 vgrid[i,j,k] = iobj.implicitFunction( x_ )
 
 #@profile
-def make_grid(iobj, rng, old=None):
+def make_grid(iobj, rng, old, return_xyz=False):
     assert old is not None
     if old:
-        xyza = _prepare_grid_old(rng)
+        xyz_nparray = _prepare_grid_old(rng)
     else:
-        xyza = _prepare_grid(rng)
+        xyz_nparray = _prepare_grid(rng)
     #slow_grid__dont_use()
 
-    vgrid_v = iobj.implicitFunction(xyza)
+    vgrid_v = iobj.implicitFunction(xyz_nparray)
     vgrid = np.reshape(vgrid_v, (len(rng), len(rng), len(rng)), order='C')
 
     if np.sum(vgrid_v > 0) == 0:
@@ -81,8 +81,11 @@ def make_grid(iobj, rng, old=None):
         raise PolygonizationError("The solid volume fills all the space. No exterior points detected")
     if VERBOSE:
         print("interior points:", np.sum(vgrid_v > 0))
-    return vgrid
 
+    if return_xyz:
+        return vgrid, xyz_nparray
+    else:
+        return vgrid
 
 
 from basic_types import make_vector4

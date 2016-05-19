@@ -34,16 +34,18 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
-def visualise_displacements(mlab, verts_from, verts_to):
+def visualise_displacements(mlab, verts_from, verts_to, full_line=False):
     n = verts_from.shape[0]
     assert verts_from.shape == (n, 3)
     assert verts_to.shape == (n, 3)
 
     xyz1 = verts_from
     xyz2 = verts_to
-    set_trace()
+
     ddd = xyz2 - xyz1  #displacement
     arrow_size = np.mean(np.linalg.norm(ddd, axis=1)) * 0.3
+    if full_line:
+        arrow_size = 1
 
     xx, yy, zz = xyz1[:, 0], xyz1[:, 1], xyz1[:, 2]
     uu, vv, ww = ddd[:, 0], ddd[:, 1], ddd[:, 2]
@@ -51,9 +53,10 @@ def visualise_displacements(mlab, verts_from, verts_to):
     #line_width=0.5
 
 
-def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
+def display_simple_using_mayavi_2(vf_list, pointcloud_list=[], minmax=(-1,1), mayavi_wireframe=False, opacity=1.0,
         separate_panels=True, gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.,
-        add_noise=[], noise_added_before_broadcast=False, fromto=None, random_interior_point=False, labels=None, grad_arrow_len=None):
+        add_noise=[], noise_added_before_broadcast=False, fromto=None, random_interior_point=False, labels=None, grad_arrow_len=None,
+        mlab_show=True):
     """Two separate panels"""
 
     #print"Mayavi: importing..", ; sys.stdout.flush()
@@ -238,13 +241,22 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1,1), mayav
             add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
 
     if not fromto == None:
-        (verts_from, verts_to) = fromto
-        assert verts_from.shape[1] == 3
-        assert verts_to.shape[1] == 3
-        assert verts_to.shape[0] < 10000
-        visualise_displacements(mlab, verts_from, verts_to)
-    mlab.show()
-    return
+        if not isinstance(fromto, list):
+            fromtolist = [fromto]
+        else:
+            fromtolist = fromto
+        for ft in fromtolist:
+            (verts_from, verts_to) = ft
+            assert verts_from.shape[1] == 3
+            assert verts_to.shape[1] == 3
+            assert verts_to.shape[0] <= 100000
+            visualise_displacements(mlab, verts_from, verts_to, full_line=True)
+
+    if mlab_show:
+        mlab.show()
+        return
+    else:
+        return mlab
 
 
 def quick_vis(verts, facets, face_idx):
