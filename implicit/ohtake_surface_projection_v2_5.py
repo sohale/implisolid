@@ -293,7 +293,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             m[missing] = np.random.randn(missing.shape[0], 3)
             z2 = np.cross(m, z, axis=1)
             z2 = z2 / np.linalg.norm(z2, axis=1, keepdims=True)
-            set_trace()
+            #set_trace()
             assert np.allclose(np.linalg.norm(z2, axis=1), 1.), "zero or NaN vectors"
             dxc = z2.copy()
         elif it in [4, 5, 6]:

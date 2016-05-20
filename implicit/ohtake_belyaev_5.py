@@ -1294,12 +1294,11 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
     assert not np.any(np.isnan(verts.ravel()))  # fine
     new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=c)
 
-    display_simple_using_mayavi_2( [(verts, facets), (new_verts, facets)],
-       mayavi_wireframe=[False, True,], opacity=[0.2, 1,], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
-       #minmax=(RANGE_MIN,RANGE_MAX),
-       )
-
-
+    if VISUALISE_RELAXATION_STEPS:
+        display_simple_using_mayavi_2( [(verts, facets), (new_verts, facets)],
+           mayavi_wireframe=[False, True,], opacity=[0.2, 1,], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+           #minmax=(RANGE_MIN,RANGE_MAX),
+           )
 
     assert not np.any(np.isnan(new_verts.ravel()))  # fails
     return new_verts, facets, centroids  # why does it return facets?
@@ -2556,30 +2555,77 @@ def bigprint(text):
 
 import mesh_utils
 
+VISUALISE_RELAXATION_STEPS = False
+
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1 # 3
     SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
+    options = {
+        "subdiv/epsilon": 1. / 1000.,
+        "resample/iters": 1,
+        "subdiv/iters": 0,
+        "resample/c": 2.0,
+        "total_iters": 15}
+        #
+    """
+        "proj/mingradlen": 0.000001,  #  THRESHOLD_minimum_gradient_len =   # kill gradients smaller than this
+        "proj/zero": 0.0001, #THRESHOLD_zero_interval
+        "proj/maxiter": 20, # MAX_ITER
+        "proj/meshnormals": True, #USE_MESH_NORMALS
+        "proj/extreme_alpha": False,   #EXTREME_ALPHA = False
+        "proj/maxdist_ratio": 1.0,
+        "proj/sequence": [0, 1, 2, 3, 4,5,6],
+        """
+        #
+    """
+        mc/bbox/x: (-3, 5),
+        mc/bbox/y: (-3, 5),
+        mc/bbox/z: (-3, 5),
+        mc/step: 0.2,
+        """
+        #
+    """
+        mc.bbox.x: (-3, 5),
+        mc.bbox.y: (-3, 5),
+        mc.bbox.z: (-3, 5),
+        mc.step: 0.2,
+
+        mc/step/x: 0.2,
+        mc/step/y: 0.2,
+        mc/step/z: 0.2,
+
+        mc/step: (0.2, 0.2, 0.2),
+        """
+        #
+    """ todo: yield
+        """
+    #}
+
     global STEPSIZE
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec")  #
-        #"rdice_vec")  #
+        "rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         #"ell_example1")  #+
         #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        "french_fries_vectorized")
+        #"french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
+
     STEPSIZE = STEPSIZE / 2.
 
-    if True:
-        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
-        STEPSIZE = STEPSIZE / 2.
+    #"bowl_15_holes" does not work with STEPSIZE= 0.2
+
+    if False:
+        ##iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
+        #STEPSIZE = STEPSIZE / 2.
+        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+        STEPSIZE = 0.2
 
         if False:
             from vectorized import Transformed
@@ -2792,8 +2838,9 @@ def demo_everything():
         #print collector
         #set_trace()
 
+        """ The following codevisualises the points that are not projected correctly. """
         del centroids
-        if True:
+        if VISUALISE_RELAXATION_STEPS:
             #THRESHOLD_zero_interval = 0.0001
             #zeros2 = np.abs(f2) <= THRESHOLD_zero_interval
             #zeros1 = np.abs(f1) <= THRESHOLD_zero_interval

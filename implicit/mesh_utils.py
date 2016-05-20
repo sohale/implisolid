@@ -65,9 +65,9 @@ def make_edge_lookup_old(faces):
     if True:    # VERBOSE:
         print("nfaces= ", nfaces, "num_edges:", num_edges)
 
-    edges_of_faces = np.zeros((nfaces, 3), dtype=np.int) - 1
-    faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
-    vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
+    edges_of_faces = np.zeros((nfaces, 3), dtype=np.long) - 1
+    faces_of_edges = np.zeros((num_edges, 2), dtype=np.long) - 1
+    vertpairs_of_edges = np.zeros((num_edges,), dtype=np.long) - 1
 
     #set_trace()
     #MAX_MATRIX_SIZE = 50000000
@@ -222,9 +222,9 @@ def make_edge_lookup_sparse(faces):
     if True:    # VERBOSE:
         print("nfaces= ", nfaces, "num_edges:", num_edges)
 
-    edges_of_faces = np.zeros((nfaces, 3), dtype=np.int) - 1
-    faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
-    vertpairs_of_edges = np.zeros((num_edges,), dtype=np.int) - 1
+    edges_of_faces = np.zeros((nfaces, 3), dtype=np.long) - 1
+    faces_of_edges = np.zeros((num_edges, 2), dtype=np.long) - 1
+    vertpairs_of_edges = np.zeros((num_edges,), dtype=np.long) - 1
 
     modulo = long(num_edges)    # *2
     lookup_array_size = modulo * num_edges + num_edges
