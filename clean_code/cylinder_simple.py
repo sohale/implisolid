@@ -3,6 +3,7 @@ from implicit import ImplicitFunction
 from basic_functions import check_vector3_vectorized, check_vector4, check_vector2
 from implicit_config import config
 
+import numerical_utils
 # todo: class CutCone
 
 class SimpleCylinder(ImplicitFunction):
@@ -134,12 +135,11 @@ class SimpleCylinder(ImplicitFunction):
             return fval, g3
 
     def implicitGradient(self, x):
-        f, g = self.implicitFunction(x, return_grad=True)
+       #f, g = self.implicitFunction(x, return_grad=True)
         return g
 
     def curvature(self, x):
         check_vector2(x)
         raise NotImplementedError()
-
 
 __all__ = ['SimpleCylinder']

@@ -1,9 +1,8 @@
 import numpy as np
 from implicit_vectorized import ImplicitFunctionVectorized
 from basic_types import check_vector4_vectorized, make_vector4, check_vector4
-#from numerical_utils import numerical_gradient
+from numerical_utils import numerical_gradient
 from implicit_config import config
-
 # todo: class CutCone
 
 
@@ -140,7 +139,7 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             #print grad_r.shape, "g_r"
             #print grad_t0.shape, "g_t0"
             #print grad_t1.shape, "g_t1"
-            
+
             #print t0.shape, "t0"
             #print t1.shape, "t1"
             #return (c_t0) * grad_t0 + (c_t1) * grad_t1 + (c_r) * grad_r
@@ -155,10 +154,11 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             return fval, g4
 
     def implicitGradient(self, x):
-        # return numeric_utils.generic_slow_gradient(self, x)
-        f, g = self.implicitFunction(x, return_grad=True)
-        #print("ggggg", g.shape)
+        g = numerical_gradient(self, x, is_vectorized=True)  #generic_slow_gradient
         return g
+        #f, g = self.implicitFunction(x, return_grad=True)
+        ##print("ggggg", g.shape)
+        #return g
 
     def curvature(self, x):
         check_vect2(x)

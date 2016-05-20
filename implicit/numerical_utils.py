@@ -2,7 +2,7 @@ import numpy as np
 from basic_types import check_vector4, repeat_vect4, make_vector4
 import vectorized
 import nonvec
-
+from ipdb import set_trace
 
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorized="unspecified"):
     #0.1 is not enough for delta_t
@@ -28,6 +28,9 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     pos = np.tile(pos0_4, (3*n, 1))
     assert not issubclass(pos.dtype.type, np.integer)
 
+    if pos.shape[0] in [1, 1718772L]:
+        set_trace()
+
     dx = repeat_vect4(1, make_vector4(1, 0, 0))
     dy = repeat_vect4(1, make_vector4(0, 1, 0))
     dz = repeat_vect4(1, make_vector4(0, 0, 1))
@@ -37,6 +40,10 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     for d in range(3):
         for i in sample_points:
             dd = dxyz[d]
+
+            if pos.shape[0] == 1 and ci ==1:
+                set_trace()
+
             pos[ci, :] = pos[ci, :] + (dd * delta_t * float(i))
             #w[ci] = findef(i,n)
             ci += 1

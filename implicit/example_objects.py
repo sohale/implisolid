@@ -897,7 +897,7 @@ def cyl3():
     return cage_rods(rod_r, rod_len, cage_r, N), (-32 / 2, +32 / 2, 1.92 / 4.0)
 
 
-def cyl4():
+def cyl4(scale):
     """ Makes a nice cage with spiral bars. Don't change. """
     cage = cage_rods(rod_r=1, rod_len=20, cage_r=10, N=20)
     from twist_z import TwistZ
@@ -914,7 +914,7 @@ def cyl4():
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0)   #15 sec!  2.5 millions voxels
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)  # 2.5 sec!
 
-    return ifunc, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return ifunc #, (RANGE_MIN, RANGE_MAX, STEPSIZE)
 
 def cube_with_cylinders(SCALE):
 

@@ -104,6 +104,7 @@ class CrispUnion(ImplicitFunctionVectorized):
 
         return h
 
+from ipdb import set_trace
 #not tested
 
 

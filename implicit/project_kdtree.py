@@ -1,5 +1,8 @@
 #based on set_centers_on_surface__ohtake_v3s_002
 
+from utils import optimised_used
+TEST = not optimised_used()
+
 
 def make_grad_directions(iobj, x):
 
