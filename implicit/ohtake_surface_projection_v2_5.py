@@ -152,6 +152,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     THRESHOLD_zero_interval = 0.0001  # f == TH is NOT zero.
     MAX_ITER = 20
     USE_MESH_NORMALS = True
+    EXTREME_ALPHA = False  # To use alpha > 1. that exceeds (violates) max_dim
 
     max_dist = average_edge
 
@@ -220,9 +221,17 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             alpha_list += [alpha/average_edge]
             alpha_list += [-alpha/average_edge]
             # alpha is prepared
+
+    if EXTREME_ALPHA:
+        # This violates the max_dim condition
+        alpha_list += [+1., -1., +1.5, -1.5, +2., -2.]
+
+    """ Interesting observation: alpha_list[4] always finds many points. We can bring it forward, after [1] or [2] """
+    """ If we use mesh normals first, the results seem better! """
     #lanp = np.array(alpha_list)
     #lanp.sort()
     #print lanp
+
     #print np.diff(lanp) * (2**9)
     print "Alphas:"
     for i in range(len(alpha_list)):
@@ -252,16 +261,50 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     TEST = True  # and not optimised_used():
 
     #print "left(found)",
-    for it in [0, 1] if USE_MESH_NORMALS else [0]:
+    #for it in [1, 0, 2, 3, 4,5,6] if USE_MESH_NORMALS else [0]:
+    for it in [0, 1, 2, 3, 4,5,6] if USE_MESH_NORMALS else [0]:
 
         if it == 0:
             dxc = dx0_c_grad
             alpha_list1 = alpha_list
-        else:
-            dxc = dx0c_mesh_normals #* 0.5
+        elif it == 1:
+            dxc = dx0c_mesh_normals.copy() #* 0.5
             print
             print "now mesh normals"
             alpha_list1 = alpha_list[:10]
+        elif it == 2:
+            n = dx0_c_grad.shape[0]
+            r = 0.000001
+            perturb = (np.random.rand(n, 3)*2.-1.) * r
+            #set_trace()
+            z = np.cross(dx0c_mesh_normals, dx0_c_grad+perturb, axis=1)
+            z = z / np.linalg.norm(z, axis=1, keepdims=True)
+            assert np.allclose(np.linalg.norm(z, axis=1), 1.)
+            global z3
+            z3 = z
+            #set_trace()
+            #dxc[:, :] = z
+            dxc = z.copy()
+
+        elif it == 3:
+            n = dx0_c_grad.shape[0]
+            m = dx0c_mesh_normals
+            missing = np.nonzero(np.linalg.norm(m, axis=1) < 1.-0.00001)[0]
+            m[missing] = np.random.randn(missing.shape[0], 3)
+            z2 = np.cross(m, z, axis=1)
+            z2 = z2 / np.linalg.norm(z2, axis=1, keepdims=True)
+            set_trace()
+            assert np.allclose(np.linalg.norm(z2, axis=1), 1.), "zero or NaN vectors"
+            dxc = z2.copy()
+        elif it in [4, 5, 6]:
+            z3 = z.copy()
+            dim_i = it-4
+            print
+            print "XYZ"[dim_i], "direction:"
+            z3[:, :] = 0.
+            z3[:, dim_i] = 1.
+        else:
+            print "Error"
 
         counter = -1
         for alpha in alpha_list1:
@@ -341,6 +384,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
             if still_nonsuccess_indices.shape[0] == 0:
                 break
+
+        if still_nonsuccess_indices.shape[0] == 0:
+            break  # break the 'for' loop too
+
     # if still_nonsuccess_indices.shape[0] > 0:
     best_result_x[still_nonsuccess_indices, :] = x0_v3[still_nonsuccess_indices, :]  # failed to converge
 

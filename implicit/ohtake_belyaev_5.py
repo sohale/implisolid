@@ -1280,7 +1280,8 @@ def build_faces_of_faces(facets):
 
 global q
 q=0
-def process2_vertex_resampling_relaxation(verts, facets, iobj):
+def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
+    """ @param: c: resampling based on curvature. c= => uniform, regardless of curvature."""
     global q
     q += 1
     #print "q"*1000, q
@@ -1291,7 +1292,15 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj):
     faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
     face_neighbours_of_faces_Fx3 = build_faces_of_faces(facets)
     assert not np.any(np.isnan(verts.ravel()))  # fine
-    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=2.0)
+    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=c)
+
+    display_simple_using_mayavi_2( [(verts, facets), (new_verts, facets)],
+       mayavi_wireframe=[False, True,], opacity=[0.2, 1,], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
+       #minmax=(RANGE_MIN,RANGE_MAX),
+       )
+
+
+
     assert not np.any(np.isnan(new_verts.ravel()))  # fails
     return new_verts, facets, centroids  # why does it return facets?
 
@@ -1374,10 +1383,12 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_
 
         assert not np.isnan(ki)  # fails
 
+        #set_trace()
         wi = 1.0 + c*ki
         # i_facet is facet (Centroid) index. j_facet is its neighbour facet (centroid). There are three j_facet for an i_facet.
         return wi
     #
+    #set_trace()
     c_ = c  # 2.0  # constant
     vertex_index = 1  # vertex
     #assert vertex_index >= 0
@@ -1396,6 +1407,7 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_
         #todo: store in ...
     #print "w_list ",w_list
     #
+    #del w_list
     #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
     nfaces = centroids.shape[0]
     wi_total_array = np.zeros((nfaces,))
@@ -2546,7 +2558,7 @@ import mesh_utils
 
 def demo_everything():
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 3
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1 # 3
     SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
@@ -2557,21 +2569,22 @@ def demo_everything():
         #"rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         #"ell_example1")  #+
-        "bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        #"french_fries_vectorized")
+        #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
+        "french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
     STEPSIZE = STEPSIZE / 2.
 
-    if False:
-        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+    if True:
+        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
+        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+        STEPSIZE = STEPSIZE / 2.
 
-        from vectorized import Transformed
-        iobj = Transformed(iobj)
-        #set_trace()
-        iobj.rotate(14, along=np.array([1., 1., 1., 1]), units="deg")
+        if False:
+            from vectorized import Transformed
+            iobj = Transformed(iobj)
+            iobj.rotate(14, along=np.array([1., 1., 1., 1]), units="deg")
 
     print "STEPSIZE", STEPSIZE
     #set_trace()
@@ -2650,7 +2663,7 @@ def demo_everything():
             if VERTEX_RELAXATION_ADD_NOISE:
                 verts = verts + (np.random.rand(verts.shape[0], verts.shape[1])*2.-1.)/2.* (STEPSIZE/8.)
             #set_trace()
-            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj, c=0*2.0)
             assert not np.any(np.isnan(verts.ravel()))  # fails
             print("Vertex relaxation applied.");sys.stdout.flush()
             if mesh_correction:
@@ -2798,7 +2811,7 @@ def demo_everything():
             #c3 = new_centroids[z12, :3]
             c3 = new_centroids[nzeros_c, :3]
             display_simple_using_mayavi_2([(new_verts_qem, facets), (preprojection_vf[0], preprojection_vf[1])],
-                       mayavi_wireframe=[False, True], opacity=[0.4, 0.3],
+                       mayavi_wireframe=[False, True], opacity=[0.4/2., 0.3],
                        gradients_at=c3,
                        separate_panels=False,
                        gradients_from_iobj=iobj,
@@ -2807,7 +2820,7 @@ def demo_everything():
                        #pointcloud_list=[new_centroids[z12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        pointcloud_list=[new_centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        #labels=(new_centroids, z12), grad_arrow_len=0.2/2.)
-                        labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1.)  #
+                       labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1.)  #
 
 
         #no subdivision for now
@@ -3043,7 +3056,11 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         assert s[0] == np.max(s)
         #print( s / s[0] )  # [  1.00000000e+00   1.13351623e-16   6.85747820e-52]
 
-        tau = 1000.
+        #tau = 1000.
+        tau = 680.
+        #tau = (26.077)**2
+        #tau = (0.11 * 237.)**2
+
         s[s / s[0] < 1.0/tau] = 0
         #print(s , s[0] , tau)
         rank = np.sum(s / s[0] > 1.0/tau)
