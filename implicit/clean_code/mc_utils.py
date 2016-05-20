@@ -20,7 +20,7 @@ def _prepare_grid(rng):
     if rng.size > 200:
         raise PolygonizationError(("Grid too large ( >200 ): ", rng.size))
 
-    (xx, yy, zz) = np.meshgrid(rng, rng, rng)
+    (yy, xx, zz) = np.meshgrid(rng, rng, rng)
     xyz_nparray = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel()]))
     assert xyz_nparray.shape[1:] == (3,)
 

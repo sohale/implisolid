@@ -1941,11 +1941,11 @@ def demo_combination_plus_qem():
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
 
-    display_simple_using_mayavi_2([(verts, facets), ],
-       pointcloud_list=[],
-       mayavi_wireframe=[False], opacity=[1], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN, RANGE_MAX))
-    exit()
+    # display_simple_using_mayavi_2([(verts, facets), ],
+    #    pointcloud_list=[],
+    #    mayavi_wireframe=[False], opacity=[1], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN, RANGE_MAX))
+    # exit()
 
     average_edge = compute_average_edge_length(verts, facets)
 
@@ -2010,10 +2010,10 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    # display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
-    #    pointcloud_list=[hv], pointcloud_opacity=0.2,
-    #    mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN, RANGE_MAX))
+    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
+       pointcloud_list=[hv], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN, RANGE_MAX))
 
 # from timeit import default_timer as dtimer
 
