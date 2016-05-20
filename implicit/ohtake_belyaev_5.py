@@ -2881,9 +2881,11 @@ def demo_everything(options):
             print "count:",nzeros_c.shape
             #print nzeros_c
 
+            cut_through = np.nonzero(np.sum(new_verts_qem[facets, :][:, :, 0] < 0, axis=1) == 3 )[0]
+            print cut_through.shape, facets.shape
             #c3 = new_centroids[z12, :3]
             c3 = new_centroids[nzeros_c, :3]
-            display_simple_using_mayavi_2([(new_verts_qem, facets), (preprojection_vf[0], preprojection_vf[1])],
+            display_simple_using_mayavi_2([(new_verts_qem, facets[cut_through, :]), (preprojection_vf[0], preprojection_vf[1][cut_through, :])],
                        mayavi_wireframe=[False, True], opacity=[0.4/2.*2, 0.3],
                        gradients_at=c3,
                        separate_panels=False,
