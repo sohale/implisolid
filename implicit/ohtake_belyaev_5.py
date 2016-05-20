@@ -2636,8 +2636,8 @@ def demo_everything(options):
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         #"ell_example1")  #+
         #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        #"french_fries_vectorized"
-        "cyl4"
+        "french_fries_vectorized"
+        #"cyl4"
         )
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
@@ -2646,8 +2646,8 @@ def demo_everything(options):
     STEPSIZE = STEPSIZE / 2.
     #STEPSIZE = STEPSIZE / 2.
 
-    #cage
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
+    #cage "cyl4" only
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
 
     #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
