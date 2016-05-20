@@ -2881,7 +2881,11 @@ def demo_everything(options):
             print "count:",nzeros_c.shape
             #print nzeros_c
 
-            cut_through = np.nonzero(np.sum(new_verts_qem[facets, :][:, :, 0] < 0, axis=1) == 3 )[0]
+            sides_xyz = new_verts_qem[facets, :]
+            b1 = sides_xyz[:, :, 0] < 0
+            b2 = sides_xyz[:, :, 2] > -(1. -0.1) #-(1.15-0.1)
+            b = np.logical_and(b1, b2)
+            cut_through = np.nonzero(np.sum(b, axis=1) >= 1)[0]
             print cut_through.shape, facets.shape
             #c3 = new_centroids[z12, :3]
             c3 = new_centroids[nzeros_c, :3]
@@ -2897,8 +2901,8 @@ def demo_everything(options):
                        #labels=(new_centroids, z12), grad_arrow_len=0.2/2.)
                        labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1. ,
             # Here you can easily visualise either the effect of projection of QEM shown as arrows.
-                       #fromto=(pre_proj_centroids, new_centroids),
-                       fromto=(verts_before_qem, new_verts_qem),
+                       fromto=(pre_proj_centroids, new_centroids),
+                       #fromto=(verts_before_qem, new_verts_qem),
                        )  #
 
 
