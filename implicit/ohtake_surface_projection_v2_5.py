@@ -223,7 +223,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             # alpha is prepared
 
     if EXTREME_ALPHA:
-        # This violates the max_dim condition
+        # This violates the max_dim condition. This is a bad idea. Set to False.
         alpha_list += [+1., -1., +1.5, -1.5, +2., -2.]
 
     """ Interesting observation: alpha_list[4] always finds many points. We can bring it forward, after [1] or [2] """
