@@ -28,7 +28,7 @@ objname = "bowl_15_holes"
 global STEPSIZE
 from example_objects import make_example_vectorized
 iobj = make_example_vectorized(objname)
-(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2/2.)
 #STEPSIZE = STEPSIZE / 2.
 
 
@@ -36,12 +36,12 @@ rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
 #vgrid = mc_utils.make_grid(iobj, rng, old=old)
 gridvals, xyz = mc_utils.make_grid(iobj, rng, old=False, return_xyz=True)
 v_xyz = gridvals.ravel()
+print "grid size", gridvals.shape, np.prod(gridvals.shape)
 
 #from stl_tests import make_mc_values_grid
 #gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old="3")
 verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
 print("MC calculated.");sys.stdout.flush()
-
 
 if False:
     import visual5
@@ -82,14 +82,14 @@ positive_indices = np.nonzero(v_xyz > -0.0001)[0]
 struc = xyz[positive_indices, :3]
 print "struc.shape", struc.shape
 print "query: ", v_from.shape
-COUNT = 100
+COUNT = 10
 k = 1
 with Timer() as t1:
     for i in range(COUNT):
         kdt = KDTree(struc, leaf_size=30, metric='euclidean')
         dist3, ind3 = kdt.query(v_from, k=k, return_distance=True)
 dist3, ind3 = dist3[:, k-1], ind3[:, k-1]
-print "time:", t1.interval / float(COUNT)
+print "time: ", t1.interval / float(COUNT), "Ran %d times"%COUNT
 sys.stdout.flush()
 
 v_to = struc[ind3, :]
