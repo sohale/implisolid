@@ -303,6 +303,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             print "XYZ"[dim_i], "direction:"
             z3[:, :] = 0.
             z3[:, dim_i] = 1.
+            dxc = z3  # !!missed!
         else:
             print "Error"
 

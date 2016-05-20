@@ -2632,11 +2632,11 @@ def demo_everything(options):
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec")  #
-        "rdice_vec")  #
+        #"rdice_vec")  #
         #"cube_example") # problem: zero facet areas.  otherwise, it works.
         #"ell_example1")  #+
         #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        #"french_fries_vectorized")
+        "french_fries_vectorized")
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
