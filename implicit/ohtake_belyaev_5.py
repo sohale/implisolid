@@ -2555,17 +2555,9 @@ def bigprint(text):
 
 import mesh_utils
 
-VISUALISE_RELAXATION_STEPS = False
-
-"-se", "--subdiv/epsilon"
-"proj/tol", "tolerance"
+VISUALISE_RELAXATION_STEPS = True
 
 def demo_everything(options):
-    curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 1 # 3
-    SUBDIVISION_ITERATIONS_COUNT = 1  # 1  # 2  # 5+4
-    VERTEX_RELAXATION_ADD_NOISE = False
-
 
     default_options = {
         "subdiv/epsilon": 1. / 1000.,
@@ -2590,7 +2582,16 @@ def demo_everything(options):
     #Result:
     #{meansqerror}
 
-    z = options["proj/mingradlen"]
+    #z = options["proj/mingradlen"]
+    config = default_options.copy()
+    config.update(options)
+
+    curvature_epsilon = config["subdiv/epsilon"]  # 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1 # 3
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 1  # 2  # 5+4
+    VERTEX_RELAXATION_ADD_NOISE = False
+
+
 
         #
     """
@@ -2641,7 +2642,7 @@ def demo_everything(options):
     #STEPSIZE = STEPSIZE * 2.
 
     STEPSIZE = STEPSIZE / 2.
-    STEPSIZE = STEPSIZE / 2.
+    #STEPSIZE = STEPSIZE / 2.
 
     #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
@@ -2853,6 +2854,7 @@ def demo_everything(options):
         vertex_neighbour_facelist_dict = mesh_utils.make_neighbour_faces_of_vertex(facets)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
         #nv1  =
+        verts_before_qem = verts
         new_verts_qem = \
             vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbour_facelist_dict, centroid_gradients, old_centroids_debug=old_centroids)
         #verts = nv1
@@ -2882,7 +2884,7 @@ def demo_everything(options):
             #c3 = new_centroids[z12, :3]
             c3 = new_centroids[nzeros_c, :3]
             display_simple_using_mayavi_2([(new_verts_qem, facets), (preprojection_vf[0], preprojection_vf[1])],
-                       mayavi_wireframe=[False, True], opacity=[0.4/2., 0.3],
+                       mayavi_wireframe=[False, True], opacity=[0.4/2.*2, 0.3],
                        gradients_at=c3,
                        separate_panels=False,
                        gradients_from_iobj=iobj,
@@ -2891,7 +2893,11 @@ def demo_everything(options):
                        #pointcloud_list=[new_centroids[z12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        pointcloud_list=[new_centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        #labels=(new_centroids, z12), grad_arrow_len=0.2/2.)
-                       labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1.)  #
+                       labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1. ,
+            # Here you can easily visualise either the effect of projection of QEM shown as arrows.
+                       #fromto=(pre_proj_centroids, new_centroids),
+                       fromto=(verts_before_qem, new_verts_qem),
+                       )  #
 
 
         #no subdivision for now
@@ -3480,7 +3486,7 @@ if __name__ == '__main__':
     #print "good"
     #exit()
 
-    demo_everything()
+    demo_everything(options={})
 
     #compare_vectorised_speed()
 
