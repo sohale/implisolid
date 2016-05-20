@@ -511,7 +511,8 @@ def cyl4(scale):
 
 def cube_with_cylinders(scale):
 
-    SCALE = 2.  # mm
+#    SCALE = 2.  # mm
+    SCALE = 2.
     sz1 = 2.5
 
     radius = 0.5 * SCALE

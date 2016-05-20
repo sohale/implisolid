@@ -24,11 +24,6 @@ def _prepare_grid(rng):
     xyz_nparray = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel()]))
     assert xyz_nparray.shape[1:] == (3,)
 
-    if VERBOSE:
-        print(xyz_nparray.shape)
-        print("done alloc")
-        sys.stdout.flush()
-
     return xyz_nparray
 
 

@@ -103,7 +103,7 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     """ Uses Scikit's MC algorithm,which has minor bugs. """
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils
-    vgrid = mc_utils.make_grid(iobj, rng, old=True)
+    vgrid = mc_utils.make_mc_values_grid(iobj, rng, old=True)
     from skimage import measure
     verts, faces = measure.marching_cubes(vgrid, 0)
     verts = ((verts) * STEPSIZE + rng[0])
