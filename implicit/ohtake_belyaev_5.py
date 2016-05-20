@@ -2557,18 +2557,41 @@ import mesh_utils
 
 VISUALISE_RELAXATION_STEPS = False
 
-def demo_everything():
+"-se", "--subdiv/epsilon"
+"proj/tol", "tolerance"
+
+def demo_everything(options):
     curvature_epsilon = 1. / 1000.  # *10. # a>eps  1/a > 1/eps = 2000
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1 # 3
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 1  # 2  # 5+4
     VERTEX_RELAXATION_ADD_NOISE = False
 
-    options = {
+
+    default_options = {
         "subdiv/epsilon": 1. / 1000.,
-        "resample/iters": 1,
         "subdiv/iters": 0,
+
+        "resample/iters": 1,
         "resample/c": 2.0,
-        "total_iters": 15}
+        "total_iters": 15,
+
+        "proj/mingradlen": 0.000001,  #  THRESHOLD_minimum_gradient_len =   # kill gradients smaller than this
+        "proj/tol": 0.0001, #THRESHOLD_zero_interval
+        "proj/maxiter": 20, # MAX_ITER
+        "proj/meshnormals": True, #USE_MESH_NORMALS
+        "proj/extreme_alpha": False,   #EXTREME_ALPHA = False
+        "proj/maxdist_ratio": 1.0,  # Average Edge length * max
+        "proj/sequence": [0, 1, 2, 3, 4,5,6],
+        #absolute e
+
+        "qem/tau": 680.,
+    }
+
+    #Result:
+    #{meansqerror}
+
+    z = options["proj/mingradlen"]
+
         #
     """
         "proj/mingradlen": 0.000001,  #  THRESHOLD_minimum_gradient_len =   # kill gradients smaller than this
@@ -2588,10 +2611,10 @@ def demo_everything():
         """
         #
     """
-        mc.bbox.x: (-3, 5),
-        mc.bbox.y: (-3, 5),
-        mc.bbox.z: (-3, 5),
-        mc.step: 0.2,
+        mc/bbox/x: (-3, 5),
+        mc/bbox/y: (-3, 5),
+        mc/bbox/z: (-3, 5),
+        mc/step: 0.2,
 
         mc/step/x: 0.2,
         mc/step/y: 0.2,
@@ -2618,14 +2641,15 @@ def demo_everything():
     #STEPSIZE = STEPSIZE * 2.
 
     STEPSIZE = STEPSIZE / 2.
+    STEPSIZE = STEPSIZE / 2.
 
     #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
     if False:
-        ##iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
-        #STEPSIZE = STEPSIZE / 2.
-        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
-        STEPSIZE = 0.2
+        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
+        STEPSIZE = STEPSIZE / 2.
+        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+        #STEPSIZE = 0.2
 
         if False:
             from vectorized import Transformed
