@@ -1,9 +1,8 @@
 import numpy as np
 
 from basic_functions import make_vector4, normalize_vector, check_vector4, make_random_vector, make_vector3
-import simple_blend
 import vector3
-from twist_z import TwistZ
+# from twist_z import TwistZ
 
 # definition of the vectorized objects
 
@@ -259,7 +258,6 @@ def blend_example2_discs(scale):
     m2[3, 3] = 1
 
     iobj = vector3.SimpleBlend(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2))
-    assert vector3.SimpleBlend == simple_blend.SimpleBlend
 
     return iobj
 
@@ -573,6 +571,26 @@ def crisp_cube_sphere(scale_ignored):
     return iobj
 
 
+def new_object(scale_ignored):
+
+    c1 = vector3.UnitCube1(4.2)
+    cage = cage_rods(rod_r=0.5, rod_len=3., cage_r=2., N=8)
+    c2 = vector3.CrispSubtract(c1, cage)
+
+    return c2
+
+
+def cone_example(scale):
+    scale = 1.0
+    m1 = np.eye(3) * 1.3 * scale
+    m1[1, 1] = 0.4 * scale
+    m1[1, 2] = 0.4 * scale
+
+    iobj = vector3.Cone(m1)
+
+#    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
+    return iobj
+
 # **************************************************************************************************
 
 
@@ -602,6 +620,8 @@ examples = {
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
     "crisp_cube_sphere": 2,
+    "new_object": 2,
+
 }
 
 
