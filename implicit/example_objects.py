@@ -7,6 +7,8 @@ import simple_blend
 import vectorized
 import nonvec
 
+from ipdb import set_trace
+
 """
 import implicit_vectorized
 import ellipsoid_vectorized
@@ -35,8 +37,8 @@ def dice(dice_scale, ns=nonvec):
         distance = (0.5-0.05)*dice_size
         m[0:3, 3] = np.array([distance*i, distance*j, distance*k])
         s1 = ns.Ellipsoid(m)
-        return c
         c = ns.CrispSubtract(c, s1)
+        return c
 
     def hole_r(c, i, j, k):
         m = np.eye(4)
@@ -182,8 +184,17 @@ def rdice_(ns=nonvec, scale=1., rotated=True):
     # m[0:3, 3] = [0, 0, 0]
     # m[2, 2] = 0.8
     # m[1, 2] = -0.4
-
     d = dice(scale, ns=ns)
+
+    MOON = True
+    if MOON:
+        # Accompanying moon for the dice! (satelite)
+        m1 = np.eye(4) * .3
+        m1[0:3, 3] = [1.1, 1.1, 0]
+        m1[3, 3] = 1
+        s = vectorized.Ellipsoid(m1)
+        return ns.CrispUnion(d, s)
+
     return d
     iobj = ns.Transformed(d)
     iobj  \
