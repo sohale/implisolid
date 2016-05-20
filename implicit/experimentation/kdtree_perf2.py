@@ -74,15 +74,23 @@ centroids3 = np.mean(verts[facets, :], axis=1)
 negative_indices = np.nonzero(iobj.implicitFunction(augment4(centroids3)) < -0.0001)[0]
 v_from = centroids3[negative_indices, :3]
 
+import sys
 
+print "start"
+sys.stdout.flush()
 positive_indices = np.nonzero(v_xyz > -0.0001)[0]
 struc = xyz[positive_indices, :3]
+print "struc.shape", struc.shape
+print "query: ", v_from.shape
+COUNT = 100
 k = 1
 with Timer() as t1:
-    kdt = KDTree(struc, leaf_size=30, metric='euclidean')
-    dist3, ind3 = kdt.query(v_from, k=k, return_distance=True)
+    for i in range(COUNT):
+        kdt = KDTree(struc, leaf_size=30, metric='euclidean')
+        dist3, ind3 = kdt.query(v_from, k=k, return_distance=True)
 dist3, ind3 = dist3[:, k-1], ind3[:, k-1]
-print "time:", t1.interval
+print "time:", t1.interval / float(COUNT)
+sys.stdout.flush()
 
 v_to = struc[ind3, :]
 
