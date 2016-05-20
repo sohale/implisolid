@@ -1967,41 +1967,25 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
 
-    # (verts, facets) = (new_verts_qem, facets)
-    #
-    # pre_subdiv_vf = (verts, facets)
-
-    # total_subdivided_facets = []
-    # for i in range(SUBDIVISION_ITERATIONS_COUNT):
-    #     e_array, which_facets = compute_facets_subdivision_curvatures(new_verts_qem, facets, iobj, curvature_epsilon)
-    #
-    #    # which_facets = np.arange(facets.shape[0])[e_array > curvature_epsilon]
-    #     print "Curvature epsilon:", curvature_epsilon, "which facets need to be subdivided", which_facets.shape
-    #
-    #     verts4_subdivided, facets3_subdivided = subdivide_multiple_facets(new_verts_qem, facets, which_facets)
-    #     verts, facets = verts4_subdivided, facets3_subdivided
-    #     print("Subdivision applied.");sys.stdout.flush()
-    #     # total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid
-    #     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
-    #     hv = verts[highlighted_vertices, :]
-
+    pre_subdiv_vf = (new_verts_qem, facets)
+    total_subdivided_facets = []
 
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
         print "subdivision:"
-        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+        verts, facets = do_subdivision(new_verts_qem, facets, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
         verts4_subdivided = verts  # ??
         facets3_subdivided = facets
 
-    print "subdivision done."
+        print "subdivision done."
 
-    # for use_wireframe in [True, False]:
-    #
-    #         display_simple_using_mayavi_2( [(verts, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
-    #            pointcloud_list=[],
-    #            mayavi_wireframe=[False, use_wireframe, True,], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
-    #            minmax=(RANGE_MIN,RANGE_MAX) )
+        for use_wireframe in [True, False]:
+
+            display_simple_using_mayavi_2( [(new_verts_qem, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
+                  pointcloud_list=[],
+                  mayavi_wireframe=[False, use_wireframe, True,], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
+                  minmax=(RANGE_MIN,RANGE_MAX) )
 
 
     # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
