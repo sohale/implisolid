@@ -142,6 +142,9 @@ def set_centers_on_surface__ohtake_v3s_001(iobj, centroids, average_edge, nones_
     exit()
 
 
+from utils import Timer
+
+@profile
 def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_map, debug_vf=None, mesh_normals=None):
     """ see set_centers_on_surface__ohtake() """
     print "Projecting the centroids: new age"
@@ -258,7 +261,9 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
         dx0c_mesh_normals = mesh_normals
         assert np.allclose(np.linalg.norm(dx0c_mesh_normals, axis=1), 1.)
 
-    TEST = True  # and not optimised_used():
+    # !!!!!!!!!!!!!!!
+    # Was left unnecessary testing !!
+    TEST = not optimised_used()
 
     #print "left(found)",
     #for it in [1, 0, 2, 3, 4,5,6] if USE_MESH_NORMALS else [0]:
@@ -317,8 +322,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
                 #set_trace()
 
                 # Todo: For those that have changed sign, check if they are closer actually.
-                xa4 = augment4(x1_half[active_indices, :])
-                f_a = iobj.implicitFunction(xa4)
+                with Timer() as t1:
+                    xa4 = augment4(x1_half[active_indices, :])
+                    f_a = iobj.implicitFunction(xa4)
+                print "Evaluating on %d points"%xa4.shape[0], "took %g sec"%(t1.interval)
                 signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
                 #success = signs_a * signs_c <= 0.
                 success0 = signs_a * signs_c[active_indices] <= 0.

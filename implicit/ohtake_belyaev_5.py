@@ -2777,6 +2777,8 @@ def demo_everything(options):
         #vectorized version
         from ohtake_surface_projection_v2_5 import set_centers_on_surface__ohtake_v3s
 
+        from project_kdtree import set_centers_on_surface__kdtree_v1
+
         average_edge = compute_average_edge_length(verts, facets)
 
         if mesh_correction:
@@ -2823,7 +2825,9 @@ def demo_everything(options):
             print "---"*100; sys.stdout.flush()
         print("Projection two methods: done within ", t1.interval, t2.interval, "RATIO =", t1.interval/t2.interval)
 
-
+        with Timer() as t3:
+            #set_centers_on_surface__kdtree_v1()
+            pass
 
 
 
