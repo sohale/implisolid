@@ -81,6 +81,21 @@ def check_face_triplets(faces):
     return original_indices
 
 
+def check_mesh(facets):
+    """ Checks if the output of the Marching Cubes and subdivision are correct. Correction of the mesh: closedness, each edge appears exactly twice, etc"""
+    check_faces(facets)
+
+    from mesh_utils import make_edge_lookup
+    check_faces(facets)
+    check_faces3(facets)
+
+    # The following does a series of `assert`s which check the correctness of the mesh
+    (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
+        make_edge_lookup(facets)
+
+
+
+
 def check_faces(faces):
     #print("------ check_faces(faces)")
 
@@ -729,9 +744,6 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
     return new_verts, new_faces
 
-
-def mesh_test():
-    check_faces(facets)
 
 
 global still_fixed
