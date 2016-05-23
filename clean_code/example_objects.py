@@ -572,7 +572,7 @@ def crisp_cube_sphere(scale_ignored):
     return iobj
 
 
-def new_object(scale_ignored):
+def cube_modified(scale_ignored):
 
     c1 = vector3.UnitCube1(4.2)
     cage = cage_rods(rod_r=0.5, rod_len=3., cage_r=2., N=8)
@@ -621,7 +621,7 @@ examples = {
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
     "crisp_cube_sphere": 2,
-    "new_object": 2,
+    "cube_modified": 2,
 
 }
 
