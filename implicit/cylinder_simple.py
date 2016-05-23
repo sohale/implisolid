@@ -153,12 +153,13 @@ class SimpleCylinder(ImplicitFunctionVectorized):
             #in progress
             return fval, g4
 
-    def implicitGradient(self, x):
-        g = numerical_gradient(self, x, is_vectorized=True)  #generic_slow_gradient
-        return g
-        #f, g = self.implicitFunction(x, return_grad=True)
-        ##print("ggggg", g.shape)
-        #return g
+    #def implicitGradient(self, x):
+    #    check_vector4_vectorized(x)
+    #    g = numerical_gradient(self, x, is_vectorized=True)  #generic_slow_gradient
+    #    return g
+    #    #f, g = self.implicitFunction(x, return_grad=True)
+    #    ##print("ggggg", g.shape)
+    #    #return g
 
     def curvature(self, x):
         check_vect2(x)

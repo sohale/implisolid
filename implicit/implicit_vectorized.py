@@ -6,6 +6,7 @@ import numpy as np
 #from basic_types import make_inverse, check_matrix4, make_vector4
 from basic_types import check_vector4_vectorized, check_matrix3_vectorized
 from basic_types import make_vector4, check_vector4  # check_matrix4
+from numerical_utils import numerical_gradient_vectorized_v1
 
 # @profile
 # def memoize(f):
@@ -25,7 +26,9 @@ class ImplicitFunctionVectorized(object):
 
     def implicitGradient(self, pv):
         """ Returns a vector of size N x 4 where N is the number of points. result[:,3] must be 1.0 for all. """
-        raise VirtualException()
+        #raise VirtualException()
+        print "Warning: Numerical gradient is used"
+        return numerical_gradient_vectorized_v1(self, pv)
 
     def hessianMatrix(self, pv):
         """ Returns a vector of size N x 4 x 4 where N is the number of points"""

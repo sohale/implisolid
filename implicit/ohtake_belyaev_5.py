@@ -2671,8 +2671,8 @@ def demo_everything(options):
     if True:
         iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
         STEPSIZE = STEPSIZE / 2.
-        #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
-        #STEPSIZE = 0.2
+        iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
+        STEPSIZE = 0.2
 
         if False:
             from vectorized import Transformed
@@ -2834,8 +2834,9 @@ def demo_everything(options):
 
             facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
             n = np.linalg.norm(facet_normals[np.logical_not(np.isnan(facet_areas)), :], axis=1)
-            assert np.allclose(np.linalg.norm(facet_normals[np.logical_not(np.isnan(facet_areas)), :], axis=1), 1.)  #is not zero
-            facet_normals[np.isnan(facet_areas), :] = 1./np.sqrt(3.)  # not tested
+            bads = np.logical_or(np.isnan(facet_areas), np.abs(facet_areas - 0.) < 0.00000001)
+            assert np.allclose(np.linalg.norm(facet_normals[np.logical_not(bads), :], axis=1), 1.)  #is not zero
+            facet_normals[bads, :] = 1./np.sqrt(3.)  # not tested
             del facet_areas
             assert facet_normals.shape[1] == 3
             assert np.allclose(np.linalg.norm(facet_normals, axis=1), 1.)
