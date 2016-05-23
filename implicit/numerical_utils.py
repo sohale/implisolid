@@ -583,14 +583,21 @@ def cubic_root_x1():
     print "should be zero: ",a*x1**3+b*x1**2+c*x1+d
 
 
+import sys
 def numerical_gradient_vectorized_v1(iobj, x):
     check_vector4_vectorized(x)
+    print "numerical_gradient1",; sys.stdout.flush()
     count = x.shape[0]
     g = np.zeros((count, 4))
     for i in range(x.shape[0]):
         v = x[i, 0:4]
         # inefficient: not vectorised
         g[i, :] = numerical_gradient(iobj, v, is_vectorized=True)
+    assert not np.any(np.isnan(g), axis=None)
+    print "numerical_gradient2",; sys.stdout.flush()
+    g2 = numerical_gradient_vectorized_v2(iobj, x.copy())
+    assert np.allclose(g, g2)
+    print "done"; sys.stdout.flush()
     return g
 
 
@@ -598,11 +605,12 @@ from lib import finite_diff_weights
 def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
     """ A proper vectorized implementation. See numerical_gradient() """
     #Note: 0.1 is not enough for delta_t
-    print "NOT IMPLEMENTED"
-    exit()
 
     check_vector4_vectorized(pos0)
     assert issubclass(type(iobj), vectorized.ImplicitFunctionVectorized)
+    assert pos0.ndim == 2
+    if pos0.shape[0] == 0:
+        return np.zeros((0, 4))
 
     m = order  # sample points: -m,...,-1,0,1,2,...,+m
 
@@ -616,17 +624,16 @@ def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
     del x0
 
     assert n < 20
-    pos0_4 = pos0[:, np.new_axis, :]
+    pos0_4 = pos0[:, np.newaxis, :]
     pos = np.tile(pos0_4, (1, 3*n, 1))
     assert not issubclass(pos.dtype.type, np.integer)
 
     #if pos.shape[0] in [1, 1718772L]:
     #    set_trace()
 
-    dx = make_vector4(1, 0, 0)[:, np.newaxis, :]
-    dy = make_vector4(0, 1, 0)[:, np.newaxis, :]
-    dz = make_vector4(0, 0, 1)[:, np.newaxis, :]
-    set_trace()
+    dx = make_vector4(1, 0, 0)[np.newaxis, np.newaxis, :]
+    dy = make_vector4(0, 1, 0)[np.newaxis, np.newaxis, :]
+    dz = make_vector4(0, 0, 1)[np.newaxis, np.newaxis, :]
     dxyz = [dx, dy, dz]
 
     ci = 0
@@ -636,109 +643,60 @@ def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
             #if pos.shape[0] == 1 and ci ==1:
             #    set_trace()
 
-            pos[ci, :] = pos[ci, :] + (dd * delta_t * float(i))
+            pos[:, ci, :] = pos[:, ci, :] + (dd * (delta_t * float(i)))
             #w[ci] = findef(i,n)
+            assert ci < 3*n
             ci += 1
 
-    pos[:, 3] = 1
+    pos[:, :, 3] = 1
 
-    if is_vectorized:
-        v = iobj.implicitFunction(pos)    # v .shape: (3,11)
-    else:
-        v = np.zeros((pos.shape[0],))
-        for i in range(pos.shape[0]):
-            v1 = iobj.implicitFunction(pos[i,:])    # v .shape: (3,11)
-            v[i] = v1
-    v3 = np.reshape(v, (3, n), order='C')  # v3 .shape: (11,)
-    #print( np.diff(v, axis=0) / delta_t )
-    #print( np.diff(v3, axis=1) / delta_t )
+    vsize = pos0.shape[0]
+
+    v = iobj.implicitFunction(pos.reshape((vsize * 3*n), 4))    # v .shape: (3,11)
+    v3 = np.reshape(v, (vsize, 3, n), order='C')  # v3 .shape: (11,)
 
 
+    if True:
+        #Lipchitz_L
+        Lipchitz_B = 50  # Lipschitz constant
+        Lipchitz_beta = 1  # order. Keep it 1
+        #H\:older continuous:   |f(h)-f(0)| <= B|h|^beta
+        b_h_beta = Lipchitz_B*(np.abs(delta_t)**Lipchitz_beta)
+        #lipschitz_condition = d <= b_h_beta
 
-    #Lipchitz_L
-    #Lipschitz constant = Lipchitz_B
-    Lipchitz_B = 50
-    Lipchitz_beta = 1  # order. Keep it 1
-    #H\:older continuous:   |f(h)-f(0)| <= B|h|^beta
-    b_h_beta = Lipchitz_B*(np.abs(delta_t)**Lipchitz_beta)
-    #print("v3=",v3)
-    #print("diff=",np.diff(v3, axis=1) )
-    #print(b_h_beta)
+        d0 = np.abs( np.diff(v3, axis=1+1) )
+        nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
+        #nonsmooth_ness2 = np.mean(nonsmooth_ness, axis=1)
 
-    d0 = np.abs( np.diff(v3, axis=1) )
-    #lipschitz_condition = d <= b_h_beta
-    nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
-    #nonsmooth_ness2 = np.mean(nonsmooth_ness, axis=1)
+        del d0, b_h_beta, Lipchitz_beta, Lipchitz_B
 
-    d = np.abs( np.diff(v3, n=1, axis=1) ) / np.abs(delta_t)
-    d = d - np.tile( np.mean(d, axis=1, keepdims=True), (1, d.shape[1]) )
-    d = np.abs(d) / np.abs(delta_t)
-    d = d - np.tile( np.mean(d, axis=1, keepdims=True), (1, d.shape[1]) )
-    #d = np.abs(d)
-    #d = np.abs( np.diff(d, n=1, axis=1) ) / np.abs(delta_t)
-    #nonsmooth_ness = d / (np.abs(delta_t)**Lipchitz_beta)
-    #if(np.max(np.ravel(d))) > 50:
-    #    print("warning")
-    #    print(nonsmooth_ness)
+        #print nonsmooth_ness.shape
+        #set_trace()
+        if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
+            print "warning: nonsmooth ",
+        del nonsmooth_ness
 
-    #print(d)
-    if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
-        print "warning: nonsmooth ",
-        #print(nonsmooth_ness)  # lots of zeros and one big value
+    if False:
+        # v3: (vsize x 3 x n)
+        #not tested
+        d = np.abs( np.diff(v3, n=1, axis=1+1) ) / np.abs(delta_t)
+        d = d - np.tile( np.mean(d, axis=1+1, keepdims=True), (1, 1, d.shape[1+1]) )
+        d = np.abs(d) / np.abs(delta_t)
+        d = d - np.tile( np.mean(d, axis=1+1, keepdims=True), (1, 1, d.shape[1+1]) )
+        del d
+
 
     """ Calculating the numerical derivative using finite difference (convolution with weights) """
     #convolusion
-    grad_cnv = np.dot(v3, findiff_weights)
-    #grad_cnv = np.reshape(grad_cnv, (1,3))[:,np.newaxis]
-    #grad_cnv = np.concatenate( ( grad_cnv[np.newaxis,:], np.reshape(np.array([1]),(1,1)) ), axis=1)
+    grad_cnv = np.dot(v3, findiff_weights)  # "sum product over the last axis of a and the second-to-last of b"
 
-    def v3_to_v14(v):
-        """ Converts shape from (3,) into a (1,4) vector4 """
-        assert v.ndim == 1
-        return np.concatenate((v[np.newaxis, :], np.reshape(np.array([1]), (1, 1))), axis=1)
+    def v3v_to_v14(v):
+        """ Converts shape from (N,3,) into a (N,4) vector4 """
+        assert v.ndim == 1+1
+        return np.concatenate((v[:, :], np.ones((v.shape[0], 1), dtype=float)), axis=1)
 
-    grad_cnv = v3_to_v14(grad_cnv)
-    #print("weights: ",findiff_weights)
-
-
-    #Detecting sharp edges (non-smooth points, i.e. corners and edges and ridges)
-    if np.max(np.abs(grad_cnv)) > 100:
-        pass
-        #print("*******  max(grad) > 100")
-        #print(np.abs(grad_cnv))
-    #else:
-    #    print(np.abs(grad_cnv))
-
-    if _VERBOSE:
-        #np.set_printoptions( precision=9 )
-        np.set_printoptions(formatter={'all': lambda x: ''+("%2.19f" % (x,))})
-
-    """ Calculating the numerical derivative using 'mean of diff' """
-    grad_mean = np.mean(-np.diff(v3, axis=1) / delta_t, axis=1)
-    if _VERBOSE:
-        print("grad_mean: ", grad_mean)
-        print("grad_convolusion: ", grad_cnv)
-
-    if False:
-        g = iobj.implicitGradient(pos0_4)
-    if _VERBOSE:
-        print("grad_analytical: ", g)
-
-        #print( grad_cnv.shape )
-        #print( g.shape )
-        #print( grad_mean.shape )
-
-        print("Errors:")
-        print("conv error: ", g - grad_cnv)
-        #Amazing precision: [[0.0000000000001995071 -0.0000000038590481921 0.0000000000000008882  0.0000000000000000000]]
-
-        print("mean error: ", g - v3_to_v14(grad_mean))
-        #Terrible error: [-0.262   2.12266  0 ]
-
-        #v3 * findiff_weights
-
-        print("to be continued")
-
+    grad_cnv = v3v_to_v14(grad_cnv)
+    assert not np.any(np.isnan(grad_cnv), axis=None)
     return grad_cnv
 
 

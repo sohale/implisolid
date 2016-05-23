@@ -16,6 +16,11 @@ mesh_quality_settings = {
     "min_edge_len":  0.000001   # 0.01  # 0.001 microns   # 0.001, 0.007
     }
 
+MIN_NORMAL_LEN = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer  #TH_N
+MIN_AREA = 0.000000001
+#AREA_DEGENERACY_THRESHOLD = MIN_AREA  # 0.000000000001
+
+
 CHECK_PAIRED = True
 
 mesh_correction = False
@@ -896,9 +901,9 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     assert np.all(facet_areas >= 0)
     #AREA_DEGENERACY_THRESHOLD = 0.00001  #  == 0.003 **2
     #AREA_DEGENERACY_THRESHOLD = -1.  # 0.00001 ** 2
-    AREA_DEGENERACY_THRESHOLD = 0.000000000001
+    #AREA_DEGENERACY_THRESHOLD = MIN_AREA
 
-    ineq = facet_areas < AREA_DEGENERACY_THRESHOLD
+    ineq = facet_areas < MIN_AREA  # AREA_DEGENERACY_THRESHOLD
     degenerates_count = len(facet_areas[ineq])
     #print "degenerates_count", degenerates_count
 
@@ -960,6 +965,7 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
             a = v1M
             b = v2M
 
+            #fixme: todo: rename all 0.000*1 numers into constants in the beginning of this file. MIN_NORMAL_LEN, MIN_AREA, etc
             case = "-"
             if np.linalg.norm(a) < 0.00000001 and np.linalg.norm(b) < 0.00000001:
                 case = "000"
@@ -1208,17 +1214,36 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
             pass
 
     if not return_normals:
+        assert not np.any(np.isnan(facet_areas))
         return facet_areas
     else:
-        #print facet_areas.shape
+        # print facet_areas.shape
         assert facet_areas[:, np.newaxis].shape == (nfaces, 1)
         at_autobroadcast = facet_areas[:, np.newaxis] * 2.0
+        # problems happen here: Some "facet_areas" are almost zero.
+        za = np.abs(facet_areas) < MIN_AREA
+        if np.sum(za) > 0:
+            print "warning: zero areas at: ", np.nonzero(za)[0].tolist()
+            print facet_areas[za]
+            facet_areas[za] = 0.  # return value
+            #at_autobroadcast[za] = 0.  # for assert
+
         facet_normals2 = a / at_autobroadcast
+        facet_normals2[za, :] = 0.
+
         if TEST_ON:
             at = np.tile(facet_areas[:, np.newaxis], (1, 3)) * 2.0
             facet_normals = a / at
+            facet_normals[za, :] = 0.
             assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
         #facet_normals2[np.isnan(facet_areas), :] = 0.
+
+        if np.any(np.isnan(facet_areas), axis=None):
+            set_trace()
+        assert not np.any(np.isnan(facet_areas), axis=None)  # Important
+        if np.any(np.isnan(facet_normals2), axis=None):
+            set_trace()
+        assert not np.any(np.isnan(facet_normals2), axis=None)
         return facet_areas, facet_normals2
 
 
@@ -1624,9 +1649,9 @@ def compute_facets_subdivision_curvatures_old(verts, facets, iobj):
         mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
         assert mm.shape == (4, 3)
         nn = np.linalg.norm(mm, axis=1)
-        nn_tile = np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
+        nn_tile = np.tile(nn[:, np.newaxis], (1, 3))  # mm: 4 x 3
         if mesh_correction:
-            nn_tile[nn_tile<0.00000001] = 100000.
+            nn_tile[nn_tile < MIN_NORMAL_LEN] = 1.  # 100000.  # todo: use constants: e.g. MIN_NORMAL_LEN
         mm = mm / nn_tile
         mm = mm.transpose()  # 3x4
 
@@ -1739,14 +1764,19 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
         mm = - iobj.implicitGradient(q4)[:, 0:3] ; del q4
         assert mm.shape == (nf*4, 3)
         mmt = mm.reshape(nf, 4, 3); del mm  # nfx4x3
-        #set_trace()
+        set_trace()
         mmt_norm = np.linalg.norm(mmt, axis=2, keepdims=True)
-        mmt_norm[mmt_norm < 0.00001] = 1.
+        mmt_norm[mmt_norm < MIN_NORMAL_LEN] = 1.
         mmt_hat = mmt / mmt_norm ; del mmt; del mmt_norm
 
+        assert np.sum(np.isnan(facet_normals)) == 0  # fails
+
         n_norm = np.linalg.norm(facet_normals, axis=1, keepdims=True)
-        n_norm[n_norm < 0.00001] = 1.
+        n_norm[n_norm < MIN_NORMAL_LEN] = 1.
+        assert np.sum(np.isnan(n_norm)) == 0  # fails
         n_hat = facet_normals / n_norm; del n_norm
+
+        assert np.sum(np.isnan(n_hat)) == 0  # fails
 
         assert mmt_hat.shape[2] == 3
         assert n_hat.shape[1] == 3
@@ -1759,14 +1789,19 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
         #nm = np.dot(n_hat, mmt_hat_Fx3x4)  # Fx(3), Fx(3)x4  -> ? FxFx4
         #        # np.dot(): For N dimensions it is a sum product over the last axis of a and the second-to-last of b:
 
+        assert np.sum(np.isnan(n_hat)) == 0  # important
+
         #n_hat, mmt_hat_Fx3x4
         nm = np.sum(n_hat[:, np.newaxis, :] * mmt_hat, axis=2)  # Fx1x3 * Fx4x3 -> Fx4
+        #contains NaN
+        assert np.sum(np.isnan(nm)) == 0  # important
         #np.sum(1.-np.abs(nm), axis=1)
         curvatures_array = facet_areas * (1. - np.sum(np.abs(nm), axis=1) / 4.)
         curvatures_array[degenerate_faces] = 0.
         bad_facets_count = np.sum(degenerate_faces)
         #print "hey"
         #set_trace()
+        assert not np.any(np.isnan(curvatures_array)), "NaN."
         return curvatures_array, bad_facets_count
 
 
@@ -1816,7 +1851,7 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
         nn = np.linalg.norm(mm, axis=1)
         nn_tile = np.tile(nn[:,np.newaxis], (1, 3))  # mm: 4 x 3
         if mesh_correction:
-            nn_tile[nn_tile<0.00000001] = 100000.
+            nn_tile[nn_tile<MIN_NORMAL_LEN] = 1.
         mm = mm / nn_tile
         mm = mm.transpose()  # 3x4
 
@@ -2446,6 +2481,8 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
 
     #simple_histogram(curvatures, "curvatures")
 
+    if np.sum(np.isnan(curvatures))> 0:
+        set_trace()
     assert np.sum(np.isnan(curvatures)) == 0, "NaN"
     curvatures[np.isnan(curvatures)] = 0  # treat NaN curvatures as zero curvature => no subdivision
 
@@ -2834,7 +2871,16 @@ def demo_everything(options):
 
             facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
             n = np.linalg.norm(facet_normals[np.logical_not(np.isnan(facet_areas)), :], axis=1)
-            bads = np.logical_or(np.isnan(facet_areas), np.abs(facet_areas - 0.) < 0.00000001)
+            # Why do we have facet_areas == 1. ??
+            if False:
+                print np.sum(n < 0.9)  # all are almost zero
+                print np.sum(facet_areas > 0.9)  # all are 1.
+                # Are the same.
+
+
+            bads = np.logical_or(np.isnan(facet_areas), np.abs(facet_areas - 0.) < MIN_AREA)
+            if not np.allclose(np.linalg.norm(facet_normals[np.logical_not(bads), :], axis=1), 1.):
+                set_trace()
             assert np.allclose(np.linalg.norm(facet_normals[np.logical_not(bads), :], axis=1), 1.)  #is not zero
             facet_normals[bads, :] = 1./np.sqrt(3.)  # not tested
             del facet_areas
@@ -3191,7 +3237,8 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         #rank will never be 0: s[0]/s[0] is always 1, even when s[0] is too small.
         #assert s[0] > 0.000001
 
-        if not  s[0] > 0.000001:
+        MIN_EIGENVALUE = 0.000001
+        if not s[0] > MIN_EIGENVALUE:
             print("Warning! sigma_1 == 0" )
             print(s)
             print("A", A)
@@ -3326,12 +3373,12 @@ def get_A_b(vertex_id, neighbours_faces, centroids, centroid_gradients, qem_orig
 
     norms = np.linalg.norm(normals, ord=2, axis=1)
     #can be either 0, 1 or Nan
-    if np.any(norms < 0.000001):  #can be exactly 0.0
+
+    if np.any(norms < MIN_NORMAL_LEN):  #can be exactly 0.0
         print("Error: bad normal", normals)
 
-    TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
     #can be 0,0,0, inf, nonsharp, degenerate, ...
-    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < TH_N )
+    degenerate_normals = np.logical_or(np.isnan( np.sum(normals, axis=1)), norms < MIN_NORMAL_LEN )
     #simpler: degenerate_normals = np.logical_or(np.isnan(norms), norms < 0.0000001 )
     #todo:
 
