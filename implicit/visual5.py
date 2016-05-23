@@ -34,7 +34,7 @@ def visualise_gradients(mlab, pos, iobj, arrow_size):
     mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=np.abs(lm), line_width=0.5)
 
 
-def visualise_displacements(mlab, verts_from, verts_to, full_line=False):
+def visualise_displacements(mlab, verts_from, verts_to, full_line=False, color=(0, 0, 0)):
     n = verts_from.shape[0]
     assert verts_from.shape == (n, 3)
     assert verts_to.shape == (n, 3)
@@ -49,7 +49,7 @@ def visualise_displacements(mlab, verts_from, verts_to, full_line=False):
 
     xx, yy, zz = xyz1[:, 0], xyz1[:, 1], xyz1[:, 2]
     uu, vv, ww = ddd[:, 0], ddd[:, 1], ddd[:, 2]
-    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=(0, 0, 0), scale_factor=arrow_size)
+    mlab.quiver3d(xx, yy, zz, uu, vv, ww, color=color, scale_factor=arrow_size)
     #line_width=0.5
 
 
@@ -245,12 +245,15 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list=[], minmax=(-1,1), ma
             fromtolist = [fromto]
         else:
             fromtolist = fromto
+        colors = [(0, 0, 0), (1, 1, 1), (1, 1, 0), (0, 1, 1)]
+        counter = 0
         for ft in fromtolist:
             (verts_from, verts_to) = ft
             assert verts_from.shape[1] == 3
             assert verts_to.shape[1] == 3
             assert verts_to.shape[0] <= 100000
-            visualise_displacements(mlab, verts_from, verts_to, full_line=True)
+            visualise_displacements(mlab, verts_from, verts_to, full_line=True, color=colors[counter])
+            counter += 1
 
     if mlab_show:
         mlab.show()

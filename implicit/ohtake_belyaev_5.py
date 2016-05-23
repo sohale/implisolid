@@ -2555,7 +2555,7 @@ def bigprint(text):
 
 import mesh_utils
 
-VISUALISE_RELAXATION_STEPS = False
+VISUALISE_RELAXATION_STEPS = True
 
 def demo_everything(options):
 
@@ -2631,12 +2631,12 @@ def demo_everything(options):
     global STEPSIZE
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
-        #"rcube_vec")  #
-        #"rdice_vec")  #
-        #"cube_example") # problem: zero facet areas.  otherwise, it works.
-        #"ell_example1")  #+
-        #"bowl_15_holes")  # works too. But too many faces => too slow, too much memory. 32K?
-        "french_fries_vectorized"
+        #"rcube_vec"  #
+        "rdice_vec"  #
+        #"cube_example" # problem: zero facet areas.  otherwise, it works.
+        #"ell_example1"  #+
+        #"bowl_15_holes"  # works too. But too many faces => too slow, too much memory. 32K?
+        #"french_fries_vectorized"
         #"cyl4"
         )
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
@@ -2903,15 +2903,16 @@ def demo_everything(options):
                        gradients_at=c3,
                        separate_panels=False,
                        gradients_from_iobj=iobj,
-                       #minmax=(RANGE_MIN, RANGE_MAX),
+                       minmax=(RANGE_MIN/100., RANGE_MAX/100.),
                        #add_noise=[0, 0], noise_added_before_broadcast=True,
                        #pointcloud_list=[new_centroids[z12, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        pointcloud_list=[new_centroids[nzeros_c, :]], pointsizes=[0.02], #pointcloud_list=[point_collector.get_as_array()], pointsizes=[0.01],
                        #labels=(new_centroids, z12), grad_arrow_len=0.2/2.)
                        labels=(new_centroids, nzeros_c), grad_arrow_len=average_edge*1. ,
             # Here you can easily visualise either the effect of projection of QEM shown as arrows.
-                       fromto=(pre_proj_centroids, new_centroids),
+                       #fromto=(pre_proj_centroids, new_centroids),
                        #fromto=(verts_before_qem, new_verts_qem),
+                       fromto=[(pre_proj_centroids, new_centroids), (verts_before_qem, new_verts_qem)],
                        )  #
 
 
