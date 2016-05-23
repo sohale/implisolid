@@ -253,19 +253,26 @@ def visualise_distance_histogram(verts1, verts2, faces_used):
 def REMOVE_REPEATED_EDGES(faces):
     #see check_faces()
 
-    f0 = faces[:, np.newaxis, 0:2]
-    f1 = faces[:, np.newaxis, 1:3]
-    f2 = faces[:, np.newaxis, [0, 2]]
-    f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
-    f1 = f1.copy(); f1.sort(axis=2)
-    f2 = f2.copy(); f2.sort(axis=2)
-    fe3 = np.concatenate( (f0, f1, f2), axis=1)  # shape==(:,3,2)
+    if True:
+        # >begin of refactorable region
+        f0 = faces[:, np.newaxis, 0:2]
+        f1 = faces[:, np.newaxis, 1:3]
+        f2 = faces[:, np.newaxis, [0, 2]]
+        f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
+        f1 = f1.copy(); f1.sort(axis=2)
+        f2 = f2.copy(); f2.sort(axis=2)
+        fe3 = np.concatenate( (f0, f1, f2), axis=1)  # shape==(:,3,2)
 
-    BB = np.array([1L, B], dtype=np.int64)
-    edg = np.dot(fe3, BB)   # fx3
-    assert edg.dtype == np.int64
-    assert edg.size == 0 or np.min(edg) >= 0
-    assert np.max(faces, axis=None) < B
+        BB = np.array([1L, B], dtype=np.int64)
+        edg = np.dot(fe3, BB)   # fx3
+        assert edg.dtype == np.int64
+        assert edg.size == 0 or np.min(edg) >= 0
+        assert np.max(faces, axis=None) < B
+        # <end of refactorable region
+
+    edg_1, fe3_1 = get_edge_code_triples_of_mesh(faces)
+    assert np.allclose(edg_1, edg)
+    assert np.allclose(fe3_1, fe3)
 
     #Sort edges to detect repeated edges. Each edge should appear exactly twice.
     #was q
@@ -2661,7 +2668,7 @@ def demo_everything(options):
 
     #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
-    if False:
+    if True:
         iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
         STEPSIZE = STEPSIZE / 2.
         #iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
@@ -2902,10 +2909,13 @@ def demo_everything(options):
             print "count:",nzeros_c.shape
             #print nzeros_c
 
+            DONT_CUT = False
             sides_xyz = new_verts_qem[facets, :]
             b1 = sides_xyz[:, :, 0] < 0
-            b2 = sides_xyz[:, :, 2] > -(1. -0.1) #-(1.15-0.1)
+            b2 = sides_xyz[:, :, 2] > -(1. - 0.1)  # -(1.15-0.1)
             b = np.logical_and(b1, b2)
+            if DONT_CUT:
+                b = b * 0 + 1
             cut_through = np.nonzero(np.sum(b, axis=1) >= 1)[0]
             print cut_through.shape, facets.shape
             #c3 = new_centroids[z12, :3]
