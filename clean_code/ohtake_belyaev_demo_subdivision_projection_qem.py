@@ -1829,7 +1829,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
     assert not np.any(np.isnan(verts.ravel()))  # fails
 
     print "computing curvatures"; sys.stdout.flush()
-    #curvatures, bad_facets_count = compute_facets_curvatures_vectorized(verts, facets, iobj)
+    # curvatures, bad_facets_count = compute_facets_curvatures_vectorized(verts, facets, iobj)
     curvatures, bad_facets_count = compute_facets_subdivision_curvatures(verts, facets, iobj, curvature_epsilon)
     print "computing curvatures done."; sys.stdout.flush()
 
@@ -1901,7 +1901,7 @@ def demo_combination_plus_qem():
     SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1928,8 +1928,6 @@ def demo_combination_plus_qem():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-
-
     # display_simple_using_mayavi_2([(verts, facets), ],
     #    pointcloud_list=[],
     #    mayavi_wireframe=[False], opacity=[1], gradients_at=None, separate=False, gradients_from_iobj=None,
@@ -1947,6 +1945,7 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
 
+    # projection
     average_edge = compute_average_edge_length(verts, facets)
 
     old_centroids = np.mean(verts[facets[:], :], axis=1)
@@ -1967,6 +1966,7 @@ def demo_combination_plus_qem():
     highlighted_vertices = np.array([131, 71, 132])  # np.arange(100, 200)
     hv = new_verts_qem[highlighted_vertices, :]
 
+    # subdivision
     pre_subdiv_vf = (new_verts_qem, facets)
     total_subdivided_facets = []
 
@@ -1982,7 +1982,7 @@ def demo_combination_plus_qem():
 
         for use_wireframe in [True, False]:
 
-            display_simple_using_mayavi_2([(new_verts_qem, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
+            display_simple_using_mayavi_2([(verts, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
                   pointcloud_list=[],
                   mayavi_wireframe=[False, use_wireframe, True,], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
                   minmax=(RANGE_MIN,RANGE_MAX))
@@ -1994,10 +1994,10 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
-       pointcloud_list=[hv], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN, RANGE_MAX))
+    # display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
+    #    pointcloud_list=[hv], pointcloud_opacity=0.2,
+    #    mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+    #    minmax=(RANGE_MIN, RANGE_MAX))
 
 # from timeit import default_timer as dtimer
 

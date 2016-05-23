@@ -275,13 +275,13 @@ def french_fries(scale):
         iobj  \
             .move(-0.2 * scale, -0.2 * scale, 0) \
             .resize(2) \
-            .rotate(10, along=(1, 1, 0), units="deg") \
+            .rotate(10, along=make_vector3(1, 1, 0), units="deg") \
             .move(0.5 * scale, 0, 0)
         return iobj
 
     u = None
     for i in range(18):
-        c = rod().rotate(-30 * i, along=(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector3(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
