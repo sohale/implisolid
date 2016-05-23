@@ -175,6 +175,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
     #step_size = max_dist / 2.  # average_edge / 2.
 
+    negative_f_c = fc_a < -THRESHOLD_zero_interval
+    g_direction_a[negative_f_c, :] = -g_direction_a[negative_f_c, :]
+    # The only difference here is the correct direction is tested "first".
+    #Issue remains: The "distance-after-bisection" should be compared. But here, we just compare before the subdivision.
 
     #signs = 1.*(f_a >= THRESHOLD_zero_interval) - 1.*(f_a <= -THRESHOLD_zero_interval)
     #signs_c = (fc_a >= THRESHOLD_zero_interval)*step_size - (fc_a <= -THRESHOLD_zero_interval)*step_size
