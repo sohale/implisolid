@@ -2924,7 +2924,7 @@ def demo_everything(options):
             # Here you can easily visualise either the effect of projection of QEM shown as arrows.
                        #fromto=(pre_proj_centroids, new_centroids),
                        #fromto=(verts_before_qem, new_verts_qem),
-                       fromto=[(pre_proj_centroids, new_centroids), (verts_before_qem, new_verts_qem)],
+                       fromto=[(pre_proj_centroids[:, :3], new_centroids[:, :3]), (verts_before_qem, new_verts_qem)],
                        )  #
 
 
