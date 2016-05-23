@@ -1847,7 +1847,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
     print which_facets.shape
     print "applying subdivision on %d triangles." % (int(which_facets.shape[0]))
     midpoint_map = {}
-    verts2, facets2, presubdivision_edges = subdivide_multiple_facets(verts, facets, which_facets, midpoint_map)
+    verts2, facets2, presubdivision_edges = subdivide_multiple_facets_new(verts, facets, which_facets, midpoint_map)
     global trace_subdivided_facets  # third implicit output
 
     list_edges_with_1_side = []
@@ -1856,10 +1856,10 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
         facets_with_2_or_3_sides = np.concatenate((propag_dict[2], propag_dict[3]), axis=0)
         # what if those faces dont exist anymore in the next round?
         list_edges_with_1_side += [edges_which_in1]
-        #p rint facets_with_2_or_3_sides.shape
+        # print facets_with_2_or_3_sides.shape
         if facets_with_2_or_3_sides.size == 0:
             break
-        verts2, facets2, old_edges2 = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, midpoint_map)
+        verts2, facets2, old_edges2 = subdivide_multiple_facets_new(verts2, facets2, facets_with_2_or_3_sides, midpoint_map)
         presubdivision_edges += old_edges2  # bug fixed!
 
     # Finished with 2 or 3 sides.
@@ -1898,7 +1898,7 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
 
     from example_objects import make_example_vectorized
     object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
@@ -1982,10 +1982,10 @@ def demo_combination_plus_qem():
 
         for use_wireframe in [True, False]:
 
-            display_simple_using_mayavi_2( [(new_verts_qem, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
+            display_simple_using_mayavi_2([(new_verts_qem, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
                   pointcloud_list=[],
                   mayavi_wireframe=[False, use_wireframe, True,], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
-                  minmax=(RANGE_MIN,RANGE_MAX) )
+                  minmax=(RANGE_MIN,RANGE_MAX))
 
 
     # display_simple_using_mayavi_2([(new_verts_final, facets), (new_verts_qem, facets), ],
