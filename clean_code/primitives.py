@@ -77,7 +77,7 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
             self.p0 += [p0]
             self.n0 += [n0]
 
-        assert norm2(self.n0[-1]) - 1 == 0.0
+        # assert norm2(self.n0[-1]) - 1 == 0.0
 
         side(1, 0, 0)
         side(-1, 0, 0)

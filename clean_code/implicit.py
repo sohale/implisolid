@@ -31,7 +31,7 @@ class UnitSphere(ImplicitFunction):
     def implicitFunction(self, pv):
 
         return 1.0 - np.sum(pv * pv, axis=1)
-
+    
     def implicitGradient(self, pv):
         assert pv.ndim == 2
         assert pv.shape[1:] == (3,)

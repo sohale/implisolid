@@ -614,10 +614,7 @@ examples = {
     "screw2": 2,
     "udice_vec": 2,
     "rods": 2,
-    "cyl1": 2,
-    "cyl2": 2,
     "cyl3": 2,
-    "cyl4": 2,       # spiral cage
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
     "crisp_cube_sphere": 2,

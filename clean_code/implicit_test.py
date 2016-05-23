@@ -6,12 +6,13 @@ from basic_functions import make_random_vector3, almost_equal1, make_vector3, ch
 
 from implicit_config import TOLERANCE
 
+from primitives import UnitSphere, UnitCube1
+
+
 from basic_functions import check_scalar_vectorized, repeat_vect3, make_random_vector3_vectorized, check_vector3_vectorized
 
 # import simple_blend
 import vector3
-
-import numerical_utils
 
 NUMERICAL_GRADIENT_TOLERANCE = 0.0001  # 0.00001   # 0.001
 assert NUMERICAL_GRADIENT_TOLERANCE > 0.0000059
@@ -27,12 +28,124 @@ def almost_equal3(a, b, TOLERANCE):
     return np.sum(np.abs(a - b)) < TOLERANCE
 
 
+def weights(k, x0, xs):
+    """Calculate weights for the finite difference approximation.
+    Arguments:
+    k - The k-th derivative will be approximated.
+    x0 - The point at which to approximate the derivative.
+    xs - The grid points at which the function's value is known.
+    This uses the algorithm described in:
+    B. Fornberg, "Calculation of weights in finite difference formulas",
+    SIAM Review 40 (1998), pp. 685-691.
+    """
+    # Size of the system.
+    n = xs.size
+    assert k < n, "need more grid points to calculate this derivative"
+    # Measure points relative to x0.
+    xs = xs - x0
+    # Weight matrix to calculate successive finite difference
+    # approximations.
+    w = np.zeros((k+1, n))
+    # Before starting, we want to pre-compute certain reusable
+    # quantities.
+    product_ratio = np.ones(n)
+    for j in range(n):
+        for i in range(j):
+            product_ratio[j] *= xs[j] - xs[i]
+    product_ratio[1:] = product_ratio[:n-1] / product_ratio[1:]
+    # Each iteration of this loop will produce weights for the
+    # derivatives that use one point more than the previous iteration.
+    for j in range(n - k):
+        # 0-th derivative approximation.
+        if j == 0:
+            # The approximation to the 0th derivative given only one
+            # function value is trivially to just use that value.
+            w[0, 0] = 1
+        else:
+            w[0, j] = - xs[j-1] * w[0, j-1] * product_ratio[j]
+            for i in range(1, j+1):
+                w[0, j-i] = xs[j] * w[0, j-i] / (xs[j] - xs[j-i])
+        for m in range(1, k+1):
+            # Generate weights for each derivative using the
+            # previous one.
+            # m is the derivative we are currently working on,
+            # and l is the number of points used in this round,
+            # minus one.
+            l = j+m
+            w[m, l] = (m*w[m-1, l-1] - xs[l-1]*w[m, l-1]) \
+                        * product_ratio[l]
+            for i in range(1, l+1):
+                w[m, l-i] = (xs[l] * w[m, l-i] - m*w[m-1, l-i]) \
+                            / (xs[l] - xs[l-i])
+    return w[k, :]
+
+
+def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5):
+
+    check_vector3(pos0)
+
+    assert issubclass(type(iobj), vector3.ImplicitFunction)
+
+    m = order  # sample points: -m,...,-1,0,1,2,...,+m
+
+    sample_points = range(-m, m+1)
+    n = m*2+1
+
+    x0 = 0
+    findiff_weights = weights(k=1, x0=x0, xs=np.array(sample_points) * delta_t)
+
+    pos = repeat_vect3(1, pos0)
+    pos3 = np.tile(pos, (3*n, 1))
+
+    assert not issubclass(pos.dtype.type, np.integer)
+
+    dx = repeat_vect3(1, make_vector3(1, 0, 0))
+    dy = repeat_vect3(1, make_vector3(0, 1, 0))
+    dz = repeat_vect3(1, make_vector3(0, 0, 1))
+    dxyz = [dx, dy, dz]
+
+    ci = 0
+    for d in range(3):
+        for i in sample_points:
+            dd = dxyz[d]
+            pos3[ci, :] = pos3[ci, :] + (dd * delta_t * float(i))
+            ci += 1
+
+    v = iobj.implicitFunction(pos3)
+
+    v3 = np.reshape(v, (3, n), order='C')
+
+    Lipchitz_beta = 1  # order. Keep it 1
+
+    d0 = np.abs(np.diff(v3, axis=1))
+
+    nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
+
+    d = np.abs(np.diff(v3, n=1, axis=1)) / np.abs(delta_t)
+    d = d - np.tile(np.mean(d, axis=1, keepdims=True), (1, d.shape[1]))
+    d = np.abs(d) / np.abs(delta_t)
+    d = d - np.tile(np.mean(d, axis=1, keepdims=True), (1, d.shape[1]))
+
+    if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
+        print "warning: nonsmooth ",
+
+    """ Calculating the numerical derivative using finite difference (convolution with weights) """
+    # convolusion
+    grad_cnv = np.dot(v3, findiff_weights)
+
+    # Detecting sharp edges (non-smooth points, i.e. corners and edges and ridges)
+    if np.max(np.abs(grad_cnv)) > 100:
+        pass
+
+    return grad_cnv.reshape(1, 3)
+
+
 class ImplicitFunctionTests(unittest.TestCase):
 
     def test_simple_sphere(self):
         """ Testing for correct evaluations of the implicit function in sample points """
         """ Should return true/false if point correctly lies in volume of the sphere """
-        my_sphere = vector3.UnitSphere()
+        my_sphere = UnitSphere()
         for i in range(100):
             my_point = np.array([np.random.randn(), np.random.randn(), np.random.randn()])
             flag_outside = np.linalg.norm(my_point) - 1 > 0
@@ -48,7 +161,7 @@ class ImplicitFunctionTests(unittest.TestCase):
         count_inside = 0
         count_outside = 0
 
-        my_cube = vector3.UnitCube1()
+        my_cube = UnitCube1()
         for i in range(100):
             my_point = np.array([np.random.randn(), np.random.randn(), np.random.randn()])*0.5 + 0.5
 
@@ -72,7 +185,7 @@ class ImplicitFunctionTests(unittest.TestCase):
         """ Testing for correct classification of random sample points """
         for i in range(50):
             v = make_random_vector3(1, 1)
-            my_sphere = vector3.UnitSphere()
+            my_sphere = UnitSphere()
             self.assertTrue(almost_equal1(my_sphere.implicitFunction(v), 0.0, TOLERANCE))
 
     def test_gradient_function(self):
@@ -93,82 +206,11 @@ def vectors_parallel_and_direction(v1, v2):
     assert v2.shape == (3,), str(v2.shape)
     cross_prod = np.cross(v1, v2)
     inner_prod = np.dot(np.transpose(v1), v2)
-
-    are_parallel1 = almost_equal3(make_vector3(cross_prod), make_vector3(0, 0, 0), TOLERANCE)
+    are_parallel1 = almost_equal3(cross_prod, make_vector3(0, 0, 0), TOLERANCE)
     are_directed = (inner_prod > 0)
 
     are_parallel2 = np.allclose(cross_prod, np.array([0, 0, 0]), atol=TOLERANCE)
     return (are_parallel1 and are_parallel2, are_directed)
-
-
-class EllipsoidTests(unittest.TestCase):
-
-    def ellipsoid_point_and_gradient(self, m, x, correctGrad, center=None):
-        """ Checks if the point x is on the surface, and if the gradient is correct."""
-        e = vector3.Ellipsoid(m)
-        v = e.implicitFunction(x)
-        g = e.implicitGradient(x)
-        check_vector3(g)
-        correctScalar = 0
-        assert np.abs(v - correctScalar) < TOLERANCE, ("Implicit Function's scalar value incorrect: %2.20f" % (v,))
-
-        msg = "vector3.Ellipsoid(m): "+str(e)
-
-        (are_parallel, are_directed) = vectors_parallel_and_direction(g, correctGrad)
-        self.assertTrue(are_parallel, "Incorrect gradient: not parallel "+msg)
-        self.assertTrue(are_directed, "parallel but opposite directions "+msg)
-
-    def test_ellipsoid_certain_points(self):
-        """Ellipsoid & unit sphere hard coded values"""
-        x = make_vector3(0, 0, 1)
-        m = np.eye(4)  # makeMatrix4( 1,0,0,0, 0,1,0,0,  0,0,1,0 )
-        m[0, 0] = 1
-        self.ellipsoid_point_and_gradient(m, x, make_vector3(0, 0, -1))
-
-        m = np.eye(4)
-        self.ellipsoid_point_and_gradient(m, make_vector3(0, 1, 0), make_vector3(0, -1, 0))
-
-        m = np.eye(4)
-        self.ellipsoid_point_and_gradient(m, make_vector3(1, 0, 0), make_vector3(-1, 0, 0))
-
-        x = make_vector3(0, 0, 2)
-        m = np.eye(4)
-        m[2, 2] = 2
-        self.ellipsoid_point_and_gradient(m, x, make_vector3(0, 0, -1))
-
-        x = make_vector3(2, 0, 0)
-        m = np.eye(4)
-        m[0, 0] = 2
-        self.ellipsoid_point_and_gradient(m, x, make_vector3(-1, 0, 0))
-
-        x = make_vector3(0, 2, 0)
-        m = np.eye(4)
-        m[0, 0] = 2
-        m[1, 1] = 2
-        m[2, 2] = 2
-        self.ellipsoid_point_and_gradient(m, x, make_vector3(0, -2, 0))
-
-    def test_ellipsoid_random_points(self):
-        """Testing hundreds of random points on a sphere of size RADIUS=3"""
-        for i in range(0, 100):
-
-            RADIUS = 3
-            POW = 4  # higher POW will get points more toward parallel to axes
-
-            rcenter = make_random_vector3(1000, 1.0)
-            r0 = make_random_vector3(RADIUS, POW)
-            r = r0 + rcenter
-            assert r.shape[0] == 3
-            x = make_vector3(r[0], r[1], r[2])
-
-            m = np.eye(4) * RADIUS
-            m[0:3, 3] = rcenter[0:3]
-            m[3, 3] = 1
-
-            expected_grad = make_vector3(-r0[0], -r0[1], -r0[2])
-            check_vector3(expected_grad)
-
-            self.ellipsoid_point_and_gradient(m, x, expected_grad)
 
 
 class ImplicitFunctionVectorizedTests(unittest.TestCase):
@@ -177,7 +219,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         """ Checks if the point x is on the surface, and if the gradient is correct."""
 
         e = vector3.Ellipsoid(m)
-        msg = "vector3.Ellipsoid(m): "+str(e)
+        msg = "Ellipsoid(m): "+str(e)
 
         va = e.implicitFunction(xa)
         ga = e.implicitGradient(xa)
@@ -288,7 +330,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
 
         """ numerical """
         x = make_vector3(0, 2, 0)
-        g2 = numerical_utils.numerical_gradient(iobj_v, x, is_vectorized=True)
+        g2 = numerical_gradient(iobj_v, x)
         g = iobj_v.implicitGradient(repeat_vect3(1, x))
         np.set_printoptions(formatter={'all': lambda x: ''+("%2.19f" % (x,))})
         err = np.sum(np.abs(g - g2), axis=1)
@@ -340,45 +382,43 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         assert iobj is not None
 
         if iobj is not None:
-            g_numer_vec = numerical_utils.numerical_gradient(iobj, x, is_vectorized=True)
+            g_numer_vec = numerical_gradient(iobj, x)
 
             from vector3 import ImplicitFunction
             assert issubclass(type(iobj), ImplicitFunction)
             g_vec = iobj.implicitGradient(repeat_vect3(1, x))
 
             np.set_printoptions(formatter={'all': lambda x: ''+("%2.7f" % (x,))})
-
             self.check_two_vectors(g_vec, g_numer_vec, tolerance, "vec numerical versus analytical gradients (%s)" % (objname,))
 
 import example_objects
 
 
-class Examples(unittest.TestCase):
-
-    def test_examples(self):
-        """ dummy test. not necessary"""
-        # iobj = example_objects.bowl_hole()
-        # iobj = example_objects.cube1()
-        # iobj = example_objects.csg_example1()
-        # iobj = example_objects.dice()
-        # iobj = example_objects.rdice()
-
-        usable_examples = example_objects.get_all_examples([2])
-
-        # ["sphere_example", "ell_example1", "blend_example2", "cube_example", "blend_example2_discs", "blend_example1",
-        # "bowl_15_holes", "first_csg", "french_fries", "rdice_vec", "rcube_vec", "screw1", "screw2", "udice_vec", "rods",
-        # "cyl1", "cyl2", "cyl3", "cyl4", "cube_with_cylinders", "union_of_two_cubes", 'crisp_cube_sphere', 'cube_modified']
-        print(usable_examples)
-
-        iobj = example_objects.make_example_vectorized('csg_example1')
-
-        """ Implicit object is not defined. Now going for visualisation. """
-
-        x = make_vector3(0.5, 0.5, 0.5)
-        #   x = make_vector4( 1, 1, 1 )
-        g = iobj.implicitGradient(x)
-        v = iobj.implicitFunction(x)
-
+# class Examples(unittest.TestCase):
+#
+#     def test_examples(self):
+#         """ dummy test. not necessary"""
+#         # iobj = example_objects.bowl_hole()
+#         # iobj = example_objects.cube1()
+#         # iobj = example_objects.csg_example1()
+#         # iobj = example_objects.dice()
+#         # iobj = example_objects.rdice()
+#
+#         usable_examples = example_objects.get_all_examples([2])
+#
+#         # ["sphere_example", "ell_example1", "blend_example2", "cube_example", "blend_example2_discs", "blend_example1",
+#         # "bowl_15_holes", "first_csg", "french_fries", "rdice_vec", "rcube_vec", "screw1", "screw2", "udice_vec", "rods",
+#         # "cyl1", "cyl2", "cyl3", "cyl4", "cube_with_cylinders", "union_of_two_cubes", 'crisp_cube_sphere', 'cube_modified']
+#         print(usable_examples)
+#
+#         iobj = example_objects.make_example_vectorized('french_fries')
+#
+#         """ Implicit object is not defined. Now going for visualisation. """
+#
+#         x = make_vector3(0.5, 0.5, 0.5)
+#         #   x = make_vector4( 1, 1, 1 )
+#         g = iobj.implicitGradient(x)
+#         v = iobj.implicitFunction(x)
 
 
 if __name__ == '__main__':
