@@ -59,6 +59,10 @@ class UnitSphere(PrimitiveBase):
         return True
 
 
+def norm2(v):
+    return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
+
+
 class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
     def __init__(self, size=1.0):
         self.p0 = []
@@ -73,10 +77,7 @@ class UnitCube1(PrimitiveBase, SignedDistanceImplicitPointwise):
             self.p0 += [p0]
             self.n0 += [n0]
 
-            def norm2(v):
-                return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
-
-            assert norm2(self.n0[-1]) - 1 == 0.0
+        assert norm2(self.n0[-1]) - 1 == 0.0
 
         side(1, 0, 0)
         side(-1, 0, 0)

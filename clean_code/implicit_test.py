@@ -2,27 +2,20 @@ import unittest
 
 import numpy as np
 
-from basic_functions import check_vector4, make_vector4, make_vector4_numpy, make_random_vector3, almost_equal1, almost_equal4
+from basic_functions import make_random_vector3, almost_equal1, make_vector3, check_vector3
 
 from implicit_config import TOLERANCE
 
-from primitives import UnitSphere
-from primitives import UnitCube1
-
-import ellipsoid
-
-from basic_functions import check_vector4_vectorized, check_scalar_vectorized, make_random_vector_vectorized, repeat_vect3, make_random_vector3_vectorized
+from basic_functions import check_scalar_vectorized, repeat_vect3, make_random_vector3_vectorized, check_vector3_vectorized
 
 # import simple_blend
 import vector3
 
 import numerical_utils
 
-# import example_objects
-
 NUMERICAL_GRADIENT_TOLERANCE = 0.0001  # 0.00001   # 0.001
 assert NUMERICAL_GRADIENT_TOLERANCE > 0.0000059
-assert NUMERICAL_GRADIENT_TOLERANCE > 0.00000001
+# assert NUMERICAL_GRADIENT_TOLERANCE > 0.00000001
 
 
 def almost_equal3(a, b, TOLERANCE):
@@ -33,22 +26,13 @@ def almost_equal3(a, b, TOLERANCE):
     check_vector3(b)
     return np.sum(np.abs(a - b)) < TOLERANCE
 
-class ImplicitFunctionTests(unittest.TestCase):
 
-    # def setUp(self):
-    #     print ( "Setting up ImplicitTests: _start" )
-    #
-    #     print ( "Setting up ImplicitTests: _end" )
-    #
-    # def tearDown(self):
-    #     print ( "Tearing down ImplicitTests: _start")
-    #     # set up objects or init
-    #     print ("Tearing down ImplicitTests: _end")
+class ImplicitFunctionTests(unittest.TestCase):
 
     def test_simple_sphere(self):
         """ Testing for correct evaluations of the implicit function in sample points """
         """ Should return true/false if point correctly lies in volume of the sphere """
-        my_sphere = UnitSphere()
+        my_sphere = vector3.UnitSphere()
         for i in range(100):
             my_point = np.array([np.random.randn(), np.random.randn(), np.random.randn()])
             flag_outside = np.linalg.norm(my_point) - 1 > 0
@@ -63,29 +47,23 @@ class ImplicitFunctionTests(unittest.TestCase):
         """  Points inside or outside the unit cube [0,1]^3 """
         count_inside = 0
         count_outside = 0
-        my_cube = UnitCube1()
-        my_cube_vec = vector3.UnitCube1()
+
+        my_cube = vector3.UnitCube1()
         for i in range(100):
             my_point = np.array([np.random.randn(), np.random.randn(), np.random.randn()])*0.5 + 0.5
-            # print(my_point)
+
             is_inside = (
                 (my_point[0] >= 0-0.5) and (my_point[0] <= 1.0-0.5) and
                 (my_point[1] >= 0-0.5) and (my_point[1] <= 1.0-0.5) and
                 (my_point[2] >= 0-0.5) and (my_point[2] <= 1.0-0.5))
-            # if is_inside:
-            #    print (my_point[0:3])
+
             if is_inside:
                 count_inside += 1
             else:
                 count_outside += 1
 
-            v = my_cube.implicitFunction(my_point)
-            # print( is_inside, v )
+            v2 = my_cube.implicitFunction(repeat_vect3(1, my_point))
 
-            self.assertEqual(is_inside, v >= 0, 'A point on surface is wrongly classified')
-
-            v2 = my_cube_vec.implicitFunction(repeat_vect3(1, my_point)
-            # print(v2, my_point)
             self.assertEqual(is_inside, v2 >= 0, 'A point on surface is wrongly classified')
 
         print "point count: inside, outside = ", count_inside, ",", count_outside
@@ -93,8 +71,8 @@ class ImplicitFunctionTests(unittest.TestCase):
     def test_correctly_classifies_random_points(self):
         """ Testing for correct classification of random sample points """
         for i in range(50):
-            v = make_random_vector(1, 1)
-            my_sphere  = UnitSphere()
+            v = make_random_vector3(1, 1)
+            my_sphere = vector3.UnitSphere()
             self.assertTrue(almost_equal1(my_sphere.implicitFunction(v), 0.0, TOLERANCE))
 
     def test_gradient_function(self):
@@ -108,20 +86,20 @@ class ImplicitFunctionTests(unittest.TestCase):
 class ImplicitObjectTests(unittest.TestCase):
     pass
 
+
 def vectors_parallel_and_direction(v1, v2):
-    # check_vector3(v1)
-    # check_vector3(v2)
-    # print(v1.shape)
+
     assert v1.shape == (3,), str(v1.shape)
     assert v2.shape == (3,), str(v2.shape)
-    cross_prod = np.cross(v1[0:3], v2[0:3])
-    inner_prod = np.dot(np.transpose(v1[0:3]), v2[0:3])
+    cross_prod = np.cross(v1, v2)
+    inner_prod = np.dot(np.transpose(v1), v2)
 
     are_parallel1 = almost_equal3(make_vector3(cross_prod), make_vector3(0, 0, 0), TOLERANCE)
-    are_directed = (inner_prod > 0)  # no tolerance is needed
+    are_directed = (inner_prod > 0)
 
     are_parallel2 = np.allclose(cross_prod, np.array([0, 0, 0]), atol=TOLERANCE)
     return (are_parallel1 and are_parallel2, are_directed)
+
 
 class EllipsoidTests(unittest.TestCase):
 
@@ -133,10 +111,10 @@ class EllipsoidTests(unittest.TestCase):
         check_vector3(g)
         correctScalar = 0
         assert np.abs(v - correctScalar) < TOLERANCE, ("Implicit Function's scalar value incorrect: %2.20f" % (v,))
-        #assert np.allclose( g, correctGrad , atol=TOLERANCE ) , "Incorrect gradient"
-        msg = "nonvec.Ellipsoid(m): "+str(e)
 
-        (are_parallel,are_directed) = vectors_parallel_and_direction(g, correctGrad)
+        msg = "vector3.Ellipsoid(m): "+str(e)
+
+        (are_parallel, are_directed) = vectors_parallel_and_direction(g, correctGrad)
         self.assertTrue(are_parallel, "Incorrect gradient: not parallel "+msg)
         self.assertTrue(are_directed, "parallel but opposite directions "+msg)
 
@@ -212,7 +190,6 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
 
         correctScalar = 0
         less_a = np.less(np.abs(va - correctScalar), TOLERANCE)
-        #print(va - correctScalar)
 
         if not np.all(less_a):
             print("Some error:")
@@ -224,9 +201,9 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         self.assertTrue(np.all(less_a), ("Implicit Function's scalar value incorrect"))
 
         for i in range(ga.shape[0]):
-            (are_parallel,are_directed) = vectors_parallel_and_direction(ga[i, :], correctGrad[i, :])
+            (are_parallel, are_directed) = vectors_parallel_and_direction(ga[i, :], correctGrad[i, :])
             self.assertTrue(are_parallel, "Incorrect gradient: not parallel "+msg)
-            self.assertTrue( are_directed, "parallel but opposite directions "+msg)
+            self.assertTrue(are_directed, "parallel but opposite directions "+msg)
 
     def test_ellipsoid_certain_points(self):
         """ Ellipsoid using vectorized calculations """
@@ -240,20 +217,20 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         self.ellipsoid_point_and_gradient_vectorized(m, xa, ga2)
 
         m = np.eye(4)
-        self.ellipsoid_point_and_gradient_vectorized(m, repeat_vect3(N, make_vector4(0, 1, 0)), repeat_vect3(N, make_vector4(0, -1, 0)))
+        self.ellipsoid_point_and_gradient_vectorized(m, repeat_vect3(N, make_vector3(0, 1, 0)), repeat_vect3(N, make_vector3(0, -1, 0)))
 
         m = np.eye(4)
-        self.ellipsoid_point_and_gradient_vectorized(m, repeat_vect3(N, make_vector4(1, 0, 0)), repeat_vect3(N, make_vector4(-1, 0, 0)))
+        self.ellipsoid_point_and_gradient_vectorized(m, repeat_vect3(N, make_vector3(1, 0, 0)), repeat_vect3(N, make_vector3(-1, 0, 0)))
 
         xa = repeat_vect3(N, make_vector3(0, 0, 2))
         m = np.eye(4)
         m[2, 2] = 2
-        self.ellipsoid_point_and_gradient_vectorized(m, xa, repeat_vect3(N, make_vector4(0, 0, -1)))
+        self.ellipsoid_point_and_gradient_vectorized(m, xa, repeat_vect3(N, make_vector3(0, 0, -1)))
 
         xa = repeat_vect3(N, make_vector3(2, 0, 0))
         m = np.eye(4)
         m[0, 0] = 2
-        self.ellipsoid_point_and_gradient_vectorized(m, xa, repeat_vect3(N, make_vector4(-1, 0, 0)))
+        self.ellipsoid_point_and_gradient_vectorized(m, xa, repeat_vect3(N, make_vector3(-1, 0, 0)))
 
         xa = repeat_vect3(N, make_vector3(0, 2, 0))
         m = np.eye(4)
@@ -270,20 +247,19 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
             POW = 4  # higher POW will get points more toward parallel to axes
             N = 500
 
-            #rcenter = make_random_vector_vectorized(N, 1000, 1.0)
             rcenter = make_random_vector3(1000, 1.0)
             centers_a = repeat_vect3(N, rcenter)
             r0 = make_random_vector3_vectorized(N, RADIUS, POW)
             r = r0 + centers_a
 
-            assert r.shape[1] == 3  # generates vector4 , but the non vectorized version generates vector 3
-            xa = r  # make_vector4( r[0], r[1], r[2] )
+            assert r.shape[1] == 3
+            xa = r
 
             m = np.eye(4) * RADIUS
-            m[0:3, 3] = rcenter[0:3]
+            m[0:3, 3] = rcenter
             m[3, 3] = 1
 
-            expected_grad = -r0  # r - centers_a #repeat_vect4(N, make_vector4( r0[0], r0[1], r0[2] ) )
+            expected_grad = -r0
             check_vector3_vectorized(expected_grad)
 
             self.ellipsoid_point_and_gradient_vectorized(m, xa, expected_grad)
@@ -298,7 +274,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
             m2[0:3, 3] = [2.5, 0, 0]
             m2[3, 3] = 1
 
-            iobj_v = vectorized.SimpleBlend(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2))
+            iobj_v = vector3.SimpleBlend(vector3.Ellipsoid(m1), vector3.Ellipsoid(m2))
             return iobj_v
 
         iobj_v = blend2()
@@ -306,10 +282,9 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
 
         examples_list = example_objects.get_all_examples([2])
         for example_name in examples_list:
-            print("example_name = ",example_name)
-            iobj_vev = example_objects.make_example_vectorized(example_name)
-            self.check_gradient_function(iobj_vev, iobj_nonvec=None, objname=example_name)
-
+            print("example_name = ", example_name)
+            iobj = example_objects.make_example_vectorized(example_name)
+            self.check_gradient_function(iobj, objname=example_name)
 
         """ numerical """
         x = make_vector3(0, 2, 0)
@@ -320,36 +295,32 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         err_max = np.max(np.abs(g - g2), axis=1)
         err_rel = np.sum(np.abs(g - g2), axis=1) / np.mean(np.abs(g))
         print(err, err_max, err_rel)
-        #print(err)
+        # print(err)
         self.assertTrue(np.all(err < NUMERICAL_GRADIENT_TOLERANCE))
 
-
-    def check_gradient_function(self, iobj_vec, tolerance=NUMERICAL_GRADIENT_TOLERANCE, iobj_nonvec=None, objname=None):
+    def check_gradient_function(self, iobj, tolerance=NUMERICAL_GRADIENT_TOLERANCE, objname=None):
         """testing the gradient on 100 random points """
 
         assert (-1)*-tolerance > 0, "should be a number"
 
-        if not iobj_vec is None:
+        if iobj is not None:
             from vector3 import ImplicitFunction
-            assert issubclass(type(iobj_vec), ImplicitFunction)
-            import vector3
-            assert vector3.is_implicit_type(iobj_vec)
+            assert issubclass(type(iobj), ImplicitFunction)
 
         for i in range(100):
             radius = 10  # 10/5
             x = make_random_vector3(radius, 1, type="randn")  # [0:3]
             x = x * np.random.randn() * 5
-            self.check_gradient_function_point1(iobj_vec, x, tolerance, iobj_nonvec, objname)
+            self.check_gradient_function_point1(iobj, x, tolerance, objname)
 
         x = make_vector3(0, 2, 0)
-        self.check_gradient_function_point1(iobj_vec, x, tolerance, iobj_nonvec, objname)
+        self.check_gradient_function_point1(iobj, x, tolerance, objname)
 
     def check_two_vectors(self, a, b, tolerance, description):
         err = np.sum(np.abs(a - b), axis=1)
         err_max = np.max(np.abs(a - b), axis=1)
         err_rel = np.sum(np.abs(a - b), axis=1) / np.mean(np.abs(a))
         if err >= tolerance:
-            #print("x: ", x)
             print("err: ", err)
             print("err(max): ", err_max, "  err_rel:", err_rel)
             print("a,g_numerical: ", a, b)
@@ -357,86 +328,49 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         err_n = np.sum(np.abs(a - b), axis=1)
         if np.any(err_n >= tolerance):
             print(np.any(err_n < tolerance), "aaa")
-            #print(err_n.shape, "*******")
-            print(a,b, a - b)
-        #assert err_n < tolerance
-        self.assertTrue(np.all(err_n < tolerance), msg="absolute error exceeds: %f %s"%(np.max(err_n),description,))
-        self.assertTrue(np.all(err < tolerance), msg=" %s"%(description,))
+            # print(err_n.shape, "*******")
+            print(a, b, a - b)
 
+        self.assertTrue(np.all(err_n < tolerance), msg="absolute error exceeds: %f %s" % (np.max(err_n), description,))
+        self.assertTrue(np.all(err < tolerance), msg=" %s" % (description,))
 
-    def check_gradient_function_point1(self, iobj_vec, x, tolerance, iobj_nonvec, objname):
+    def check_gradient_function_point1(self, iobj, x, tolerance, objname):
         """Tests the gradient using numerical method, verify with analytical and vectorized-analytical"""
 
-        assert not iobj_vec is None or not iobj_nonvec is None
+        assert iobj is not None
 
-        if not iobj_vec is None:
-            #try:
-            g_numer_vec = numerical_utils.numerical_gradient(iobj_vec, x, is_vectorized=True)
-            #if g_numer_vec == "sharp-edge":
-            #    return
-        if not iobj_nonvec is None:
-            g_numer_nonvec = numerical_utils.numerical_gradient(iobj_nonvec, x, is_vectorized=False)
+        if iobj is not None:
+            g_numer_vec = numerical_utils.numerical_gradient(iobj, x, is_vectorized=True)
 
-        if not iobj_vec is None:
-            from vectorized import ImplicitFunctionVectorized
-            assert issubclass(type(iobj_vec), ImplicitFunctionVectorized)
-            g_vec = iobj_vec.implicitGradient(repeat_vect4(1, x))
+            from vector3 import ImplicitFunction
+            assert issubclass(type(iobj), ImplicitFunction)
+            g_vec = iobj.implicitGradient(repeat_vect3(1, x))
 
-        if not iobj_nonvec is None:
-            from nonvec import ImplicitFunctionPointwise
-            assert issubclass(type(iobj_nonvec), ImplicitFunctionPointwise)
+            np.set_printoptions(formatter={'all': lambda x: ''+("%2.7f" % (x,))})
 
-            g_nonvec = iobj_nonvec.implicitGradient(  x )
-            self.check_two_vectors(g_nonvec, g_numer_nonvec, tolerance, "nonvec numerical versus analytical gradients (%s)"%(objname,))
-            #err_n = np.sum(np.abs(g_nonvec - g_numer_vec), axis=1)
-            #if(err_n >= tolerance):
-            #    print(g_nonvec,g_numer_vec, g_nonvec - g_numer_vec)
-            #assert err_n < tolerance
-
-        if not iobj_vec is None and not iobj_nonvec is None:
-            #err_n2 = np.sum(np.abs(g_nonvec - g_vec), axis=1)
-            #assert err_n < tolerance
-            self.check_two_vectors(g_nonvec, g_vec, tolerance, "nonvec versus vec gradients (%s)"%(objname,))
-
-        np.set_printoptions(formatter={'all': lambda x: ''+("%2.7f" % (x,))})
-        #print(g_vec, " =?= ", g_numer_vec)
-
-        if not iobj_vec is None:
-            self.check_two_vectors(g_vec, g_numer_vec, tolerance, "vec numerical versus analytical gradients (%s)"%(objname,))
-
-        if not iobj_vec is None and not iobj_nonvec is None:
-            self.check_two_vectors( g_numer_nonvec,  g_numer_vec, tolerance, "nonvec versus vec numerical gradients (%s)"%(objname,))
-
-        #self.assertTrue(np.all(err < tolerance))
-        #except:
-        #    print("point skipped because on a sharp edge")
-
-
+            self.check_two_vectors(g_vec, g_numer_vec, tolerance, "vec numerical versus analytical gradients (%s)" % (objname,))
 
 import example_objects
 
 
-
 class Examples(unittest.TestCase):
-    def test_creation_of_all_Examples(self):
-        example_objects.test_creation_of_all_Examples()
 
     def test_examples(self):
         """ dummy test. not necessary"""
-        #iobj = example_objects.bowl_hole()
-        #iobj = example_objects.cube1()
-        #iobj = example_objects.csg_example1()
-        #iobj = example_objects.dice()
-        #iobj = example_objects.rdice()
-        #iobj = example_objects.make_example_nonvec("rdice")
+        # iobj = example_objects.bowl_hole()
+        # iobj = example_objects.cube1()
+        # iobj = example_objects.csg_example1()
+        # iobj = example_objects.dice()
+        # iobj = example_objects.rdice()
 
         usable_examples = example_objects.get_all_examples([2])
 
-        #['rods', 'bowl_hole', 'dice', 'csg_example1', 'rdice', 'cube1']
+        # ["sphere_example", "ell_example1", "blend_example2", "cube_example", "blend_example2_discs", "blend_example1",
+        # "bowl_15_holes", "first_csg", "french_fries", "rdice_vec", "rcube_vec", "screw1", "screw2", "udice_vec", "rods",
+        # "cyl1", "cyl2", "cyl3", "cyl4", "cube_with_cylinders", "union_of_two_cubes", 'crisp_cube_sphere', 'cube_modified']
         print(usable_examples)
-        #iobj = example_objects.make_example_nonvec(usable_examples[1])
-        #iobj = example_objects.make_example_nonvec('rods')
-        iobj = example_objects.make_example_nonvec('csg_example1')
+
+        iobj = example_objects.make_example_vectorized('csg_example1')
 
         """ Implicit object is not defined. Now going for visualisation. """
 
@@ -445,8 +379,7 @@ class Examples(unittest.TestCase):
         g = iobj.implicitGradient(x)
         v = iobj.implicitFunction(x)
 
-        #print(v)
-        #print(g)
+
 
 if __name__ == '__main__':
     unittest.main()
