@@ -108,27 +108,32 @@ def check_faces(faces):
     #     assert np.max(facets, axis=None) < B
     #     assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
     #     assert all_edges_triples.shape == (facets.shape[0], 3)
-    #     return all_edges_triples
+    #     return all_edges_triples, e012
 
 
-    #edg = get_edge_code_triples_of_mesh(faces)
+    #edg, fe3  = get_edge_code_triples_of_mesh(faces)
     """cannot refactor: fe3 is used """
-    #>begin of refactorable region
-    #unique edges
-    f0 = faces[:, np.newaxis, 0:2]
-    f1 = faces[:, np.newaxis, 1:3]
-    f2 = faces[:, np.newaxis, [0, 2]]
-    f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
-    f1 = f1.copy(); f1.sort(axis=2)
-    f2 = f2.copy(); f2.sort(axis=2)
+    if True:
+        #>begin of refactorable region
+        #unique edges
+        f0 = faces[:, np.newaxis, 0:2]
+        f1 = faces[:, np.newaxis, 1:3]
+        f2 = faces[:, np.newaxis, [0, 2]]
+        f0 = f0.copy(); f0.sort(axis=2)  # changes the order in faces!
+        f1 = f1.copy(); f1.sort(axis=2)
+        f2 = f2.copy(); f2.sort(axis=2)
 
-    fe3 = np.concatenate( (f0, f1, f2), axis=1 )  # shape==(:,3,2)
-    BB = np.array([[1L, B]], dtype=np.int64).transpose().ravel()  # 2x-
-    edg = np.dot(fe3, BB)  # fx3
-    assert edg.dtype == np.int64
-    assert edg.size == 0 or np.min(edg) >= 0
-    assert np.max(faces, axis=None) < B
-    #< end of refactorable region
+        fe3 = np.concatenate( (f0, f1, f2), axis=1 )  # shape==(:,3,2)
+        BB = np.array([[1L, B]], dtype=np.int64).transpose().ravel()  # 2x-
+        edg = np.dot(fe3, BB)  # fx3
+        assert edg.dtype == np.int64
+        assert edg.size == 0 or np.min(edg) >= 0
+        assert np.max(faces, axis=None) < B
+        #< end of refactorable region
+
+    edg_1, fe3_1 = get_edge_code_triples_of_mesh(faces)
+    assert np.allclose(edg_1, edg)
+    assert np.allclose(fe3, fe3_1)
 
     #Sort edges to detect repeated edges. Each edge should appear exactly twice.
     q = edg.ravel().copy()
@@ -158,17 +163,6 @@ def check_faces(faces):
     if not np.all(np.diff(q)[::2] == 0):
         set_trace()
         raise TroubledMesh("Edges are not paired")
-        #print "q"
-        #print q.reshape( (q.size, 1) )
-
-        #for i in range(q.size):
-        #    print q[i],
-        #print
-
-        #dd = np.diff(q)[::2]
-        #for i in range(dd.size):
-        #    print dd[i],
-        #print
 
         i1 = (np.diff(q)[::2] != 0)
         #print q[::2][i1]
@@ -736,6 +730,10 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
     return new_verts, new_faces
 
 
+def mesh_test():
+    check_faces(facets)
+
+
 global still_fixed
 still_fixed = False
 from ipdb import set_trace
@@ -1115,7 +1113,7 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
             #print "did subdiv sides ", facets.shape, edge_array.shape
 
 
-            e3 = get_edge_code_triples_of_mesh(facets)  # f x 3
+            e3, dummy = get_edge_code_triples_of_mesh(facets)  # f x 3
             e01 = e3[:, 0] == e3[:, 1]
             e02 = e3[:, 0] == e3[:, 2]
             e12 = e3[:, 1] == e3[:, 2]
@@ -1132,7 +1130,7 @@ def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
 
             #set_trace()
             #set_trace()
-            e3 = get_edge_code_triples_of_mesh(facets)
+            e3, dummy = get_edge_code_triples_of_mesh(facets)
             er = e3.ravel()
             #np.intersect1d(er, edge_array)
             bl = np.lib.arraysetops.in1d(er, edge_array)
@@ -2214,7 +2212,7 @@ def get_edge_code_triples_of_mesh(facets):
     assert np.max(facets, axis=None) < B
     assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
     assert all_edges_triples.shape == (facets.shape[0], 3)
-    return all_edges_triples
+    return all_edges_triples, e012
 
 
 def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, careful_for_twosides=True):
@@ -2246,7 +2244,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
         exit()
     assert len(el) == 0, "assert edges_with_1_side is subset of midpoint_map"
 
-    all_edges_triples = get_edge_code_triples_of_mesh(facets)
+    all_edges_triples, dummy = get_edge_code_triples_of_mesh(facets)
 
     all_edge_triples_ravel = all_edges_triples.ravel()  # is a view
     #print all_edges_triples.shape
@@ -2684,6 +2682,8 @@ def demo_everything(options):
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old="3")
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
+
+    check_faces(facets)
 
     if False:
      display_simple_using_mayavi_2( [(verts, facets), ] * 3,
