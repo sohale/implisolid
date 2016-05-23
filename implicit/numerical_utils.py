@@ -582,23 +582,29 @@ def cubic_root_x1():
 
     print "should be zero: ",a*x1**3+b*x1**2+c*x1+d
 
+from utils import flush, optimised_used
+
+TEST_ON = not optimised_used()
 
 import sys
 def numerical_gradient_vectorized_v1(iobj, x):
     check_vector4_vectorized(x)
-    print "numerical_gradient1",; sys.stdout.flush()
-    count = x.shape[0]
-    g = np.zeros((count, 4))
-    for i in range(x.shape[0]):
-        v = x[i, 0:4]
-        # inefficient: not vectorised
-        g[i, :] = numerical_gradient(iobj, v, is_vectorized=True)
-    assert not np.any(np.isnan(g), axis=None)
-    print "numerical_gradient2",; sys.stdout.flush()
+    if TEST_ON:
+        print "numerical_gradient1",; flush()
+        count = x.shape[0]
+        g = np.zeros((count, 4))
+        for i in range(x.shape[0]):
+            v = x[i, 0:4]
+            # inefficient: not vectorised
+            g[i, :] = numerical_gradient(iobj, v, is_vectorized=True)
+        assert not np.any(np.isnan(g), axis=None)
+
+    print "numerical_gradient2",; flush()
     g2 = numerical_gradient_vectorized_v2(iobj, x.copy())
-    assert np.allclose(g, g2)
-    print "done"; sys.stdout.flush()
-    return g
+    if TEST_ON:
+        assert np.allclose(g, g2)
+    print "done"; flush()
+    return g2
 
 
 from lib import finite_diff_weights

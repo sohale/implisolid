@@ -1764,7 +1764,6 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
         mm = - iobj.implicitGradient(q4)[:, 0:3] ; del q4
         assert mm.shape == (nf*4, 3)
         mmt = mm.reshape(nf, 4, 3); del mm  # nfx4x3
-        set_trace()
         mmt_norm = np.linalg.norm(mmt, axis=2, keepdims=True)
         mmt_norm[mmt_norm < MIN_NORMAL_LEN] = 1.
         mmt_hat = mmt / mmt_norm ; del mmt; del mmt_norm
