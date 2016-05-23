@@ -301,13 +301,13 @@ def rods(scale):
         iobj  \
             .move(-0, -0.3*scale, -1.0*scale) \
             .resize(2) \
-            .rotate(40, along=(1, 1, 0), units="deg") \
+            .rotate(40, along=make_vector3(1, 1, 0), units="deg") \
             .move(0.5*scale, 0, 0)
         return iobj
 
     u = None
     for i in range(17):
-        c = rod().rotate(-30 * i, along=(0, 0, 1), units="deg")
+        c = rod().rotate(-30 * i, along=make_vector3(0, 0, 1), units="deg")
         if u is None:
             u = c
         else:
