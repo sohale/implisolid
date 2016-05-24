@@ -81,6 +81,82 @@ def weights(k, x0, xs):
     return w[k, :]
 
 
+def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
+    """ A proper vectorized implementation. See numerical_gradient() """
+    # Note: 0.1 is not enough for delta_t
+    import ipdb; ipdb.set_trace()
+    check_vector3_vectorized(pos0)
+    assert issubclass(type(iobj), vector3.ImplicitFunctionVectorized)
+    assert pos0.ndim == 2
+    if pos0.shape[0] == 0:
+        return np.zeros((0, 3))
+
+    m = order  # sample points: -m,...,-1,0,1,2,...,+m
+
+    sample_points = range(-m, m+1)
+    n = m*2+1
+
+    x0 = 0
+    findiff_weights = weights(k=1, x0=x0, xs=np.array(sample_points) * delta_t)
+    del x0
+
+    assert n < 20
+    pos0_3 = pos0[:, np.newaxis, :]
+    pos = np.tile(pos0_3, (1, 3*n, 1))
+    assert not issubclass(pos.dtype.type, np.integer)
+
+    dx = make_vector3(1, 0, 0)[np.newaxis, np.newaxis, :]
+    dy = make_vector3(0, 1, 0)[np.newaxis, np.newaxis, :]
+    dz = make_vector3(0, 0, 1)[np.newaxis, np.newaxis, :]
+    dxyz = [dx, dy, dz]
+
+    ci = 0
+    for d in range(3):
+        dd = dxyz[d]
+        for i in sample_points:
+            pos[:, ci, :] = pos[:, ci, :] + (dd * (delta_t * float(i)))
+
+            assert ci < 3*n
+            ci += 1
+
+    vsize = pos0.shape[0]
+
+    v = iobj.implicitFunction(pos.reshape((vsize * 3*n), 3))    # v .shape: (3,11)
+    v3 = np.reshape(v, (vsize, 3, n), order='C')  # v3 .shape: (11,)
+
+    if True:
+        Lipchitz_B = 50  # Lipschitz constant
+        Lipchitz_beta = 1  # order. Keep it 1
+
+        b_h_beta = Lipchitz_B*(np.abs(delta_t)**Lipchitz_beta)
+
+        d0 = np.abs(np.diff(v3, axis=1+1))
+        nonsmooth_ness = d0 / (np.abs(delta_t)**Lipchitz_beta)
+
+        del d0, b_h_beta, Lipchitz_beta, Lipchitz_B
+
+        # print nonsmooth_ness.shape
+        # set_trace()
+        if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
+            print "warning: nonsmooth ",
+        del nonsmooth_ness
+
+    if False:
+
+        d = np.abs(np.diff(v3, n=1, axis=1+1)) / np.abs(delta_t)
+        d = d - np.tile(np.mean(d, axis=1+1, keepdims=True), (1, 1, d.shape[1+1]))
+        d = np.abs(d) / np.abs(delta_t)
+        d = d - np.tile(np.mean(d, axis=1+1, keepdims=True), (1, 1, d.shape[1+1]))
+        del d
+
+
+    """ Calculating the numerical derivative using finite difference (convolution with weights) """
+    # convolusion
+    grad_cnv = np.dot(v3, findiff_weights)  # "sum product over the last axis of a and the second-to-last of b"
+
+    assert not np.any(np.isnan(grad_cnv), axis=None)
+    return grad_cnv
+
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5):
 
     check_vector3(pos0)
