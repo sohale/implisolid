@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from basic_functions import check_vector3
+from basic_functions import check_vector3_vectorized
 
 from vtk_mc import vtk_mc
 
@@ -10,21 +10,11 @@ import math
 import example_objects
 import sys
 
-import vector3
 # import simple_blend
 
 NUMERICAL_GRADIENT_TOLERANCE = 0.0001  # 0.00001   # 0.001
 assert NUMERICAL_GRADIENT_TOLERANCE > 0.0000059
 # assert NUMERICAL_GRADIENT_TOLERANCE > 0.00000001
-
-
-def almost_equal3(a, b, TOLERANCE):
-    assert not np.any(np.isnan(a.ravel()))
-    assert not np.any(np.isinf(b.ravel()))
-    assert not issubclass(a.dtype.type, np.integer)
-    check_vector3(a)
-    check_vector3(b)
-    return np.sum(np.abs(a - b)) < TOLERANCE
 
 
 class ImplicitFunctionTests(unittest.TestCase):
@@ -80,10 +70,12 @@ class ImplicitFunctionTests(unittest.TestCase):
             average_edge = compute_average_edge_length(verts, facets)
 
             old_centroids = np.mean(verts[facets[:], :], axis=1)
+            check_vector3_vectorized(old_centroids)
 
             new_centroids = old_centroids.copy()
 
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge)
+            check_vector3_vectorized(new_centroids)
 
             f = iobj.implicitFunction(new_centroids)
             for i in range(new_centroids.shape[0]):
