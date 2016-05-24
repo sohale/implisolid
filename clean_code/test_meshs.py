@@ -10,7 +10,7 @@ import sys
 B = 1000000L
 CHECK_PAIRED = True
 
-# test the correctness of all meshs, work for all objects except blend_example2_discs, screw1 and screw2
+# test the correctness of all meshs, work for all objects except screw1 and screw2
 
 
 def check_mesh(facets):
@@ -238,7 +238,6 @@ class ImplicitFunctionTests(unittest.TestCase):
             sys.stdout.flush()
 
             check_mesh(facets)
-
 
 
 if __name__ == '__main__':

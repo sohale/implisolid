@@ -6,11 +6,10 @@ import vector3
 from implicit_config import config
 
 
-def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorized="unspecified"):
+def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5):
+
     check_vector3(pos0)
-    assert is_vectorized != "unspecified"
-    if is_vectorized:
-        assert issubclass(type(iobj), vector3.ImplicitFunction)
+    assert issubclass(type(iobj), vector3.ImplicitFunction)
     m = order
 
     _VERBOSE = False
@@ -37,13 +36,8 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
             dd = dxyz[d]
             pos[ci, :] = pos[ci, :] + (dd * delta_t * float(i))
             ci += 1
-    if is_vectorized:
-        v = iobj.implicitFunction(pos)
-    else:
-        v = np.zeros((pos.shape[0],))
-        for i in range(pos.shape[0]):
-            v1 = iobj.implicitFunction(pos[i, :])
-            v[i] = v1
+
+    v = iobj.implicitFunction(pos)
     v3 = np.reshape(v, (3, n), order='C')
 
     Lipchitz_beta = 1
@@ -183,7 +177,7 @@ class Screw(ImplicitFunction):
         g = np.zeros((count, 3))
         for i in range(x.shape[0]):
             v = x[i, 0:3]
-            g[i, :] = numerical_gradient(self, v, is_vectorized=True)
+            g[i, :] = numerical_gradient(self, v)
         return g
 
     def curvature(self, x):
