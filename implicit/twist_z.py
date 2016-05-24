@@ -5,7 +5,7 @@ class Transformable1(object):
 
 from implicit_vectorized import ImplicitFunctionVectorized
 import numpy as np
-from basic_types import check_vector4_vectorized, make_vector4, check_vector4, check_scalar_vectorized
+from basic_types import check_vector4_vectorized, make_vector4, check_vector4, check_scalar_vectorized, make_inverse
 
 #ImplicitFuncitonVectorized3
 class TwistZ(ImplicitFunctionVectorized, Transformable1):
@@ -32,6 +32,9 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
         #    m = np.eye(4)
         #check_matrix4(m)
         #self.matrix = m.copy()
+        #self.invmatrix = make_inverse(m)
+
+        #m = np.eye(4)
         #self.invmatrix = make_inverse(m)
 
         assert isinstance(self.base_object, ImplicitFunctionVectorized)
@@ -103,7 +106,7 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
         check_scalar_vectorized(v)
         return v
 
-    def implicitGradient(self, p):  # -> Vector3D :
+    #def implicitGradient(self, p):  # -> Vector3D :
         #check_vector4_vectorized(p)
         #tp = np.dot(self.invmatrix, vec3.make_v4(np.transpose(p)))
         #tp = np.transpose(tp)
@@ -115,7 +118,24 @@ class TwistZ(ImplicitFunctionVectorized, Transformable1):
         # #v4[:, 3] = 1
         #check_vector4_vectorized(v4)
         #return v4
-        return None
+
+    def implicitGradient__(self, p):  # -> Vector3D :
+        check_vector4_vectorized(p)
+        p = np.concatenate((p, np.ones((p.shape[0], 1))), axis=1)
+        tp = np.dot(self.invmatrix, np.transpose(p))
+        tp = np.transpose(tp)
+        #tp = tp[:, :3]
+        g = self.base_object.implicitGradient(tp)
+
+        check_vector4_vectorized(g)
+
+        g = np.concatenate((g, np.ones((g.shape[0], 1))), axis=1)
+        v4 = np.dot(np.transpose(self.invmatrix), (np.transpose(g)))
+        v4 = np.transpose(v4)
+        #v3 = v4[:, :3]
+
+        check_vector4_vectorized(v4)
+        return v4
 
     def hessianMatrix(self, p):
         #warning: not tested

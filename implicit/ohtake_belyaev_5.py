@@ -1224,7 +1224,7 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
         za = np.abs(facet_areas) < MIN_AREA
         if np.sum(za) > 0:
             print "warning: zero areas at: ", np.nonzero(za)[0].tolist()
-            print facet_areas[za]
+            #print facet_areas[za]
             facet_areas[za] = 0.  # return value
             #at_autobroadcast[za] = 0.  # for assert
 
@@ -2685,13 +2685,15 @@ def demo_everything(options):
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
         #"rcube_vec"  #
-        "rdice_vec"  #
+        #"rdice_vec"  #
         #"cube_example" # problem: zero facet areas.  otherwise, it works.
         #"ell_example1"  #+
         #"bowl_15_holes"  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized"
         #"cyl4"
+        "cyl2"
         )
+
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
@@ -2699,12 +2701,26 @@ def demo_everything(options):
     STEPSIZE = STEPSIZE / 2.
     #STEPSIZE = STEPSIZE / 2.
 
+    #cyl2 only
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = iobj[1]
+    #iobj = iobj[0]
+    #STEPSIZE = STEPSIZE * 1.5
+    #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
+    #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)
+
     #cage "cyl4" only
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0)
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0 )  # too big
+    #too many centroids for this computer: 108560, 3582480
 
     #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
-    if True:
+
+
+    iobj = make_example_vectorized("screw1")
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)
+
+    if False:
         iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()
         STEPSIZE = STEPSIZE / 2.
         iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = cube_with_cylinders(1)
@@ -2738,15 +2754,16 @@ def demo_everything(options):
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-    check_faces(facets)
 
-    if False:
+    if True:
      display_simple_using_mayavi_2( [(verts, facets), ] * 3,
        pointcloud_list=[],
        mayavi_wireframe=[False, True, True], opacity=[0.2, 1, 0.3], gradients_at=None, separate_panels=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN,RANGE_MAX),
        add_noise=[0.05, 0, 0.05], noise_added_before_broadcast=True  )
     #exit()
+
+    check_faces(facets)
 
     #display_simple_using_mayavi_2( [(verts, facets), ],
     #   pointcloud_list=[ ], pointcloud_opacity=0.2,
@@ -2756,6 +2773,10 @@ def demo_everything(options):
     #exit()
 
     for rep in range(15):
+
+        if facets.shape[0] > 90000:
+            print "Too many faces. Quitting"
+            raise TroubledMesh("Too many (>100K) faces: triangles="+str(facets.shape[0])+" vertices="+str(verts.shape[0]))
 
         #mesh_correction
         #take_it_easy

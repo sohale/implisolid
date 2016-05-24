@@ -587,6 +587,7 @@ examples = {
     "screw3": 2,
     "udice_vec": 2,
     "cyl4": 2,  # spiral cage
+    "cyl2": 2,
     "cube_with_cylinders" : 2
 }
 
@@ -743,7 +744,7 @@ def screw3(SCALE=1.):
 ##################################################
 
 from vectorized import SimpleCylinder
-
+from basic_types import check_vector4
 
 def cyl1():
     SCALE = 8.  # mm
@@ -801,8 +802,8 @@ def rotation_matrix(angle, along, units="rad", around=None):
         # return self
 
 
-def cyl2():
-    SCALE = 8.  # mm
+def cyl2(scale=1.):
+    SCALE = scale*1.  # mm
 
     un = None
     M = 5 + 1
@@ -860,14 +861,20 @@ def cyl2():
         from vectorized import Screw
         c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 
-        c = vectorized.CrispUnion(c1, c)
+        #c = vectorized.CrispUnion(c1, c)
+
+        #c = SimpleCylinder(A, w, u, radius, radius, c_len)
+        CYL_ONLY = True
+        if CYL_ONLY:
+            c = c1
 
         if un is None:
             un = c
         else:
             un = vectorized.CrispUnion(un, c)
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
-    return un, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    #return un, (RANGE_MIN, RANGE_MAX, STEPSIZE)
+    return un
 
 
 def cage_rods(rod_r, rod_len, cage_r, N):

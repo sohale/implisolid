@@ -107,7 +107,16 @@ class Screw(ImplicitFunctionVectorized):
 
         def phi(x):
             return np.abs(2*(x - np.floor(x)) - 1.0)*2.0 - 1.0
-        return (-r + self.r0 + self.delta * phi(t / self.twist_rate - theta/pi2 + self.phi0))*inside_ness
+        screw_ness = (-r + self.r0 + self.delta * phi(t / self.twist_rate - theta/pi2 + self.phi0))*inside_ness
+
+        lidness0 = t
+        lidness1 = self.slen - t
+
+        m3 = np.concatenate((lidness0[:, np.newaxis], lidness1[:, np.newaxis], screw_ness[:, np.newaxis]), axis=1)
+        fval = np.min(m3, axis=1)
+
+        #return screw_ness
+        return fval
 
     def implicitGradient(self, x):
         check_vector4_vectorized(x)
