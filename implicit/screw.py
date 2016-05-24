@@ -11,7 +11,12 @@ class Screw(ImplicitFunctionVectorized):
             twist_rate:  mm per cycle.
             phi0: cycle (0.5 = half a cycle)
 
-            A bug fixed. But not tested
+            history:
+            - A bug fixed. But not tested
+            - note that twist_rate is inverted from older versions.
+            - boundaries now fixed.
+            - gradient uses the default gradient (numerical)
+
         """
         (self.A, self.w, self.u, self.slen, self.r0, self.delta, self.twist_rate, self.phi0, self.phi_func) = \
             (A, w, u, slen, r0, delta, twist_rate, phi0, phi_func)
@@ -102,6 +107,7 @@ class Screw(ImplicitFunctionVectorized):
         inside_ness = 1 - 2 * np.abs(inside_ness-0.5)
         #inside_ness = (inside_ness-1)*100+1
         inside_ness = (inside_ness > 0)*1.0
+        #inside_ness = 1.
 
         pi2 = np.pi*2
 
@@ -118,15 +124,15 @@ class Screw(ImplicitFunctionVectorized):
         #return screw_ness
         return fval
 
-    def implicitGradient(self, x):
-        check_vector4_vectorized(x)
-        count = x.shape[0]
-        g = np.zeros((count, 4))
-        for i in range(x.shape[0]):
-            v = x[i, 0:4]
-            # inefficient: not vectorised
-            g[i, :] = numerical_gradient(self, v, is_vectorized=True)
-        return g
+    #def implicitGradient(self, x):
+    #    check_vector4_vectorized(x)
+    #    count = x.shape[0]
+    #    g = np.zeros((count, 4))
+    #    for i in range(x.shape[0]):
+    #        v = x[i, 0:4]
+    #        # inefficient: not vectorised
+    #        g[i, :] = numerical_gradient(self, v, is_vectorized=True)
+    #    return g
 
     def curvature(self, x):
         check_vect2(x)

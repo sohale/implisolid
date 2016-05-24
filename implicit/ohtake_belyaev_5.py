@@ -2690,8 +2690,8 @@ def demo_everything(options):
         #"ell_example1"  #+
         #"bowl_15_holes"  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized"
-        #"cyl4"
-        "cyl2"
+        "cyl4"
+        #"cyl2"
         )
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
@@ -2702,12 +2702,14 @@ def demo_everything(options):
     #STEPSIZE = STEPSIZE / 2.
 
     #cyl2 only
+    iobj = make_example_vectorized("cyl2")
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = iobj[1]
     #iobj = iobj[0]
     #STEPSIZE = STEPSIZE * 1.5
     #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
     #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)  #*1 for cylinders only
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3-4, +3+3, 0.1/2. * 2)  #*1 for cylinders only
 
     #cage "cyl4" only
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0 )  # too big
@@ -2717,8 +2719,9 @@ def demo_everything(options):
 
 
 
-    iobj = make_example_vectorized("screw1")
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)
+    #works:
+    #iobj = make_example_vectorized("screw1")
+    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)
 
     if False:
         iobj, RANGE_MIN, RANGE_MAX, STEPSIZE = make_bricks()

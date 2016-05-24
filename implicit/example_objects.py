@@ -856,17 +856,22 @@ def cyl2(scale=1.):
             return v
         # c = SimpleCylinder(A, w, u, radius, radius, c_len)
         newlen = c_len * 5
+
+        # Long and thin cyliner
         c1 = SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
-        delta, twist_rate = radius * 0.2, 2
+        delta, twist_rate = radius * 0.2, 1./2.
         from vectorized import Screw
-        c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
+        c2 = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 
-        #c = vectorized.CrispUnion(c1, c)
+        c_u = vectorized.CrispUnion(c1, c2)
 
-        #c = SimpleCylinder(A, w, u, radius, radius, c_len)
-        CYL_ONLY = True
+        # Fat cylinder
+        c_fat = SimpleCylinder(A, w, u, radius, radius, c_len)
+        CYL_ONLY = False
         if CYL_ONLY:
             c = c1
+        else:
+            c = c_u
 
         if un is None:
             un = c
