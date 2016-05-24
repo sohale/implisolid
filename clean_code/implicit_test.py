@@ -82,9 +82,9 @@ def weights(k, x0, xs):
 
 
 def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
+    # not useful here because we are working with a vector whose dimension are(3,1)
     """ A proper vectorized implementation. See numerical_gradient() """
     # Note: 0.1 is not enough for delta_t
-    import ipdb; ipdb.set_trace()
     check_vector3_vectorized(pos0)
     assert issubclass(type(iobj), vector3.ImplicitFunctionVectorized)
     assert pos0.ndim == 2
@@ -149,13 +149,13 @@ def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
         d = d - np.tile(np.mean(d, axis=1+1, keepdims=True), (1, 1, d.shape[1+1]))
         del d
 
-
     """ Calculating the numerical derivative using finite difference (convolution with weights) """
     # convolusion
     grad_cnv = np.dot(v3, findiff_weights)  # "sum product over the last axis of a and the second-to-last of b"
 
     assert not np.any(np.isnan(grad_cnv), axis=None)
     return grad_cnv
+
 
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5):
 
