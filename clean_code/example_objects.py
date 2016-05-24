@@ -603,7 +603,7 @@ examples = {
     "ell_example1": 2,
     "blend_example2": 2,
     "cube_example": 2,
-    "blend_example2_discs": 2,
+     "blend_example2_discs": 2,
     "blend_example1": 2,
     "bowl_15_holes": 2,
     "first_csg": 2,

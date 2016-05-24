@@ -10,12 +10,6 @@ import math
 import example_objects
 import sys
 
-# import simple_blend
-
-NUMERICAL_GRADIENT_TOLERANCE = 0.0001  # 0.00001   # 0.001
-assert NUMERICAL_GRADIENT_TOLERANCE > 0.0000059
-# assert NUMERICAL_GRADIENT_TOLERANCE > 0.00000001
-
 
 class ImplicitFunctionTests(unittest.TestCase):
 
@@ -33,7 +27,6 @@ class ImplicitFunctionTests(unittest.TestCase):
         TOLERANCE = 0.0001
         # TOLERANCE = 0.7 to pass the test for every object
         """Do the centroids projection """
-        """Define the rang of the objects"""
         if iobj is not None:
             VERTEX_RELAXATION_ITERATIONS_COUNT = 0
             (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -79,7 +72,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge)
             check_vector3_vectorized(new_centroids)
-
+            # checking if the projection is correct by calling the implicitFunction
             f = iobj.implicitFunction(new_centroids)
             for i in range(new_centroids.shape[0]):
                 # if math.fabs(f[i]) > TOLERANCE:
