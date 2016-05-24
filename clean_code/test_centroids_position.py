@@ -31,6 +31,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
     def check_centroids_projection(self, iobj, objname=None):
         TOLERANCE = 0.0001
+        # TOLERANCE = 0.7 to pass the test for every object
         """Do the centroids projection """
         """Define the rang of the objects"""
         if iobj is not None:
@@ -57,14 +58,16 @@ class ImplicitFunctionTests(unittest.TestCase):
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
             verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
-            print("MC calculated.");sys.stdout.flush()
+            print("MC calculated.")
+            sys.stdout.flush()
 
             from ohtake_belyaev_demo_subdivision_projection_qem import process2_vertex_resampling_relaxation, compute_average_edge_length, set_centers_on_surface__ohtake_v3s
 
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
                 verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
             assert not np.any(np.isnan(verts.ravel()))  # fails
-            print("Vertex relaxation applied.");sys.stdout.flush()
+            print("Vertex relaxation applied.")
+            sys.stdout.flush()
 
             # projection
             average_edge = compute_average_edge_length(verts, facets)
@@ -79,8 +82,9 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             f = iobj.implicitFunction(new_centroids)
             for i in range(new_centroids.shape[0]):
+                # if math.fabs(f[i]) > TOLERANCE:
+                #     print "Fail the test", math.fabs(f[i])
                 self.assertTrue(math.fabs(f[i]) < TOLERANCE)
-
 
 
 if __name__ == '__main__':
