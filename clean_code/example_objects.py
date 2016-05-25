@@ -398,8 +398,8 @@ def rotation_matrix(angle, along, units="rad", around=None):
         # return self
 
 
-def cyl2(scale_ignored):
-    SCALE = 8.  # mm
+def cyl2(scale=1.):
+    SCALE = scale*1.  # mm
 
     un = None
     M = 5 + 1
@@ -417,13 +417,14 @@ def cyl2(scale_ignored):
         R = rotation_matrix(i * 90. / (M - 1.), make_vector4(1, 0, 0), units="deg", around=center)
 
         w = np.dot(R, np.transpose(w))
-        # print "w2", w, np.linalg.norm(w[:3])
-        # u = make_vector4(0, 0, 1)   #will not work well for 90deg
+
         u = make_vector4(1, 0, 0)
 
         def make_uv(w, u):
-            w = w / np.linalg.norm(w[0:3]); w[3] = 1
-            u = u / np.linalg.norm(u[0:3]); u[3] = 1
+            w = w / np.linalg.norm(w[0:3])
+            w[3] = 1
+            u = u / np.linalg.norm(u[0:3])
+            u[3] = 1
             # print w, "u=",u
             assert np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001  # cannot be parallel
             v3 = np.cross(w[:3], u[:3])
@@ -446,18 +447,29 @@ def cyl2(scale_ignored):
             return v
         # c = SimpleCylinder(A, w, u, radius, radius, c_len)
         newlen = c_len * 5
-        c1 = vector3.SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
-        delta, twist_rate = radius * 0.2, 2
-        from vector3 import Screw
-        c = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 
-        c = vector3.CrispUnion(c1, c)
+        # Long and thin cyliner
+        c1 = vector3.SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
+        delta, twist_rate = radius * 0.2, 1./2.
+        from vector3 import Screw
+        c2 = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
+
+        c_u = vector3.CrispUnion(c1, c2)
+
+        # Fat cylinder
+
+        CYL_ONLY = False
+        if CYL_ONLY:
+            c = c1
+        else:
+            c = c_u
 
         if un is None:
             un = c
         else:
             un = vector3.CrispUnion(un, c)
-    #    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
+        # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
+    # return un, (RANGE_MIN, RANGE_MAX, STEPSIZE)
     return un
 
 
@@ -615,6 +627,7 @@ examples = {
     "udice_vec": 2,
     "rods": 2,
     "cyl3": 2,
+    "cyl4": 2,
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
     "crisp_cube_sphere": 2,

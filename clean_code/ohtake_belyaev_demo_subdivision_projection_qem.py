@@ -1898,14 +1898,14 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 1  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "rdice_vec"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
-    if object_name == "cube_with_cylinders" or object_name == "twist_object" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "rods" or object_name == "bowl_15_holes":
+    if object_name == "cube_with_cylinders" or object_name == "twist_object" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "cyl4" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
     if object_name == "cyl4":
@@ -1922,6 +1922,9 @@ def demo_combination_plus_qem():
 
     elif object_name == "cyl1":
         (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-16, +32, 1.92 * 0.2 * 10 / 2.0)
+
+    elif object_name == "cyl2":
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32, +32, 1.92 / 4.0 * 1.5 / 1.5)
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
@@ -1994,10 +1997,10 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    # display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
-    #    pointcloud_list=[hv], pointcloud_opacity=0.2,
-    #    mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-    #    minmax=(RANGE_MIN, RANGE_MAX))
+    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
+       pointcloud_list=[hv], pointcloud_opacity=0.2,
+       mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+       minmax=(RANGE_MIN, RANGE_MAX))
 
 # from timeit import default_timer as dtimer
 
