@@ -100,7 +100,6 @@ def check_mesh(facets):
 
 
 
-
 def check_faces(faces):
     #print("------ check_faces(faces)")
 
@@ -1320,6 +1319,10 @@ def build_faces_of_faces(facets):
     return f_uniq - 1  # fix back the indices
 
 
+# ############################################################
+# # RESAMPLING
+# ############################################################
+
 global q
 q=0
 def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
@@ -1346,6 +1349,48 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
     return new_verts, facets, centroids  # why does it return facets?
 
 
+def vertex_resampling_sparse():
+    pass
+
+
+def wr_normalise_gradients(g_a, THRESHOLD_minimum_gradient_len):
+    """ Returns directions based on a set of vectors"""
+    glen_a = np.linalg.norm(g_a, axis=1)
+    glen_a[np.abs(glen_a) < THRESHOLD_minimum_gradient_len] = 1.
+    g_normalization_factors = 1. / glen_a[:, np.newaxis]
+    assert not np.any(np.isnan(g_normalization_factors))
+    g_direction_a = g_a * g_normalization_factors
+    assert np.allclose(np.linalg.norm(g_a, axis=1), 1.)
+    return g_direction_a
+
+def wr(ifunc, centroids, faces_of_faces_fx3, faces_of_verts_sparse, c):
+    F = centroids.shape[0]
+    if c == 0.:
+        pass
+
+    f3 = np.random.randint(0, 100, (100, 3))
+    assert f3.ndim == 2
+    assert f3.shape[1] == 3
+    assert not issubclass(f3.dtype.type, np.integer)
+
+    gradients = ifunc.implicitGradient(centroids)
+    #m1 = centroid_normals
+    m1 = normalise_gradients(gradients)
+
+    #***
+
+    m3 = m1[f3, :]
+    mm = np.sum(m1[:, np.newaxis, :] * m3, axis=1)
+
+    k = 0  # ...
+    w = 1 + c * k
+    assert w.shape == (F,)
+    assert k.shape == (F,)
+    #nw = faces_of_verts_sparse *? w
+    #tensor(nw * pi, axis=..)  #does it support?
+
+    #also see compute_facets_curvatures_vectorized()
+    pass
 
 def is_intarray(x):
     return issubclass(x.dtype.type, np.integer)
@@ -1505,7 +1550,9 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_
     #exit()
     return r
 
-
+# ############################################################
+# # end of RESAMPLING
+# ############################################################
 
 
 
@@ -1655,6 +1702,18 @@ def compute_facets_subdivision_curvatures_old(verts, facets, iobj):
         mm = mm / nn_tile
         mm = mm.transpose()  # 3x4
 
+        # # refactor not tested
+        #def gradient_4_directions(subdiv_centroids4):
+        #    mm = - iobj.implicitGradient(subdiv_centroids4)[:, 0:3]
+        #    assert mm.shape == (4, 3)
+        #    nn = np.linalg.norm(mm, axis=1)
+        #    nn_tile = np.tile(nn[:, np.newaxis], (1, 3))  # mm: 4 x 3
+        #    if mesh_correction:
+        #        nn_tile[nn_tile < MIN_NORMAL_LEN] = 1.  # 100000.  # todo: use constants: e.g. MIN_NORMAL_LEN
+        #    mm = mm / nn_tile
+        #mm = gradient_4_directions(subdiv_centroids4)
+        #mm = mm.transpose()  # 3x4
+
         #n can be nan. fixme.
         #QD solution:
         if np.any(np.isnan(n)):
@@ -1770,6 +1829,42 @@ def compute_facets_curvatures_vectorized(verts, facets, iobj):
 
         assert np.sum(np.isnan(facet_normals)) == 0  # fails
 
+        #def gradient_4_directions(q4, MIN_NORMAL_LEN, reshape):
+        #    check_vector4_vectorized(q4)
+        #    mm = - iobj.implicitGradient(q4)[:, 0:3] ; del q4
+        #    #assert mm.shape == (np.prod(reshape), 3)  # (nf*4, 3)
+        #    assert mm.shape == (nf*4, 3)
+        #    #mmt = mm.reshape(reshape[0], reshape[1], 3); del mm  # nfx4x3  reshape(nf, 4, 3)
+        #    mmt = mm.reshape(nf, 4, 3); del mm  # nfx4x3  reshape(nf, 4, 3)
+        #    mmt_norm = np.linalg.norm(mmt, axis=2, keepdims=True)
+        #    mmt_norm[mmt_norm < MIN_NORMAL_LEN] = 1.
+        #    mmt_hat = mmt / mmt_norm ; del mmt; del mmt_norm
+        #    return mmt_hat
+        #mmt_hat_old = gradient_4_directions(q4, MIN_NORMAL_LEN, (nf, 4))
+        #
+        #def gradient_directions(q4, MIN_NORMAL_LEN):
+        #    check_vector4_vectorized(q4)
+        #    mm = - iobj.implicitGradient(q4)[:, 0:3] ; del q4
+        #    #assert mm.shape == (np.prod(reshape), 3)  # (nf*4, 3)
+        #    #mmt = mm.reshape(reshape[0], reshape[1], 3); del mm  # nfx4x3  reshape(nf, 4, 3)
+        #    #mmt = mm.reshape(nf, 4, 3); del mm  # nfx4x3  reshape(nf, 4, 3)
+        #    mmt = mm; del mm
+        #    mmt_norm = np.linalg.norm(mmt, axis=1, keepdims=True)
+        #    mmt_norm[mmt_norm < MIN_NORMAL_LEN] = 1.
+        #    mmt_hat = mmt / mmt_norm ; del mmt; del mmt_norm
+        #    return mmt_hat
+        #
+        # #assert q4.shape == (nf*4, 3)
+        #mm_hat = gradient_4_directions(q4, MIN_NORMAL_LEN, (nf, 4))
+        #mmt_hat = mm_hat.reshape(nf, 4, 3); del mm_hat
+        #
+        #assert np.allclose(mmt_hat_old, mmt_hat)
+        #if optimised_used():
+        #    print "TEST PASSES"
+        #
+        # #Prepare normalised facet normals
+        #assert np.sum(np.isnan(facet_normals)) == 0  # sometimes failed
+        #
         n_norm = np.linalg.norm(facet_normals, axis=1, keepdims=True)
         n_norm[n_norm < MIN_NORMAL_LEN] = 1.
         assert np.sum(np.isnan(n_norm)) == 0  # fails
@@ -2609,6 +2704,7 @@ def bigprint(text):
 import mesh_utils
 
 VISUALISE_RELAXATION_STEPS = True
+VISUALISE_QEM_STEPS = True
 
 def demo_everything(options):
 
@@ -2708,8 +2804,9 @@ def demo_everything(options):
     #STEPSIZE = STEPSIZE * 1.5
     #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
     #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +3, 0.1/2. * 1)  #*1 for cylinders only
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3-4, +3+3, 0.1/2. * 2)  #*1 for cylinders only
+    sc = 1.
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3 *sc , +3 *sc, sc*0.1/2. * 1)  #*1 for cylinders only
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = ((-3-4)*sc, (+3+3)*sc, (0.1/2. * 2)*sc)  #*1 for cylinders only
 
     #cage "cyl4" only
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0 )  # too big
@@ -2964,7 +3061,7 @@ def demo_everything(options):
 
         """ The following codevisualises the points that are not projected correctly. """
         del centroids
-        if VISUALISE_RELAXATION_STEPS:
+        if VISUALISE_QEM_STEPS:
             #THRESHOLD_zero_interval = 0.0001
             #zeros2 = np.abs(f2) <= THRESHOLD_zero_interval
             #zeros1 = np.abs(f1) <= THRESHOLD_zero_interval
@@ -3378,7 +3475,9 @@ def vertices_apply_qem3(verts, facets, centroids, vertex_neighbour_facelist_dict
         assert result_verts_ranks.size == 0 or np.min(result_verts_ranks) >= 1
     return new_verts
 
+
 def get_A_b(vertex_id, neighbours_faces, centroids, centroid_gradients, qem_origin):
+    """ Used in QEM """
     #refactor: faces_array contains faces.  -> neightbours_facelist or neightbours_faces
     #neighbours_facelist = self.vertex_neighbour_facelist_dict[vertex_id]
     #neighbours_faces = np.array(neighbours_facelist, dtype=int)
@@ -3550,7 +3649,9 @@ def cube_with_cylinders(SCALE):
 
 
 def find_unusual_points(verts, k=3):
-    """ k is the order."""
+    """ Used for the purpose of visualisation: for the detecting certain form of artifacts.
+    IF finds the points which the nearest other point to them is furthest.
+    k is the order."""
     indices = np.arange(verts.shape[0])
     """ Find the points that their distance from the rest of the points is large.
     The distance is the minimum distance from the rest of the points.
