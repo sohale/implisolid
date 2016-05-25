@@ -1897,11 +1897,11 @@ def demo_combination_plus_qem():
     """ Now with QEM """
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
-    VERTEX_RELAXATION_ITERATIONS_COUNT = 0
-    SUBDIVISION_ITERATIONS_COUNT = 0  # 2  # 5+4
+    VERTEX_RELAXATION_ITERATIONS_COUNT = 1
+    SUBDIVISION_ITERATIONS_COUNT = 2  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "union_of_two_cubes"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1973,10 +1973,12 @@ def demo_combination_plus_qem():
     pre_subdiv_vf = (new_verts_qem, facets)
     total_subdivided_facets = []
 
+    verts4_subdivided = new_verts_qem  # ??
+    facets3_subdivided = facets
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
         print "subdivision:"
-        verts, facets = do_subdivision(new_verts_qem, facets, iobj, curvature_epsilon)
+        verts, facets = do_subdivision(verts4_subdivided, facets3_subdivided, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
         verts4_subdivided = verts  # ??
         facets3_subdivided = facets
@@ -1997,10 +1999,12 @@ def demo_combination_plus_qem():
     #    minmax=(RANGE_MIN, RANGE_MAX))
     # exit()
     #
-    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
-       pointcloud_list=[hv], pointcloud_opacity=0.2,
-       mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
-       minmax=(RANGE_MIN, RANGE_MAX))
+    if SUBDIVISION_ITERATIONS_COUNT == 0:
+
+        display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
+           pointcloud_list=[hv], pointcloud_opacity=0.2,
+           mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
+           minmax=(RANGE_MIN, RANGE_MAX))
 
 # from timeit import default_timer as dtimer
 

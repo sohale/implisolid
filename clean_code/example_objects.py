@@ -627,7 +627,7 @@ examples = {
     "udice_vec": 2,
     "rods": 2,
     "cyl3": 2,
-    #"cyl4": 2,
+    "cyl4": 2,
     "cube_with_cylinders": 2,
     "union_of_two_cubes": 2,
     "crisp_cube_sphere": 2,
