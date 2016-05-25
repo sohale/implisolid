@@ -3233,12 +3233,10 @@ def demo_everything(options):
             print "subdivision:"
             verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
             global trace_subdivided_facets  # third implicit output
-            verts4_subdivided = verts  # ??
-            facets3_subdivided = facets
 
             if mesh_correction:
 
-                check_degenerate_faces(verts4_subdivided, facets3_subdivided, "assert")
+                check_degenerate_faces(verts, facets, "assert")
                 #verts4_subdivided, facets3_subdivided, any_mesh_correction = check_degenerate_faces(verts4_subdivided, facets3_subdivided, "fix")
 
                 total_subdivided_facets += trace_subdivided_facets  # old face indices remain valid

@@ -1898,10 +1898,10 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 1
-    SUBDIVISION_ITERATIONS_COUNT = 2  # 2  # 5+4
+    SUBDIVISION_ITERATIONS_COUNT = 5  # 2  # 5+4
 
     from example_objects import make_example_vectorized
-    object_name = "union_of_two_cubes"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "french_fries"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1971,17 +1971,15 @@ def demo_combination_plus_qem():
 
     # subdivision
     pre_subdiv_vf = (new_verts_qem, facets)
-    total_subdivided_facets = []
+#    total_subdivided_facets = []
 
-    verts4_subdivided = new_verts_qem  # ??
-    facets3_subdivided = facets
+    (verts, facets) = new_verts_qem, facets  # ??
+
     for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
         print "subdivision:"
-        verts, facets = do_subdivision(verts4_subdivided, facets3_subdivided, iobj, curvature_epsilon)
+        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
-        verts4_subdivided = verts  # ??
-        facets3_subdivided = facets
 
         print "subdivision done."
 
