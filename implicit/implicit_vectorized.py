@@ -37,6 +37,13 @@ class ImplicitFunctionVectorized(object):
     def integrity_invariant(self):
         return False
 
+    def assert_integrity(self):
+        """ This is not an assert. Unless an assert, it has to be called in production, at runtime and through exception. """
+        ok = self.integrity_invariant()
+        if not ok:
+            # todo: provide more information
+            raise ObjectError()
+
 
 class SignedDistanceImplicitVectorized(object):
     """ Interface only (can be used in multiple inheritance) """

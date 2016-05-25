@@ -49,6 +49,8 @@ class SimpleCylinder(ImplicitFunctionVectorized):
         self.UVW_inv = np.linalg.inv( self.UVW )
         assert self.c_len > 0
         assert self.integrity_invariant()
+        #self.assert_integrity()
+        #Todo: separate minimum-length check from other checks, because the former belongs to the modelling techniques layer.
 
     def integrity_invariant(self):
         #config = threeD_printing_config_profile
