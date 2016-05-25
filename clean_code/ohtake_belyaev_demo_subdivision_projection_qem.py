@@ -1987,7 +1987,7 @@ def demo_combination_plus_qem():
 
             display_simple_using_mayavi_2([(verts, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
                   pointcloud_list=[],
-                  mayavi_wireframe=[False, use_wireframe, True,], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
+                  mayavi_wireframe=[False, use_wireframe, True, ], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
                   minmax=(RANGE_MIN,RANGE_MAX))
 
 
@@ -2007,6 +2007,6 @@ def demo_combination_plus_qem():
 
 if __name__ == '__main__':
 
-#    timer_t1s = dtimer()
+    # timer_t1s = dtimer()
 
     demo_combination_plus_qem()  # subdivision + projection + qem
