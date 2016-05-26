@@ -1,7 +1,8 @@
 import numpy as np
 from basic_types import check_vector4_vectorized
-from ipdb import set_trace
+#from ipdb import set_trace
 import implicit_config
+
 
 VERBOSE = False
 
@@ -212,8 +213,15 @@ def make_edge_lookup_old(faces):
 
 import scipy.sparse as sp
 def make_edge_lookup_sparse(faces):
-    """ does make_edge_lookup_old() using sparse matrices. An alternatve solution would be using adictionary."""
-    # Todo: Rewrite using asparse matrix (e.g. DOK) as Adjacency matrix. In that case, `modulo` will not be used.
+    """ This function does the job of make_edge_lookup_old() using sparse matrices.
+    # """
+    """ The main idea is: Make the eulookup. Then using eulookup, make faces_of_edges and vertpairs_of_edges.
+    The difficult part is making a compact index: mapping between edge as an "ordered pair" into a e_id.
+    The e_id is not only unique, but there is no gap betwen them, makes it good to be used as the index of all sorts of lookup tables.
+    The e_is is provided by the eulookup (sparse) array instead of a function, which makes it very fast.
+    """
+    # An alternatve solution would be using a dictionary for eulookup.
+    # Another alternative is to rewrite this using a sparse 2D matrix (e.g. DOK) as adjacency matrix (so that it receives two indices, unlike eulookup, which is 1D). In that case, `modulo` will not be used.
     print "Sparse verion:"
 
     nfaces = faces.shape[0]
@@ -231,6 +239,28 @@ def make_edge_lookup_sparse(faces):
     #print "lookup_array_size",lookup_array_size
     #if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
     #    raise TooMemoryIntensive()
+
+    """Technical details:
+    The `eulookup` sparse matrix maps the eu_pair_int into their e_id+1. Since e_id starts with zero, and we need the matrix to be sparse (with default=0), +1 is added to each e_id value.
+    The sparse type is DOK because it is changed heavily during this agorithm. The sparse matrix is 1D. An alternative would be a 2D sparse matrix, but it is not used here.
+    Different betwen the following:
+
+    Types:
+    * e_id: index of edge in arrays (compressed (gap-less) index version of eu_pair_int)
+    * eu_pair_int:  int(eu[0] + eu[1] * modulo)
+    * fi: is the index of face as used in the `faces` array as its index.
+
+    Arrays (maps):
+    * vertpairs_of_edges: e_id -> eu_pair_int  (Default: -1)
+    * faces_of_edges: e_id -> fi  # (In fact: e_id -> fi,fi)
+    * eulookup: eu_pair_int -> e_id+1  (Default: 0)
+
+    * edges_of_faces: fi -> e_id   # In fact: fi -> e_id, e_id, e_id
+
+    Main idea: Function composition: # i.e. a -> x -> y means y(x(a)):
+        vi,vi -> eulookup (-> faces_of_edges -> fi,fi) -> vertpairs_of_edges -> vi,vi
+    """
+
     #eulookup = np.zeros((lookup_array_size,), dtype=int)
     eulookup = sp.dok_matrix((lookup_array_size, 1), dtype=int)
     edge_counter = 0
@@ -454,6 +484,41 @@ def make_neighbour_faces_of_vertex(faces):
     # print(map( lambda k: len(neighbour_faces_of_vertex[k]), neighbour_faces_of_vertex   )) #for k,v in neighbour_faces_of_vertex:
     #    print(len(v), end="")
     return neighbour_faces_of_vertex
+
+
+import scipy.sparse as sp
+
+
+def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
+    # todo: Is there any way to make this using sparse matrices?
+    neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(faces)
+    #A dictionary with vertex index as key and a list of 'face index'es as value.
+    if maxvert is None:
+        maxvert = max(neighbour_faces_of_vertex.keys())
+
+    print "This is not implemented yet"
+    exit()
+    print "in progress"
+    indptr = [0]
+    indices = []
+    data = []
+
+    counter = 0
+    for vi in range(maxvert):
+        if vi not in neighbour_faces_of_vertex:
+            neighbours_list = []
+            neighbors = 0
+        else:
+            neighbours_list = neighbour_faces_of_vertex[vi]
+            neighbors = len(neighbours_list)
+        counter += neighbors
+
+        indptr.append(counter)
+        indices += neighbours_list
+        data += (neighbors * [1])
+
+    FoV = sp.csr.csr_matrix((data, indices, indptr))
+    return FoV
 
 
 def test_neighbours():
@@ -799,7 +864,6 @@ def project_single_point2_ohtake(iobj, start_x, lambda_val, max_dist ):
         return p
     else:
         return None
-
 
 
 if __name__ == '__main__':

@@ -7,8 +7,6 @@ import simple_blend
 import vectorized
 import nonvec
 
-from ipdb import set_trace
-
 """
 import implicit_vectorized
 import ellipsoid_vectorized
@@ -859,7 +857,7 @@ def cyl2(scale=1.):
 
         # Long and thin cyliner
         c1 = SimpleCylinder(set4th1(A - 1. * newlen / 2. * w), w, u, radius / 5., radius / 5., newlen)
-        delta, twist_rate = radius * 0.2, 1./2.
+        delta, twist_rate = radius * 0.2, 1./2. *SCALE
         from vectorized import Screw
         c2 = Screw(A[:3], w[:3], u[:3], c_len, radius, delta, twist_rate)
 

@@ -759,7 +759,7 @@ def remove_vertices_and_faces(verts, faces, nil_areas_whichfaces, map12):
 
 global still_fixed
 still_fixed = False
-from ipdb import set_trace
+#from ipdb import set_trace
 # **********************************
 def check_degenerate_faces(verts, facets, fix_mode="dontfix"):
     """ This functions checks for Mesh problems, and fied them. It can run in three modes: quit if error, return False if error (dontfix), fix it if error (fix). In the 'fix' mode, the return is verts, faces. Otherwise, the return is boolean. The assert mode returns nothing."""
@@ -1337,6 +1337,12 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
     faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
     face_neighbours_of_faces_Fx3 = build_faces_of_faces(facets)
     assert not np.any(np.isnan(verts.ravel()))  # fine
+
+    set_trace()
+
+    faces_of_verts_sparse = faceslist_neighbours_of_vertex
+    wr(iobj, centroids, face_neighbours_of_faces_Fx3, faces_of_verts_sparse, c)
+
     new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=c)
 
     if VISUALISE_RELAXATION_STEPS:
@@ -1352,8 +1358,7 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
 def vertex_resampling_sparse():
     pass
 
-
-def wr_normalise_gradients(g_a, THRESHOLD_minimum_gradient_len):
+def normalise_gradients(g_a, THRESHOLD_minimum_gradient_len):
     """ Returns directions based on a set of vectors"""
     glen_a = np.linalg.norm(g_a, axis=1)
     glen_a[np.abs(glen_a) < THRESHOLD_minimum_gradient_len] = 1.
@@ -1365,27 +1370,51 @@ def wr_normalise_gradients(g_a, THRESHOLD_minimum_gradient_len):
 
 def wr(ifunc, centroids, faces_of_faces_fx3, faces_of_verts_sparse, c):
     F = centroids.shape[0]
-    if c == 0.:
-        pass
 
-    f3 = np.random.randint(0, 100, (100, 3))
-    assert f3.ndim == 2
-    assert f3.shape[1] == 3
-    assert not issubclass(f3.dtype.type, np.integer)
+    if c == 0:
+        wi = np.ones((F,))
+    else:   # if "wi":
+        f3 = faces_of_faces_fx3
+        #f3 = np.random.randint(0, 100, (100, 3))
+        assert f3.ndim == 2
+        assert f3.shape[1] == 3
+        assert not issubclass(f3.dtype.type, np.integer)
 
-    gradients = ifunc.implicitGradient(centroids)
-    #m1 = centroid_normals
-    m1 = normalise_gradients(gradients)
+        gradients = ifunc.implicitGradient(centroids)
+        #m1 = centroid_normals
+        m1 = normalise_gradients(gradients, THRESHOLD_minimum_gradient_len)
+        m3 = m1[f3, :]
+        mimj = np.sum(m1[:, np.newaxis, :] * m3, axis=1)  # mm
+        assert mimj.shape == (F, 3)
 
-    #***
+        assert m1.shape[1] == 3
+        assert m3.shape[2] == 3
+        assert np.abs(np.linalg.norm(m1) - 1.0) < 0.0000001
 
-    m3 = m1[f3, :]
-    mm = np.sum(m1[:, np.newaxis, :] * m3, axis=1)
+        mimj[mimj < -1.0] = -1.0
+        mimj[mimj > +1.0] = 1.0
+        arccos = np.arccos(mimj)
+        assert arccos.shape == (F, 3)
 
-    k = 0  # ...
-    w = 1 + c * k
-    assert w.shape == (F,)
-    assert k.shape == (F,)
+        if True:
+            #pipj = np.linalg.norm(pi - pj)
+            #pipj = ...
+            pipj[pipj == 0.] = 1.  # fixme: tolerance
+            assert np.all(pipj > 0.)
+            pipj_inv = 1. / pipj
+            assert not np.any(np.isnan(pipj_inv))
+
+        kij = arccos * pipj_inv
+        assert kij.shape == (F, 3)
+
+        ki = np.sum(kij, axis=1)
+        assert not np.any(np.isnan(ki))  # necessary. Can fail.
+        assert ki.shape == (F,)
+
+        wi = 1. + c * ki
+
+    assert wi.shape == (F,)
+
     #nw = faces_of_verts_sparse *? w
     #tensor(nw * pi, axis=..)  #does it support?
 
@@ -2797,14 +2826,14 @@ def demo_everything(options):
     STEPSIZE = STEPSIZE / 2.
     #STEPSIZE = STEPSIZE / 2.
 
+    sc = 8.
     #cyl2 only
-    iobj = make_example_vectorized("cyl2")
+    iobj = make_example_vectorized("cyl2", sc)
     #(RANGE_MIN, RANGE_MAX, STEPSIZE) = iobj[1]
     #iobj = iobj[0]
     #STEPSIZE = STEPSIZE * 1.5
     #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
     #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
-    sc = 1.
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3 *sc , +3 *sc, sc*0.1/2. * 1)  #*1 for cylinders only
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = ((-3-4)*sc, (+3+3)*sc, (0.1/2. * 2)*sc)  #*1 for cylinders only
 
@@ -2849,6 +2878,7 @@ def demo_everything(options):
     # Marching Cubes
     # ****************************************************
 
+    print (RANGE_MIN, RANGE_MAX, STEPSIZE)
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old="3")
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))

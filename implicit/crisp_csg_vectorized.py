@@ -6,7 +6,6 @@ from basic_types import check_matrix3_vectorized
 
 #from primitives import UnitSphere
 from implicit_vectorized import ImplicitFunctionVectorized
-from ipdb import set_trace
 
 
 class CrispSubtract(ImplicitFunctionVectorized):
