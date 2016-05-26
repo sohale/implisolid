@@ -24,7 +24,7 @@ def show_imdb_import():
 
 
 show_imdb_import()
-from mesh_utils import make_sparse_neighbour_faces_of_vertex_csr
+from mesh_utils import make_sparse_neighbour_faces_of_vertex_csr, make_fov_sparse_v2
 show_imdb_import()
 from mesh_examples_for_tests import testcase_square, testcase_cube
 show_imdb_import()
@@ -32,7 +32,7 @@ show_imdb_import()
 import numpy as np
 
 
-class A(unittest.TestCase):
+class VoF_Tests(unittest.TestCase):
 
     def test_make_sparse_neighbour_faces_of_vertex_csr(self):
         _v, faces = testcase_square()
@@ -96,6 +96,15 @@ class A(unittest.TestCase):
         #print faces
         #print sparse_matrix.T.todense()
         self.full_vof_test(faces, sparse_matrix)
+
+    def test_3(self):
+        ma = [testcase_cube(),  testcase_square()]
+        for _verts, faces in ma:
+            fov = make_fov_sparse_v2(faces)
+            self.full_vof_test(faces, fov)
+
+            fov2 = make_sparse_neighbour_faces_of_vertex_csr(faces)
+            self.assertTrue(np.allclose(fov.todense(), fov2.todense()))
 
 if __name__ == '__main__':
     check_imdb_import()

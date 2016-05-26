@@ -490,9 +490,9 @@ import scipy.sparse as sp
 
 
 def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
-    # todo: Is there any way to make this using sparse matrices?
+    # todo: A more efficient way using sparse matrices, instead of make_neighbour_faces_of_vertex().
     neighbour_faces_of_vertex = make_neighbour_faces_of_vertex(faces)
-    #A dictionary with vertex index as key and a list of 'face index'es as value.
+    # A dictionary with vertex index as key and a list of 'face index'es as value.
     if maxvert is None:
         maxvert = max(neighbour_faces_of_vertex.keys())
 
@@ -518,6 +518,16 @@ def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
 
     FoV = sp.csr.csr_matrix((data, indices, indptr))
     return FoV
+
+
+def make_fov_sparse_v2(faces, maxvert=None):
+    nverts = np.max(faces, axis=None)+1
+    nfaces = faces.shape[0]
+    fov = sp.dok_matrix((nverts, nfaces), dtype=int)
+    for fi in range(nfaces):
+        fov[faces[fi], fi] = 1
+    return fov
+    # So short! 6 lines!
 
 
 def test_neighbours():
