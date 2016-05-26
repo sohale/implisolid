@@ -45,6 +45,7 @@ class A(unittest.TestCase):
         assert np.allclose(faces, fcs1)
         self.assertTrue(1)
         correct_fov = np.array([[1, 1], [1, 0], [1, 1], [0, 1]])
+        # Is there any way to avoid todense()?
         self.assertTrue(np.allclose(correct_fov, sparse_matrix.todense()))
 
         self.full_vof_test(faces, sparse_matrix)
@@ -55,11 +56,11 @@ class A(unittest.TestCase):
 
         VERTS_DIM = 0
         FACES_DIM = 1
-        faces_per_vert = np.sum(vof_matrix_sparse.todense(), axis=VERTS_DIM)
+        faces_per_vert = vof_matrix_sparse.sum(axis=VERTS_DIM)
         self.assertTrue(np.allclose(faces_per_vert, 3))
 
         # Faces that have that vertex. Not 3.
-        verts_per_face = np.sum(vof_matrix_sparse.todense(), axis=FACES_DIM)
+        verts_per_face = vof_matrix_sparse.sum(axis=FACES_DIM)
         # print faces_per_vert,
         # print verts_per_face
         num_triangles = faces.shape[0]
