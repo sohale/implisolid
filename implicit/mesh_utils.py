@@ -497,14 +497,13 @@ def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
         maxvert = max(neighbour_faces_of_vertex.keys())
 
     print "This is not implemented yet"
-    exit()
-    print "in progress"
+
     indptr = [0]
     indices = []
     data = []
 
     counter = 0
-    for vi in range(maxvert):
+    for vi in range(maxvert+1):
         if vi not in neighbour_faces_of_vertex:
             neighbours_list = []
             neighbors = 0
