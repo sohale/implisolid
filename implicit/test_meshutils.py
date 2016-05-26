@@ -37,7 +37,8 @@ class A(unittest.TestCase):
     def test_make_sparse_neighbour_faces_of_vertex_csr(self):
         _v, faces = testcase_square()
         sparse_matrix = make_sparse_neighbour_faces_of_vertex_csr(faces)
-        self.assertTrue(sparse_matrix.shape[0] == 4)
+        nverts = 4
+        self.assertTrue(sparse_matrix.shape[0] == nverts)
 
         # Make sure we are testing the right thing
         fcs1 = np.array([[0, 1, 2], [0, 2, 3]])
@@ -65,10 +66,35 @@ class A(unittest.TestCase):
         self.assertTrue((np.sum(verts_per_face)+0.) / 3. == num_triangles)
 
         # Master test:
-        recreate_faces = np.nonzero(vof_matrix_sparse.T > 0)[1].reshape((num_triangles, 3))
-        # not tested
-        self.assertTrue(np.allclose(recreate_faces, faces))  # Untimate test!
+        recreate_faces0 = np.nonzero(vof_matrix_sparse.T > 0)[1].reshape((num_triangles, 3))
 
+        # We need row numbers (i.e. vertex indices) of the `fov` matrix.
+        # But we are interested in columns of vof_matrix_sparse.
+        # cols_a contains the column numbers of all non-zero elements of fov.T
+        # Doing .T is necessary because nonzero() is row-wise.
+
+        # print vof_matrix_sparse.todense()
+
+        (rows_a, cols_a) = np.nonzero(vof_matrix_sparse.T > 0)
+        # print (rows_a, cols_a)
+        # cols_a: v1,v2,v3, v1,v2,v3, v1,v2,v3, ...
+        recreate_faces = cols_a.reshape((num_triangles, 3), order='C')
+
+        recreate_faces.sort(axis=1)
+        faces_c = faces
+        faces_c.sort(axis=1)
+
+        self.assertTrue(np.allclose(recreate_faces, faces_c))  # Untimate test!
+
+    def test_2(self):
+        _v, faces = testcase_cube()
+        sparse_matrix = make_sparse_neighbour_faces_of_vertex_csr(faces)
+        nverts = _v.shape[0]
+        self.assertTrue(sparse_matrix.shape[0] == nverts)
+
+        #print faces
+        #print sparse_matrix.T.todense()
+        self.full_vof_test(faces, sparse_matrix)
 
 if __name__ == '__main__':
     check_imdb_import()
