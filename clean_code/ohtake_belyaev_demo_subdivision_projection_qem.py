@@ -1832,14 +1832,14 @@ def do_subdivision(verts, faces, iobj, curvature_epsilon, randomized_probability
     # todo: if length zero dont do it
     assert edges_with_1_side.size == 0 or np.min(edges_with_1_side) > 0
 
-    facets2 = subdivide_1to2_multiple_faces(faces2, edges_with_1_side, midpoint_map)
+    faces2 = subdivide_1to2_multiple_faces(faces2, edges_with_1_side, midpoint_map)
 
     ###################
     # check_degenerate_faces(verts2, facets2, "assert")
     # build_faces_of_faces(facets2)
 
     print("Subdivision applied.");sys.stdout.flush()
-    return verts2, facets2
+    return verts2, faces2
 
 
 @profile
@@ -1879,7 +1879,7 @@ def demo_combination_plus_qem():
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-    verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+    verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated."); sys.stdout.flush()
 
     # **********************
@@ -1891,26 +1891,26 @@ def demo_combination_plus_qem():
         # * Vertex relaxation *
         # **********************
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+            verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
             assert not np.any(np.isnan(verts.ravel()))  # fails
             print("Vertex relaxation applied.");sys.stdout.flush()
 
         # ************************
         # ** projection and qem **
         # ************************
-        average_edge = compute_average_edge_length(verts, facets)
+        average_edge = compute_average_edge_length(verts, faces)
 
-        old_centroids = np.mean(verts[facets[:], :], axis=1)
+        old_centroids = np.mean(verts[faces[:], :], axis=1)
 
         new_centroids = old_centroids.copy()
 
         set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge)
 
-        vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
+        vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
         new_verts_qem = \
-            vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
+            vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
         verts_before_qem = verts
 
@@ -1918,20 +1918,20 @@ def demo_combination_plus_qem():
         # ************************
         # **  subdivision **
         # ************************
-        pre_subdiv_vf = (new_verts_qem, facets)
+        pre_subdiv_vf = (new_verts_qem, faces)
     #    total_subdivided_facets = []
 
-        (verts, facets) = new_verts_qem, facets  # ??
+        (verts, faces) = new_verts_qem, faces  # ??
 
         print "subdivision:"
-        verts, facets = do_subdivision(verts, facets, iobj, curvature_epsilon)
+        verts, faces = do_subdivision(verts, faces, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
 
         print "subdivision done."
 
         for use_wireframe in [True, False]:
 
-            display_simple_using_mayavi_2([(verts, facets), (verts, facets), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
+            display_simple_using_mayavi_2([(verts, faces), (verts, faces), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
                   pointcloud_list=[],
                   mayavi_wireframe=[False, use_wireframe, True, ], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
                   minmax=(RANGE_MIN,RANGE_MAX))
@@ -1942,30 +1942,30 @@ def demo_combination_plus_qem():
     # ***************************
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+        verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
 
     # ************************
     # ** projection and qem **
     # ************************
-    average_edge = compute_average_edge_length(verts, facets)
+    average_edge = compute_average_edge_length(verts, faces)
 
-    old_centroids = np.mean(verts[facets[:], :], axis=1)
+    old_centroids = np.mean(verts[faces[:], :], axis=1)
 
     new_centroids = old_centroids.copy()
 
     set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge)
 
-    vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
+    vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
     centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
     new_verts_qem = \
-        vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
+        vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
     verts_before_qem = verts
 
-    display_simple_using_mayavi_2([(verts_before_qem, facets), (new_verts_qem, facets), ],
+    display_simple_using_mayavi_2([(verts_before_qem, faces), (new_verts_qem, faces), ],
        pointcloud_list=[],
        mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN, RANGE_MAX))
