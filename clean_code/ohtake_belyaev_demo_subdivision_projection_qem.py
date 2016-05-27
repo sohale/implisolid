@@ -283,12 +283,12 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
     return
 
 
-def compute_triangle_areas(verts, faces, return_normals=False):
+def compute_triangle_areas(vertex, faces, return_normals=False):
     """ facet_normals: can contain NaN if the area is zero"""
 
     DEGENERACY_THRESHOLD = 0.00001
     nfaces = faces.shape[0]
-    expand = verts[faces, :]
+    expand = vertex[faces, :]
 
     assert expand.shape == (nfaces, 3, 3)
     assert expand[:, 2, :].shape == (nfaces, 3)
@@ -337,12 +337,12 @@ def build_faces_of_faces(faces):
     return f_uniq - 1
 
 
-def verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centroids, centroid_normals, c=2.0):
-    """ faceslist_neighbours_of_verts: *** """
+def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
+    """ faceslist_neighbours_of_vertex: *** """
 
     def kij(i, j):
         """ Returns (1/r * Theta), a measure of curvature.
-        Theta is the angle between two normals at centroids (dual vertices) i, j.
+        Theta is the angle between two normals at centroids (dual vertex) i, j.
         The 1/r is the inverse of the distance between the pair.
 
         Notes:
@@ -396,7 +396,7 @@ def verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centr
     c_ = c  # 2.0  # constant
 
 
-    umbrella_faces = faceslist_neighbours_of_verts[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+    umbrella_faces = faceslist_neighbours_of_vertex[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_faces: ", umbrella_faces)
     # wa = np.zeros()
     w_list = []
@@ -420,26 +420,26 @@ def verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centr
         w = wi(i_faces, three_faces, c_)
         wi_total_array[i_faces] = w
     print wi_total_array
-    # The weights are prepared. Now let's resample vertices
+    # The weights are prepared. Now let's resample vertex
 
-    umbrella_faces = np.array(faceslist_neighbours_of_verts[1])  # empty
+    umbrella_faces = np.array(faceslist_neighbours_of_vertex[1])  # empty
     print "umbrella_faces", umbrella_faces.shape, "****"
     assert np.allclose(wi_total_array[umbrella_faces] - np.array(w_list), 0)
 
-    def lift_verts(verts, centroids):
-        new_verts = verts.copy()
-        # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
-        for i in range(verts.shape[0]):
-            umbrella_faces = np.array(faceslist_neighbours_of_verts[i])
+    def lift_vertex(vertex, centroids):
+        new_vertex = vertex.copy()
+        # assign these to a sparse matrix? and  do:  M = M/normalise(M); vertex = M * vertex
+        for i in range(vertex.shape[0]):
+            umbrella_faces = np.array(faceslist_neighbours_of_vertex[i])
             w = wi_total_array[umbrella_faces]
             # w = w * 0 + 1
             w = w / np.sum(w)
             # print w / np.sum(w), w.shape
-            new_verts[i, :] = \
+            new_vertex[i, :] = \
                 np.dot(w, centroids[umbrella_faces, :])  # (n) * (n x 3)
-        return new_verts
+        return new_vertex
 
-    return lift_verts(verts, centroids)
+    return lift_vertex(vertex, centroids)
 
 
 def compute_centroid_gradients(centroids, iobj, normalise=True):
@@ -492,29 +492,29 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
             mlab.figure()
 
         vf = vf_list[fi]
-        verts, faces = vf
+        vertex, faces = vf
 
-        if verts is None:
+        if vertex is None:
             continue
-        if verts.size == 0:
-            print("Warning: empty vertices")
+        if vertex.size == 0:
+            print("Warning: empty vertex")
             continue
         if faces.size == 0:
             print("Warning: no faces")
             continue
 
-        assert verts.ndim == 2
+        assert vertex.ndim == 2
         assert faces.ndim == 2
-        assert verts.shape == (verts.shape[0], 3), str(verts.shape)
+        assert vertex.shape == (vertex.shape[0], 3), str(vertex.shape)
         assert faces.shape == (faces.shape[0], 3), str(faces.shape)
         if type(mayavi_wireframe) is list:
             wire_frame1 = mayavi_wireframe[fi]
             assert len(mayavi_wireframe) == len(vf_list)
         else:
             wire_frame1 = mayavi_wireframe
-        mlab.triangular_mesh([vert[0] for vert in verts],
-                         [vert[1] for vert in verts],
-                         [vert[2] for vert in verts],
+        mlab.triangular_mesh([vert[0] for vert in vertex],
+                         [vert[1] for vert in vertex],
+                         [vert[2] for vert in vertex],
                          faces,
                          representation="surface" if not wire_frame1 else "wireframe",
                          opacity=opacities[fi], scale_factor=100.0)
@@ -558,8 +558,8 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
         ax.points3d(x_sel[:, 0], x_sel[:, 1], x_sel[:, 2], color=(0, 0, 0), scale_factor=0.2)
 
     if gradients_at is not None:
-        verts1, faces1 = vf_list[0]
-        avg_edge_len = compute_average_edge_length(verts, faces)
+        vertex1, faces1 = vf_list[0]
+        avg_edge_len = compute_average_edge_length(vertex, faces)
         visualise_gradients(mlab, gradients_at, gradients_from_iobj, avg_edge_len / 20.)
     if gradients_from_iobj is not None:
         add_random_interior_points(mlab, gradients_from_iobj, avg_edge_len)
@@ -568,9 +568,9 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
     return
 
 
-def compute_average_edge_length(verts, faces):
+def compute_average_edge_length(vertex, faces):
     nfaces = faces.shape[0]
-    expand = verts[faces, :]
+    expand = vertex[faces, :]
     assert expand.shape == (nfaces, 3, 3)
     assert expand[:, 2, :].shape == (nfaces, 3)
     ea_sum = 0.
@@ -874,24 +874,24 @@ def set_centers_on_surface__ohtake_v3s(iobj, centroids, average_edge, debug_vf=N
     return
 
 
-def vertices_apply_qem3(verts, faces, centroids, vertex_neighbours_list, centroids_gradients):
+def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroids_gradients):
     assert centroids is not None
     assert vertex_neighbours_list is not None
     assert centroids_gradients is not None
 
-    nvert = verts.shape[0]
+    nvert = vertex.shape[0]
     assert nvert == len(vertex_neighbours_list)
 
-    result_verts_ranks = np.zeros((nvert,), dtype=int)
-    assert verts.shape == (nvert, 3)
-    new_verts = np.zeros((nvert, 3))
+    result_vertex_ranks = np.zeros((nvert,), dtype=int)
+    assert vertex.shape == (nvert, 3)
+    new_vertex = np.zeros((nvert, 3))
 
-    for verts_id in range(nvert):
+    for vertex_id in range(nvert):
 
-        vi = verts_id
-        nlist = vertex_neighbours_list[verts_id]
+        vi = vertex_id
+        nlist = vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
-        qem_origin = verts[verts_id, :].reshape(3, 1)*0
+        qem_origin = vertex[vertex_id, :].reshape(3, 1)*0
 
         A, b = get_A_b(nai, centroids, centroids_gradients, qem_origin)
 
@@ -907,7 +907,7 @@ def vertices_apply_qem3(verts, faces, centroids, vertex_neighbours_list, centroi
 
         assert np.all(s[:rank]/s[0] >= 1.0/tau)
 
-        x = verts[vi, 0:3, np.newaxis]
+        x = vertex[vi, 0:3, np.newaxis]
         assert x.shape == (3, 1)
 
         y = np.dot(v, x).copy()
@@ -924,53 +924,53 @@ def vertices_apply_qem3(verts, faces, centroids, vertex_neighbours_list, centroi
             print(s)
             print("A", A)
 
-            result_verts_ranks[vi] = 0
+            result_vertex_ranks[vi] = 0
 
         assert x.shape == (3, 1)
 
-        new_verts[vi, 0:3] = new_x[:, 0]
+        new_vertex[vi, 0:3] = new_x[:, 0]
 
         if not np.all(np.abs(utb.ravel()[rank:]) < 0.0001):
             pass
-        result_verts_ranks[vi] = rank
+        result_vertex_ranks[vi] = rank
 
-    print("max rank = ", np.max(result_verts_ranks))
-    print("min rank = ", np.min(result_verts_ranks))
-    if not np.min(result_verts_ranks) >= 1:
-        print("Warning: assertion: np.min(result_verts_ranks) >= 1 failed.")
+    print("max rank = ", np.max(result_vertex_ranks))
+    print("min rank = ", np.min(result_vertex_ranks))
+    if not np.min(result_vertex_ranks) >= 1:
+        print("Warning: assertion: np.min(result_vertex_ranks) >= 1 failed.")
 
     if False:
-        assert np.min(result_verts_ranks) >= 1
-    return new_verts
+        assert np.min(result_vertex_ranks) >= 1
+    return new_vertex
 
 
 import mesh_utils
 
 
-def compute_centroids(verts, faces):
-    expand = verts[faces, :]
+def compute_centroids(vertex, faces):
+    expand = vertex[faces, :]
     nfacets = faces.shape[0]
     assert expand.shape == (nfacets, 3, 3)
-    assert np.allclose(verts[faces[:], :], expand)
-    centroids = np.mean(verts[faces[:], :], axis=1)  # again
+    assert np.allclose(vertex[faces[:], :], expand)
+    centroids = np.mean(vertex[faces[:], :], axis=1)  # again
     return centroids
 
 
-def process2_verts_resampling_relaxation(verts, faces, iobj):
-    assert not np.any(np.isnan(verts))
-    centroids = compute_centroids(verts, faces)
+def process2_vertex_resampling_relaxation(vertex, faces, iobj):
+    assert not np.any(np.isnan(vertex))
+    centroids = compute_centroids(vertex, faces)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
 
     from mesh_utils import make_neighbour_faces_of_vertex
-    faceslist_neighbours_of_verts = make_neighbour_faces_of_vertex(faces)
+    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces)
     faces_of_faces = build_faces_of_faces(faces)
 
-    new_verts = verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
+    new_vertex = vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
 
-    return new_verts, faces, centroids
+    return new_vertex, faces, centroids
 
 
-def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices):
+def subdivide_multiple_faces(vertex_old, faces_old, tobe_subdivided_face_indices):
 
     centroidmaker_matrix = np.array([
         [1, 0, 0, 1, 0, 1],  # 035
@@ -993,24 +993,24 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
     global trace_subdivided_facets
     trace_subdivided_facets = []
 
-    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
+    provisional_new_vertex_count = 3*len(tobe_subdivided_face_indices)
     provisional_new_faces_count = 3*len(tobe_subdivided_face_indices)
-    nverts_old = verts_old.shape[0]
+    nvertex_old = vertex_old.shape[0]
     nfaces_old = faces_old.shape[0]
-    new_verts = np.zeros((nverts_old+provisional_new_verts_count, 3), dtype=float)
+    new_vertex = np.zeros((nvertex_old+provisional_new_vertex_count, 3), dtype=float)
     new_faces = np.zeros((nfaces_old+provisional_new_faces_count, 3), dtype=int)
-    new_verts[:nverts_old, :] = verts_old
+    new_vertex[:nvertex_old, :] = vertex_old
     new_faces[:nfaces_old, :] = faces_old
 
-    # on number of added vertices:
-    # problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
+    # on number of added vertex:
+    # problem: there may be repeated (Redundant) vertex. (as well as T-junctions)
     # also later check for faces with repeated edges. (which can be another cause of null normals)
 
-    new_verts_counter = nverts_old
+    new_vertex_counter = nvertex_old
     new_faces_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
         fi = tobe_subdivided_face_indices[subdiv_i]
-        oldtriangle = verts_old[faces_old[fi, :], :]  # numverts x 3
+        oldtriangle = vertex_old[faces_old[fi, :], :]  # numvertex x 3
         assert oldtriangle.shape == (3, 3)
         VVV = oldtriangle  # (nv=3) x 3
 
@@ -1022,14 +1022,14 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
         assert vxyz_0123.shape == (6, 3)
 
         v012 = faces_old[fi, :].tolist()  # range(0, 3)  #
-        v345 = range(new_verts_counter, new_verts_counter+3)
+        v345 = range(new_vertex_counter, new_vertex_counter+3)
 
         v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
 
         assert len(v345) == 3
-        new_verts[(new_verts_counter):(new_verts_counter+3), :] = v345_xyz
+        new_vertex[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
 
-        new_verts_counter += 3
+        new_vertex_counter += 3
 
         # facet's vertex indices
         v012345 = np.array(v012 + v345, dtype=int)
@@ -1049,25 +1049,25 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
             import sys
             sys.stdout.flush()
 
-    print new_verts.shape[0], new_verts_counter
+    print new_vertex.shape[0], new_vertex_counter
 
-    assert new_verts.shape[0] == new_verts_counter
+    assert new_vertex.shape[0] == new_vertex_counter
     assert new_faces.shape[0] == new_faces_counter
-    print "v", provisional_new_verts_count+nverts_old, new_verts_counter
+    print "v", provisional_new_vertex_count+nvertex_old, new_vertex_counter
     print "f", provisional_new_faces_count+nfaces_old, new_faces_counter
-    assert provisional_new_verts_count+nverts_old == new_verts_counter
+    assert provisional_new_vertex_count+nvertex_old == new_vertex_counter
     assert provisional_new_faces_count+nfaces_old == new_faces_counter
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_faces_counter
-    return new_verts, new_faces
+    return new_vertex, new_faces
 
 
-def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indices, midpoint_map):
+def subdivide_multiple_faces_new(vertex_old, faces_old, tobe_subdivided_face_indices, midpoint_map):
     """
     midpoint_map is modified (is input and output).
     midpoint_map is a dictionary that given an edge's unique_int_id, gives you the vertex in the midpoint. It may contain midpoints that are not used anymore.
     Use compute_facets_subdivision_curvatures() to calculate tobe_subdivided_face_indices.
-    Does not remove vertices => will be valid. But vertices will change: new elements will be appended to it.
-    Returns: new vertices and faces.
+    Does not remove vertex => will be valid. But vertex will change: new elements will be appended to it.
+    Returns: new vertex and faces.
     Returns: presubdivision_edges: The edges that have been removed.
     Theses edges will be invalid after this function.
     Any such edges (those that remain somewhere else) also has to be later removed (and replaced by two subdivided ones) from the rest of the mesh.
@@ -1104,25 +1104,25 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
     global trace_subdivided_facets
     trace_subdivided_facets = []
 
-    # Allocate space for the new faces and vertices
-    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
+    # Allocate space for the new faces and vertex
+    provisional_new_vertex_count = 3*len(tobe_subdivided_face_indices)
     provisional_new_faces_count = 3*len(tobe_subdivided_face_indices)
-    nverts_old = verts_old.shape[0]
+    nvertex_old = vertex_old.shape[0]
     nfaces_old = faces_old.shape[0]
-    new_verts = np.zeros((nverts_old + provisional_new_verts_count, 3), dtype=float)
+    new_vertex = np.zeros((nvertex_old + provisional_new_vertex_count, 3), dtype=float)
     new_faces = np.zeros((nfaces_old + provisional_new_faces_count, 3), dtype=int)
-    new_verts[:nverts_old, :] = verts_old
+    new_vertex[:nvertex_old, :] = vertex_old
     new_faces[:nfaces_old, :] = faces_old
 
     presubdivision_edges = []
     redundancy_counter = 0
 
-    new_verts_counter = nverts_old
+    new_vertex_counter = nvertex_old
     new_faces_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
 
         fi = tobe_subdivided_face_indices[subdiv_i]
-        triangle_old = verts_old[faces_old[fi, :], :]  # numverts x 3
+        triangle_old = vertex_old[faces_old[fi, :], :]  # numvertex x 3
         assert triangle_old.shape == (3, 3)
 
         # output: v345_xyz
@@ -1150,34 +1150,34 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
         # avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
 
-        idx_counter = new_verts_counter
-        # actual_mapped_midvertices
-        actual_3_vertices = np.zeros((3,), dtype=np.int64)
+        idx_counter = new_vertex_counter
+        # actual_mapped_midvertex
+        actual_3_vertex = np.zeros((3,), dtype=np.int64)
         for i in range(3):
             if all_edges_triples[i] in midpoint_map:
                 avoid_which[i] = True
-                actual_3_vertices[i] = midpoint_map[all_edges_triples[i]]
-                # mapped_midvertices[i] = -1  # for debug
+                actual_3_vertex[i] = midpoint_map[all_edges_triples[i]]
+                # mapped_midvertex[i] = -1  # for debug
                 redundancy_counter += 1
             else:
                 assert avoid_which[i] == False
-                # x = mapped_midvertices[i]  # wrong!
+                # x = mapped_midvertex[i]  # wrong!
                 #x = idx_counter
                 midpoint_map[all_edges_triples[i]] = idx_counter
                 idx_counter += 1
-                actual_3_vertices[i] = idx_counter - 1  # the new vertex
+                actual_3_vertex[i] = idx_counter - 1  # the new vertex
 
         use_which = np.logical_not(avoid_which)
-        n1 = new_verts_counter
+        n1 = new_vertex_counter
         n2 = idx_counter
         assert n2 == n1 + np.sum(use_which)
-        new_verts_counter = n2
-        new_verts[n1:n2, :] = v345_xyz[use_which, :]
+        new_vertex_counter = n2
+        new_vertex[n1:n2, :] = v345_xyz[use_which, :]
 
         # Output: mini_faces
-        # adding new verts and facets
-        # indices of the original vertices.
-        _v345 = actual_3_vertices.tolist()
+        # adding new vertex and facets
+        # indices of the original vertex.
+        _v345 = actual_3_vertex.tolist()
         _v012 = faces_old[fi, :].tolist()
         # facet's vertex indices
         _v012345 = np.array(_v012 + _v345, dtype=int)
@@ -1199,23 +1199,23 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
         if subdiv_i % 100 == 0:
             print subdiv_i , "       \r", ;import sys; sys.stdout.flush()
 
-    assert new_verts.shape[0] - new_verts_counter == redundancy_counter
-    new_verts = new_verts[:new_verts_counter, :]
-    # quick_vis(noisy(new_verts, 0.05), new_facets, range(new_facets.shape[0]))
-    assert np.max(new_faces.ravel()) < new_verts.shape[0]
-    assert new_verts.shape[0] == new_verts_counter
+    assert new_vertex.shape[0] - new_vertex_counter == redundancy_counter
+    new_vertex = new_vertex[:new_vertex_counter, :]
+    # quick_vis(noisy(new_vertex, 0.05), new_facets, range(new_facets.shape[0]))
+    assert np.max(new_faces.ravel()) < new_vertex.shape[0]
+    assert new_vertex.shape[0] == new_vertex_counter
     assert new_faces.shape[0] == new_faces_counter
-    assert provisional_new_verts_count+nverts_old-redundancy_counter == new_verts_counter, "vector consistency"
+    assert provisional_new_vertex_count+nvertex_old-redundancy_counter == new_vertex_counter, "vector consistency"
     assert provisional_new_faces_count+nfaces_old == new_faces_counter, "face consistency"
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_faces_counter
 
-    return new_verts, new_faces, presubdivision_edges
+    return new_vertex, new_faces, presubdivision_edges
 
 
-def compute_facets_subdivision_curvatures(verts, faces, iobj, curvature_epsilon):
+def compute_facets_subdivision_curvatures(vertex, faces, iobj, curvature_epsilon):
     """ Deviation of Mesh from object gradients """
 
-    face_areas, face_normals = compute_triangle_areas(verts, faces, return_normals=True)
+    face_areas, face_normals = compute_triangle_areas(vertex, faces, return_normals=True)
 
     nf = faces.shape[0]
     assert face_areas.shape == (nf,)
@@ -1251,7 +1251,7 @@ def compute_facets_subdivision_curvatures(verts, faces, iobj, curvature_epsilon)
 
         n = face_normals[fi, :]  # n: (3,)
 
-        triangle = verts[faces[fi, :], :]  # numverts x 3
+        triangle = vertex[faces[fi, :], :]  # numvertex x 3
         assert triangle.shape == (3, 3)
 
         assert triangle.shape == (3, 3)
@@ -1295,16 +1295,16 @@ def compute_facets_subdivision_curvatures(verts, faces, iobj, curvature_epsilon)
 
 
 # delete some artefacts dues in the sharps part of the mesh
-def comparison_verts_new_verts(old_verts, new_verts):
+def comparison_vertex_new_vertex(old_vertex, new_vertex):
     THL = 10. ** (0.001)  # find experimentally
-    nverts = old_verts.shape[0]
-    assert old_verts.shape == new_verts.shape
+    nvertex = old_vertex.shape[0]
+    assert old_vertex.shape == new_vertex.shape
 
-    for i in range(nverts):
-        if np.abs(np.linalg.norm(old_verts[i, :] - new_verts[i, :])) > THL:
-            new_verts[i, :] = old_verts[i, :]
+    for i in range(nvertex):
+        if np.abs(np.linalg.norm(old_vertex[i, :] - new_vertex[i, :])) > THL:
+            new_vertex[i, :] = old_vertex[i, :]
 
-    return new_verts
+    return new_vertex
 
 
 def simple_histogram(c, title=None, special_values=[]):
@@ -1317,8 +1317,8 @@ def simple_histogram(c, title=None, special_values=[]):
     plt.show()
 
 
-def compute_facets_curvatures_vectorized(verts, faces, iobj):
-    face_areas, face_normals = compute_triangle_areas(verts, faces, return_normals=True)
+def compute_facets_curvatures_vectorized(vertex, faces, iobj):
+    face_areas, face_normals = compute_triangle_areas(vertex, faces, return_normals=True)
 
     nf = faces.shape[0]
     assert face_areas.shape == (nf,)
@@ -1351,7 +1351,7 @@ def compute_facets_curvatures_vectorized(verts, faces, iobj):
         [0.5, 0, 0.5]   # 5
         ])
 
-    triangles = verts[faces[:, :], :]  # nf x 3 x 3
+    triangles = vertex[faces[:, :], :]  # nf x 3 x 3
 
     if True:
         nf = triangles.shape[0]
@@ -1409,7 +1409,7 @@ def compute_facets_curvatures_vectorized(verts, faces, iobj):
         else:
             assert not degenerate_faces[fi]
 
-        triangle = triangles[fi, :, :]  # numverts x 3
+        triangle = triangles[fi, :, :]  # numvertex x 3
         assert not np.any(np.isnan(triangle.ravel()))
         assert triangle.shape == (3, 3)  # nv=3
         assert not np.any(np.isnan(triangle.ravel()))
@@ -1524,7 +1524,7 @@ def propagated_subdiv(faces, subdivided_edges):
 def get_edge_code_triples_of_mesh(faces):
     """ Returns an array of (F)x(3), containing the 'edge codes' of sides of the faces of a mesh.
     There are 3 sides for each face.
-    An 'edge code' is a long integer (int64) v1+B*v2 where v1,v2 are the indices of the ends (vertices) of the edge, where v1<v2."""
+    An 'edge code' is a long integer (int64) v1+B*v2 where v1,v2 are the indices of the ends (vertex) of the edge, where v1<v2."""
     e0 = faces[:, np.newaxis, [0, 1]]
     e1 = faces[:, np.newaxis, [1, 2]]
     e2 = faces[:, np.newaxis, [2, 0]]   # np view
@@ -1649,7 +1649,7 @@ def subdivide_1to2_multiple_faces(faces, edges_with_1_side, midpoint_map, carefu
     # all problem_face_idx should be removed
 
     # The subdivided edge is between v1 and v2.
-    vert_idx_1 = problem_side_idx  # The problem_side will be between (v1,v2) vertices. vert_idx_1 is not a vertex index but it is a vertex index within a face i.e. in (0,1,2).
+    vert_idx_1 = problem_side_idx  # The problem_side will be between (v1,v2) vertex. vert_idx_1 is not a vertex index but it is a vertex index within a face i.e. in (0,1,2).
     vert_idx_2 = (problem_side_idx + 1) % 3
     vert_idx_3 = (problem_side_idx + 2) % 3
     v1 = faces[problem_face_idx, vert_idx_1]
@@ -1690,17 +1690,17 @@ def subdivide_1to2_multiple_faces(faces, edges_with_1_side, midpoint_map, carefu
     assert np.all(eid10 == eid9)
     del subdivedges_vertex_pairs
 
-    # map one-to-one between: edge_s_codes and midpoints_third_verts and (v1, v2, ...)
-    midpoints_third_verts = np.array(map(lambda edgecode: midpoint_map[edgecode], edge_s_codes), dtype=np.int64)
-    # print midpoints_third_verts
-    if midpoints_third_verts.size == 0:
+    # map one-to-one between: edge_s_codes and midpoints_third_vertex and (v1, v2, ...)
+    midpoints_third_vertex = np.array(map(lambda edgecode: midpoint_map[edgecode], edge_s_codes), dtype=np.int64)
+    # print midpoints_third_vertex
+    if midpoints_third_vertex.size == 0:
         return faces
 
-    assert isomorphic(midpoints_third_verts, v1)
-    # (v1,v2,v3) -> (v1, midpoints_third_verts, v3) + (midpoints_third_verts, v2, v3)
-    # (v1,v3, midpoints_third_verts),  (v2,v3, midpoints_third_verts)
-    new_faces1 = np.vstack(((v1, v3, midpoints_third_verts))).T  # axis is 0. .T.size = N x 3
-    new_faces2 = np.vstack(((v2, v3, midpoints_third_verts))).T
+    assert isomorphic(midpoints_third_vertex, v1)
+    # (v1,v2,v3) -> (v1, midpoints_third_vertex, v3) + (midpoints_third_vertex, v2, v3)
+    # (v1,v3, midpoints_third_vertex),  (v2,v3, midpoints_third_vertex)
+    new_faces1 = np.vstack(((v1, v3, midpoints_third_vertex))).T  # axis is 0. .T.size = N x 3
+    new_faces2 = np.vstack(((v2, v3, midpoints_third_vertex))).T
     # numpy's zip()
     new_faces = np.concatenate((new_faces1[:, np.newaxis, :], new_faces2[:, np.newaxis, :]), axis=1).reshape(-1, 3)
 
@@ -1723,13 +1723,13 @@ def subdivide_1to2_multiple_faces(faces, edges_with_1_side, midpoint_map, carefu
     return appended_faces
 
 
-def do_subdivision(verts, faces, iobj, curvature_epsilon, randomized_probability=1.):
+def do_subdivision(vertex, faces, iobj, curvature_epsilon, randomized_probability=1.):
     assert not np.any(np.isnan(faces.ravel()))
-    assert not np.any(np.isnan(verts.ravel()))  # fails
+    assert not np.any(np.isnan(vertex.ravel()))  # fails
 
     print "computing curvatures"; sys.stdout.flush()
-    # curvatures, bad_facets_count = compute_facets_curvatures_vectorized(verts, facets, iobj)
-    curvatures, bad_facets_count = compute_facets_subdivision_curvatures(verts, faces, iobj, curvature_epsilon)
+    # curvatures, bad_facets_count = compute_facets_curvatures_vectorized(vertex, facets, iobj)
+    curvatures, bad_facets_count = compute_facets_subdivision_curvatures(vertex, faces, iobj, curvature_epsilon)
     print "computing curvatures done."; sys.stdout.flush()
 
     assert np.sum(np.isnan(curvatures)) == 0, "NaN"
@@ -1746,7 +1746,7 @@ def do_subdivision(verts, faces, iobj, curvature_epsilon, randomized_probability
     print which_faces.shape
     print "applying subdivision on %d triangles." % (int(which_faces.shape[0]))
     midpoint_map = {}
-    verts2, faces2, presubdivision_edges = subdivide_multiple_faces_new(verts, faces, which_faces, midpoint_map)
+    vertex2, faces2, presubdivision_edges = subdivide_multiple_faces_new(vertex, faces, which_faces, midpoint_map)
     global trace_subdivided_faces  # third implicit output
 
     list_edges_with_1_side = []
@@ -1758,7 +1758,7 @@ def do_subdivision(verts, faces, iobj, curvature_epsilon, randomized_probability
         # print facets_with_2_or_3_sides.shape
         if faces_with_2_or_3_sides.size == 0:
             break
-        verts2, faces2, old_edges2 = subdivide_multiple_faces_new(verts2, faces2, faces_with_2_or_3_sides, midpoint_map)
+        vertex2, faces2, old_edges2 = subdivide_multiple_faces_new(vertex2, faces2, faces_with_2_or_3_sides, midpoint_map)
         presubdivision_edges += old_edges2  # bug fixed!
 
     # Finished with 2 or 3 sides.
@@ -1784,11 +1784,11 @@ def do_subdivision(verts, faces, iobj, curvature_epsilon, randomized_probability
     faces2 = subdivide_1to2_multiple_faces(faces2, edges_with_1_side, midpoint_map)
 
     ###################
-    # check_degenerate_faces(verts2, facets2, "assert")
+    # check_degenerate_faces(vertex2, facets2, "assert")
     # build_faces_of_faces(facets2)
 
     print("Subdivision applied.");sys.stdout.flush()
-    return verts2, faces2
+    return vertex2, faces2
 
 
 @profile
@@ -1828,7 +1828,7 @@ def demo_combination_plus_qem():
 
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-    verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+    vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated."); sys.stdout.flush()
 
     # **********************
@@ -1837,19 +1837,19 @@ def demo_combination_plus_qem():
     for i in range(NUMBER_OF_ITERATION_GLOBAL):
 
         # **********************
-        # * Vertex relaxation *
+        # * vertex relaxation *
         # **********************
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            verts, faces_not_used, centroids = process2_verts_resampling_relaxation(verts, faces, iobj)
-            assert not np.any(np.isnan(verts.ravel()))  # fails
-            print("Vertex relaxation applied.");sys.stdout.flush()
+            vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+            assert not np.any(np.isnan(vertex.ravel()))  # fails
+            print("vertex relaxation applied.");sys.stdout.flush()
 
         # ************************
         # ** projection and qem **
         # ************************
-        average_edge = compute_average_edge_length(verts, faces)
+        average_edge = compute_average_edge_length(vertex, faces)
 
-        old_centroids = np.mean(verts[faces[:], :], axis=1)
+        old_centroids = np.mean(vertex[faces[:], :], axis=1)
 
         new_centroids = old_centroids.copy()
 
@@ -1858,29 +1858,29 @@ def demo_combination_plus_qem():
         vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
         centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
-        new_verts_qem = \
-            vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
+        new_vertex_qem = \
+            vertex_apply_qem3(vertex, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
-        verts_before_qem = verts
+        vertex_before_qem = vertex
 
 
         # ************************
         # **  subdivision **
         # ************************
-        pre_subdiv_vf = (new_verts_qem, faces)
+        pre_subdiv_vf = (new_vertex_qem, faces)
     #    total_subdivided_facets = []
 
-        (verts, faces) = new_verts_qem, faces  # ??
+        (vertex, faces) = new_vertex_qem, faces  # ??
 
         print "subdivision:"
-        verts, faces = do_subdivision(verts, faces, iobj, curvature_epsilon)
+        vertex, faces = do_subdivision(vertex, faces, iobj, curvature_epsilon)
         global trace_subdivided_facets  # third implicit output
 
         print "subdivision done."
 
         for use_wireframe in [True, False]:
 
-            display_simple_using_mayavi_2([(verts, faces), (verts, faces), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
+            display_simple_using_mayavi_2([(vertex, faces), (vertex, faces), (pre_subdiv_vf[0], pre_subdiv_vf[1]), ],
                   pointcloud_list=[],
                   mayavi_wireframe=[False, use_wireframe, True, ], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
                   minmax=(RANGE_MIN,RANGE_MAX))
@@ -1891,16 +1891,16 @@ def demo_combination_plus_qem():
     # ***************************
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        verts, faces_not_used, centroids = process2_verts_resampling_relaxation(verts, faces, iobj)
-        assert not np.any(np.isnan(verts.ravel()))  # fails
-        print("Vertex relaxation applied.");sys.stdout.flush()
+        vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+        assert not np.any(np.isnan(vertex.ravel()))  # fails
+        print("vertex relaxation applied.");sys.stdout.flush()
 
     # ************************
     # ** projection and qem **
     # ************************
-    average_edge = compute_average_edge_length(verts, faces)
+    average_edge = compute_average_edge_length(vertex, faces)
 
-    old_centroids = np.mean(verts[faces[:], :], axis=1)
+    old_centroids = np.mean(vertex[faces[:], :], axis=1)
 
     new_centroids = old_centroids.copy()
 
@@ -1909,12 +1909,12 @@ def demo_combination_plus_qem():
     vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
     centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
-    new_verts_qem = \
-        vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
+    new_vertex_qem = \
+        vertex_apply_qem3(vertex, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
-    verts_before_qem = verts
+    vertex_before_qem = vertex
 
-    display_simple_using_mayavi_2([(verts_before_qem, faces), (new_verts_qem, faces), ],
+    display_simple_using_mayavi_2([(vertex_before_qem, faces), (new_vertex_qem, faces), ],
        pointcloud_list=[],
        mayavi_wireframe=[False, False], opacity=[0.4*0, 1, 0.9], gradients_at=None, separate=False, gradients_from_iobj=None,
        minmax=(RANGE_MIN, RANGE_MAX))
