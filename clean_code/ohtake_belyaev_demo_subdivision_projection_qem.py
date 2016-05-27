@@ -152,26 +152,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
 
     dx1_c = - g_direction_a * signs_c[:, np.newaxis]
 
-    """
-    f_a = fc_a # ???
-    taubin = f_a/glen_a
-    x1_taubin = x0 - g_direction_a * taubin[:, np.newaxis]
-    x1_half = x0 + 0.5*dx1_c * step_size
-    x1_half_opposite = x0 - 0.5*dx1_c * step_size
-    #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
-    # boundary:
-    ...
-    candidates = [x1]  # [x1, x1_taubin, x1_half, x1_half_opposite]
-
-    for xa in candidates:
-        xa4 = augment4(xa)
-        f_a = iobj.implicitFunction(xa4)
-        signs = (f_a > THRESHOLD_zero_interval)*1. - (f_a < -THRESHOLD_zero_interval)*1.
-        signs = signs*step_size
-        #zeros, negatives.
-        success = f_a * fc_a <= 0.  # May miss forget about accidental zeros. In that case, use the slightely further points.
-        assert success.ndim == 1
-    """
     step_size = max_dist / 2. * 2.
 
     alpha_list = []
@@ -236,18 +216,12 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
 
             still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
             best_result_x[new_success_indices, :] = x1_half[new_success_indices, :]
-            # print "new success>>", new_success_indices.size, "<<  ",
-            # print "already>>", np.sum(already_success.size), "<<  ",
-            # todo: also try som ein already_success and improve by replacing those that are CLOSER.
-            # already_success_but_open_to_improvement = ...
-            # best_so_far = ...
 
             # for next round
             already_success = np.logical_or(success, already_success)  # Union
-            # print "left:", still_nonsuccess_indices.shape, ".",
+
             print ("%d(+%d) " % (still_nonsuccess_indices.size, new_success_indices.size)),
-            # print "already_success", np.sum(already_success)
-            # active_indices = still_nonsuccess_indices
+
             if still_nonsuccess_indices.shape[0] == 0:
                 break
     # if still_nonsuccess_indices.shape[0] > 0:
@@ -264,8 +238,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
         # print s[s > 0]
         assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
         print "OK"
-
-    # print "."; flush()
 
     # ------------
     # Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
@@ -288,8 +260,6 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
 
     assert np.all(np.abs(f2[relevants_boolean]) > +THRESHOLD_zero_interval)
     assert np.all(np.abs(f2[zeros12]) <= +THRESHOLD_zero_interval)
-#    import ipdb; ipdb.set_trace()
-#    assert np.all(mysign_np(f2[relevants_boolean], THRESHOLD_zero_interval) * mysign_np(f1[relevants_boolean], THRESHOLD_zero_interval) < 0)
 
     x0_v4 = centroids[relevants_boolean, :]
     x2_v4 = best_result_x[relevants_boolean, :]
@@ -367,8 +337,8 @@ def build_faces_of_faces(faces):
     return f_uniq - 1
 
 
-def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals, c=2.0):
-    """ faceslist_neighbours_of_vertex: *** """
+def verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centroids, centroid_normals, c=2.0):
+    """ faceslist_neighbours_of_verts: *** """
 
     def kij(i, j):
         """ Returns (1/r * Theta), a measure of curvature.
@@ -382,10 +352,10 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
 
         # i,j are centroids
         assert i != j
-        pi, pj = (centroids[i, 0:3], centroids[j, 0:3])
+        pi, pj = (centroids[i, :], centroids[j, :])
 
         # based on gradients. normalised.
-        mi, mj = (centroid_normals[i, 0:3], centroid_normals[j, 0:3])
+        mi, mj = (centroid_normals[i, :], centroid_normals[j, :])
         assert mi.shape == (3,)
         assert mj.shape == (3,)
         assert np.abs(np.linalg.norm(mi) - 1.0) < 0.0000001
@@ -424,9 +394,9 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
         return wi
     #
     c_ = c  # 2.0  # constant
-    vertex_index = 1  # vertex
 
-    umbrella_faces = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+
+    umbrella_faces = faceslist_neighbours_of_verts[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_faces: ", umbrella_faces)
     # wa = np.zeros()
     w_list = []
@@ -452,23 +422,21 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, cen
     print wi_total_array
     # The weights are prepared. Now let's resample vertices
 
-    vertex_index = 1
-
-    umbrella_faces = np.array(faceslist_neighbours_of_vertex[vertex_index])  # empty
+    umbrella_faces = np.array(faceslist_neighbours_of_verts[1])  # empty
     print "umbrella_faces", umbrella_faces.shape, "****"
     assert np.allclose(wi_total_array[umbrella_faces] - np.array(w_list), 0)
 
     def lift_verts(verts, centroids):
         new_verts = verts.copy()
         # assign these to a sparse matrix? and  do:  M = M/normalise(M); verts = M * verts
-        for vertex_index in range(verts.shape[0]):
-            umbrella_faces = np.array(faceslist_neighbours_of_vertex[vertex_index])
+        for i in range(verts.shape[0]):
+            umbrella_faces = np.array(faceslist_neighbours_of_verts[i])
             w = wi_total_array[umbrella_faces]
             # w = w * 0 + 1
             w = w / np.sum(w)
             # print w / np.sum(w), w.shape
-            new_verts[vertex_index, :] = \
-                np.dot(w, centroids[umbrella_faces, 0:3])  # (n) * (n x 3)
+            new_verts[i, :] = \
+                np.dot(w, centroids[umbrella_faces, :])  # (n) * (n x 3)
         return new_verts
 
     return lift_verts(verts, centroids)
@@ -617,7 +585,7 @@ def compute_average_edge_length(verts, faces):
 # @profile
 
 
-def get_A_b(vertex_id, nlist_numpy, centroids, centroids_gradients, qem_origin):
+def get_A_b(nlist_numpy, centroids, centroids_gradients, qem_origin):
 
     nai = nlist_numpy
 
@@ -700,26 +668,6 @@ def set_centers_on_surface__ohtake_v3s(iobj, centroids, average_edge, debug_vf=N
 
     dx0_c_grad = - g_direction_a * signs_c[:, np.newaxis]
 
-    """
-    f_a = fc_a # ???
-    taubin = f_a/glen_a
-    x1_taubin = x0_v3 - g_direction_a * taubin[:, np.newaxis]
-    x1_half = x0_v3 + 0.5*dx0_c_grad * step_size
-    x1_half_opposite = x0_v3 - 0.5*dx0_c_grad * step_size
-    #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
-    # boundary:
-    ...
-    candidates = [x1]  # [x1, x1_taubin, x1_half, x1_half_opposite]
-
-    for xa in candidates:
-        xa4 = augment4(xa)
-        f_a = iobj.implicitFunction(xa4)
-        signs = (f_a > THRESHOLD_zero_interval)*1. - (f_a < -THRESHOLD_zero_interval)*1.
-        signs = signs*step_size
-        #zeros, negatives.
-        success = f_a * fc_a <= 0.  # May miss forget about accidental zeros. In that case, use the slightely further points.
-        assert success.ndim == 1
-    """
     step_size = max_dist / 2. * 2.
 
     alpha_list = []
@@ -772,7 +720,7 @@ def set_centers_on_surface__ohtake_v3s(iobj, centroids, average_edge, debug_vf=N
             dxc = dx0_c_grad
             alpha_list1 = alpha_list
         else:
-            dxc = dx0c_mesh_normals  #* 0.5
+            dxc = dx0c_mesh_normals  # * 0.5
             print
             print "now mesh normals"
             alpha_list1 = alpha_list[:10]
@@ -938,14 +886,14 @@ def vertices_apply_qem3(verts, faces, centroids, vertex_neighbours_list, centroi
     assert verts.shape == (nvert, 3)
     new_verts = np.zeros((nvert, 3))
 
-    for vertex_id in range(nvert):
+    for verts_id in range(nvert):
 
-        vi = vertex_id
-        nlist = vertex_neighbours_list[vertex_id]
+        vi = verts_id
+        nlist = vertex_neighbours_list[verts_id]
         nai = np.array(nlist)
-        qem_origin = verts[vertex_id, :].reshape(3, 1)*0
+        qem_origin = verts[verts_id, :].reshape(3, 1)*0
 
-        A, b = get_A_b(vi, nai, centroids, centroids_gradients, qem_origin)
+        A, b = get_A_b(nai, centroids, centroids_gradients, qem_origin)
 
         u, s, v = np.linalg.svd(A)
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
@@ -1008,16 +956,16 @@ def compute_centroids(verts, faces):
     return centroids
 
 
-def process2_vertex_resampling_relaxation(verts, faces, iobj):
+def process2_verts_resampling_relaxation(verts, faces, iobj):
     assert not np.any(np.isnan(verts))
     centroids = compute_centroids(verts, faces)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
 
     from mesh_utils import make_neighbour_faces_of_vertex
-    faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces)
+    faceslist_neighbours_of_verts = make_neighbour_faces_of_vertex(faces)
     faces_of_faces = build_faces_of_faces(faces)
 
-    new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
+    new_verts = verts_resampling(verts, faceslist_neighbours_of_verts, faces_of_faces, centroids, centroid_normals_normalized, c=2.0)
 
     return new_verts, faces, centroids
 
@@ -1058,7 +1006,7 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
     # problem: there may be repeated (Redundant) vertices. (as well as T-junctions)
     # also later check for faces with repeated edges. (which can be another cause of null normals)
 
-    new_vertex_counter = nverts_old
+    new_verts_counter = nverts_old
     new_faces_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
         fi = tobe_subdivided_face_indices[subdiv_i]
@@ -1074,14 +1022,14 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
         assert vxyz_0123.shape == (6, 3)
 
         v012 = faces_old[fi, :].tolist()  # range(0, 3)  #
-        v345 = range(new_vertex_counter, new_vertex_counter+3)
+        v345 = range(new_verts_counter, new_verts_counter+3)
 
         v345_xyz = vxyz_0123[3:6, :]  # only pick the new ones
 
         assert len(v345) == 3
-        new_verts[(new_vertex_counter):(new_vertex_counter+3), :] = v345_xyz
+        new_verts[(new_verts_counter):(new_verts_counter+3), :] = v345_xyz
 
-        new_vertex_counter += 3
+        new_verts_counter += 3
 
         # facet's vertex indices
         v012345 = np.array(v012 + v345, dtype=int)
@@ -1101,13 +1049,13 @@ def subdivide_multiple_faces(verts_old, faces_old, tobe_subdivided_face_indices)
             import sys
             sys.stdout.flush()
 
-    print new_verts.shape[0], new_vertex_counter
+    print new_verts.shape[0], new_verts_counter
 
-    assert new_verts.shape[0] == new_vertex_counter
+    assert new_verts.shape[0] == new_verts_counter
     assert new_faces.shape[0] == new_faces_counter
-    print "v", provisional_new_verts_count+nverts_old, new_vertex_counter
+    print "v", provisional_new_verts_count+nverts_old, new_verts_counter
     print "f", provisional_new_faces_count+nfaces_old, new_faces_counter
-    assert provisional_new_verts_count+nverts_old == new_vertex_counter
+    assert provisional_new_verts_count+nverts_old == new_verts_counter
     assert provisional_new_faces_count+nfaces_old == new_faces_counter
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_faces_counter
     return new_verts, new_faces
@@ -1169,7 +1117,7 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
     presubdivision_edges = []
     redundancy_counter = 0
 
-    new_vertex_counter = nverts_old
+    new_verts_counter = nverts_old
     new_faces_counter = nfaces_old
     for subdiv_i in range(len(tobe_subdivided_face_indices)):
 
@@ -1202,7 +1150,7 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
         # avoid becasue it is redundant
         avoid_which = np.zeros((3,), dtype=np.bool) + False
 
-        idx_counter = new_vertex_counter
+        idx_counter = new_verts_counter
         # actual_mapped_midvertices
         actual_3_vertices = np.zeros((3,), dtype=np.int64)
         for i in range(3):
@@ -1220,10 +1168,10 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
                 actual_3_vertices[i] = idx_counter - 1  # the new vertex
 
         use_which = np.logical_not(avoid_which)
-        n1 = new_vertex_counter
+        n1 = new_verts_counter
         n2 = idx_counter
         assert n2 == n1 + np.sum(use_which)
-        new_vertex_counter = n2
+        new_verts_counter = n2
         new_verts[n1:n2, :] = v345_xyz[use_which, :]
 
         # Output: mini_faces
@@ -1251,13 +1199,13 @@ def subdivide_multiple_faces_new(verts_old, faces_old, tobe_subdivided_face_indi
         if subdiv_i % 100 == 0:
             print subdiv_i , "       \r", ;import sys; sys.stdout.flush()
 
-    assert new_verts.shape[0] - new_vertex_counter == redundancy_counter
-    new_verts = new_verts[:new_vertex_counter, :]
+    assert new_verts.shape[0] - new_verts_counter == redundancy_counter
+    new_verts = new_verts[:new_verts_counter, :]
     # quick_vis(noisy(new_verts, 0.05), new_facets, range(new_facets.shape[0]))
     assert np.max(new_faces.ravel()) < new_verts.shape[0]
-    assert new_verts.shape[0] == new_vertex_counter
+    assert new_verts.shape[0] == new_verts_counter
     assert new_faces.shape[0] == new_faces_counter
-    assert provisional_new_verts_count+nverts_old-redundancy_counter == new_vertex_counter, "vector consistency"
+    assert provisional_new_verts_count+nverts_old-redundancy_counter == new_verts_counter, "vector consistency"
     assert provisional_new_faces_count+nfaces_old == new_faces_counter, "face consistency"
     assert len(trace_subdivided_facets) == 0 or np.max(np.array(trace_subdivided_facets)) < new_faces_counter
 
@@ -1679,6 +1627,7 @@ def subdivide_1to2_multiple_faces(faces, edges_with_1_side, midpoint_map, carefu
     problem_face_idx = idx_xy[0]
     problem_side_idx = idx_xy[1]
     # assert np.all(problem_face_idx < 3)
+
     def has_repeats(x):
         y = x.copy()
         y.sort()
@@ -1748,8 +1697,8 @@ def subdivide_1to2_multiple_faces(faces, edges_with_1_side, midpoint_map, carefu
         return faces
 
     assert isomorphic(midpoints_third_verts, v1)
-    #(v1,v2,v3) -> (v1, midpoints_third_verts, v3) + (midpoints_third_verts, v2, v3)
-    #(v1,v3, midpoints_third_verts),  (v2,v3, midpoints_third_verts)
+    # (v1,v2,v3) -> (v1, midpoints_third_verts, v3) + (midpoints_third_verts, v2, v3)
+    # (v1,v3, midpoints_third_verts),  (v2,v3, midpoints_third_verts)
     new_faces1 = np.vstack(((v1, v3, midpoints_third_verts))).T  # axis is 0. .T.size = N x 3
     new_faces2 = np.vstack(((v2, v3, midpoints_third_verts))).T
     # numpy's zip()
@@ -1891,7 +1840,7 @@ def demo_combination_plus_qem():
         # * Vertex relaxation *
         # **********************
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-            verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
+            verts, faces_not_used, centroids = process2_verts_resampling_relaxation(verts, faces, iobj)
             assert not np.any(np.isnan(verts.ravel()))  # fails
             print("Vertex relaxation applied.");sys.stdout.flush()
 
@@ -1942,7 +1891,7 @@ def demo_combination_plus_qem():
     # ***************************
 
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-        verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
+        verts, faces_not_used, centroids = process2_verts_resampling_relaxation(verts, faces, iobj)
         assert not np.any(np.isnan(verts.ravel()))  # fails
         print("Vertex relaxation applied.");sys.stdout.flush()
 
