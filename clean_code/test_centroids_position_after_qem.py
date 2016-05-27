@@ -52,7 +52,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-            verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+            vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
             print("MC calculated.")
             sys.stdout.flush()
 
@@ -61,15 +61,15 @@ class ImplicitFunctionTests(unittest.TestCase):
             from ohtake_belyaev_demo_subdivision_projection_qem import compute_centroid_gradients, vertices_apply_qem3
 
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-                verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
-            assert not np.any(np.isnan(verts.ravel()))  # fails
+                vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+            assert not np.any(np.isnan(vertex.ravel()))  # fails
             print("Vertex relaxation applied.")
             sys.stdout.flush()
 
             # projection
-            average_edge = compute_average_edge_length(verts, faces)
+            average_edge = compute_average_edge_length(vertex, faces)
 
-            old_centroids = np.mean(verts[faces[:], :], axis=1)
+            old_centroids = np.mean(vertex[faces[:], :], axis=1)
             check_vector3_vectorized(old_centroids)
 
             new_centroids = old_centroids.copy()
@@ -79,12 +79,12 @@ class ImplicitFunctionTests(unittest.TestCase):
             vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
             centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
-            new_verts_qem = \
-                vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
+            new_vertex_qem = \
+                vertices_apply_qem3(vertex, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
-            check_vector3_vectorized(new_verts_qem)
+            check_vector3_vectorized(new_vertex_qem)
             # checking if the projection is correct by calling the implicitFunction
-            f = iobj.implicitFunction(new_verts_qem)
+            f = iobj.implicitFunction(new_vertex_qem)
 
             # Two ways of doing this test, in the first one we strictly consider that the test fail if one value is superior
             # to the tolerance and in the second we print the numbere of point who fail the test
@@ -93,13 +93,13 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             if Number_of_point_who_fail is True:
                 fail = 0
-                for i in range(new_verts_qem.shape[0]):
+                for i in range(new_vertex_qem.shape[0]):
                     if math.fabs(f[i]) > TOLERANCE:
                         fail += 1
                 print objname, "Number of points:", new_centroids.shape[0], "Number of points who fails the test:", fail
 
             else:
-                for i in range(new_verts_qem.shape[0]):
+                for i in range(new_vertex_qem.shape[0]):
                     print "Fail the test", math.fabs(f[i])
                     self.assertTrue(math.fabs(f[i]) < TOLERANCE)
 

@@ -94,14 +94,14 @@ def vtk_mc_test():
     numpy_array = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     gridvals = numpy_array
 
-    verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+    vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print ("MC calculated")
     sys.stdout.flush()
 
     from mesh_utils import mesh_invariant
     mesh_invariant(faces)
 
-    display_simple_using_mayavi_vf1(verts, faces)
+    display_simple_using_mayavi_vf1(vertex, faces)
 
 if __name__ == '__main__':
     vtk_mc_test()

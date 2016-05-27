@@ -3,8 +3,8 @@ import numpy as np
 VERBOSE = False
 
 
-def centroids(verts, faces):
-    c = np.mean(verts[faces[:], :], axis=1)
+def centroids(vertex, faces):
+    c = np.mean(vertex[faces[:], :], axis=1)
     return c
 
 

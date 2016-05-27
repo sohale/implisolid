@@ -50,22 +50,22 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-            verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+            vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
             print("MC calculated.")
             sys.stdout.flush()
 
             from ohtake_belyaev_demo_subdivision_projection_qem import process2_vertex_resampling_relaxation, compute_average_edge_length, set_centers_on_surface__ohtake_v3s
 
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-                verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
-            assert not np.any(np.isnan(verts.ravel()))  # fails
+                vertex, facets_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+            assert not np.any(np.isnan(vertex.ravel()))  # fails
             print("Vertex relaxation applied.")
             sys.stdout.flush()
 
             # projection
-            average_edge = compute_average_edge_length(verts, faces)
+            average_edge = compute_average_edge_length(vertex, faces)
 
-            old_centroids = np.mean(verts[faces[:], :], axis=1)
+            old_centroids = np.mean(vertex[faces[:], :], axis=1)
             check_vector3_vectorized(old_centroids)
 
             new_centroids = old_centroids.copy()

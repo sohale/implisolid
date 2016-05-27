@@ -238,7 +238,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-            verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+            vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
             print("MC calculated.")
             sys.stdout.flush()
 
@@ -247,14 +247,14 @@ class ImplicitFunctionTests(unittest.TestCase):
             from ohtake_belyaev_demo_subdivision_projection_qem import compute_centroid_gradients, vertices_apply_qem3, do_subdivision
 
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-                verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
-                assert not np.any(np.isnan(verts.ravel()))  # fails
+                vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+                assert not np.any(np.isnan(vertex.ravel()))  # fails
                 print("Vertex relaxation applied.")
                 sys.stdout.flush()
 
-            average_edge = compute_average_edge_length(verts, faces)
+            average_edge = compute_average_edge_length(vertex, faces)
 
-            old_centroids = np.mean(verts[faces[:], :], axis=1)
+            old_centroids = np.mean(vertex[faces[:], :], axis=1)
 
             new_centroids = old_centroids.copy()
 
@@ -264,13 +264,13 @@ class ImplicitFunctionTests(unittest.TestCase):
             vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
             centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
-            new_verts_qem = \
-                vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
+            new_vertex_qem = \
+                vertices_apply_qem3(vertex, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
             for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
                 print "subdivision:"
-                verts, facets = do_subdivision(new_verts_qem, faces, iobj, curvature_epsilon)
+                vertex, facets = do_subdivision(new_vertex_qem, faces, iobj, curvature_epsilon)
                 global trace_subdivided_facets  # third implicit output
 
                 print "subdivision done."
