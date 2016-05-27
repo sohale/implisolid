@@ -15,16 +15,16 @@ CHECK_PAIRED = True
 # test the correctness of all meshs after the subdivision
 
 
-def check_mesh(facets):
+def check_mesh(faces):
     # based on the function coming from ohtake_belyaev_5.py
     """ Checks if the output of the Marching Cubes and subdivision are correct. Correction of the mesh: closedness, each edge appears exactly twice, etc"""
     from mesh_utils import make_edge_lookup_sparse
-    check_faces(facets)
-    check_faces3(facets)
+    check_faces(faces)
+    check_faces3(faces)
 
     # The following does a series of `assert`s which check the correctness of the mesh
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
-        make_edge_lookup_sparse(facets)
+        make_edge_lookup_sparse(faces)
 
 
 def check_faces3(facets):
@@ -32,13 +32,13 @@ def check_faces3(facets):
     pass
 
 
-def get_edge_code_triples_of_mesh(facets):
+def get_edge_code_triples_of_mesh(faces):
     """ Returns an array of (F)x(3), containing the 'edge codes' of sides of the faces of a mesh.
     There are 3 sides for each face.
     An 'edge code' is a long integer (int64) v1+B*v2 where v1,v2 are the indices of the ends (vertices) of the edge, where v1<v2."""
-    e0 = facets[:, np.newaxis, [0, 1]]
-    e1 = facets[:, np.newaxis, [1, 2]]
-    e2 = facets[:, np.newaxis, [2, 0]]   # np view
+    e0 = faces[:, np.newaxis, [0, 1]]
+    e1 = faces[:, np.newaxis, [1, 2]]
+    e2 = faces[:, np.newaxis, [2, 0]]   # np view
     e012 = np.concatenate((e0, e1, e2), axis=1)  # n x 3 x 2
     assert e012.base is None  # make sure it's not a view of faces
     e012.sort(axis=2)
@@ -46,9 +46,9 @@ def get_edge_code_triples_of_mesh(facets):
     all_edges_triples = np.dot(e012, BB)  # n x 3
     assert all_edges_triples.dtype == np.int64
     assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
-    assert np.max(facets, axis=None) < B
+    assert np.max(faces, axis=None) < B
     assert all_edges_triples.size == 0 or np.min(all_edges_triples) >= 0
-    assert all_edges_triples.shape == (facets.shape[0], 3)
+    assert all_edges_triples.shape == (faces.shape[0], 3)
     return all_edges_triples, e012
 
 
@@ -238,7 +238,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-            verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+            verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
             print("MC calculated.")
             sys.stdout.flush()
 
@@ -247,30 +247,30 @@ class ImplicitFunctionTests(unittest.TestCase):
             from ohtake_belyaev_demo_subdivision_projection_qem import compute_centroid_gradients, vertices_apply_qem3, do_subdivision
 
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
-                verts, facets_not_used, centroids = process2_vertex_resampling_relaxation(verts, facets, iobj)
+                verts, faces_not_used, centroids = process2_vertex_resampling_relaxation(verts, faces, iobj)
                 assert not np.any(np.isnan(verts.ravel()))  # fails
                 print("Vertex relaxation applied.")
                 sys.stdout.flush()
 
-            average_edge = compute_average_edge_length(verts, facets)
+            average_edge = compute_average_edge_length(verts, faces)
 
-            old_centroids = np.mean(verts[facets[:], :], axis=1)
+            old_centroids = np.mean(verts[faces[:], :], axis=1)
 
             new_centroids = old_centroids.copy()
 
             set_centers_on_surface__ohtake_v3s(iobj, new_centroids, average_edge)
 
             # neighbour_faces_of_vertex
-            vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(facets)
+            vertex_neighbours_list = mesh_utils.make_neighbour_faces_of_vertex(faces)
             centroid_gradients = compute_centroid_gradients(new_centroids, iobj)
 
             new_verts_qem = \
-                vertices_apply_qem3(verts, facets, new_centroids, vertex_neighbours_list, centroid_gradients)
+                vertices_apply_qem3(verts, faces, new_centroids, vertex_neighbours_list, centroid_gradients)
 
             for i in range(SUBDIVISION_ITERATIONS_COUNT):
 
                 print "subdivision:"
-                verts, facets = do_subdivision(new_verts_qem, facets, iobj, curvature_epsilon)
+                verts, facets = do_subdivision(new_verts_qem, faces, iobj, curvature_epsilon)
                 global trace_subdivided_facets  # third implicit output
 
                 print "subdivision done."

@@ -13,16 +13,16 @@ CHECK_PAIRED = True
 # test the correctness of all meshs, work for all objects except screw1 and screw2
 
 
-def check_mesh(facets):
+def check_mesh(faces):
     # based on the function coming from ohtake_belyaev_5.py
     """ Checks if the output of the Marching Cubes and subdivision are correct. Correction of the mesh: closedness, each edge appears exactly twice, etc"""
     from mesh_utils import make_edge_lookup_sparse
-    check_faces(facets)
-    check_faces3(facets)
+    check_faces(faces)
+    check_faces3(faces)
 
     # The following does a series of `assert`s which check the correctness of the mesh
     (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
-        make_edge_lookup_sparse(facets)
+        make_edge_lookup_sparse(faces)
 
 
 def check_faces3(facets):
@@ -233,11 +233,11 @@ class ImplicitFunctionTests(unittest.TestCase):
 
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
-            verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
+            verts, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
             print("MC calculated.")
             sys.stdout.flush()
 
-            check_mesh(facets)
+            check_mesh(faces)
 
 
 if __name__ == '__main__':

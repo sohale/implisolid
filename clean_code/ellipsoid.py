@@ -51,7 +51,6 @@ class Ellipsoid(ImplicitFunction):
 
 
 class Transformed(ImplicitFunction, Transformable):
-    """ See the @vectorized.Ellipsoid and @nonvec.Transformed classes."""
     def __init__(self, base_object, m=None):
         if is_python3():
             super().__init__(initialMatrix=m)
