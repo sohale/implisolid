@@ -516,11 +516,12 @@ def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
         indices += neighbours_list
         data += (neighbors * [1])
 
+    (data, indices, indptr) = (data, columns, row_start_indices)
     FoV = sp.csr.csr_matrix((data, indices, indptr))
     return FoV
 
 
-def make_fov_sparse_v2(faces, maxvert=None):
+def make_fov_sparse_v2(faces):
     """ Makes the FoV matrix: The faces that are neighbours of each vertex. row=vert id, col=face id.
     This method is used in vertex resampling where we need the neighbour faces, the centroids of which pull our vertex. """
     nverts = np.max(faces, axis=None)+1

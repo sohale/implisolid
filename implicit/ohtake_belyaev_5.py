@@ -1318,10 +1318,14 @@ def build_faces_of_faces(facets):
     assert np.sum(f_uniq.ravel() == 0) == 0  # all faces have at least one neighbour at each side.
     return f_uniq - 1  # fix back the indices
 
+from ipdb import set_trace
 
 # ############################################################
 # # RESAMPLING
 # ############################################################
+
+from mesh_utils import make_neighbour_faces_of_vertex
+from mesh_utils import make_fov_sparse_v2
 
 global q
 q=0
@@ -1333,15 +1337,15 @@ def process2_vertex_resampling_relaxation(verts, facets, iobj, c=2.0):
     #facets = fix_faces_3div2(facets)
     centroids = compute_centroids(verts, facets)
     centroid_normals_normalized = compute_centroid_gradients(centroids, iobj, normalise=True)
-    from mesh_utils import make_neighbour_faces_of_vertex
     faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(facets)
     face_neighbours_of_faces_Fx3 = build_faces_of_faces(facets)
     assert not np.any(np.isnan(verts.ravel()))  # fine
 
-    set_trace()
+    #set_trace()
 
     faces_of_verts_sparse = faceslist_neighbours_of_vertex
-    wr(iobj, centroids, face_neighbours_of_faces_Fx3, faces_of_verts_sparse, c)
+    fov_sparse = make_fov_sparse_v2(facets)
+    wr(verts, iobj, centroids, face_neighbours_of_faces_Fx3, fov_sparse, c)
 
     new_verts = vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_faces_Fx3, centroids, centroid_normals_normalized, c=c)
 
@@ -1368,52 +1372,67 @@ def normalise_gradients(g_a, THRESHOLD_minimum_gradient_len):
     assert np.allclose(np.linalg.norm(g_a, axis=1), 1.)
     return g_direction_a
 
-def wr(ifunc, centroids, faces_of_faces_fx3, faces_of_verts_sparse, c):
+
+def ki_vectorized(ifunc, centroids, f3, THRESHOLD_minimum_gradient_len):
+    """ THRESHOLD_minimum_gradient_len is aways used in nirmalisation of gradients """
+    F = centroids.shape[0]
+    #f3 = np.random.randint(0, 100, (100, 3))
+    assert f3.ndim == 2
+    assert f3.shape[1] == 3
+    assert not issubclass(f3.dtype.type, np.integer)
+
+    gradients = ifunc.implicitGradient(centroids)
+    centroid_normals = normalise_gradients(gradients, THRESHOLD_minimum_gradient_len)
+    m1 = centroid_normals
+    m3 = m1[f3, :]
+    mimj = np.sum(m1[:, np.newaxis, :] * m3, axis=1)  # mm
+    assert mimj.shape == (F, 3)
+    del f3
+
+    assert m1.shape[1] == 3
+    assert m3.shape[2] == 3
+    assert np.abs(np.linalg.norm(m1) - 1.0) < 0.0000001
+
+    mimj[mimj < -1.0] = -1.0
+    mimj[mimj > +1.0] = 1.0
+    arccos = np.arccos(mimj)
+    assert arccos.shape == (F, 3)
+
+    if True:
+        #pipj = np.linalg.norm(pi - pj)
+        #pipj = ...
+        pipj[pipj == 0.] = 1.  # fixme: tolerance
+        assert np.all(pipj > 0.)
+        pipj_inv = 1. / pipj
+        assert not np.any(np.isnan(pipj_inv))
+
+    kij = arccos * pipj_inv
+    assert kij.shape == (F, 3)
+
+    ki = np.sum(kij, axis=1)
+    assert not np.any(np.isnan(ki))  # necessary. Can fail.
+    assert ki.shape == (F,)
+
+
+def wr(verts, ifunc, centroids, faces_of_faces_fx3, faces_of_verts_sparse, c):
     F = centroids.shape[0]
 
     if c == 0:
         wi = np.ones((F,))
     else:   # if "wi":
-        f3 = faces_of_faces_fx3
-        #f3 = np.random.randint(0, 100, (100, 3))
-        assert f3.ndim == 2
-        assert f3.shape[1] == 3
-        assert not issubclass(f3.dtype.type, np.integer)
-
-        gradients = ifunc.implicitGradient(centroids)
-        #m1 = centroid_normals
-        m1 = normalise_gradients(gradients, THRESHOLD_minimum_gradient_len)
-        m3 = m1[f3, :]
-        mimj = np.sum(m1[:, np.newaxis, :] * m3, axis=1)  # mm
-        assert mimj.shape == (F, 3)
-
-        assert m1.shape[1] == 3
-        assert m3.shape[2] == 3
-        assert np.abs(np.linalg.norm(m1) - 1.0) < 0.0000001
-
-        mimj[mimj < -1.0] = -1.0
-        mimj[mimj > +1.0] = 1.0
-        arccos = np.arccos(mimj)
-        assert arccos.shape == (F, 3)
-
-        if True:
-            #pipj = np.linalg.norm(pi - pj)
-            #pipj = ...
-            pipj[pipj == 0.] = 1.  # fixme: tolerance
-            assert np.all(pipj > 0.)
-            pipj_inv = 1. / pipj
-            assert not np.any(np.isnan(pipj_inv))
-
-        kij = arccos * pipj_inv
-        assert kij.shape == (F, 3)
-
-        ki = np.sum(kij, axis=1)
-        assert not np.any(np.isnan(ki))  # necessary. Can fail.
-        assert ki.shape == (F,)
+        ki = ki_vectorized(ifunc, centroids, faces_of_faces_fx3, )
 
         wi = 1. + c * ki
 
     assert wi.shape == (F,)
+
+    print faces_of_verts_sparse.shape
+    num_verts = verts.shape[0]
+    assert faces_of_verts_sparse.shape == (num_verts, F)
+    set_trace()
+    fov = faces_of_verts_sparse
+    fov * wi[np.newaxis, :]
+
 
     #nw = faces_of_verts_sparse *? w
     #tensor(nw * pi, axis=..)  #does it support?
@@ -1505,24 +1524,24 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_
     #
     #set_trace()
     c_ = c  # 2.0  # constant
-    vertex_index = 1  # vertex
-    #assert vertex_index >= 0
-    umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
-    #print("umbrella_facets: ", umbrella_facets)
-    #wa = np.zeros()
-    w_list = []
-    for i_facet in umbrella_facets:
-        # neighbour facet i_facet of Vertex vertex_index
-        #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
-        three_facets = face_neighbours_of_faces_Fx3[i_facet, :]
-        w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
-        # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
-        w_list.append(w)
-        #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
-        #todo: store in ...
-    #print "w_list ",w_list
-    #
-    #del w_list
+    if False:
+        vertex_index = 1  # vertex
+        #assert vertex_index >= 0
+        umbrella_facets = faceslist_neighbours_of_vertex[vertex_index]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
+        #print("umbrella_facets: ", umbrella_facets)
+        #wa = np.zeros()
+        w_list = []
+        for i_facet in umbrella_facets:
+            # neighbour facet i_facet of Vertex vertex_index
+            #three_facets = filter(lambda idx: idx != i_facet, umbrella_facets)
+            three_facets = face_neighbours_of_faces_Fx3[i_facet, :]
+            w = wi(i_facet, three_facets, c_)  # three_facets should be neighbours of the facet i_facet
+            # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
+            w_list.append(w)
+            #todo: sparse matrix: w[vi=vertex_index, f2=i_facet] = w
+        #
+        del w_list
+
     #w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
     nfaces = centroids.shape[0]
     wi_total_array = np.zeros((nfaces,))
@@ -1536,14 +1555,16 @@ def vertex_resampling(verts, faceslist_neighbours_of_vertex, face_neighbours_of_
     # The weights are prepared. Now let's resample vertices
     assert not np.any(np.isnan(wi_total_array.ravel()))  # fails
 
-    vertex_index = 1
-    #todo: umbrella_Facets = sparse matrix
-    #umbrella_facets = np.array(faceslist_neighbours_of_vertex, dtype=np.int)  #empty
+    if False:
+        vertex_index = 1
+        #todo: umbrella_Facets = sparse matrix
+        #umbrella_facets = np.array(faceslist_neighbours_of_vertex, dtype=np.int)  #empty
 
-    umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=np.int)  # empty
+        umbrella_facets = np.array(faceslist_neighbours_of_vertex[vertex_index], dtype=np.int)  # empty
 
-    #print "umbrella_facets", umbrella_facets.shape, "****"
-    assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
+        #print "umbrella_facets", umbrella_facets.shape, "****"
+        assert np.allclose( wi_total_array[umbrella_facets] - np.array(w_list), 0)
+        del umbrella_facets
 
     def lift_verts(verts, centroids):
         new_verts = verts.copy()

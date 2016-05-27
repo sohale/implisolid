@@ -33,7 +33,7 @@ import numpy as np
 
 
 class FoV_Tests(unittest.TestCase):
-
+    """ The FoV is used in the weighted vertex resampling step. """
     def test_make_sparse_neighbour_faces_of_vertex_csr(self):
         _v, faces = testcase_square()
         sparse_matrix = make_sparse_neighbour_faces_of_vertex_csr(faces)
