@@ -38,7 +38,7 @@ class ImplicitFunction(Function):
 
         # self.fnc_numexpr = sp.lambdify(str_fnc,(x,y,z), modules="numexpr")
 
-        self.gradx, self.grady, self.gradz = [str(sp.diff(self.formula, variable)) for variable in [x, y, z]]
+        self.gradx, self.grady, self.gradz = [str(sp.diff(self.formula, variable, chop=True)) for variable in [x, y, z]]
 
     def __call__(self, x, y, z):
 
@@ -99,7 +99,7 @@ class Object3D(object):
         mlab.triangular_mesh([vert[0] for vert in self.vertices],
                              [vert[1] for vert in self.vertices],
                              [vert[2] for vert in self.vertices],
-                             self.faces, representation="surface")
+                             self.faces, representation="wireframe")
         mlab.show()
         #opacity = 0.2 #0.1
 
@@ -130,8 +130,8 @@ class Object3D(object):
         # mlab.show()
 
     def build_marching_cubes(self):
-        minn, maxx, step = -2.5, 2.5, 0.1
-        rng = np.arange(-2.5, 2.5, 0.1)
+        minn, maxx, step = -3, 3, 0.05
+        rng = np.arange(-3, 3, 0.05)
         x, y, z = np.mgrid[minn:maxx:step, minn:maxx:step, minn:maxx:step]
         xyza = _prepare_grid(rng)
         vgrid_v = self.function.fnc_numpy(xyza[:, 0], xyza[:, 1], xyza[:, 2])
@@ -164,6 +164,14 @@ class UnitCube(Object3D):
         self.function = ImplicitFunction("{sideLen} - (x ** 20 + y ** 20 + z ** 20)** (1/20.)".format(sideLen=sideLen))
 
 
+class Cone(Object3D):
+    """ Cone implicit function """
+    def __init__(self, c=1, z0=0):
+        super(Cone, self).__init__(bound_dim=4)     # set the bound_dim a bit more than twice the side length
+        x, y, z = symbols('x y z')
+        self.function = ImplicitFunction("((x**2 + y**2)/({c}**2) - (z - {z0})**4) ".format(c=c, z0=z0))
+
+
 class Torus(Object3D):
     """ A torus primitive """
     def __init__(self):
@@ -178,7 +186,7 @@ class Heart(Object3D):
     def __init__(self):
         super(Heart, self).__init__(bound_dim=2.2)
         x, y, z = symbols('x y z')
-        self.function = ImplicitFunction("(2*x**2 + y**2 + z**2 -1)**3 - (0.1*x**2 + y**2)*z**3")
+        self.function = ImplicitFunction("(2*x**2 + y**2 + z**2 -4)**3 - (0.1*x**2 + y**2)*z**3")
 
 
 class Citrus(Object3D):
@@ -205,7 +213,7 @@ class Cylinder(Object3D):
         """
         super(Cylinder, self).__init__(bound_dim=10)
         x, y, z = symbols('x y z')
-        self.function = ImplicitFunction("(x/{cx})**50 + ({cy}*y**2 + {cz}*z**2) - {c}".format(cx=cx, cy=cy, cz=cz, c=c))
+        self.function = ImplicitFunction("(x/{cx})**10 + ({cy}*y**2 + {cz}*z**2) - {c}".format(cx=cx, cy=cy, cz=cz, c=c))
 
 
 class Intersection(Object3D):
