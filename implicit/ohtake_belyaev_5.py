@@ -1235,6 +1235,8 @@ def compute_triangle_areas(verts, faces, return_normals=False, AREA_DEGENERACY_T
             facet_normals = a / at
             facet_normals[za, :] = 0.
             assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
+            if np.version.version == "1.10.4":
+                assert np.allclose(facet_normals, facet_normals2, equal_nan=True)
         #facet_normals2[np.isnan(facet_areas), :] = 0.
 
         if np.any(np.isnan(facet_areas), axis=None):
