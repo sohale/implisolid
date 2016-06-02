@@ -113,7 +113,7 @@ def build_normals(opt, point_matrix):
     dim1, dim2 = point_matrix.shape
     assert not np.any(np.isnan(point_matrix)), "there should not be any NaN values"
     point_matrix = point_matrix.reshape(dim1, 4)
-np    n = (opt.gradient(point_matrix))[:, :3].reshape(dim1, 3)
+    n = (opt.gradient(point_matrix))[:, :3].reshape(dim1, 3)
     n /= np.linalg.norm(n, axis=1).reshape(dim1, 1)
     return n
 
