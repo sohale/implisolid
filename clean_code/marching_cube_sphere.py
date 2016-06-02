@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from mayavi import mlab
 
+
 def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), mayavi_wireframe=False, opacity=1.0, separate=True,
  gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
