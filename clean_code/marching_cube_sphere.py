@@ -173,10 +173,34 @@ def vtk_mc(gridvals, rrr):
     return va, fa
 
 
+def _prepare_grid(rng):
+    """
+    rng: like the output of np.arange()
+    """
+    assert rng.size < 200
+
+    (yy, xx, zz) = np.meshgrid(rng, rng, rng)
+    xyz_nparray = np.transpose(np.vstack([xx.ravel(), yy.ravel(), zz.ravel()]))
+    assert xyz_nparray.shape[1:] == (3,)
+
+    return xyz_nparray
+
+
+def make_grid(iobj, rng, old=None, return_xyz=False):
+    xyz_nparray = _prepare_grid(rng)
+
+    vgrid_v = iobj.implicitFunction(xyz_nparray)
+    vgrid = np.reshape(vgrid_v, (len(rng), len(rng), len(rng)), order='C')
+
+    if return_xyz:
+        return vgrid, xyz_nparray
+    else:
+        return vgrid
+
+
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
-    import mc_utils
-    vgrid = mc_utils.make_grid(iobj, rng, old=old)
+    vgrid = make_grid(iobj, rng, old=old)
     if old:
         return np.swapaxes(vgrid, 0, 1)
     else:
