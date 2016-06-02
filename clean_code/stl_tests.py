@@ -1,5 +1,5 @@
 import numpy as np
-# from stl import mesh
+#from stl import mesh
 
 
 """Creates and exports STL files based on polygonized implicit objects.
@@ -113,7 +113,9 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
 
 # @profile
 
-#todo: use "3" or avoid using old=True
+# todo: use "3" or avoid using old=True
+
+
 def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     rng = np.arange(RANGE_MIN, RANGE_MAX, STEPSIZE)
     import mc_utils

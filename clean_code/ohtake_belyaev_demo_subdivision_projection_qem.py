@@ -894,7 +894,6 @@ def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroid
         qem_origin = vertex[vertex_id, :].reshape(3, 1)*0
 
         A, b = get_A_b(nai, centroids, centroids_gradients, qem_origin)
-
         u, s, v = np.linalg.svd(A)
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
         assert s[0] == np.max(s)
