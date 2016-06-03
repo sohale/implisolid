@@ -1,7 +1,7 @@
 /*
 A demo combining Emscripen + ThreeJS + MC + "implicit surfaces" (a sphere).
 
-Runs a quick-and-dirty (and incorrect) Marching Cubes algorithm based on Paul Bourke's code.
+Runs a quick-and-dirty (and buggy) Marching Cubes algorithm based on Paul Bourke's code.
 Usage:
     1- Make sure the boost (1_61) is extracted in the right folder (check -I cmdline option in mc1_pb.bat )
     2- Run the mc1_pb.bat
@@ -14,7 +14,18 @@ The batch file generates the "mc1_pb.js" which is used inside the html file.
 Issues:
     This demo does not work when optimization is applied.
 
-MC based on http://paulbourke.net/geometry/polygonise/
+Careful:
+    em++/emcc may generate js and html files. It may replace the human-coded html ad js files with the nsame name.
+
+Versions tested:
+  C++:  C++14
+  emc++: 1.35.0
+  Boost: 1_61_0
+  ThreeJS: r77
+
+@author Sohail
+
+MC algorithm based on http://paulbourke.net/geometry/polygonise/
 */
 
 #define ASSERTS 1
@@ -26,7 +37,7 @@ typedef struct {
 
 #define ABS(x) ((x<0)?(-x):(x))
 
-// -s ASSERTIONS=1
+// -s ASSERTIONS=1 ??
 
 /*
    Linearly interpolate the position where an isosurface cuts
