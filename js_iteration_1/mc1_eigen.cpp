@@ -590,7 +590,7 @@ vf_t mc(const Matrix3Xf )
 
 typedef Matrix<float, Dynamic, 1, DontAlign> VectorXfC;
 
-void make_XYZ(const boost::multi_array<REAL, 1> & pa, XYZ & output)
+void make_XYZ(const VectorXfC & pa, XYZ & output)
 {
     output.x=pa[0];
     output.y=pa[1];
@@ -610,8 +610,8 @@ void print_triangle_array(int count, TRIANGLE* tra)
 
 
 int nsize = 20;
-boost::array<int, 4> values_shape = {{ nsize, nsize, nsize }};
-boost::multi_array<REAL, 3> values (values_shape);
+Vector4i values_shape = {{ nsize, nsize, nsize }};
+Matrix3Xf values (values_shape);
 
 //todo: Warning: may make a copy. (may call the copy constructor)
 
@@ -622,8 +622,8 @@ vector<TRIANGLE> make_grid()
     int ny = values.shape()[1];
     int nz = values.shape()[2];
 
-    boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
-    boost::multi_array<REAL, 4> grid (grid_shape);
+    Vector4i grid_shape = {{ nx, ny, nz, 3 }};
+    Matrix4Xf grid (grid_shape);
 
     // 8000 -> 99 -> 1325
     int expected_number_of_faces = (int)(sqrt(nx*ny*nz) * 15.)+10;
@@ -688,7 +688,7 @@ vector<TRIANGLE> make_grid()
     for(int zi=0; zi < nz; zi++)
     {
         //78 msec version
-        boost::multi_array<float, 1> c = grid[xi][yi][zi];
+        Matrix1Xf c = grid[xi][yi][zi];
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
         REAL x = c[0];
         REAL y = c[1];
@@ -948,10 +948,10 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     int nt = ta.size();
     int nv = ta.size()*3;
 
-    boost::array<int, 2> v_shape = {{ nv, 3 }};
-    boost::array<int, 2> f_shape = {{ nt, 3 }};
-    boost::multi_array<REAL, 2> verts (v_shape);
-    boost::multi_array<int, 2> faces (f_shape);
+    Matrix2Xi v_shape = {{ nv, 3 }};
+    Matrix2Xi f_shape = {{ nt, 3 }};
+    Matrix2Xf verts (v_shape);
+    Matrix2Xi faces (f_shape);
 
     /*
     const TRIANGLE& tr = ta[ti];
@@ -1019,7 +1019,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
     //Twitch
     for (int j=0;j<nt; j+= 1){
-        boost::array<REAL, 3> centroid = {0,0,0};
+        Matrix3Xf centroid = {0,0,0};
 
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
