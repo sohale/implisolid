@@ -2,8 +2,13 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<script type="text/javascript" src="mc1_eigen.js"></script>
+<script type="text/javascript" src="mc1_eigen.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+<!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
+-->
+<!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
+-->
+<script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
 <body>
 This file calls C++. Eig3.js
@@ -11,14 +16,16 @@ This file calls C++. Eig3.js
 <br>
 
 <script>
-    'use strict';
+    //'use strict';
 
     var WIREFRAME = false;
     var make_object;
+    var main;
 
     function init1()
     {
         make_object = Module.cwrap('make_object', null, ['number', 'number', 'number', 'number']);
+        main = Module.cwrap('main', 'number', []);
         console.log("ok");
     }
 
@@ -66,7 +73,7 @@ This file calls C++. Eig3.js
         return [verts, faces];
     }
 
-    init1();
+    //init1();
 
     //alert('Computing3: ' + JSON.stringify(do_vf() ));
 
@@ -100,28 +107,8 @@ This file calls C++. Eig3.js
     }
     */
 
-</script>
 
 
-
-ThreeJS
-
-<script>
-
-
-
-function dont_use1()
-//function make_geometry()
-//function make_geometry(verts, faces)
-{
-    vf = do_vf();
-    v = vf[0];
-    f = vf[1];
-    var geometry = new THREE.BufferGeometry();
-    var vertices =  new Float32Array(v);
-    geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    return geometry;
-}
 
 
 
@@ -132,7 +119,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
     this.type = 'MyBufferGeometry';
 
-    console.log(verts);
+    //console.log(verts);
     width=20;
     height=20;
     depth=20;
@@ -205,11 +192,13 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
     SCALE = 1.
     if(1){
-        console.log(verts.length);
-        console.log(faces.length);
-        console.log(verts);
-        console.log(faces);
+        //console.log(verts.length);
+        //console.log(faces.length);
+        //console.log(verts);
+        //console.log(faces);
         //exfdgdg()
+        console.log("Vertexcount: "+vertexCount);
+        console.log("**************************************");
         for(var i=0; i < vertexCount; i++)
         {
             for(var di=0;di<3;di++)
@@ -257,17 +246,17 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
         materialIndex = 0;
         this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
-        console.log(vertices);
-        console.log(normals);
-        console.log(uvs);
-        console.log(indices);
+        //console.log(vertices);
+        //console.log(normals);
+        //console.log(uvs);
+        //console.log(indices);
     }
     //this.addGroup( groupStart, groupCount, materialIndex );  //groupCount is same as indices' index.
 
     //modified, but not output: indexBufferOffset, vertexBufferOffset, uvBufferOffset, numberOfVertices, groupStart
 
     // build geometry
-    this.setIndex( new THREE.BufferAttribute( indices, 1 ) );
+    this.setIndex( new THREE.BufferAttribute( indices, 3 ) );
     this.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
     this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
@@ -429,8 +418,10 @@ MyGeometry = function (verts, faces) {
         depthSegments: depthSegments*/
     };
 
+
+    //faces = faces.subarray(0, 300);
     this.fromBufferGeometry( new MyBufferGeometry( verts, faces ) );
-    this.mergeVertices();
+    //this.mergeVertices();
 
 };
 
@@ -445,8 +436,8 @@ function make_geometry()
     vf = do_vf();
     v = vf[0];
     f = vf[1];
-    console.log(v);
-    console.log(f);
+    //console.log(v);
+    //console.log(f);
     //scale
     return new MyGeometry(v, f);
 }
@@ -549,7 +540,7 @@ function init2() {
 
     materials_list = look_nice(scene);
 
-    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, antialias: true, opacity:0.9,  transparent: true, } );
+    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
     if(1){
         //geometry = new THREE.BoxGeometry( 200, 200, 200 );
         geometry = make_geometry();
@@ -557,7 +548,7 @@ function init2() {
         mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( 0, 0, 0 );
         //mesh.scale.set( 10*10, 10*10, 10*10 );
-        mesh.scale.set( 200, 200, 200 );
+        mesh.scale.set( 300, 300, 300 );
 
         //mesh.position.z = +0;
         //mesh.rotation.y = -Math.PI * .5;
@@ -569,9 +560,10 @@ function init2() {
     material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true, antialias: true } );
 
         //meshf = new THREE.Mesh( geometry, material_f );
-        meshf = new THREE.Mesh( geometry, materials_list[2] );
+        //nice ones: 2, 3,  (checked until 4)
+        meshf = new THREE.Mesh( geometry, materials_list[3] );
         meshf.position.set( 0, 0, 0 );
-        meshf.scale.set( 200-1, 200-1, 200-1 );
+        meshf.scale.set( 300, 300, 300 );
         scene.add( meshf );
 
 
@@ -592,6 +584,12 @@ function init2() {
     renderer.setSize( WIDTH, HEIGHT );
 
     document.body.appendChild( renderer.domElement );
+
+    // CONTROLS
+    //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
+    cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    cameraControls.target.set( 0, 0, 0 );
+    cameraControls.addEventListener( 'change', function () {;} );
 
 }
 
@@ -653,7 +651,7 @@ function animate() {
     requestAnimationFrame( animate );
 
 
-    var SPEED = 0.1;
+    var SPEED = 3. / 100;
     if(mesh){
     mesh.rotation.x += 0.01*SPEED;
     mesh.rotation.y += 0.02*SPEED;
@@ -676,7 +674,12 @@ function animate() {
 var scene, camera, renderer;
 var geometry, material, mesh;
 
-init2();
-animate();
+window.setTimeout(function()
+{
+    init1();
+    init2();
+    animate();
+}, 2000);
+
 
 </script>

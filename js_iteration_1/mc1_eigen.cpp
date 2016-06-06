@@ -1,6 +1,8 @@
 /*
 A demo combining Emscripen + ThreeJS + MC + "implicit surfaces" (a sphere).
 
+mc2_pb.cpp: MC based on Paul Bourke's code, version 2.
+
 Runs a quick-and-dirty (and buggy) Marching Cubes algorithm based on Paul Bourke's code.
 Usage:
     1- Make sure the boost (1_61) is extracted in the right folder (check -I cmdline option in mc1_pb.bat )
@@ -28,16 +30,38 @@ Versions tested:
 MC algorithm based on http://paulbourke.net/geometry/polygonise/
 */
 
+
+#include <iostream>
+
+using namespace std;
+
 #define ASSERTS 1
 #define VERBOSE  1
-typedef float REAL;
+//typedef float REAL;
+float REAL;
 typedef struct {
    REAL x, y, z;
 } XYZ;
 
-#define ABS(x) ((x<0)?(-x):(x))
+//#define ABS(x) ((x<0)?(-x):(x))   //Why is this wrong??
+REAL ABS(REAL x){
+  if(x<0)
+    return -x;
+  return x;
+}
 
 // -s ASSERTIONS=1 ??
+
+
+//#include <algorithm>
+
+std::ostream& operator<<( std::ostream& sout, XYZ p)
+{
+    sout << p.x << ",";
+    sout << p.y << ",";
+    sout << p.z << "";
+    return sout;
+}
 
 /*
    Linearly interpolate the position where an isosurface cuts
@@ -49,6 +73,9 @@ XYZ VertexInterp(
     REAL valp1,
     REAL valp2)
 {
+  bool verbose = false;
+   if(verbose)
+      cout <<"("<< p1 << "-"<< p2<<")";
    REAL mu;
    XYZ p;
 
@@ -62,6 +89,8 @@ XYZ VertexInterp(
    p.x = p1.x + mu * (p2.x - p1.x);
    p.y = p1.y + mu * (p2.y - p1.y);
    p.z = p1.z + mu * (p2.z - p1.z);
+   if(verbose)
+      cout <<"->"<< p<<"  ";
 
    return(p);
 }
@@ -77,6 +106,29 @@ typedef struct {
 } GRIDCELL;
 
 
+
+//template<class CharT, class Traits>
+//template<class CharT>
+std::ostream& operator<<(
+      std::ostream& sout,
+      TRIANGLE tr)
+//      TRIANGLE const& tr)
+{
+    for(int i=0; i<3; i++){
+      sout << " |";
+      sout << tr.p[i].x << ",";
+      sout << tr.p[i].y << ",";
+      sout << tr.p[i].z << "";
+      sout << "| ";
+    }
+    /*
+    std::string s = "tr";
+    std::copy(s.begin(),
+                        s.end(),
+                        std::ostream_iterator<CharT>(sout) );
+    */
+    return sout;
+}
 /*
    Given a grid cell and an isolevel, calculate the triangular
    facets required to represent the isosurface through the cell.
@@ -85,7 +137,7 @@ typedef struct {
     0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
 */
-int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles)
+int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles, bool verbose)
 {
    int i,ntriang;
    int cubeindex;
@@ -396,6 +448,7 @@ int triTable[256][16] =
    if (grid.val[6] < isolevel) cubeindex |= 64;
    if (grid.val[7] < isolevel) cubeindex |= 128;
 
+
    /* Cube is entirely in/out of the surface */
    if (edgeTable[cubeindex] == 0)
       return(0);
@@ -438,20 +491,60 @@ int triTable[256][16] =
       vertlist[11] =
          VertexInterp(isolevel,grid.p[3],grid.p[7],grid.val[3],grid.val[7]);
 
+   if(verbose)
+   {
+   cout << endl;
+
+   for(int i=0;i<8;i++)
+   {
+       cout << " ["<<i<<"]="<< grid.p[i]<< "  " ;
+   }
+   cout << endl;
+
+   cout << "edgeTable[cubeindex] = " << edgeTable[cubeindex] << " ";
+   cout << endl;
+   cout << "triTable[cubeindex]=" << triTable[cubeindex] << " "; // address
+   cout << endl;
+
+   cout << "grid:";
+   for (int i=0;i<8;i++)
+   {
+        cout << "("<<grid.p[i] << ") ";
+   }
+   cout << endl;
+
+   cout << "vertlist[i]:";
+   for (int i=0;i<12;i++)
+   {
+        cout << "(" << vertlist[i] << ") ";
+   }
+   cout << endl;
+   //for (int i=0;triTable[cubeindex][i]!=-1;i++)
+   }
+
+
    /* Create the triangle */
    ntriang = 0;
-   for (i=0;triTable[cubeindex][i]!=-1;i+=3) {
+   for (int i=0;triTable[cubeindex][i]!=-1;i+=3) {
       triangles[ntriang].p[0] = vertlist[triTable[cubeindex][i  ]];
       triangles[ntriang].p[1] = vertlist[triTable[cubeindex][i+1]];
       triangles[ntriang].p[2] = vertlist[triTable[cubeindex][i+2]];
+      if (verbose){
+      cout << "triTable[cubeindex][i="<< i <<" .. i+2]= ("
+          << triTable[cubeindex][i] << " "
+          << triTable[cubeindex][i+1] << " "
+          << triTable[cubeindex][i+2] << ") "
+          ;
+      }
       ntriang++;
    }
+   if(verbose){
+   cout << endl;
+   cout << endl;
+ }
 
    return(ntriang);
 }
-
-#include <iostream>
-using namespace std;
 
 void test1()
 {
@@ -466,70 +559,59 @@ void test1()
 
     REAL isolevel = 0;
     TRIANGLE triangles[10000];
-    int r = Polygonise(grid, isolevel, triangles);
+    int r = Polygonise(grid, isolevel, triangles, true);
     cout << r;
 }
 
 
-#include <algorithm>
-
-//template<class CharT, class Traits>
-//template<class CharT>
-std::ostream& operator<<(
-      std::ostream& sout,
-      TRIANGLE tr)
-//      TRIANGLE const& tr)
-{
-    for(int i=0; i<3; i++){
-      sout << tr.p[i].x << ",";
-      sout << tr.p[i].y << ",";
-      sout << tr.p[i].z << "  ";
-    }
-    /*
-    std::string s = "tr";
-    std::copy(s.begin(),
-                        s.end(),
-                        std::ostream_iterator<CharT>(sout) );
-    */
-    return sout;
-}
-
 #include <vector>
 #include <Eigen/Dense>
-
+//void make_grid( boost::multi_array<REAL, 4>& grid_out, boost::multi_array<REAL, 3>& values_out )
 
 using namespace Eigen;
 
 typedef Matrix2Xf verts_t;
 typedef Matrix2Xi faces_t;
 
-typedef pair<verts_t, faces_t> vf_t; //came from the std namespace
 
-/*
-boost::multi_array<REAL, 3>& mc(const boost::multi_array<REAL, 3>& values) {}
-*/
-vf_t mc(const Matrix3Xf & values)
+//typedef int verts_t;
+//typedef int faces_t;
+typedef pair<verts_t, faces_t> vf_t;
+//typedef pair<boost::multi_array<REAL, 2>, boost::multi_array<int, 2>> vf_t;
+
+
+
+//vf_t mc(const boost::multi_array<REAL, 3>& values)
+vf_t mc(const Matrix3Xf )
 {
     vf_t vf;
     return vf;
 }
 
+typedef Matrix<float, Dynamic, 1, DontAlign> VectorXfC;
 
-typedef Matrix<float , Dynamic , 1 , DontAlign> VectorXfC;
-
-//void make_XYZ(REAL pa[3], XYZ&output){
-//const boost::multi_array<REAL, 1>
-//void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
-void make_XYZ(const VectorXfC & pa, XYZ & output)
+void make_XYZ(const boost::multi_array<REAL, 1> & pa, XYZ & output)
 {
     output.x=pa[0];
     output.y=pa[1];
     output.z=pa[2];
 }
 
+void print_triangle_array(int count, TRIANGLE* tra)
+{
+    if(count > 0){
+        cout << "Triangles: count: " << count;
+        for(int ti=0; ti<count; ti++)
+            cout << "("<<tra[ti] <<")"<< " ";
+        cout << endl;
+    }
+}
+
+
+
 int nsize = 20;
-Vector3i values_shape(nsize, nsize, nsize);
-Matrix3Xf values(values_shape);
+boost::array<int, 4> values_shape = {{ nsize, nsize, nsize }};
+boost::multi_array<REAL, 3> values (values_shape);
 
 //todo: Warning: may make a copy. (may call the copy constructor)
 
@@ -540,8 +622,8 @@ vector<TRIANGLE> make_grid()
     int ny = values.shape()[1];
     int nz = values.shape()[2];
 
-    Vector4i grid_shape(nx, ny, nz, 3);
-    Matrix4Xf grid(grid_shape);
+    boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
+    boost::multi_array<REAL, 4> grid (grid_shape);
 
     // 8000 -> 99 -> 1325
     int expected_number_of_faces = (int)(sqrt(nx*ny*nz) * 15.)+10;
@@ -589,6 +671,7 @@ vector<TRIANGLE> make_grid()
 
             //not efficient
             REAL val = grid_min + grid_step * (REAL)ii;
+            //REAL val = 0 + 1. * (REAL)ii;
 
             grid[xi][yi][zi][di] = val;
         }
@@ -605,10 +688,19 @@ vector<TRIANGLE> make_grid()
     for(int zi=0; zi < nz; zi++)
     {
         //78 msec version
-        Matrix1Xf c = grid[xi][yi][zi];
-
-        float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-
+        boost::multi_array<float, 1> c = grid[xi][yi][zi];
+        //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
+        REAL x = c[0];
+        REAL y = c[1];
+        REAL z = c[2];
+        //REAL f = 2.0 - (x*x+y*y+z*z);
+        for(int i=0;i<3;i++){
+            x = x*x;
+            y = y*y;
+            z = z*z;
+        }
+        REAL f = 2.0 - (x + y + z);
+    //    REAL f = (x/4 + y + z) - 1;
         /* 30 msec version
         double x = A[vi][0], y = A[vi][1], z = A[vi][2];
         float f = 2.0 - (x*x+y*y+z*z);
@@ -650,6 +742,7 @@ vector<TRIANGLE> make_grid()
         p1.z=pa[2];*/
         make_XYZ(grid[xi][yi][zi], p1);
 
+        /*
         XYZ p8[8];
         make_XYZ(grid[xi  ][yi  ][zi  ], p8[0]);
         make_XYZ(grid[xi+1][yi  ][zi  ], p8[1]);
@@ -660,8 +753,9 @@ vector<TRIANGLE> make_grid()
         make_XYZ(grid[xi  ][yi+1][zi+1], p8[6]);
         make_XYZ(grid[xi+1][yi+1][zi+1], p8[7]);
 
+
         GRIDCELL g;
-        make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0]);
+        make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
         make_XYZ (grid[xi+1][yi  ][zi  ], g.p[1] );
         make_XYZ (grid[xi  ][yi+1][zi  ], g.p[2] );
         make_XYZ (grid[xi+1][yi+1][zi  ], g.p[3] );
@@ -669,6 +763,20 @@ vector<TRIANGLE> make_grid()
         make_XYZ (grid[xi+1][yi  ][zi+1], g.p[5] );
         make_XYZ (grid[xi  ][yi+1][zi+1], g.p[6] );
         make_XYZ (grid[xi+1][yi+1][zi+1], g.p[7] );
+        //WRONG!!!
+        */
+
+        GRIDCELL g;
+
+        make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
+        make_XYZ (grid[xi+1][yi  ][zi  ], g.p[3] );
+        make_XYZ (grid[xi  ][yi+1][zi  ], g.p[1] );
+        make_XYZ (grid[xi+1][yi+1][zi  ], g.p[2] );
+        make_XYZ (grid[xi  ][yi  ][zi+1], g.p[4] );
+        make_XYZ (grid[xi+1][yi  ][zi+1], g.p[7] );
+        make_XYZ (grid[xi  ][yi+1][zi+1], g.p[5] );
+        make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
+
 
 /*
         make_XYZV(grid[xi  ][yi  ][zi  ], g.p[0], g.val[0]);
@@ -681,26 +789,21 @@ vector<TRIANGLE> make_grid()
         make_XYZV(grid[xi+1][yi+1][zi+1], g.p[7], g.val[0] );
 */
         g.val[0] = values[xi  ][yi  ][zi  ];
-        g.val[1] = values[xi+1][yi  ][zi  ];
-        g.val[2] = values[xi  ][yi+1][zi  ];
-        g.val[3] = values[xi+1][yi+1][zi  ];
+        g.val[3] = values[xi+1][yi  ][zi  ];
+        g.val[1] = values[xi  ][yi+1][zi  ];
+        g.val[2] = values[xi+1][yi+1][zi  ];
         g.val[4] = values[xi  ][yi  ][zi+1];
-        g.val[5] = values[xi+1][yi  ][zi+1];
-        g.val[6] = values[xi  ][yi+1][zi+1];
-        g.val[7] = values[xi+1][yi+1][zi+1];
+        g.val[7] = values[xi+1][yi  ][zi+1];
+        g.val[5] = values[xi  ][yi+1][zi+1];
+        g.val[6] = values[xi+1][yi+1][zi+1];
 
-        TRIANGLE triangles[4];
+        TRIANGLE triangles[16];
         TRIANGLE*tra = triangles;
         REAL isolevel = 0.;
         //int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles)
-        int count = Polygonise(g, isolevel, tra);
+        int count = Polygonise(g, isolevel, tra, false);
         if (VERBOSE>2){
-            if(count > 0){
-                cout << "count:" << count;
-                for(int ti=0; ti<count; ti++)
-                    cout << triangles[ti] << " ";
-                cout << endl;
-            }
+            print_triangle_array(count, tra);
         }
         if(count > 0){
             for(int ti=0; ti<count; ti++)
@@ -750,6 +853,92 @@ XYZ get_triangle_normal(TRIANGLE const& t){
 }
 #define ASSERT(x)  {if(!(x)){cout<<"assertion error";}}
 
+#define rnd() (rand() / (REAL)(RAND_MAX))
+
+
+XYZ example_xyz(REAL x, REAL y, REAL z)
+{
+    XYZ a;
+    a.x = x; a.y = y; a.z = z;
+    return a;
+}
+
+void test_ext_prod()
+{
+    /*XYZ a,b;
+    a.x = 1; a.y = 0; a.z = 0;
+    b.x = 0; b.y = 1; b.z = 0;
+    */
+    XYZ a=example_xyz(1,0,0);
+    XYZ b=example_xyz(0,1,0);
+    XYZ normal;
+    set_crossProduct_xyz(normal, a, b);
+    cout << normal.x << "," << normal.y << "," << normal.z << endl;
+}
+
+
+int CUBE_MAP[8] = {0,3,1,2,4,7,5,6};
+
+GRIDCELL make_grid_101()
+{
+  GRIDCELL g;
+  int c = 0;
+  for(int v3=0; v3<2; v3++)
+  for(int v2=0; v2<2; v2++)
+  for(int v1=0; v1<2; v1++)
+  {
+      XYZ v=example_xyz(v1,v2,v3);
+      //g.p[c++] = v;
+      g.p[CUBE_MAP[c]] = v;
+      c++;
+  }
+  return g;
+}
+
+void test_gridcell1()
+{
+    //Tests a single grid cube (Marching) with one positive point in the corner. This should generate one single triangle.
+    GRIDCELL g = make_grid_101();
+    boost::array<REAL, 8> values =
+      //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
+      {{ +2,-1, -1,-1,   -1,-1, -1,-1 }};
+    for(int i=0; i<8; i++)
+        g.val[i] = values[i];
+
+    REAL isolevel = 0;
+    TRIANGLE triangles[10];
+    int count = Polygonise(g, isolevel, triangles, true);
+    cout << " Count: " << count << endl;
+
+
+    print_triangle_array(count, triangles);
+
+    //todo: turn into a test
+}
+
+
+void test_gridcell2()
+{
+    //Tests a single grid cube (Marching) with two positive points. This should generate two single triangles that comprise a rectangle.
+    GRIDCELL g = make_grid_101();
+    cout << " --------------- t2 ---------------";
+    boost::array<REAL, 8> values =
+      //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
+      {{ +2,+2, -1,-1,   -1,-1, -1,-1 }};
+    for(int i=0; i<8; i++)
+        g.val[i] = values[i];
+
+    REAL isolevel = 0;
+    TRIANGLE triangles[10];
+    int count = Polygonise(g, isolevel, triangles, true);
+    cout << " Count: " << count << endl;
+
+    print_triangle_array(count, triangles);
+
+    //todo: turn into a test
+    //The output should be similar to:
+    // |0.666667,1,0|  |0.666667,0,0|  |0,0,0.666667| ) ( |0,1,0.666667|  |0.666667,1,0|  |0,0,0.666667| )
+}
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
@@ -759,11 +948,10 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     int nt = ta.size();
     int nv = ta.size()*3;
 
-    Vector2i v_shape = (nv,3);
-    Vector2i f_shape = (nt,3);
-    Matrix2Xf verts(v_shape);
-    Matrix2Xi faces(f_shape);
-
+    boost::array<int, 2> v_shape = {{ nv, 3 }};
+    boost::array<int, 2> f_shape = {{ nt, 3 }};
+    boost::multi_array<REAL, 2> verts (v_shape);
+    boost::multi_array<int, 2> faces (f_shape);
 
     /*
     const TRIANGLE& tr = ta[ti];
@@ -796,7 +984,10 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         TRIANGLE tr = ta[ti];
         XYZ n = get_triangle_normal(tr);
         REAL sgn = innerProduct_xyz(n, tr.p[0]); //todo: centroid
-        bool flip_verts = rand() > 0.5; //(sgn<0);
+        bool flip_verts =
+              //0;
+              //rnd() > 0.5;
+              (sgn<0);
         for(int side=0; side<3; side++){
             int side2 = side;
             if(flip_verts){
@@ -804,9 +995,11 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             }
             else
                  side2 = side;
-            verts[ti*3+side][0] = tr.p[side2].x +0*rand();
-            verts[ti*3+side][1] = tr.p[side2].y+0*rand();
-            verts[ti*3+side][2] = tr.p[side2].z+0*rand();
+
+            const REAL NOISE_LEVEL= 0.1*0;
+            verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
+            verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
+            verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
         }
     }
     ASSERT(nt*3 == verts.shape()[0]);
@@ -824,6 +1017,47 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
       }
     }
 
+    //Twitch
+    for (int j=0;j<nt; j+= 1){
+        boost::array<REAL, 3> centroid = {0,0,0};
+
+        for (int s=0;s<3; s+= 1){
+            for (int d=0;d<3; d+= 1){
+                centroid[d] += verts[j*3+s][d] / 3.;
+            }
+        }
+        /*
+        {
+        REAL dc = rnd()*0.1;
+        for (int d=0;d<3; d+= 1){
+            centroid[d] = dc;
+        }
+        }
+        */
+
+        // separation ! (delay) ==> accumulation!
+
+        const REAL alpha = 0.90;
+        const REAL beta = 1. - alpha;
+        for (int s=0;s<3; s+= 1){
+            for (int d=0;d<3; d+= 1){
+                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
+            }
+        }
+    }
+
+    const bool ADD_THE_SPIKES = false;
+    if(ADD_THE_SPIKES){
+        // Add the spikes !
+        int spike_triangle=100;
+        for (int j=0;j<nt*3; j += 100){
+            spike_triangle = j;
+            verts[spike_triangle][0] *= 2;
+            verts[spike_triangle][1] *= 2;
+            verts[spike_triangle][2] *= 2;
+        }
+    }
+
     vf_t p2 = make_pair(verts, faces);
     return p2;
 }
@@ -832,6 +1066,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
+    int main();
 }
 void make_object(float* verts, int *nv, int* faces, int *nf){
     vector<TRIANGLE> ta = make_grid();
@@ -874,4 +1109,15 @@ int main0()
     vf_t vf = vector_to_vertsfaces(ta);
 
     return 0;
+}
+
+
+int main()
+{
+     test_ext_prod();
+     if(false)
+        test_gridcell1();
+     test_gridcell2();
+     cout << "staying alive...";
+     return 0;
 }
