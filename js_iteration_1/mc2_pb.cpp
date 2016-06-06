@@ -1,6 +1,8 @@
 /*
 A demo combining Emscripen + ThreeJS + MC + "implicit surfaces" (a sphere).
 
+mc2_pb.cpp: MC based on Paul Bourke's code, version 2.
+
 Runs a quick-and-dirty (and buggy) Marching Cubes algorithm based on Paul Bourke's code.
 Usage:
     1- Make sure the boost (1_61) is extracted in the right folder (check -I cmdline option in mc1_pb.bat )

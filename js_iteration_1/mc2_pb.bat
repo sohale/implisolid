@@ -6,8 +6,8 @@ em++ ^
         -s ASSERTIONS=1               ^
                                       ^
         -pedantic -std=c++14  ^
-    mc1_pb.cpp  ^
-        -o mc1_pb.js
+    mc2_pb.cpp  ^
+        -o mc2_pb.js
 
 ::     -s EXPORTED_FUNCTIONS="['_main', '_make_object']" ^
 ::     -s EXPORTED_FUNCTIONS="['_main']" ^
