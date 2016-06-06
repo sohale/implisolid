@@ -640,7 +640,7 @@ vector<TRIANGLE> make_grid()
 
     //todo: send proper message if empty.
     //REAL grid_min = -1. -0.2;  //works
-    REAL grid_min = -1. -0.2 -0.2; //doesnt work
+    REAL grid_min = -1. -0.2 -0.2 -0.1; //doesnt work
     //REAL grid_max = +1.;
     REAL grid_step = +0.2;
 
@@ -691,12 +691,13 @@ vector<TRIANGLE> make_grid()
         REAL y = c[1];
         REAL z = c[2];
         //REAL f = 2.0 - (x*x+y*y+z*z);
-        for(int i=0;i<3;i++){
+        for(int i=0;i<1;i++){
             x = x*x;
             y = y*y;
             z = z*z;
         }
-        REAL f = 2.0 - (x + y + z);
+        REAL orb = exp(-abs(z)*10*2)*5.+1.;
+        REAL f = 2.0 - (x + y + z)*orb;
 
         /* 30 msec version
         double x = A[vi][0], y = A[vi][1], z = A[vi][2];
