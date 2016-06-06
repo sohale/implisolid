@@ -45,14 +45,24 @@ public:
         this->timer_start();
     }
 
-    auto stop(){
+    auto stop(string heading="")
+    //stop, report as a string, and restart.
+    {
         my_time_point_t timer_end_time = chrono::steady_clock::now();
         my_duration_t diff = timer_end_time - timer_start_time;
-        cout << endl << "Duration: ";
+        cout << endl;
+        if(heading=="")
+            cout << "";
+        else
+            cout << heading;
+        cout << " ";
+        cout << "execution duration: ";
         double duration = chrono::duration <double, milli> (diff).count();
         cout << duration << " msec" ;
         //cout << " (" << chrono::duration <double, nano> (diff).count() << " ns" << ")";
         cout << endl;
+
+        this->timer_start(); //restart_from zero
         return duration;
     }
 };

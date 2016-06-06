@@ -1066,10 +1066,19 @@ extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
     int main();
 }
+
+#include "timer.hpp"
+
 void make_object(float* verts, int *nv, int* faces, int *nf){
+
+    timer timr;
+
     vector<TRIANGLE> ta = make_grid();
+    timr.stop("make grid");
+
     //very inefficient
     vf_t vf = vector_to_vertsfaces(ta);
+    timr.stop("vector_to_vertsfaces()");
 
     *nv = vf.first.shape()[0];
     *nf = vf.second.shape()[0];
@@ -1085,6 +1094,7 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
             faces[fi*3+si] = vf.second[fi][si];
         }
       }
+    timr.stop("finished");
 }
 
 int main0()
