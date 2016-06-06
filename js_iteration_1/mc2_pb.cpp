@@ -113,9 +113,11 @@ std::ostream& operator<<(
 //      TRIANGLE const& tr)
 {
     for(int i=0; i<3; i++){
+      sout << " |";
       sout << tr.p[i].x << ",";
       sout << tr.p[i].y << ",";
-      sout << tr.p[i].z << "  ";
+      sout << tr.p[i].z << "";
+      sout << "| ";
     }
     /*
     std::string s = "tr";
@@ -595,7 +597,7 @@ void make_XYZ(const boost::multi_array<REAL, 1> & pa, XYZ & output)
 void print_triangle_array(int count, TRIANGLE* tra)
 {
     if(count > 0){
-        cout << "count:" << count;
+        cout << "Triangles: count: " << count;
         for(int ti=0; ti<count; ti++)
             cout << "("<<tra[ti] <<")"<< " ";
         cout << endl;
@@ -666,6 +668,7 @@ vector<TRIANGLE> make_grid()
 
             //not efficient
             REAL val = grid_min + grid_step * (REAL)ii;
+            //REAL val = 0 + 1. * (REAL)ii;
 
             grid[xi][yi][zi][di] = val;
         }
@@ -736,6 +739,7 @@ vector<TRIANGLE> make_grid()
         p1.z=pa[2];*/
         make_XYZ(grid[xi][yi][zi], p1);
 
+        /*
         XYZ p8[8];
         make_XYZ(grid[xi  ][yi  ][zi  ], p8[0]);
         make_XYZ(grid[xi+1][yi  ][zi  ], p8[1]);
@@ -757,7 +761,9 @@ vector<TRIANGLE> make_grid()
         make_XYZ (grid[xi  ][yi+1][zi+1], g.p[6] );
         make_XYZ (grid[xi+1][yi+1][zi+1], g.p[7] );
         //WRONG!!!
+        */
 
+        GRIDCELL g;
 
         make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
         make_XYZ (grid[xi+1][yi  ][zi  ], g.p[3] );
@@ -870,19 +876,26 @@ void test_ext_prod()
 
 int CUBE_MAP[8] = {0,3,1,2,4,7,5,6};
 
+GRIDCELL make_grid_101()
+{
+  GRIDCELL g;
+  int c = 0;
+  for(int v3=0; v3<2; v3++)
+  for(int v2=0; v2<2; v2++)
+  for(int v1=0; v1<2; v1++)
+  {
+      XYZ v=example_xyz(v1,v2,v3);
+      //g.p[c++] = v;
+      g.p[CUBE_MAP[c]] = v;
+      c++;
+  }
+  return g;
+}
+
 void test_gridcell1()
 {
-    GRIDCELL g;
-    int c = 0;
-    for(int v3=0; v3<2; v3++)
-    for(int v2=0; v2<2; v2++)
-    for(int v1=0; v1<2; v1++)
-    {
-        XYZ v=example_xyz(v1,v2,v3);
-        //g.p[c++] = v;
-        g.p[CUBE_MAP[c]] = v;
-        c++;
-    }
+    //Tests a single grid cube (Marching) with one positive point in the corner. This should generate one single triangle.
+    GRIDCELL g = make_grid_101();
     boost::array<REAL, 8> values =
       //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
       {{ +2,-1, -1,-1,   -1,-1, -1,-1 }};
@@ -892,10 +905,36 @@ void test_gridcell1()
     REAL isolevel = 0;
     TRIANGLE triangles[10];
     int count = Polygonise(g, isolevel, triangles, true);
-    cout << count;
+    cout << " Count: " << count << endl;
 
 
     print_triangle_array(count, triangles);
+
+    //todo: turn into a test
+}
+
+
+void test_gridcell2()
+{
+    //Tests a single grid cube (Marching) with two positive points. This should generate two single triangles that comprise a rectangle.
+    GRIDCELL g = make_grid_101();
+    cout << " --------------- t2 ---------------";
+    boost::array<REAL, 8> values =
+      //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
+      {{ +2,+2, -1,-1,   -1,-1, -1,-1 }};
+    for(int i=0; i<8; i++)
+        g.val[i] = values[i];
+
+    REAL isolevel = 0;
+    TRIANGLE triangles[10];
+    int count = Polygonise(g, isolevel, triangles, true);
+    cout << " Count: " << count << endl;
+
+    print_triangle_array(count, triangles);
+
+    //todo: turn into a test
+    //The output should be similar to:
+    // |0.666667,1,0|  |0.666667,0,0|  |0,0,0.666667| ) ( |0,1,0.666667|  |0.666667,1,0|  |0,0,0.666667| )
 }
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
@@ -953,9 +992,11 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             }
             else
                  side2 = side;
-            verts[ti*3+side][0] = tr.p[side2].x +0.1*rnd();
-            verts[ti*3+side][1] = tr.p[side2].y+0.1*rnd();
-            verts[ti*3+side][2] = tr.p[side2].z+0.1*rnd();
+
+            const REAL NOISE_LEVEL= 0.1*0;
+            verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
+            verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
+            verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
         }
     }
     ASSERT(nt*3 == verts.shape()[0]);
@@ -1064,7 +1105,9 @@ int main0()
 int main()
 {
      test_ext_prod();
-     test_gridcell1();
+     if(false)
+        test_gridcell1();
+     test_gridcell2();
      cout << "staying alive...";
      return 0;
 }

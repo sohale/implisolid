@@ -7,7 +7,7 @@ em++ ^
                                       ^
         -pedantic -std=c++14  ^
     mc2_pb.cpp  ^
-        -o mc2_pb.js
+        -o mc2_pb.cpp.js
 
 ::     -s EXPORTED_FUNCTIONS="['_main', '_make_object']" ^
 ::     -s EXPORTED_FUNCTIONS="['_main']" ^

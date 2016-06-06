@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<script type="text/javascript" src="mc2_pb.js"></script>
+<script type="text/javascript" src="mc2_pb.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
 
 <body>
@@ -535,7 +535,7 @@ function init2() {
 
     materials_list = look_nice(scene);
 
-    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, antialias: true, opacity:0.3,  transparent: true, } );
+    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
     if(1){
         //geometry = new THREE.BoxGeometry( 200, 200, 200 );
         geometry = make_geometry();
