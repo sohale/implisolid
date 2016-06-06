@@ -1034,18 +1034,25 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
         // separation ! (delay) ==> accumulation!
 
+        const REAL alpha = 0.95;
+        const REAL beta = 1. - alpha;
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
-                verts[j*3+s][d]  = (verts[j*3+s][d] + centroid[d]) / 2.;
+                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
             }
         }
     }
-    int THAT=100;
-    for (int j=0;j<nt*3; j += 100){
-        THAT = j;
-        verts[THAT][0] *= 2;
-        verts[THAT][1] *= 2;
-        verts[THAT][2] *= 2;
+
+    const bool ADD_THE_SPIKES = false;
+    if(ADD_THE_SPIKES){
+        // Add the spikes !
+        int spike_triangle=100;
+        for (int j=0;j<nt*3; j += 100){
+            spike_triangle = j;
+            verts[spike_triangle][0] *= 2;
+            verts[spike_triangle][1] *= 2;
+            verts[spike_triangle][2] *= 2;
+        }
     }
 
     vf_t p2 = make_pair(verts, faces);
