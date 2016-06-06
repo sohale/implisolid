@@ -38,13 +38,13 @@ using namespace std;
 #define ASSERTS 1
 #define VERBOSE  1
 //typedef float REAL;
-float REAL;
+
 typedef struct {
-   REAL x, y, z;
+   float x, y, z;
 } XYZ;
 
 //#define ABS(x) ((x<0)?(-x):(x))   //Why is this wrong??
-REAL ABS(REAL x){
+float ABS(float x){
   if(x<0)
     return -x;
   return x;
@@ -68,15 +68,15 @@ std::ostream& operator<<( std::ostream& sout, XYZ p)
    an edge between two vertices, each with their own scalar value
 */
 XYZ VertexInterp(
-    REAL isolevel,
+    float isolevel,
     XYZ p1, XYZ p2,
-    REAL valp1,
-    REAL valp2)
+    float valp1,
+    float valp2)
 {
   bool verbose = false;
    if(verbose)
       cout <<"("<< p1 << "-"<< p2<<")";
-   REAL mu;
+   float mu;
    XYZ p;
 
    if (ABS(isolevel-valp1) < 0.00001)
@@ -102,7 +102,7 @@ typedef struct {
 
 typedef struct {
    XYZ p[8];
-   REAL val[8];
+   float val[8];
 } GRIDCELL;
 
 
@@ -137,7 +137,7 @@ std::ostream& operator<<(
     0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
 */
-int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles, bool verbose)
+int Polygonise(const GRIDCELL& grid, float isolevel, TRIANGLE *triangles, bool verbose)
 {
    int i,ntriang;
    int cubeindex;
@@ -557,7 +557,7 @@ void test1()
     }
 
 
-    REAL isolevel = 0;
+    float isolevel = 0;
     TRIANGLE triangles[10000];
     int r = Polygonise(grid, isolevel, triangles, true);
     cout << r;
@@ -589,6 +589,7 @@ vf_t mc(const Matrix3Xf )
 }
 
 typedef Matrix<float, Dynamic, 1, DontAlign> VectorXfC;
+typedef Matrix<float, Dynamic, 8, DontAlign> Matrix8Xf;
 
 void make_XYZ(const VectorXfC & pa, XYZ & output)
 {
@@ -643,9 +644,9 @@ vector<TRIANGLE> make_grid()
 
     //todo: send proper message if empty.
     //REAL grid_min = -1. -0.2;  //works
-    REAL grid_min = -1. -0.2 -0.2; //doesnt work
+    float grid_min = -1. -0.2 -0.2; //doesnt work
     //REAL grid_max = +1.;
-    REAL grid_step = +0.2;
+    float grid_step = +0.2;
 
     //boost::multi_array<float, 2> verts;  =  {{0.1, 5.5, 0}, {0, 1, 0.5}, {1.5, 1, 0}, {1, 0, 0} };
 
@@ -670,7 +671,7 @@ vector<TRIANGLE> make_grid()
             int ii = (di==0)?(xi):((di==1)?(yi):(zi));
 
             //not efficient
-            REAL val = grid_min + grid_step * (REAL)ii;
+            float val = grid_min + grid_step * (float)ii;
             //REAL val = 0 + 1. * (REAL)ii;
 
             grid[xi][yi][zi][di] = val;
@@ -690,17 +691,17 @@ vector<TRIANGLE> make_grid()
         //78 msec version
         Matrix1Xf c = grid[xi][yi][zi];
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-        REAL x = c[0];
-        REAL y = c[1];
-        REAL z = c[2];
-        //REAL f = 2.0 - (x*x+y*y+z*z);
+        float x = c[0];
+        float y = c[1];
+        float z = c[2];
+        //float f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<3;i++){
             x = x*x;
             y = y*y;
             z = z*z;
         }
-        REAL f = 2.0 - (x + y + z);
-    //    REAL f = (x/4 + y + z) - 1;
+        float f = 2.0 - (x + y + z);
+    //    float f = (x/4 + y + z) - 1;
         /* 30 msec version
         double x = A[vi][0], y = A[vi][1], z = A[vi][2];
         float f = 2.0 - (x*x+y*y+z*z);
@@ -723,7 +724,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < ny; yi++)
     for(int zi=0; zi < nz; zi++)
     {
-        REAL v = values[xi][yi][zi];
+        float v = values[xi][yi][zi];
         int idx = v>0. ? 2 : (v<0. ? 1 : 0);  // (+) -> 2, (-) -> 1,  (0) -> 0
         sign_counters[idx]++;
     }
@@ -736,7 +737,7 @@ vector<TRIANGLE> make_grid()
     {
         //XYZ x[2] = {XYZ(values[xi][yi][zi]), XYZ(values[xi+1][yi][zi])};
         XYZ p1;
-        /*REAL pa[3] = grid[xi][yi][zi];
+        /*float pa[3] = grid[xi][yi][zi];
         p1.x=pa[0];
         p1.y=pa[1];
         p1.z=pa[2];*/
@@ -799,8 +800,8 @@ vector<TRIANGLE> make_grid()
 
         TRIANGLE triangles[16];
         TRIANGLE*tra = triangles;
-        REAL isolevel = 0.;
-        //int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles)
+        float isolevel = 0.;
+        //int Polygonise(const GRIDCELL& grid, float isolevel, TRIANGLE *triangles)
         int count = Polygonise(g, isolevel, tra, false);
         if (VERBOSE>2){
             print_triangle_array(count, tra);
@@ -846,17 +847,17 @@ XYZ get_triangle_normal(TRIANGLE const& t){
     set_subtract_xyz(a, t.p[1], t.p[0]);
     set_subtract_xyz(b, t.p[2], t.p[0]);
     XYZ normal;
-    //REAL Ax = b.x - a.x;
+    //float Ax = b.x - a.x;
     set_crossProduct_xyz(normal, a, b);
     return normal;
     //fixme: reference or copy?
 }
 #define ASSERT(x)  {if(!(x)){cout<<"assertion error";}}
 
-#define rnd() (rand() / (REAL)(RAND_MAX))
+#define rnd() (rand() / (float)(RAND_MAX))
 
 
-XYZ example_xyz(REAL x, REAL y, REAL z)
+XYZ example_xyz(float x, float y, float z)
 {
     XYZ a;
     a.x = x; a.y = y; a.z = z;
@@ -899,13 +900,13 @@ void test_gridcell1()
 {
     //Tests a single grid cube (Marching) with one positive point in the corner. This should generate one single triangle.
     GRIDCELL g = make_grid_101();
-    boost::array<REAL, 8> values =
+    Matrix8Xf values =
       //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
       {{ +2,-1, -1,-1,   -1,-1, -1,-1 }};
     for(int i=0; i<8; i++)
         g.val[i] = values[i];
 
-    REAL isolevel = 0;
+    float isolevel = 0;
     TRIANGLE triangles[10];
     int count = Polygonise(g, isolevel, triangles, true);
     cout << " Count: " << count << endl;
@@ -922,13 +923,13 @@ void test_gridcell2()
     //Tests a single grid cube (Marching) with two positive points. This should generate two single triangles that comprise a rectangle.
     GRIDCELL g = make_grid_101();
     cout << " --------------- t2 ---------------";
-    boost::array<REAL, 8> values =
+    Matrix8Xf values =
       //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
       {{ +2,+2, -1,-1,   -1,-1, -1,-1 }};
     for(int i=0; i<8; i++)
         g.val[i] = values[i];
 
-    REAL isolevel = 0;
+    float isolevel = 0;
     TRIANGLE triangles[10];
     int count = Polygonise(g, isolevel, triangles, true);
     cout << " Count: " << count << endl;
@@ -983,7 +984,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         //inefficient
         TRIANGLE tr = ta[ti];
         XYZ n = get_triangle_normal(tr);
-        REAL sgn = innerProduct_xyz(n, tr.p[0]); //todo: centroid
+        float sgn = innerProduct_xyz(n, tr.p[0]); //todo: centroid
         bool flip_verts =
               //0;
               //rnd() > 0.5;
@@ -996,7 +997,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             else
                  side2 = side;
 
-            const REAL NOISE_LEVEL= 0.1*0;
+            const float NOISE_LEVEL= 0.1*0;
             verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
             verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
             verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
@@ -1037,8 +1038,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
         // separation ! (delay) ==> accumulation!
 
-        const REAL alpha = 0.90;
-        const REAL beta = 1. - alpha;
+        const float alpha = 0.90;
+        const float beta = 1. - alpha;
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
                 verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
