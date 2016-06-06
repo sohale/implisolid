@@ -4,6 +4,11 @@
 </head>
 <script type="text/javascript" src="mc2_pb.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+<!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
+-->
+<!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
+-->
+<script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
 <body>
 This file calls C++. Eig3.js
@@ -580,6 +585,12 @@ function init2() {
 
     document.body.appendChild( renderer.domElement );
 
+    // CONTROLS
+    //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
+    cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    cameraControls.target.set( 0, 0, 0 );
+    cameraControls.addEventListener( 'change', function () {;} );
+
 }
 
 //based on http://threejs.org/examples/#webgl_materials
@@ -640,7 +651,7 @@ function animate() {
     requestAnimationFrame( animate );
 
 
-    var SPEED = 3. / 10;
+    var SPEED = 3. / 100;
     if(mesh){
     mesh.rotation.x += 0.01*SPEED;
     mesh.rotation.y += 0.02*SPEED;

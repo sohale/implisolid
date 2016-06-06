@@ -1034,7 +1034,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
         // separation ! (delay) ==> accumulation!
 
-        const REAL alpha = 0.95;
+        const REAL alpha = 0.90;
         const REAL beta = 1. - alpha;
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
