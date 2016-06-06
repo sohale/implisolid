@@ -593,9 +593,12 @@ typedef Matrix<float, Dynamic, 8, DontAlign> Matrix8Xf;
 
 void make_XYZ(const VectorXfC & pa, XYZ & output)
 {
-    output.x=pa[0];
-    output.y=pa[1];
-    output.z=pa[2];
+    // output.x=pa[0];
+    // output.y=pa[1];
+    // output.z=pa[2];
+    output.x=pa(0);
+    output.y=pa(1);
+    output.z=pa(2);
 }
 
 void print_triangle_array(int count, TRIANGLE* tra)
@@ -611,20 +614,26 @@ void print_triangle_array(int count, TRIANGLE* tra)
 
 
 int nsize = 20;
-Vector4i values_shape = {{ nsize, nsize, nsize }};
-Matrix3Xf values (values_shape);
+Matrix3Xf values(nsize, nsize, nsize, 3);
 
 //todo: Warning: may make a copy. (may call the copy constructor)
 
 vector<TRIANGLE> make_grid()
 //boost::multi_array<REAL, 3>& make_grid(const boost::multi_array<REAL, 3>& values)
 {
-    int nx = values.shape()[0];
-    int ny = values.shape()[1];
-    int nz = values.shape()[2];
+    // int nx = values.shape()[0];
+    // int ny = values.shape()[1];
+    // int nz = values.shape()[2];
+    int nx = values(0);
+    int ny = values(1);
+    int nz = values(2);
 
-    Vector4i grid_shape = {{ nx, ny, nz, 3 }};
-    Matrix4Xf grid (grid_shape);
+
+    //Vector4i grid_shape = {{ nx, ny, nz, 3 }};
+
+    Vector4i grid_shape;
+    grid_shape << nx, ny, nz, 3;
+    Matrix4Xf grid(grid_shape, 3);
 
     // 8000 -> 99 -> 1325
     int expected_number_of_faces = (int)(sqrt(nx*ny*nz) * 15.)+10;
@@ -674,7 +683,8 @@ vector<TRIANGLE> make_grid()
             float val = grid_min + grid_step * (float)ii;
             //REAL val = 0 + 1. * (REAL)ii;
 
-            grid[xi][yi][zi][di] = val;
+          //  grid[xi][yi][zi][di] = val;
+             grid(xi, yi, zi, di) = val;
         }
     }
     //return values;
@@ -689,7 +699,8 @@ vector<TRIANGLE> make_grid()
     for(int zi=0; zi < nz; zi++)
     {
         //78 msec version
-        Matrix1Xf c = grid[xi][yi][zi];
+    //    Matrix1Xf c = grid[xi][yi][zi];
+        Matrix1Xf c = grid(xi, yi, zi);
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
         float x = c[0];
         float y = c[1];
@@ -741,7 +752,8 @@ vector<TRIANGLE> make_grid()
         p1.x=pa[0];
         p1.y=pa[1];
         p1.z=pa[2];*/
-        make_XYZ(grid[xi][yi][zi], p1);
+    //    make_XYZ(grid[xi][yi][zi], p1);
+       make_XYZ(grid(xi, yi, zi), p1);
 
         /*
         XYZ p8[8];
@@ -769,26 +781,27 @@ vector<TRIANGLE> make_grid()
 
         GRIDCELL g;
 
-        make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
-        make_XYZ (grid[xi+1][yi  ][zi  ], g.p[3] );
-        make_XYZ (grid[xi  ][yi+1][zi  ], g.p[1] );
-        make_XYZ (grid[xi+1][yi+1][zi  ], g.p[2] );
-        make_XYZ (grid[xi  ][yi  ][zi+1], g.p[4] );
-        make_XYZ (grid[xi+1][yi  ][zi+1], g.p[7] );
-        make_XYZ (grid[xi  ][yi+1][zi+1], g.p[5] );
-        make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
+        // make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
+        // make_XYZ (grid[xi+1][yi  ][zi  ], g.p[3] );
+        // make_XYZ (grid[xi  ][yi+1][zi  ], g.p[1] );
+        // make_XYZ (grid[xi+1][yi+1][zi  ], g.p[2] );
+        // make_XYZ (grid[xi  ][yi  ][zi+1], g.p[4] );
+        // make_XYZ (grid[xi+1][yi  ][zi+1], g.p[7] );
+        // make_XYZ (grid[xi  ][yi+1][zi+1], g.p[5] );
+        // make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
+
+        make_XYZ (grid(xi, yi, zi), g.p[0] );
+        make_XYZ (grid(xi+1, yi, zi), g.p[3] );
+        make_XYZ (grid(xi, yi+1, zi), g.p[1] );
+        make_XYZ (grid(xi+1, yi+1, zi), g.p[2] );
+        make_XYZ (grid(xi, yi, zi+1), g.p[4] );
+        make_XYZ (grid(xi+1, yi , zi+1), g.p[7] );
+        make_XYZ (grid(xi, yi+1, zi+1), g.p[5] );
+        make_XYZ (grid(xi+1, yi+1, zi+1), g.p[6] );
 
 
-/*
-        make_XYZV(grid[xi  ][yi  ][zi  ], g.p[0], g.val[0]);
-        make_XYZV(grid[xi+1][yi  ][zi  ], g.p[1], g.val[0] );
-        make_XYZV(grid[xi  ][yi+1][zi  ], g.p[2], g.val[0] );
-        make_XYZV(grid[xi+1][yi+1][zi  ], g.p[3], g.val[0] );
-        make_XYZV(grid[xi  ][yi  ][zi+1], g.p[4], g.val[0] );
-        make_XYZV(grid[xi+1][yi  ][zi+1], g.p[5], g.val[0] );
-        make_XYZV(grid[xi  ][yi+1][zi+1], g.p[6], g.val[0] );
-        make_XYZV(grid[xi+1][yi+1][zi+1], g.p[7], g.val[0] );
-*/
+
+
         g.val[0] = values[xi  ][yi  ][zi  ];
         g.val[3] = values[xi+1][yi  ][zi  ];
         g.val[1] = values[xi  ][yi+1][zi  ];
@@ -949,8 +962,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     int nt = ta.size();
     int nv = ta.size()*3;
 
-    Matrix2Xi v_shape = {{ nv, 3 }};
-    Matrix2Xi f_shape = {{ nt, 3 }};
+    Matrix2Xi v_shape = (nv, 3);
+    Matrix2Xi f_shape = (nt, 3);
     Matrix2Xf verts (v_shape);
     Matrix2Xi faces (f_shape);
 
