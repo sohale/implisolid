@@ -582,7 +582,7 @@ vf_t mc(const fmat& values )
 //void make_XYZ(REAL pa[3], XYZ&output){
 //const boost::multi_array<REAL, 1>
 //void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
-void make_XYZ(const boost::multi_array<REAL, 1> & pa, XYZ & output)
+void make_XYZ(fmat & pa, XYZ & output)
 {
     output.x=pa[0];
     output.y=pa[1];
@@ -602,20 +602,22 @@ void print_triangle_array(int count, TRIANGLE* tra)
 
 
 int nsize = 20;
-boost::array<int, 4> values_shape = {{ nsize, nsize, nsize }};
-boost::multi_array<REAL, 3> values (values_shape);
+fcube values(nsize, nsize, nsize);
 
 //todo: Warning: may make a copy. (may call the copy constructor)
 
 vector<TRIANGLE> make_grid()
 //boost::multi_array<REAL, 3>& make_grid(const boost::multi_array<REAL, 3>& values)
 {
-    int nx = values.shape()[0];
-    int ny = values.shape()[1];
-    int nz = values.shape()[2];
+    int nx = values.n_rows;
+    int ny = values.n_cols;
+    int nz = values.n_slices;
 
-    boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
-    boost::multi_array<REAL, 4> grid (grid_shape);
+    icube grid_1(nx, ny, nz);
+    icube grid_2(nx, ny, nz);
+    icube grid_3(nx, ny, nz);
+    // boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
+    // boost::multi_array<REAL, 4> grid (grid_shape);
 
     // 8000 -> 99 -> 1325
     int expected_number_of_faces = (int)(sqrt(nx*ny*nz) * 15.)+10;
@@ -664,8 +666,16 @@ vector<TRIANGLE> make_grid()
             //not efficient
             REAL val = grid_min + grid_step * (REAL)ii;
             //REAL val = 0 + 1. * (REAL)ii;
-
-            grid[xi][yi][zi][di] = val;
+            if (di == 0){
+              grid_1(xi, yi, zi) = val;
+            }
+            else if (di == 1)(
+              grid_2(xi, yi, zi) = val;
+            )
+            else {
+              grid_3(xi, yi, zi) = val;
+            }
+             grid[xi][yi][zi][di] = val;
         }
     }
     //return values;
@@ -680,11 +690,12 @@ vector<TRIANGLE> make_grid()
     for(int zi=0; zi < nz; zi++)
     {
         //78 msec version
-        boost::multi_array<float, 1> c = grid[xi][yi][zi];
+      //  boost::multi_array<float, 1> c = grid[xi][yi][zi];
+        fcube c = grid_1(xi, yi, zi) + grid_2(xi, yi, zi) + grid_3(xi, yi, zi) ;
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-        REAL x = c[0];
-        REAL y = c[1];
-        REAL z = c[2];
+        REAL x = c.rows(xi);
+        REAL y = c.cols(yi);
+        REAL z = c.slice(zi);
         //REAL f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<1;i++){
             x = x*x;
@@ -699,7 +710,7 @@ vector<TRIANGLE> make_grid()
         float f = 2.0 - (x*x+y*y+z*z);
         */
 
-        values[xi][yi][zi] = f;
+        values(xi,yi,zi) = f;
     }
 
     cout << "first voxel:";
