@@ -584,9 +584,9 @@ vf_t mc(const fmat& values )
 //void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
 void make_XYZ(const icube & pa, XYZ & output)
 {
-    output.x=pa(0);
-    output.y=pa(1);
-    output.z=pa(2);
+    output.x=pa[0];
+    output.y=pa[1];
+    output.z=pa[2)];
 }
 
 void print_triangle_array(int count, TRIANGLE* tra)
@@ -648,9 +648,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < ny; yi++)
     for(int zi=0; zi < nz; zi++)
     {
-
-        grid(xi, yi, zi) = (grid_min + grid_step * (REAL)xi, grid_min + grid_step * (REAL)yi, grid_min + grid_step * (REAL)zi);
-
+        grid[xi, yi, zi] = (grid_min + grid_step * (REAL)xi, grid_min + grid_step * (REAL)yi, grid_min + grid_step * (REAL)zi);
     }
 
 
@@ -671,9 +669,9 @@ vector<TRIANGLE> make_grid()
         // REAL x = grid.row(xi);
         // REAL y = grid.col(yi);
         // REAL z = grid.slice(zi);
-        REAL x = grid(xi);
-        REAL y = grid(yi);
-        REAL z = grid(zi);
+        REAL x = grid[xi];
+        REAL y = grid[yi];
+        REAL z = grid[zi];
         //REAL f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<1;i++){
             x = x*x;
@@ -688,7 +686,7 @@ vector<TRIANGLE> make_grid()
         float f = 2.0 - (x*x+y*y+z*z);
         */
 
-        values(xi,yi,zi) = f;
+        values[xi][yi][zi] = f;
     }
 
     cout << "first voxel:";
@@ -696,7 +694,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < 2; yi++)
     for(int zi=0; zi < 2; zi++)
     {
-      cout << values(xi,yi,zi) << " ";
+      cout << values[xi][yi][zi] << " ";
     }
     cout << endl;
 
@@ -705,7 +703,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < ny; yi++)
     for(int zi=0; zi < nz; zi++)
     {
-        REAL v = values(xi,yi,zi);
+        REAL v = values[xi][yi][zi];
         int idx = v>0. ? 2 : (v<0. ? 1 : 0);  // (+) -> 2, (-) -> 1,  (0) -> 0
         sign_counters[idx]++;
     }
@@ -722,7 +720,7 @@ vector<TRIANGLE> make_grid()
         p1.x=pa[0];
         p1.y=pa[1];
         p1.z=pa[2];*/
-        make_XYZ(grid(xi,yi,zi), p1);
+        make_XYZ(grid[xi,yi,zi], p1);
 
         /*
         XYZ p8[8];
@@ -750,14 +748,14 @@ vector<TRIANGLE> make_grid()
 
         GRIDCELL g;
 
-        make_XYZ (grid(xi, yi, zi), g.p[0] );
-        make_XYZ (grid(xi+1, yi, zi), g.p[3] );
-        make_XYZ (grid(xi, yi+1, zi), g.p[1] );
-        make_XYZ (grid(xi+1, yi+1, zi), g.p[2] );
-        make_XYZ (grid(xi, yi, zi+1), g.p[4] );
-        make_XYZ (grid(xi+1, yi, zi+1), g.p[7] );
-        make_XYZ (grid(xi, yi+1, zi+1), g.p[5] );
-        make_XYZ (grid(xi+1, yi+1, zi+1), g.p[6] );
+        make_XYZ (grid[xi][yi][zi], g.p[0] );
+        make_XYZ (grid[xi+1][yi][zi], g.p[3] );
+        make_XYZ (grid[xi][yi+1][zi], g.p[1] );
+        make_XYZ (grid[xi+1][yi+1][zi], g.p[2] );
+        make_XYZ (grid[xi][yi][zi+1], g.p[4] );
+        make_XYZ (grid[xi+1][yi][zi+1], g.p[7] );
+        make_XYZ (grid[xi][yi+1][zi+1], g.p[5] );
+        make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
 
 
 /*
@@ -770,14 +768,14 @@ vector<TRIANGLE> make_grid()
         make_XYZV(grid[xi  ][yi+1][zi+1], g.p[6], g.val[0] );
         make_XYZV(grid[xi+1][yi+1][zi+1], g.p[7], g.val[0] );
 */
-        g.val[0] = values(xi, yi, zi);
-        g.val[3] = values(xi+1, yi, zi);
-        g.val[1] = values(xi, yi+1, zi);
-        g.val[2] = values(xi+1, yi+1, zi);
-        g.val[4] = values(xi, yi, zi+1);
-        g.val[7] = values(xi+1, yi, zi+1);
-        g.val[5] = values(xi, yi+1, zi+1);
-        g.val[6] = values(xi+1, yi+1, zi+1);
+        g.val[0] = values[xi][yi][zi];
+        g.val[3] = values[xi+1][yi][zi];
+        g.val[1] = values[xi][yi+1][zi];
+        g.val[2] = values[xi+1][yi+1][zi];
+        g.val[4] = values[xi][yi][zi+1];
+        g.val[7] = values[xi+1][yi][zi+1];
+        g.val[5] = values[xi][yi+1][zi+1];
+        g.val[6] = values[xi+1][yi+1][zi+1];
 
         TRIANGLE triangles[16];
         TRIANGLE*tra = triangles;
@@ -884,7 +882,7 @@ void test_gridcell1()
     fmat values;
     values << +2 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1;
     for(int i=0; i<8; i++)
-        g.val[i] = values(i);
+        g.val[i] = values[i];
 
     REAL isolevel = 0;
     TRIANGLE triangles[10];
@@ -906,7 +904,7 @@ void test_gridcell2()
     fmat values;
     values << +2 << +2 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1;
     for(int i=0; i<8; i++)
-        g.val[i] = values(i);
+        g.val[i] = values[i];
 
     REAL isolevel = 0;
     TRIANGLE triangles[10];
@@ -927,7 +925,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     //faces_t
     int nt = ta.size();
     int nv = ta.size()*3;
-    // 
+    //
     // boost::array<int, 2> v_shape = {{ nv, 3 }};
     // boost::array<int, 2> f_shape = {{ nt, 3 }};
     fmat verts(nv, 3);
@@ -979,23 +977,23 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
                  side2 = side;
 
             const REAL NOISE_LEVEL= 0.1*0;
-            verts(ti*3+side,0) = tr.p[side2].x+NOISE_LEVEL*rnd();
-            verts(ti*3+side, 1) = tr.p[side2].y+NOISE_LEVEL*rnd();
-            verts(ti*3+side, 2) = tr.p[side2].z+NOISE_LEVEL*rnd();
+            verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
+            verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
+            verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
         }
     }
     ASSERT(nt*3 == verts.n_rows);
 
     for(int ti=0; ti<nt; ti++){
       bool flip = 0; //!(ti % 2);
-      faces(ti,0) = ti*3 + 0;
+      faces[ti][0] = ti*3 + 0;
       if(flip){
-        faces(ti,1) = ti*3 + 2;
-        faces(ti,2) = ti*3 + 1;
+        faces[ti][1] = ti*3 + 2;
+        faces[ti][2] = ti*3 + 1;
       }
       else{
-        faces(ti,1) = ti*3 + 1;
-        faces(ti,2) = ti*3 + 2;
+        faces[ti][1] = ti*3 + 1;
+        faces[ti][2] = ti*3 + 2;
       }
     }
 
@@ -1005,7 +1003,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
-                centroids(d) += verts(j*3+s,d) / 3.;
+                centroids[d] += verts[j*3+s][d] / 3.;
             }
         }
         /*
@@ -1023,7 +1021,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         const REAL beta = 1. - alpha;
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
-                verts(j*3+s, d)  = verts(j*3+s, d) * alpha + centroids(d) * beta;
+                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroids[d] * beta;
             }
         }
     }
@@ -1034,9 +1032,9 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         int spike_triangle=100;
         for (int j=0;j<nt*3; j += 100){
             spike_triangle = j;
-            verts(spike_triangle, 0) *= 2;
-            verts(spike_triangle, 1) *= 2;
-            verts(spike_triangle, 2) *= 2;
+            verts[spike_triangle][0] *= 2;
+            verts[spike_triangle][1] *= 2;
+            verts[spike_triangle][2] *= 2;
         }
     }
 
@@ -1069,13 +1067,13 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts(vi*3+di) = vf.first(vi,di);
+            verts[vi*3+di] = vf.first[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces(fi*3+si) = vf.second(fi,si);
+            faces[fi*3+si] = vf.second[fi][si];
         }
       }
     timr.stop("finished");
