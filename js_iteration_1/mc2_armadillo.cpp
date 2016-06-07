@@ -616,6 +616,7 @@ vector<TRIANGLE> make_grid()
     icube grid_1(nx, ny, nz);
     icube grid_2(nx, ny, nz);
     icube grid_3(nx, ny, nz);
+    icube grid(nx, ny, nz);
     // boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
     // boost::multi_array<REAL, 4> grid (grid_shape);
 
@@ -675,9 +676,11 @@ vector<TRIANGLE> make_grid()
             else {
               grid_3(xi, yi, zi) = val;
             }
-             grid[xi][yi][zi][di] = val;
+
         }
     }
+
+    grid = grid_1 + grid_2 + grid_3;
     //return values;
 
     if(ASSERTS){
@@ -691,7 +694,7 @@ vector<TRIANGLE> make_grid()
     {
         //78 msec version
       //  boost::multi_array<float, 1> c = grid[xi][yi][zi];
-        fcube c = grid_1(xi, yi, zi) + grid_2(xi, yi, zi) + grid_3(xi, yi, zi) ;
+        c = grid(xi, yi, zi);
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
         REAL x = c.rows(xi);
         REAL y = c.cols(yi);
@@ -718,7 +721,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < 2; yi++)
     for(int zi=0; zi < 2; zi++)
     {
-      cout << values[xi][yi][zi] << " ";
+      cout << values(xi,yi,zi) << " ";
     }
     cout << endl;
 
@@ -727,7 +730,7 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < ny; yi++)
     for(int zi=0; zi < nz; zi++)
     {
-        REAL v = values[xi][yi][zi];
+        REAL v = values(xi,yi,zi);
         int idx = v>0. ? 2 : (v<0. ? 1 : 0);  // (+) -> 2, (-) -> 1,  (0) -> 0
         sign_counters[idx]++;
     }
@@ -744,7 +747,7 @@ vector<TRIANGLE> make_grid()
         p1.x=pa[0];
         p1.y=pa[1];
         p1.z=pa[2];*/
-        make_XYZ(grid[xi][yi][zi], p1);
+        make_XYZ(grid(xi,yi,zi), p1);
 
         /*
         XYZ p8[8];
@@ -772,14 +775,14 @@ vector<TRIANGLE> make_grid()
 
         GRIDCELL g;
 
-        make_XYZ (grid[xi  ][yi  ][zi  ], g.p[0] );
-        make_XYZ (grid[xi+1][yi  ][zi  ], g.p[3] );
-        make_XYZ (grid[xi  ][yi+1][zi  ], g.p[1] );
-        make_XYZ (grid[xi+1][yi+1][zi  ], g.p[2] );
-        make_XYZ (grid[xi  ][yi  ][zi+1], g.p[4] );
-        make_XYZ (grid[xi+1][yi  ][zi+1], g.p[7] );
-        make_XYZ (grid[xi  ][yi+1][zi+1], g.p[5] );
-        make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
+        make_XYZ (grid(xi, yi, zi), g.p[0] );
+        make_XYZ (grid(xi+1, yi, zi), g.p[3] );
+        make_XYZ (grid(xi, yi+1, zi), g.p[1] );
+        make_XYZ (grid(xi+1, yi+1, zi), g.p[2] );
+        make_XYZ (grid(xi, yi, zi+1), g.p[4] );
+        make_XYZ (grid(xi+1, yi, zi+1), g.p[7] );
+        make_XYZ (grid(xi, yi+1, zi+1), g.p[5] );
+        make_XYZ (grid(xi+1, yi+1, zi+1), g.p[6] );
 
 
 /*
@@ -792,14 +795,14 @@ vector<TRIANGLE> make_grid()
         make_XYZV(grid[xi  ][yi+1][zi+1], g.p[6], g.val[0] );
         make_XYZV(grid[xi+1][yi+1][zi+1], g.p[7], g.val[0] );
 */
-        g.val[0] = values[xi  ][yi  ][zi  ];
-        g.val[3] = values[xi+1][yi  ][zi  ];
-        g.val[1] = values[xi  ][yi+1][zi  ];
-        g.val[2] = values[xi+1][yi+1][zi  ];
-        g.val[4] = values[xi  ][yi  ][zi+1];
-        g.val[7] = values[xi+1][yi  ][zi+1];
-        g.val[5] = values[xi  ][yi+1][zi+1];
-        g.val[6] = values[xi+1][yi+1][zi+1];
+        g.val[0] = values(xi, yi, zi);
+        g.val[3] = values(xi+1, yi, zi);
+        g.val[1] = values(xi, yi+1, zi);
+        g.val[2] = values(xi+1, yi+1, zi);
+        g.val[4] = values(xi, yi, zi+1);
+        g.val[7] = values(xi+1, yi, zi+1);
+        g.val[5] = values(xi, yi+1, zi+1);
+        g.val[6] = values(xi+1, yi+1, zi+1);
 
         TRIANGLE triangles[16];
         TRIANGLE*tra = triangles;
@@ -903,11 +906,10 @@ void test_gridcell1()
 {
     //Tests a single grid cube (Marching) with one positive point in the corner. This should generate one single triangle.
     GRIDCELL g = make_grid_101();
-    boost::array<REAL, 8> values =
-      //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
-      {{ +2,-1, -1,-1,   -1,-1, -1,-1 }};
+    fmat values;
+    values << +2 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1;
     for(int i=0; i<8; i++)
-        g.val[i] = values[i];
+        g.val[i] = values(i);
 
     REAL isolevel = 0;
     TRIANGLE triangles[10];
@@ -926,11 +928,10 @@ void test_gridcell2()
     //Tests a single grid cube (Marching) with two positive points. This should generate two single triangles that comprise a rectangle.
     GRIDCELL g = make_grid_101();
     cout << " --------------- t2 ---------------";
-    boost::array<REAL, 8> values =
-      //{{ +10,-1, +10,-1,   -1,-1, -1,-1 }};
-      {{ +2,+2, -1,-1,   -1,-1, -1,-1 }};
+    fmat values;
+    values << +2 << +2 << -1 << -1 << -1 << -1 << -1 << -1 << -1 << -1;
     for(int i=0; i<8; i++)
-        g.val[i] = values[i];
+        g.val[i] = values(i);
 
     REAL isolevel = 0;
     TRIANGLE triangles[10];
@@ -954,6 +955,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
     boost::array<int, 2> v_shape = {{ nv, 3 }};
     boost::array<int, 2> f_shape = {{ nt, 3 }};
+    fmat verts(nv, 3);
+    imat faces(nt, 3);
     boost::multi_array<REAL, 2> verts (v_shape);
     boost::multi_array<int, 2> faces (f_shape);
 
@@ -1001,33 +1004,33 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
                  side2 = side;
 
             const REAL NOISE_LEVEL= 0.1*0;
-            verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
-            verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
-            verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
+            verts(ti*3+side,0) = tr.p[side2].x+NOISE_LEVEL*rnd();
+            verts(ti*3+side, 1) = tr.p[side2].y+NOISE_LEVEL*rnd();
+            verts(ti*3+side, 2) = tr.p[side2].z+NOISE_LEVEL*rnd();
         }
     }
-    ASSERT(nt*3 == verts.shape()[0]);
+    ASSERT(nt*3 == verts.n_rows);
 
     for(int ti=0; ti<nt; ti++){
       bool flip = 0; //!(ti % 2);
-      faces[ti][0] = ti*3 + 0;
+      faces(ti,0) = ti*3 + 0;
       if(flip){
-        faces[ti][1] = ti*3 + 2;
-        faces[ti][2] = ti*3 + 1;
+        faces(ti,1) = ti*3 + 2;
+        faces(ti,2) = ti*3 + 1;
       }
       else{
-        faces[ti][1] = ti*3 + 1;
-        faces[ti][2] = ti*3 + 2;
+        faces(ti,1) = ti*3 + 1;
+        faces(ti,2) = ti*3 + 2;
       }
     }
 
     //Twitch
     for (int j=0;j<nt; j+= 1){
-        boost::array<REAL, 3> centroid = {0,0,0};
+        fmat centroids;
 
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
-                centroid[d] += verts[j*3+s][d] / 3.;
+                centroids(d) += verts(j*3+s,d) / 3.;
             }
         }
         /*
@@ -1045,7 +1048,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         const REAL beta = 1. - alpha;
         for (int s=0;s<3; s+= 1){
             for (int d=0;d<3; d+= 1){
-                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
+                verts(j*3+s, d)  = verts(j*3+s, d) * alpha + centroids(d) * beta;
             }
         }
     }
@@ -1056,9 +1059,9 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         int spike_triangle=100;
         for (int j=0;j<nt*3; j += 100){
             spike_triangle = j;
-            verts[spike_triangle][0] *= 2;
-            verts[spike_triangle][1] *= 2;
-            verts[spike_triangle][2] *= 2;
+            verts(spike_triangle, 0) *= 2;
+            verts(spike_triangle, 1) *= 2;
+            verts(spike_triangle, 2) *= 2;
         }
     }
 
