@@ -582,7 +582,7 @@ vf_t mc(const fmat& values )
 //void make_XYZ(REAL pa[3], XYZ&output){
 //const boost::multi_array<REAL, 1>
 //void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
-void make_XYZ(fmat & pa, XYZ & output)
+void make_XYZ(const icube & pa, XYZ & output)
 {
     output.x=pa(0);
     output.y=pa(1);
@@ -668,9 +668,12 @@ vector<TRIANGLE> make_grid()
         //78 msec version
       //  boost::multi_array<float, 1> c = grid[xi][yi][zi];
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-        REAL x = grid.row(xi);
-        REAL y = grid.col(yi);
-        REAL z = grid.slice(zi);
+        // REAL x = grid.row(xi);
+        // REAL y = grid.col(yi);
+        // REAL z = grid.slice(zi);
+        REAL x = grid(xi);
+        REAL y = grid(yi);
+        REAL z = grid(zi);
         //REAL f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<1;i++){
             x = x*x;
@@ -924,13 +927,13 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     //faces_t
     int nt = ta.size();
     int nv = ta.size()*3;
-
-    boost::array<int, 2> v_shape = {{ nv, 3 }};
-    boost::array<int, 2> f_shape = {{ nt, 3 }};
+    // 
+    // boost::array<int, 2> v_shape = {{ nv, 3 }};
+    // boost::array<int, 2> f_shape = {{ nt, 3 }};
     fmat verts(nv, 3);
     imat faces(nt, 3);
-    boost::multi_array<REAL, 2> verts (v_shape);
-    boost::multi_array<int, 2> faces (f_shape);
+//    boost::multi_array<REAL, 2> verts (v_shape);
+//    boost::multi_array<int, 2> faces (f_shape);
 
     /*
     const TRIANGLE& tr = ta[ti];
