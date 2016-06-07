@@ -561,7 +561,7 @@ void test1()
 }
 
 
-#include "armadillo"
+#include <armadillo>
 //void make_grid( boost::multi_array<REAL, 4>& grid_out, boost::multi_array<REAL, 3>& values_out )
 using namespace arma;
 
@@ -584,9 +584,9 @@ vf_t mc(const fmat& values )
 //void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
 void make_XYZ(fmat & pa, XYZ & output)
 {
-    output.x=pa[0];
-    output.y=pa[1];
-    output.z=pa[2];
+    output.x=pa(0);
+    output.y=pa(1);
+    output.z=pa(2);
 }
 
 void print_triangle_array(int count, TRIANGLE* tra)
@@ -613,9 +613,6 @@ vector<TRIANGLE> make_grid()
     int ny = values.n_cols;
     int nz = values.n_slices;
 
-    icube grid_1(nx, ny, nz);
-    icube grid_2(nx, ny, nz);
-    icube grid_3(nx, ny, nz);
     icube grid(nx, ny, nz);
     // boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
     // boost::multi_array<REAL, 4> grid (grid_shape);
@@ -646,41 +643,17 @@ vector<TRIANGLE> make_grid()
 
     //float verts1[4][3] = {{0.1, 5.5, 0}, {0, 1, 0.5}, {1.5, 1, 0}, {1, 0, 0} };
 
-    for(int di = 0; di < 3; di++)
+
+    for(int xi=0; xi < nx; xi++)
+    for(int yi=0; yi < ny; yi++)
+    for(int zi=0; zi < nz; zi++)
     {
-        for(int xi=0; xi < nx; xi++)
-        for(int yi=0; yi < ny; yi++)
-        for(int zi=0; zi < nz; zi++)
-        {
-            /*
-            int ii;
-            if(di==0){
-                ii = xi;
-            }else if(di==1){
-                ii = yi;
-            }else if(di==2){
-                ii = zi;
-            }
-            */
-            int ii = (di==0)?(xi):((di==1)?(yi):(zi));
 
-            //not efficient
-            REAL val = grid_min + grid_step * (REAL)ii;
-            //REAL val = 0 + 1. * (REAL)ii;
-            if (di == 0){
-              grid_1(xi, yi, zi) = val;
-            }
-            else if (di == 1)(
-              grid_2(xi, yi, zi) = val;
-            )
-            else {
-              grid_3(xi, yi, zi) = val;
-            }
+        grid(xi, yi, zi) = (grid_min + grid_step * (REAL)xi, grid_min + grid_step * (REAL)yi, grid_min + grid_step * (REAL)zi);
 
-        }
     }
 
-    grid = grid_1 + grid_2 + grid_3;
+
     //return values;
 
     if(ASSERTS){
@@ -694,11 +667,10 @@ vector<TRIANGLE> make_grid()
     {
         //78 msec version
       //  boost::multi_array<float, 1> c = grid[xi][yi][zi];
-        c = grid(xi, yi, zi);
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-        REAL x = c.rows(xi);
-        REAL y = c.cols(yi);
-        REAL z = c.slice(zi);
+        REAL x = grid.row(xi);
+        REAL y = grid.col(yi);
+        REAL z = grid.slice(zi);
         //REAL f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<1;i++){
             x = x*x;
@@ -1094,13 +1066,13 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf.first[vi][di];
+            verts(vi*3+di) = vf.first(vi,di);
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf.second[fi][si];
+            faces(fi*3+si) = vf.second(fi,si);
         }
       }
     timr.stop("finished");
