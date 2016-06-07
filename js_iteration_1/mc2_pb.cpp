@@ -141,7 +141,7 @@ int Polygonise(const GRIDCELL& grid, REAL isolevel, TRIANGLE *triangles, bool ve
    int cubeindex;
    XYZ vertlist[12];
 
-int edgeTable[256]={
+const int edgeTable[256]={
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -174,7 +174,7 @@ int edgeTable[256]={
 0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
 0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
-int triTable[256][16] =
+const int triTable[256][16] =
 {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -1074,7 +1074,7 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     timer timr;
 
     vector<TRIANGLE> ta = make_grid();
-    timr.stop("make grid");
+    timr.stop("make grid"); // 1789.14 1565.37 1443.99 msec
 
     //very inefficient
     vf_t vf = vector_to_vertsfaces(ta);
@@ -1126,6 +1126,121 @@ int main()
      if(false)
         test_gridcell1();
      test_gridcell2();
+
      cout << "staying alive...";
      return 0;
+}
+
+
+//CODE THAT IS NOT USED YET:
+//IN PROGRESS
+
+#include <tuple>
+
+vf_t triangles_to_vertsfaces(vector<TRIANGLE> const& ta)
+{
+    //converts the expanded into condenced format.
+    //extracts unique points
+
+
+    int nt = ta.size();
+
+
+    boost::array<int, 2> v_shape = {{ nv, 3 }};
+    boost::array<int, 2> f_shape = {{ nt, 3 }};
+    boost::multi_array<REAL, 2> verts (v_shape);
+    boost::multi_array<int, 2> faces (f_shape);
+
+    /*
+    const TRIANGLE& tr = ta[ti];
+
+    paulbourke_mc1.cpp:698:15: error: binding of reference to type 'XYZ' to a value of type 'const XYZ' drops qualifiers
+            XYZ & p0 = tr.p[0];
+    */
+
+    /*
+    for(int ti=0; ti<nt; ti++){
+        //inefficient
+        TRIANGLE tr = ta[ti];
+        XYZ & p0 = tr.p[0];
+        //boost::array<REAL, 3> xxx = {p0.x, p0.y, p0.z};  // works here
+        boost::array<int, 1> shape = {{ 3 }};
+        boost::multi_array<REAL, 1> xxx(shape);
+        xxx[0] = p0.x;
+        xxx[1] = p0.y;
+        xxx[2] = p0.z;
+        verts[ti*3+0] = xxx;
+        //verts[ti*3+0][0] = tr.p[0].x;
+        //verts[ti*3+0][0] = tr.p[0].x;
+    }
+    */
+
+    int FLIP[3] = {0, 2, 1};
+    for(int ti=0; ti<nt; ti++)
+    {
+        //inefficient
+        TRIANGLE tr = ta[ti];
+        XYZ n = get_triangle_normal(tr);
+        REAL sgn = innerProduct_xyz(n, tr.p[0]); //todo: centroid
+        bool flip_verts =
+              //0;
+              //rnd() > 0.5;
+              (sgn<0);
+        for(int side=0; side<3; side++){
+            int side2 = side;
+            if(flip_verts){
+                 side2 = FLIP[side];
+            }
+            else
+                 side2 = side;
+
+            const REAL NOISE_LEVEL= 0.1*0;
+            verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
+            verts[ti*3+side][1] = tr.p[side2].y+NOISE_LEVEL*rnd();
+            verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
+        }
+    }
+    ASSERT(nt*3 == verts.shape()[0]);
+
+    for(int ti=0; ti<nt; ti++){
+      bool flip = 0; //!(ti % 2);
+      faces[ti][0] = ti*3 + 0;
+      if(flip){
+        faces[ti][1] = ti*3 + 2;
+        faces[ti][2] = ti*3 + 1;
+      }
+      else{
+        faces[ti][1] = ti*3 + 1;
+        faces[ti][2] = ti*3 + 2;
+      }
+    }
+
+    //Twitch
+    for (int j=0;j<nt; j+= 1){
+        boost::array<REAL, 3> centroid = {0,0,0};
+
+        for (int s=0;s<3; s+= 1){
+            for (int d=0;d<3; d+= 1){
+                centroid[d] += verts[j*3+s][d] / 3.;
+            }
+        }
+        /*
+        {
+        REAL dc = rnd()*0.1;
+        for (int d=0;d<3; d+= 1){
+            centroid[d] = dc;
+        }
+        }
+        */
+
+        // separation ! (delay) ==> accumulation!
+
+        const REAL alpha = 0.90;
+        const REAL beta = 1. - alpha;
+        for (int s=0;s<3; s+= 1){
+            for (int d=0;d<3; d+= 1){
+                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
+            }
+        }
+    }
 }

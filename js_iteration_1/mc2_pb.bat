@@ -4,6 +4,7 @@ em++ ^
         -s EXPORTED_FUNCTIONS="['_make_object', '_main']" ^
         -s NO_EXIT_RUNTIME=1          ^
         -s ASSERTIONS=1               ^
+        --profiling   ^
                                       ^
         -pedantic -std=c++14  ^
     mc2_pb.cpp  ^
