@@ -563,6 +563,7 @@ void test1()
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
+#include <math.h>
 //void make_grid( boost::multi_array<REAL, 4>& grid_out, boost::multi_array<REAL, 3>& values_out )
 
 
@@ -691,20 +692,18 @@ vector<TRIANGLE> make_grid()
         REAL y = c[1];
         REAL z = c[2];
         //REAL f = 2.0 - (x*x+y*y+z*z);
-        for(int i=0;i<1;i++){
-            x = x*x;
-            y = y*y;
-            z = z*z;
-        }
-        REAL orb = exp(-abs(z)*10*2)*5.+1.;
-        REAL f = 2.0 - (x + y + z)*orb;
+        int shape = 2;
+        if (shape == 1){
+          REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
+          REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+          values[xi][yi][zi] = f;
+          }
+        else if(shape == 2){
+          REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
+          values[xi][yi][zi] = f;
+          }
 
-        /* 30 msec version
-        double x = A[vi][0], y = A[vi][1], z = A[vi][2];
-        float f = 2.0 - (x*x+y*y+z*z);
-        */
 
-        values[xi][yi][zi] = f;
     }
 
     cout << "first voxel:";
