@@ -1144,7 +1144,7 @@ vf_t triangles_to_vertsfaces(vector<TRIANGLE> const& ta)
 
 
     int nt = ta.size();
-
+    int nv = ta.size()*3;
 
     boost::array<int, 2> v_shape = {{ nv, 3 }};
     boost::array<int, 2> f_shape = {{ nt, 3 }};
