@@ -1,18 +1,23 @@
-//AlteredQualia's Marching Cubes, C++ version, based on AQ's code.
-
-#include "boost/multi_array.hpp"
-#include "boost/array.hpp"
-#include <cassert>
-#include <algorithm>
-
-#include <iostream>
+/* Copyright 2016  @sohale */
 
 /**
+ * AlteredQualia's Marching Cubes, C++ version, based on AQ's code based on Henrik Rydgård and @greggman.
+ * https://github.com/WebGLSamples/WebGLSamples.github.io/blob/master/blob/marching_cubes.js
+ *
  * Based on alteredq's version  https://github.com/mrdoob/three.js/blob/master/examples/js/MarchingCubes.js
  *
  * Port of greggman's ThreeD version of marching cubes to Three.js
  * http://webglsamples.googlecode.com/hg/blob/blob.html
  */
+
+#include <cassert>
+#include <algorithm>
+#include <iostream>
+
+#include "boost/multi_array.hpp"
+#include "boost/array.hpp"
+
+
 
 
 //typedef unsigned short int size_t;
@@ -27,7 +32,7 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 //#define array1d  boost::multi_array<REAL, 1>
 typedef array1d::index  index_t;
 
-typedef struct { void call (void*) const {};} callback_t;
+typedef struct { void call (void*) const { } } callback_t;
 
 /*template<typename Index_Type=int>
 boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
@@ -41,19 +46,17 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 }
 */
 
-array_shape_t make_shape_1d(int size)
-{
-    //Make a shape to be used in array initialisation
-    //fixme: the type of size
+array_shape_t make_shape_1d(int size) {
+    // Make a shape to be used in array initialisation
+    // fixme: the type of size
 
-    //ASSERT(size>=0);
+    // ASSERT(size>=0);
     array_shape_t shape = {{ size, }};
     return shape;
 }
 
 
-REAL lerp( REAL a, REAL b, REAL t )
-{
+REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
 }
 
@@ -66,23 +69,23 @@ class MarchingCubes{
     index_t  yd, zd;
     REAL halfsize;
     REAL delta;
-    //array1d field;
+    // array1d field;
     array1d field;
     array1d normal_cache;
 
-    //parameters
-    const static dim_t maxCount = 4096; // TODO: find the fastest size for this buffer
+    // parameters
+    static const dim_t maxCount = 4096;
+    // TODO(@sohale): find the fastest size for maxCount (AQ)
 
-protected:
-
+ protected:
     index_t  temp_buffer_size = 12;
 
-    //caching
+    // caching
     array1d vlist_buffer;
     array1d nlist_buffer;  // size: 12 x 3
 
 
-    //counter of what?
+    // counter of what?
     int count = 0;
 
     bool hasPositions = false;
@@ -90,27 +93,28 @@ protected:
     bool hasColors = false;
     bool hasUvs = false;
 
-    array1d positionArray; //size: MaxCount x 3
+    array1d positionArray;  // size: MaxCount x 3
     array1d normalArray;
 
-    //array1d &&colorArray; // = 0;
-    //array1d &&uvArray; // = 0;
+    // array1d &&colorArray; // = 0;
+    // array1d &&uvArray; // = 0;
     array1d *colorArray = 0;
     array1d *uvArray = 0;
 
     void kill();
 
-static const int edgeTable[256];
-static const int triTable[256*16];
+    static const int edgeTable[256];
+    static const int triTable[256*16];
 
-protected:
-    void init( dim_t resolution );
+ protected:
+    void init(dim_t resolution);
 
-void VIntX( index_t q, array1d &pout, array1d &nout,
+void VIntX(index_t q,
+    array1d &pout, array1d &nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-void VIntY( index_t q, array1d& pout, array1d& nout,
+void VIntY(index_t q, array1d& pout, array1d& nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-void VIntZ( index_t q, array1d& pout, array1d& nout,
+void VIntZ(index_t q, array1d& pout, array1d& nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
 
 void compNorm( index_t q );
@@ -170,12 +174,11 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 }
 
 
-#include <new>          // std::bad_alloc
 
-//only called by the constructor
-void MarchingCubes::init( dim_t resolution )
-//May throw  std::bad_alloc
-{
+
+void MarchingCubes::init( dim_t resolution ) {
+        // May throw  std::bad_alloc. See #include <new>
+        // init() is only called by the constructor
 
         this->resolution = resolution;
 
@@ -195,21 +198,17 @@ void MarchingCubes::init( dim_t resolution )
         this->yd = this->size;
         this->zd = this->size2;
 
-        array_shape_t size = {{(int)this->size3}};
+        array_shape_t size = {(int)this->size3};
         this->field = array1d(size);
-        //this->field = new Float32Array( this->size3 );
-        //this->field = boost::array<REAL, 1>(this->size3); //does not work
-        //this->field = std::array<REAL, this->size3>();
-        //need a guarantee:
+        // this->field = new Float32Array( this->size3 );
+        // this->field = boost::array<REAL, 1>(this->size3); //does not work
+        // this->field = std::array<REAL, this->size3>();
+        // need a guarantee:
 
-        assert(this->size3 < 10000000); // todo: get available heap. make it an exception.
+        // todo: get available heap.
+        // todo: handle memory exception.
+        assert(this->size3 < 10000000);
         assert(this->size3 > 0);
-
-
-
-
-
-
 
 
 /**
@@ -228,24 +227,25 @@ void MarchingCubes::init( dim_t resolution )
 */
         std::cout << "trouble end" << std::endl;
 
-        //this->normal_cache = new Float32Array( this->size3 * 3 );
+        // this->normal_cache = new Float32Array( this->size3 * 3 );
         array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
-        //array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
+        // array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
         this->normal_cache = array1d( normals_shape );
-        //std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
+        // std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
 
 
-        std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );  // from #include <algorithm>
+        // std::fill from #include <algorithm>
+        std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );
 
 
 
         // temp buffers used in polygonize
 
-        //this->vlist_buffer = new Float32Array( 12 * 3 );
-        //this->nlist_buffer = new Float32Array( 12 * 3 );
-        //auto twelve3 = make_shape_1d( temp_buffer_size * 3 );
+        // this->vlist_buffer = new Float32Array( 12 * 3 );
+        // this->nlist_buffer = new Float32Array( 12 * 3 );
+        // auto twelve3 = make_shape_1d( temp_buffer_size * 3 );
 
-        //array_shape_t twelve3 = {{ 12 * 3, }};
+        // array_shape_t twelve3 = {{ 12 * 3, }};
 
         if(false){
             this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
@@ -254,9 +254,9 @@ void MarchingCubes::init( dim_t resolution )
 
         // immediate render mode simulator
 
-        //this::maxCount = 4096; // TODO: find the fastest size for this buffer
+        // this::maxCount = 4096; // TODO: find the fastest size for this buffer
 
-        //counter of what?
+        // counter of what?
         this->count = 0;
 
         this->hasPositions = false;
@@ -264,38 +264,38 @@ void MarchingCubes::init( dim_t resolution )
         this->hasColors = false;
         this->hasUvs = false;
 
-        //this->positionArray = new Float32Array( this->maxCount * 3 );
-        //this->normalArray   = new Float32Array( this->maxCount * 3 );
+        // this->positionArray = new Float32Array( this->maxCount * 3 );
+        // this->normalArray   = new Float32Array( this->maxCount * 3 );
 
 
         auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::maxCount * 3);
-        //array_shape_t shape_maxCount_x_3 = {{ this->maxCount * 3, }};
+        // array_shape_t shape_maxCount_x_3 = {{ this->maxCount * 3, }};
         this->positionArray = array1d(shape_maxCount_x_3);
         this->normalArray   = array1d(shape_maxCount_x_3);
 
 
 
         auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::maxCount * 2);
-        //array_shape_t  shape_maxCount_x_2 = {{ this->maxCount * 2, }};
+        // array_shape_t  shape_maxCount_x_2 = {{ this->maxCount * 2, }};
 
 
-        //can throw  std::bad_alloc
+        // can throw  std::bad_alloc
 
         if ( this->enableUvs ) {
-            //this->uvArray = new Float32Array( this->maxCount * 2 );
+            // this->uvArray = new Float32Array( this->maxCount * 2 );
             this->uvArray = 0; //for deconstructor, to see if this exited by an exception.
             this->uvArray = new array1d(shape_maxCount_x_2);
-            //assert(this->uvArray != null);
+            // assert(this->uvArray != null);
         }
-        //else
+        // else
         //    this->uvArray = NULL;
 
         if ( this->enableColors ) {
             this->colorArray = 0;
             this->colorArray = new array1d(shape_maxCount_x_3);
-            //new Float32Array( this->maxCount * 3 );
+            // new Float32Array( this->maxCount * 3 );
         }
-        //else
+        // else
         //    this->colorArray = NULL;
 }
 
@@ -310,7 +310,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
     }
     if ( this->enableColors )
     {
-        if(this->colorArray) //if is not necessary for colorArray,but keep this if.
+        if(this->colorArray) // if is not necessary for colorArray,but keep this if.
         {
             delete this->colorArray;
             this->colorArray = 0;
@@ -319,6 +319,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
 }
 
 void MarchingCubes::kill()
+//opposite of init()
 {
     ;
 }
@@ -331,8 +332,8 @@ void MarchingCubes:: VIntX(
     REAL valp1,
     REAL valp2 )
 {
-    //pout is vlist_buffer
-    //nout is nlist_buffer
+    // pout is vlist_buffer
+    // nout is nlist_buffer
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& nc = this->normal_cache;
@@ -450,7 +451,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     // top of the cube
 
     if ( bits & 1 ) {
-
         this->compNorm( q );
         this->compNorm( q1 );
         this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1 );
@@ -458,7 +458,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 2 ) {
-
         this->compNorm( q1 );
         this->compNorm( q1y );
         this->VIntY( q1 * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3 );
@@ -466,7 +465,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 4 ) {
-
         this->compNorm( qy );
         this->compNorm( q1y );
         this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3 );
@@ -474,7 +472,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 8 ) {
-
         this->compNorm( q );
         this->compNorm( qy );
         this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2 );
@@ -484,7 +481,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     // bottom of the cube
 
     if ( bits & 16 ) {
-
         this->compNorm( qz );
         this->compNorm( q1z );
         this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5 );
@@ -492,7 +488,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 32 ) {
-
         this->compNorm( q1z );
         this->compNorm( q1yz );
         this->VIntY( q1z * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7 );
@@ -500,7 +495,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 64 ) {
-
         this->compNorm( qyz );
         this->compNorm( q1yz );
         this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7 );
@@ -508,7 +502,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 128 ) {
-
         this->compNorm( qz );
         this->compNorm( qyz );
         this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6 );
@@ -518,7 +511,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     // vertical lines of the cube
 
     if ( bits & 256 ) {
-
         this->compNorm( q );
         this->compNorm( qz );
         this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4 );
@@ -526,7 +518,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 512 ) {
-
         this->compNorm( q1 );
         this->compNorm( q1z );
         this->VIntZ( q1 * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5 );
@@ -534,7 +525,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 1024 ) {
-
         this->compNorm( q1y );
         this->compNorm( q1yz );
         this->VIntZ( q1y * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7 );
@@ -542,7 +532,6 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     }
 
     if ( bits & 2048 ) {
-
         this->compNorm( qy );
         this->compNorm( qyz );
         this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6 );
@@ -551,14 +540,12 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
 
     cubeindex <<= 4;  // re-purpose cubeindex into an offset into triTable
 
-
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
 
     // here is where triangles are created
 
     while ( triTable[ cubeindex + i ] != - 1 ) {
-
         o1 = cubeindex + i;
         o2 = o1 + 1;
         o3 = o1 + 2;
@@ -572,11 +559,8 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
 
         i += 3;
         numtris ++;
-
     }
-
     return numtris;
-
 }
 
 
@@ -622,7 +606,6 @@ void MarchingCubes::posnormtriv(
     // uvs
 
     if ( this->enableUvs ) {
-
         int d = this->count * 2;
 
         (*this->uvArray)[ d ]     = pos__vlist[ o1 ];
@@ -633,13 +616,11 @@ void MarchingCubes::posnormtriv(
 
         (*this->uvArray)[ d + 4 ] = pos__vlist[ o3 ];
         (*this->uvArray)[ d + 5 ] = pos__vlist[ o3 + 2 ];
-
     }
 
     // colors
 
     if ( this->enableColors ) {
-
         (*this->colorArray)[ c ]     = pos__vlist[ o1 ];
         (*this->colorArray)[ c + 1 ] = pos__vlist[ o1 + 1 ];
         (*this->colorArray)[ c + 2 ] = pos__vlist[ o1 + 2 ];
@@ -651,13 +632,11 @@ void MarchingCubes::posnormtriv(
         (*this->colorArray)[ c + 6 ] = pos__vlist[ o3 ];
         (*this->colorArray)[ c + 7 ] = pos__vlist[ o3 + 1 ];
         (*this->colorArray)[ c + 8 ] = pos__vlist[ o3 + 2 ];
-
     }
 
     this->count += 3;
 
-    if ( this->count >= this->maxCount - 3 )  //why equal?
-    {
+    if ( this->count >= this->maxCount - 3 ) {  //why equal?
         this->hasPositions = true;
         this->hasNormals = true;
         if ( this->enableUvs ) {
@@ -667,13 +646,11 @@ void MarchingCubes::posnormtriv(
             this->hasColors = true;
         }
         renderCallback.call( (void*)this );
-
     }
 }
 
 
-void MarchingCubes::begin()
-{
+void MarchingCubes::begin() {
     this->count = 0;
 
     this->hasPositions = false;
@@ -682,9 +659,7 @@ void MarchingCubes::begin()
     this->hasColors = false;
 }
 
-void MarchingCubes::end( const callback_t& renderCallback )
-{
-
+void MarchingCubes::end( const callback_t& renderCallback ) {
     // count := number of prepared (?)
     if ( this->count == 0 ) return;
 
@@ -705,12 +680,11 @@ void MarchingCubes::end( const callback_t& renderCallback )
         this->hasColors = true;
     }
 
-    renderCallback.call( this );
-
+    renderCallback.call(this);
 }
 
 
-//todo: separate the following into the `field` [part of the] class.
+// todo: separate the following into the `field` [part of the] class.
 
 /////////////////////////////////////
 // Metaballs
@@ -719,16 +693,14 @@ void MarchingCubes::end( const callback_t& renderCallback )
 // Adds a reciprocal ball (nice and blobby) that, to be fast, fades to zero after
 // a fixed distance, determined by strength and subtract.
 
-void MarchingCubes::addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract ) {
-
-    // Let's solve the equation to find the radius:
+void MarchingCubes::addBall(
+        REAL ballx, REAL bally, REAL ballz,
+        REAL strength, REAL subtract) {
+    // Solves this equation:
     // 1.0 / (0.000001 + radius^2) * strength - subtract = 0
-    // strength / (radius^2) = subtract
-    // strength = subtract * radius^2
-    // radius^2 = strength / subtract
-    // radius = sqrt(strength / subtract)
+    REAL radius = this->size * sqrt(strength / subtract);
 
-    REAL radius = this->size * sqrt( strength / subtract ),
+    REAL
         zs = ballz * this->size,
         ys = bally * this->size,
         xs = ballx * this->size;
@@ -744,38 +716,34 @@ void MarchingCubes::addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, 
     // Don't polygonize in the outer layer because normals aren't
     // well-defined there.
 
-    //var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
+    // var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
     int x, y, z;
     REAL fx, fy, fz, fz2, fy2, val;  //Does doing like this make it faster?
     int y_offset, z_offset;
 
-    for ( z = min_z; z < max_z; z ++ ) {
+    for ( z = min_z; z < max_z; z++ ) {
 
         z_offset = this->size2 * z,
         fz = z / (REAL)this->size - ballz,
         fz2 = fz * fz;
 
-        for ( y = min_y; y < max_y; y ++ ) {
+        for ( y = min_y; y < max_y; y++ ) {
 
             y_offset = z_offset + this->size * y;
             fy = y / (REAL)this->size - bally;
             fy2 = fy * fy;
 
-            for ( x = min_x; x < max_x; x ++ ) {
+            for ( x = min_x; x < max_x; x++ ) {
 
                 fx = x / (REAL)this->size - ballx;
                 val = strength / ( 0.000001 + fx * fx + fy2 + fz2 ) - subtract;
                 if ( val > 0.0 ) this->field[ y_offset + x ] += val;
-
             }
-
         }
-
     }
-
 }
 
-void MarchingCubes::addPlaneX( REAL strength, REAL subtract ) {
+void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL val;
     REAL xx, xdiv;
@@ -786,17 +754,17 @@ void MarchingCubes::addPlaneX( REAL strength, REAL subtract ) {
     int size = this->size;
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = size * sqrt( strength / (REAL)subtract );
+    REAL dist = size * sqrt(strength / (REAL)subtract);
 
     if ( dist > size ) dist = size;
-    for ( x = 0; x < dist; x ++ ) {
+    for ( x = 0; x < dist; x++ ) {
         xdiv = x / (REAL)size;
         xx = xdiv * xdiv;
         val = strength / (REAL)( 0.0001 + xx ) - subtract;
         if ( val > 0.0 ) {
-            for ( y = 0; y < size; y ++ ) {
+            for ( y = 0; y < size; y++ ) {
                 cxy = x + y * yd;
-                for ( z = 0; z < size; z ++ ) {
+                for ( z = 0; z < size; z++ ) {
                     field[ zd * z + cxy ] += val;
                 }
             }
@@ -805,8 +773,7 @@ void MarchingCubes::addPlaneX( REAL strength, REAL subtract ) {
 }
 
 
-void MarchingCubes::addPlaneY( REAL strength, REAL subtract ) {
-
+void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL yy;
     REAL val;
@@ -819,19 +786,19 @@ void MarchingCubes::addPlaneY( REAL strength, REAL subtract ) {
     int yd = this->yd;
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = size * sqrt( strength / subtract );
+    REAL dist = size * sqrt(strength / subtract);
 
     if ( dist > size ) dist = size;
 
-    for ( y = 0; y < dist; y ++ ) {
+    for ( y = 0; y < dist; y++ ) {
         ydiv = y / (REAL)size;
         yy = ydiv * ydiv;
         val = strength / (REAL)( 0.0001 + yy ) - subtract;
         if ( val > 0.0 ) {
             cy = y * yd;
-            for ( x = 0; x < size; x ++ ) {
+            for ( x = 0; x < size; x++ ) {
                 cxy = cy + x;
-                for ( z = 0; z < size; z ++ )
+                for ( z = 0; z < size; z++ )
                     field[ zd * z + cxy ] += val;
             }
         }
@@ -858,9 +825,9 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
         val = strength / (REAL)( 0.0001 + zz ) - subtract;
         if ( val > 0.0 ) {
             cz = zd * z;
-            for ( y = 0; y < size; y ++ ) {
+            for ( y = 0; y < size; y++ ) {
                 cyz = cz + y * yd;
-                for ( x = 0; x < size; x ++ )
+                for ( x = 0; x < size; x++ )
                     field[ cyz + x ] += val;
             }
         }
@@ -877,7 +844,7 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 void MarchingCubes::reset()
 {
     // wipe the normal cache
-    for (int i = 0; i < this->size3; i ++ ) {
+    for (int i = 0; i < this->size3; i++ ) {
         this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
         this->field[ i ] = 0.0;
     }
@@ -885,41 +852,34 @@ void MarchingCubes::reset()
 
 
 
-//renderes a geometry.
-void MarchingCubes::render(const callback_t& renderCallback )
-{
-
+// Renderes a geometry.
+void MarchingCubes::render(const callback_t& renderCallback ) {
     this->begin();
 
     // Triangulate. Yeah, this is slow.
 
     int smin2 = this->size - 2;
 
-    for ( int z = 1; z < smin2; z ++ ) {
+    for ( int z = 1; z < smin2; z++ ) {
 
         index_t z_offset = this->size2 * z;
         REAL fz = ( z - this->halfsize ) / (REAL)this->halfsize; //+ 1
 
-        for ( int y = 1; y < smin2; y ++ ) {
+        for ( int y = 1; y < smin2; y++ ) {
 
             index_t y_offset = z_offset + this->size * y;
             REAL fy = ( y - this->halfsize ) / (REAL)this->halfsize; //+ 1
 
-            for ( int x = 1; x < smin2; x ++ ) {
+            for ( int x = 1; x < smin2; x++ ) {
 
                 REAL fx = ( x - this->halfsize ) / (REAL)this->halfsize; //+ 1
                 index_t q = y_offset + x;
 
                 this->polygonize( fx, fy, fz, q, this->isolation, renderCallback );
-
             }
-
         }
-
     }
-
-    this->end( renderCallback );
-
+    this->end(renderCallback);
 }
 
 /*
@@ -1300,13 +1260,13 @@ const int MarchingCubes::triTable[256*16] =
 
 #include "timer.hpp"
 
-int main(){
+int main() {
     timer t;
-    //MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
-    dim_t resolution = 4; //28;
+    // MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
+    dim_t resolution = 28;  // 28;
     bool enableUvs = true;
     bool enableColors = true;
-    MarchingCubes mc( resolution, enableUvs, enableColors );
+    MarchingCubes mc(resolution, enableUvs, enableColors);
 
     cout << resolution << endl;
     t.stop();
