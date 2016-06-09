@@ -20,6 +20,7 @@ typedef unsigned short int dim_t; //small integers for example the size of one s
 typedef float REAL;
 typedef unsigned long int index_t;
 
+typedef boost::multi_array<REAL,1> array_type;
 typedef  boost::multi_array<REAL, 1>  array_1d;
 //#define array_1d  boost::multi_array<REAL, 1>
 
@@ -29,7 +30,7 @@ typedef struct { void call (void*) const {};} callback_t;
 REAL lerp( REAL a, REAL b, REAL t )
 {
     return a + ( b - a ) * t;
-};
+}
 
 
 class MarchingCubes{
@@ -156,7 +157,7 @@ void MarchingCubes::init( dim_t resolution )
         this->delta = 2.0 / (REAL)this->size;
         this->yd = this->size;
         this->zd = this->size2;
-        typedef boost::multi_array<REAL,1> array_type;
+
         boost::array<array_type::index, 1>size = {{(int)this->size3}};
         this->field = boost::multi_array<REAL,1>(size);
         //this->field = new Float32Array( this->size3 );
@@ -244,7 +245,7 @@ void MarchingCubes::init( dim_t resolution )
             this->colorArray   = array_1d(shape_maxCount_x_3);
             //new Float32Array( this->maxCount * 3 );
         }
-    };
+}
 
 void MarchingCubes:: VIntX(
     index_t q, array_1d &pout, array_1d &nout,
@@ -268,7 +269,7 @@ void MarchingCubes:: VIntX(
     nout[ offset ]     = lerp( nc[ q ],     nc[ q + 3 ], mu );
     nout[ offset + 1 ] = lerp( nc[ q + 1 ], nc[ q + 4 ], mu );
     nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q + 5 ], mu );
-};
+}
 
 
 void MarchingCubes:: VIntY (index_t q, array_1d& pout, array_1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
@@ -287,7 +288,7 @@ void MarchingCubes:: VIntY (index_t q, array_1d& pout, array_1d& nout, int offse
     nout[ offset + 1 ] = lerp( nc[ q + 1 ], nc[ q2 + 1 ], mu );
     nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q2 + 2 ], mu );
 
-};
+}
 
 void MarchingCubes:: VIntZ(index_t q, array_1d& pout, array_1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
 {
@@ -305,7 +306,7 @@ void MarchingCubes:: VIntZ(index_t q, array_1d& pout, array_1d& nout, int offset
     nout[ offset + 1 ] = lerp( nc[ q + 1 ], nc[ q2 + 1 ], mu );
     nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q2 + 2 ], mu );
 
-};
+}
 
 void MarchingCubes:: compNorm( index_t q ) {
 
@@ -319,7 +320,7 @@ void MarchingCubes:: compNorm( index_t q ) {
             this->normal_cache[ q3 + 2 ] = this->field[ q - this->zd ] - this->field[ q + this->zd ];
         }
 
-    };
+}
 
 
 
@@ -500,7 +501,7 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
 
     return numtris;
 
-};
+}
 
 
 /////////////////////////////////////
@@ -592,7 +593,7 @@ void MarchingCubes::posnormtriv(
         renderCallback.call( (void*)this );
 
     }
-};
+}
 
 
 void MarchingCubes::begin()
@@ -603,7 +604,7 @@ void MarchingCubes::begin()
     this->hasNormals = false;
     this->hasUvs = false;
     this->hasColors = false;
-};
+}
 
 void MarchingCubes::end( const callback_t& renderCallback )
 {
@@ -630,7 +631,7 @@ void MarchingCubes::end( const callback_t& renderCallback )
 
     renderCallback.call( this );
 
-};
+}
 
 
 //todo: separate the following into the `field` [part of the] class.
@@ -696,7 +697,7 @@ void MarchingCubes::addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, 
 
     }
 
-};
+}
 
 void MarchingCubes::addPlaneX( REAL strength, REAL subtract ) {
     int x, y, z;
@@ -725,7 +726,7 @@ void MarchingCubes::addPlaneX( REAL strength, REAL subtract ) {
             }
         }
     }
-};
+}
 
 
 void MarchingCubes::addPlaneY( REAL strength, REAL subtract ) {
@@ -759,7 +760,7 @@ void MarchingCubes::addPlaneY( REAL strength, REAL subtract ) {
             }
         }
     }
-};
+}
 
 void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 {
@@ -788,7 +789,7 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
             }
         }
     }
-};
+}
 
 
 
@@ -804,7 +805,7 @@ void MarchingCubes::reset()
         this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
         this->field[ i ] = 0.0;
     }
-};
+}
 
 
 
@@ -843,7 +844,7 @@ void MarchingCubes::render(const callback_t& renderCallback )
 
     this->end( renderCallback );
 
-};
+}
 
 /*
 
@@ -910,6 +911,9 @@ Geometry generateGeometry = function()
 */
 
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
+
+    : field(boost::multi_array<REAL,1>( boost::array<array_type::index, 1>({{ resolution*resolution*resolution }}) ))
+
 {
 
     //THREE.ImmediateRenderObject.call( this, material );
@@ -921,7 +925,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
     this->init( resolution );
 
-};
+}
 
 /*
 THREE.MarchingCubes.prototype = Object.create( THREE.ImmediateRenderObject.prototype );
