@@ -20,7 +20,7 @@ typedef unsigned short int dim_t; //small integers for example the size of one s
 typedef float REAL;
 //typedef unsigned long int index_t;
 
-//array will not work becasue it needs to have the size determined in compile-time (static).
+//boost::array will not work becasue the size of a boost:array has to be known in compile-time (static).
 typedef  boost::multi_array<REAL, 1>  array1d;
 //typedef array1d::index  array_index_t;
 typedef boost::array<array1d::index, 1>  array_shape_t;
@@ -28,6 +28,28 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 typedef array1d::index  index_t;
 
 typedef struct { void call (void*) const {};} callback_t;
+
+/*template<typename Index_Type=int>
+boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
+{
+    //Make a shape to be used in array initialisation
+    //fixme: the type of size
+
+    //ASSERT(size>=0);
+    boost::array<Index_Type, 1> shape = {{ size, }};
+    return shape;
+}
+*/
+
+array_shape_t make_shape_1d(int size)
+{
+    //Make a shape to be used in array initialisation
+    //fixme: the type of size
+
+    //ASSERT(size>=0);
+    array_shape_t shape = {{ size, }};
+    return shape;
+}
 
 
 REAL lerp( REAL a, REAL b, REAL t )
@@ -118,13 +140,15 @@ public:
 
 
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
-
-    :
+    :   //constructor's initialisation list: pre-constructor code
+        //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
-        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 }) ))
+        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 }) )),
 
+        positionArray(array1d(make_shape_1d(MarchingCubes::maxCount * 3))),
+        normalArray(array1d(make_shape_1d(MarchingCubes::maxCount * 3)))
 
 {
 
@@ -144,27 +168,6 @@ void MarchingCubes::kill()
     ;
 }
 
-/*template<typename Index_Type=int>
-boost::array<Index_Type, 1> shape_1d(Index_Type size)
-{
-    //Make a shape to be used in array initialisation
-    //fixme: the type of size
-
-    //ASSERT(size>=0);
-    boost::array<Index_Type, 1> shape = {{ size, }};
-    return shape;
-}
-*/
-
-array_shape_t shape_1d(int size)
-{
-    //Make a shape to be used in array initialisation
-    //fixme: the type of size
-
-    //ASSERT(size>=0);
-    array_shape_t shape = {{ size, }};
-    return shape;
-}
 
 //only called by the constructor
 void MarchingCubes::init( dim_t resolution )
@@ -208,7 +211,7 @@ void MarchingCubes::init( dim_t resolution )
 /**
  *  COMMENTED OUT
  *
-        // auto field_shape = shape_1d((int)this->size3);
+        // auto field_shape = make_shape_1d((int)this->size3);
         // //array_shape_t  field_shape = {{ (int)this->size3, }};
         //
         //
@@ -222,7 +225,7 @@ void MarchingCubes::init( dim_t resolution )
         std::cout << "trouble end" << std::endl;
 
         //this->normal_cache = new Float32Array( this->size3 * 3 );
-        array_shape_t normals_shape = shape_1d( (int)this->size3 * 3 );
+        array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
         //array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
         this->normal_cache = array1d( normals_shape );
         //std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
@@ -231,22 +234,20 @@ void MarchingCubes::init( dim_t resolution )
         std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );  // from #include <algorithm>
 
 
-        exit(1);
 
         // temp buffers used in polygonize
 
         //this->vlist_buffer = new Float32Array( 12 * 3 );
         //this->nlist_buffer = new Float32Array( 12 * 3 );
-        //auto twelve3 = shape_1d( temp_buffer_size * 3 );
+        //auto twelve3 = make_shape_1d( temp_buffer_size * 3 );
 
         //array_shape_t twelve3 = {{ 12 * 3, }};
 
         if(false){
-            this->vlist_buffer = array1d( shape_1d( temp_buffer_size * 3 ) );
-            this->nlist_buffer = array1d( shape_1d( temp_buffer_size * 3 ) );
+            this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
+            this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
         }
 
-        exit(1);
         // immediate render mode simulator
 
         //this::maxCount = 4096; // TODO: find the fastest size for this buffer
@@ -262,12 +263,17 @@ void MarchingCubes::init( dim_t resolution )
         //this->positionArray = new Float32Array( this->maxCount * 3 );
         //this->normalArray   = new Float32Array( this->maxCount * 3 );
 
-        auto shape_maxCount_x_3 = shape_1d(this->maxCount * 3);
+
+        auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::maxCount * 3);
         //array_shape_t shape_maxCount_x_3 = {{ this->maxCount * 3, }};
         this->positionArray = array1d(shape_maxCount_x_3);
         this->normalArray   = array1d(shape_maxCount_x_3);
 
-        auto shape_maxCount_x_2 = shape_1d(this->maxCount * 2);
+
+
+        exit(1);
+
+        auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::maxCount * 2);
         //array_shape_t  shape_maxCount_x_2 = {{ this->maxCount * 2, }};
 
         if ( this->enableUvs ) {
