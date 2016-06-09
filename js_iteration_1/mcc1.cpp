@@ -5,6 +5,8 @@
 #include <cassert>
 #include <algorithm>
 
+#include <iostream>
+
 /**
  * Based on alteredq's version  https://github.com/mrdoob/three.js/blob/master/examples/js/MarchingCubes.js
  *
@@ -19,6 +21,7 @@ typedef float REAL;
 typedef unsigned long int index_t;
 
 typedef  boost::multi_array<REAL, 1>  array_1d;
+//#define array_1d  boost::multi_array<REAL, 1>
 
 typedef struct { void call (void*) const {};} callback_t;
 
@@ -165,14 +168,28 @@ void MarchingCubes::init( dim_t resolution )
         auto field_shape = shape_1d((int)this->size3);
         //boost::array<int, 1> field_shape = {{ (int)this->size3, }};
 
-        this->field = array_1d( field_shape );
-        //this->normal_cache = new Float32Array( this->size3 * 3 );
 
+        std::cout << "trouble begins" << std::endl;
+        std::cout << (int)this->size3 << std::endl;
+
+        //this->field = boost::multi_array<REAL, 1>( field_shape );
+        this->field = boost::multi_array<REAL, 1>( field_shape );
+        //this->field = array_1d( field_shape );
+
+
+        std::cout << "trouble end" << std::endl;
+        exit(1);
+
+        //this->normal_cache = new Float32Array( this->size3 * 3 );
         auto normals_shape = shape_1d( (int)this->size3 * 3 );
         //boost::array<int, 1> normals_shape = {{ (int)this->size3 * 3, }};
         this->normal_cache = array_1d( normals_shape );
         //std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
+
+
         std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );  // from #include <algorithm>
+
+
 
         // temp buffers used in polygonize
 
@@ -889,6 +906,8 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->enableUvs = enableUvs;
     this->enableColors = enableColors;
 
+    std::cout << resolution << " init"<< std::endl;
+
     this->init( resolution );
 
 };
@@ -1208,7 +1227,13 @@ const int MarchingCubes::triTable[256*16] =
 
 int main(){
     timer t;
-    MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
+    //MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
+    dim_t resolution = 4; //28;
+    bool enableUvs = true;
+    bool enableColors = true;
+    MarchingCubes mc( resolution, enableUvs, enableColors );
+
+    cout << resolution << endl;
     t.stop();
     return 0;
 }
