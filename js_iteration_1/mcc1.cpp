@@ -93,8 +93,10 @@ protected:
     array1d positionArray; //size: MaxCount x 3
     array1d normalArray;
 
-    array1d colorArray;
-    array1d uvArray;
+    //array1d &&colorArray; // = 0;
+    //array1d &&uvArray; // = 0;
+    array1d *colorArray = 0;
+    array1d *uvArray = 0;
 
     void kill();
 
@@ -118,8 +120,12 @@ void begin();
 void end( const callback_t& renderCallback );
 
 
+
 public:
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
+    ~MarchingCubes(); //why does this have to be public: ?
+
+
     //int polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol );
     int polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
 
@@ -163,14 +169,12 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
 }
 
-void MarchingCubes::kill()
-{
-    ;
-}
 
+#include <new>          // std::bad_alloc
 
 //only called by the constructor
 void MarchingCubes::init( dim_t resolution )
+//May throw  std::bad_alloc
 {
 
         this->resolution = resolution;
@@ -271,20 +275,52 @@ void MarchingCubes::init( dim_t resolution )
 
 
 
-        exit(1);
-
         auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::maxCount * 2);
         //array_shape_t  shape_maxCount_x_2 = {{ this->maxCount * 2, }};
 
+
+        //can throw  std::bad_alloc
+
         if ( this->enableUvs ) {
             //this->uvArray = new Float32Array( this->maxCount * 2 );
-            this->uvArray = array1d(shape_maxCount_x_2);
+            this->uvArray = 0; //for deconstructor, to see if this exited by an exception.
+            this->uvArray = new array1d(shape_maxCount_x_2);
+            //assert(this->uvArray != null);
         }
+        //else
+        //    this->uvArray = NULL;
 
         if ( this->enableColors ) {
-            this->colorArray   = array1d(shape_maxCount_x_3);
+            this->colorArray = 0;
+            this->colorArray = new array1d(shape_maxCount_x_3);
             //new Float32Array( this->maxCount * 3 );
         }
+        //else
+        //    this->colorArray = NULL;
+}
+
+MarchingCubes::~MarchingCubes() //deconstructor
+{
+    if ( this->enableUvs )
+    {
+        if(this->uvArray){
+            delete this->uvArray;
+            this->uvArray = 0;
+        }
+    }
+    if ( this->enableColors )
+    {
+        if(this->colorArray) //if is not necessary for colorArray,but keep this if.
+        {
+            delete this->colorArray;
+            this->colorArray = 0;
+        }
+    }
+}
+
+void MarchingCubes::kill()
+{
+    ;
 }
 
 void MarchingCubes:: VIntX(
@@ -589,14 +625,14 @@ void MarchingCubes::posnormtriv(
 
         int d = this->count * 2;
 
-        this->uvArray[ d ]     = pos__vlist[ o1 ];
-        this->uvArray[ d + 1 ] = pos__vlist[ o1 + 2 ];
+        (*this->uvArray)[ d ]     = pos__vlist[ o1 ];
+        (*this->uvArray)[ d + 1 ] = pos__vlist[ o1 + 2 ];
 
-        this->uvArray[ d + 2 ] = pos__vlist[ o2 ];
-        this->uvArray[ d + 3 ] = pos__vlist[ o2 + 2 ];
+        (*this->uvArray)[ d + 2 ] = pos__vlist[ o2 ];
+        (*this->uvArray)[ d + 3 ] = pos__vlist[ o2 + 2 ];
 
-        this->uvArray[ d + 4 ] = pos__vlist[ o3 ];
-        this->uvArray[ d + 5 ] = pos__vlist[ o3 + 2 ];
+        (*this->uvArray)[ d + 4 ] = pos__vlist[ o3 ];
+        (*this->uvArray)[ d + 5 ] = pos__vlist[ o3 + 2 ];
 
     }
 
@@ -604,17 +640,17 @@ void MarchingCubes::posnormtriv(
 
     if ( this->enableColors ) {
 
-        this->colorArray[ c ]     = pos__vlist[ o1 ];
-        this->colorArray[ c + 1 ] = pos__vlist[ o1 + 1 ];
-        this->colorArray[ c + 2 ] = pos__vlist[ o1 + 2 ];
+        (*this->colorArray)[ c ]     = pos__vlist[ o1 ];
+        (*this->colorArray)[ c + 1 ] = pos__vlist[ o1 + 1 ];
+        (*this->colorArray)[ c + 2 ] = pos__vlist[ o1 + 2 ];
 
-        this->colorArray[ c + 3 ] = pos__vlist[ o2 ];
-        this->colorArray[ c + 4 ] = pos__vlist[ o2 + 1 ];
-        this->colorArray[ c + 5 ] = pos__vlist[ o2 + 2 ];
+        (*this->colorArray)[ c + 3 ] = pos__vlist[ o2 ];
+        (*this->colorArray)[ c + 4 ] = pos__vlist[ o2 + 1 ];
+        (*this->colorArray)[ c + 5 ] = pos__vlist[ o2 + 2 ];
 
-        this->colorArray[ c + 6 ] = pos__vlist[ o3 ];
-        this->colorArray[ c + 7 ] = pos__vlist[ o3 + 1 ];
-        this->colorArray[ c + 8 ] = pos__vlist[ o3 + 2 ];
+        (*this->colorArray)[ c + 6 ] = pos__vlist[ o3 ];
+        (*this->colorArray)[ c + 7 ] = pos__vlist[ o3 + 1 ];
+        (*this->colorArray)[ c + 8 ] = pos__vlist[ o3 + 2 ];
 
     }
 
