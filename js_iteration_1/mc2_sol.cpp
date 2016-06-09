@@ -997,22 +997,27 @@ vf_t reindexing_verts_faces(vector<TRIANGLE> const& vf)
         }
     }
 
-    // for(int i=0; i<*nf-1; i++){
-    //   for(int j=0; j<3; j++){
-    //
-    //
-    //     if (faces_new[i][j] == faces_new[i+1][0]){
-    //       faces_new[i+1][0] = faces[i][j];
-    //     }
-    //     else if (faces_new[i][j] == faces_new[i+1][1]){
-    //       faces_new[i+1][1] = faces[i][j];
-    //     }
-    //     else if (faces_new[i][j] == faces_new[i+1][2]){
-    //       faces_new[i+1][2] = faces[i][j];
-    //     }
-    //   }
-    //
-    // }
+    for(int i=0; i<*nf-1; i++){
+      for(int j=0; j<3; j++){
+
+          //(faces_new[i][j] == faces_new[i+1][0])
+        if (verts[3*i+j][0] == verts[3*(i+1)][0] && verts[3*i+j][1] == verts[3*(i+1)][1] && verts[3*i+j][2] == verts[3*(i+1)][2]){
+          faces_new[i+1][0] = faces_new[i][j];
+        }
+              //faces_new[i][j] == faces_new[i+1][1]
+        else if (verts[3*i+j][0] == verts[3*(i+1)+1][0] && verts[3*i+j][1] == verts[3*(i+1)+1][1] && verts[3*i+j][2] == verts[3*(i+1)+1][2]){
+          faces_new[i+1][1] = faces_new[i][j];
+
+        }   //faces_new[i][j] == faces_new[i+1][2]
+        else if (verts[3*i+j][0] == verts[3*(i+1)+2][0] && verts[3*i+j][1] == verts[3*(i+1)+2][1] && verts[3*i+j][2] == verts[3*(i+1)+2][2]){
+          faces_new[i+1][2] = faces_new[i][j];
+        }
+        else {
+
+        }
+      }
+
+    }
 
     verts_new = dico_verts.first;
     vf_t p2 = make_pair(verts_new, faces_new);
