@@ -971,12 +971,12 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 }
 
 
-vf_t reindexing_verts_faces(vector<TRIANGLE> const& vf)
+vf_t reindexing_verts_faces(vf_t const& vf)
 {
-    *nv = vf.first.shape()[0];
-    *nf = vf.second.shape()[0];
-    verts = vf.first;
-    faces = vf.second;
+    int nv = vf.first.shape()[0];
+    int nf = vf.second.shape()[0];
+    verts_t verts = vf.first;
+    faces_t faces = vf.second;
 
     map <verts_t, int> dico_verts;
     map <faces_t, int> dico_faces;
@@ -990,14 +990,14 @@ vf_t reindexing_verts_faces(vector<TRIANGLE> const& vf)
     // initilization of faces_new
     faces_new = faces;
 
-    for(int i=0; i<*nv; i++){
-        if (dico_verts.find({verts_t[i][0], verts_t[i][1], verts_t[i][2]}) == dico_verts.end()){
+    for(int i=0; i<nv; i++){
+        if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
           nv_new ++;
-          dico_verts[{verts_t[i][0], verts_t[i][1], verts_t[i][2]}] = nv_new;
+          dico_verts[{verts[i][0], verts[i][1], verts[i][2]}] = nv_new;
         }
     }
 
-    for(int i=0; i<*nf-1; i++){
+    for(int i=0; i<nf-1; i++){
       for(int j=0; j<3; j++){
 
           //(faces_new[i][j] == faces_new[i+1][0])
@@ -1043,18 +1043,20 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     vf_t vf = vector_to_vertsfaces(ta);
     timr.stop("vector_to_vertsfaces()");
 
-    *nv = vf.first.shape()[0];
-    *nf = vf.second.shape()[0];
+    vf_t vf_new = reindexing_verts_faces(vf);
+
+    *nv = vf_new.first.shape()[0];
+    *nf = vf_new.second.shape()[0];
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf.first[vi][di];
+            verts[vi*3+di] = vf_new.first[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf.second[fi][si];
+            faces[fi*3+si] = vf_new.second[fi][si];
         }
       }
     timr.stop("finished");
