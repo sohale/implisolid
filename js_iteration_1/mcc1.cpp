@@ -153,30 +153,41 @@ void MarchingCubes::init( dim_t resolution )
         this->halfsize = ((REAL)this->size) / 2.0;
 
         // deltas
-
         this->delta = 2.0 / (REAL)this->size;
         this->yd = this->size;
         this->zd = this->size2;
-
-
+        typedef boost::multi_array<REAL,1> array_type;
+        boost::array<array_type::index, 1>size = {{(int)this->size3}};
+        this->field = boost::multi_array<REAL,1>(size);
         //this->field = new Float32Array( this->size3 );
         //this->field = boost::array<REAL, 1>(this->size3); //does not work
         //this->field = std::array<REAL, this->size3>();
         //need a guarantee:
+
         assert(this->size3 < 10000000); // todo: get available heap. make it an exception.
         assert(this->size3 > 0);
-        auto field_shape = shape_1d((int)this->size3);
-        //boost::array<int, 1> field_shape = {{ (int)this->size3, }};
 
 
-        std::cout << "trouble begins" << std::endl;
-        std::cout << (int)this->size3 << std::endl;
-
-        //this->field = boost::multi_array<REAL, 1>( field_shape );
-        this->field = boost::multi_array<REAL, 1>( field_shape );
-        //this->field = array_1d( field_shape );
 
 
+
+
+
+
+/**
+ *  COMMENTED OUT
+ *
+        // auto field_shape = shape_1d((int)this->size3);
+        // //boost::array<int, 1> field_shape = {{ (int)this->size3, }};
+        //
+        //
+        // std::cout << "trouble begins" << std::endl;
+        // std::cout << (int)this->size3 << std::endl;
+        //
+        // //this->field = boost::multi_array<REAL, 1>( field_shape );
+        // this->field = boost::multi_array<REAL, 1>( field_shape );
+        // //this->field = array_1d( field_shape );
+*/
         std::cout << "trouble end" << std::endl;
         exit(1);
 
