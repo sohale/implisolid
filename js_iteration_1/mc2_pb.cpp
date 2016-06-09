@@ -692,7 +692,7 @@ vector<TRIANGLE> make_grid()
         REAL y = c[1];
         REAL z = c[2];
         //REAL f = 2.0 - (x*x+y*y+z*z);
-        int shape = 2;
+        int shape = 1;
         if (shape == 1){
           REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
           REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;

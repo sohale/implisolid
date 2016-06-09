@@ -564,7 +564,7 @@ void test1()
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include <math.h>
-#include <map>
+#include <cassert>
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
@@ -599,7 +599,7 @@ void print_triangle_array(int count, TRIANGLE* tra)
 
 
 //int nsize = 20;
-int nsize = 15;
+int nsize = 20;
 boost::array<int, 4> values_shape = {{ nsize, nsize, nsize }};
 boost::multi_array<REAL, 3> values (values_shape);
 
@@ -671,15 +671,15 @@ vector<TRIANGLE> make_grid()
         REAL x = c[0];
         REAL y = c[1];
         REAL z = c[2];
-        REAL f;
         int shape = 1;
         if (shape == 1){
           REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
           REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-
+          values[xi][yi][zi] = f;
           }
         else if(shape == 2){
           REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
+          values[xi][yi][zi] = f;
           }
 
         else if(shape == 3){// not working now
@@ -691,8 +691,9 @@ vector<TRIANGLE> make_grid()
           REAL f3 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(y,2)+pow(z,2));
   //        REAL f = f1*f2*f3 - c ;
           REAL f = f2;
+          values[xi][yi][zi] = f;
         }
-        values[xi][yi][zi] = f;
+
     }
 
     cout << "first voxel:";
@@ -982,10 +983,10 @@ vf_t reindexing_verts_faces(vf_t const& vf)
 
     int nv_new = 0;
 
-    boost::array<int, 2> v_shape = {{ nv_new, 3 }};
+  //  boost::array<int, 2> v_shape = {{ nv_new, 3 }};
     boost::array<int, 2> f_shape = {{ nf, 3 }};
-    boost::multi_array<REAL, 2> verts_new (v_shape);
-    boost::multi_array<int, 2> faces_new (f_shape);
+//    boost::multi_array<REAL, 2> verts_new(v_shape);
+    boost::multi_array<int, 2> faces_new(f_shape);
     // initilization of faces_new
     faces_new = faces;
 
@@ -1005,6 +1006,32 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     // }
     for(int i=0; i<nf-1; i++){
       for(int j=0; j<3; j++){
+          //(faces_new[i][j] == faces_new[i+1][0])
+        if (verts[3*i+j][0] == verts[3*(i+1)][0] && verts[3*i+j][1] == verts[3*(i+1)][1] && verts[3*i+j][2] == verts[3*(i+1)][2]){
+
+        }
+              //faces_new[i][j] == faces_new[i+1][1]
+        else if (verts[3*i+j][0] == verts[3*(i+1)+1][0] && verts[3*i+j][1] == verts[3*(i+1)+1][1] && verts[3*i+j][2] == verts[3*(i+1)+1][2]){
+
+
+        }   //faces_new[i][j] == faces_new[i+1][2]
+        else if (verts[3*i+j][0] == verts[3*(i+1)+2][0] && verts[3*i+j][1] == verts[3*(i+1)+2][1] && verts[3*i+j][2] == verts[3*(i+1)+2][2]){
+
+        }
+        else {
+
+          nv_new ++;
+        }
+      }
+
+    }
+
+    cout << "number of unique verts" << nv_new << endl;
+    boost::array<int, 2> v_shape = {{ nv_new, 3 }};
+    boost::multi_array<REAL, 2> verts_new(v_shape);
+    int nv_new_2 = 0;
+    for(int i=0; i<nf-1; i++){
+      for(int j=0; j<3; j++){
 
           //(faces_new[i][j] == faces_new[i+1][0])
         if (verts[3*i+j][0] == verts[3*(i+1)][0] && verts[3*i+j][1] == verts[3*(i+1)][1] && verts[3*i+j][2] == verts[3*(i+1)][2]){
@@ -1020,10 +1047,14 @@ vf_t reindexing_verts_faces(vf_t const& vf)
           faces_new[i+1][2] = faces_new[i][j];
         }
         else {
-          verts_new[3*nv_new+j][0] = verts[3*i+j][0];
-          verts_new[3*nv_new+j][1] = verts[3*i+j][1];
-          verts_new[3*nv_new+j][2] = verts[3*i+j][2];
-          nv_new ++;
+          cout << "Patate" << verts_new.shape()[0] << endl;
+
+          assert (3*nv_new_2+j < verts_new.shape()[0]);
+          verts_new[3*nv_new_2+j][0] = verts[3*i+j][0];
+          verts_new[3*nv_new_2+j][1] = verts[3*i+j][1];
+          verts_new[3*nv_new_2+j][2] = verts[3*i+j][2];
+          nv_new_2 ++;
+
         }
       }
 
@@ -1051,25 +1082,21 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     //very inefficient
     vf_t vf = vector_to_vertsfaces(ta);
     timr.stop("vector_to_vertsfaces()");
-    cout << "Number of verts_old" << vf.first.shape()[0] <<endl;
-    cout << "Number of faces_old" << vf.second.shape()[0] << endl;
 
     vf_t vf_new = reindexing_verts_faces(vf);
-
-    *nv = vf_new.first.shape()[0];
-    *nf = vf_new.second.shape()[0];
-    cout << "Number of verts" << *nv <<endl;
-    cout << "Number of faces" << *nf << endl;
+    vf_t vf_2 = vf_new;
+    *nv = vf_2.first.shape()[0];
+    *nf = vf_2.second.shape()[0];
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf_new.first[vi][di];
+            verts[vi*3+di] = vf_2.first[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf_new.second[fi][si];
+            faces[fi*3+si] = vf_2.second[fi][si];
         }
       }
 
