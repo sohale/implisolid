@@ -52,6 +52,9 @@ class MarchingCubes{
     const static dim_t maxCount = 4096; // TODO: find the fastest size for this buffer
 
 protected:
+
+    index_t  temp_buffer_size = 12;
+
     //caching
     array1d vlist_buffer;
     array1d nlist_buffer;  // size: 12 x 3
@@ -111,7 +114,30 @@ public:
 
 };
 
-//static dim_t MarchingCubes::maxCount = 12;
+//static dim_t MarchingCubes::maxCount = ...;
+
+
+MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
+
+    :
+        field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
+        vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
+        nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
+        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 }) ))
+
+
+{
+
+    //THREE.ImmediateRenderObject.call( this, material );
+
+    this->enableUvs = enableUvs;
+    this->enableColors = enableColors;
+
+    std::cout << resolution << " init"<< std::endl;
+
+    this->init( resolution );
+
+}
 
 void MarchingCubes::kill()
 {
@@ -211,10 +237,14 @@ void MarchingCubes::init( dim_t resolution )
 
         //this->vlist_buffer = new Float32Array( 12 * 3 );
         //this->nlist_buffer = new Float32Array( 12 * 3 );
-        auto twelve3 = shape_1d( 12 * 3 );
+        //auto twelve3 = shape_1d( temp_buffer_size * 3 );
+
         //array_shape_t twelve3 = {{ 12 * 3, }};
-        this->vlist_buffer = array1d( twelve3 );
-        this->nlist_buffer = array1d( twelve3 );
+
+        if(false){
+            this->vlist_buffer = array1d( shape_1d( temp_buffer_size * 3 ) );
+            this->nlist_buffer = array1d( shape_1d( temp_buffer_size * 3 ) );
+        }
 
         exit(1);
         // immediate render mode simulator
@@ -914,22 +944,6 @@ Geometry generateGeometry = function()
 };
 */
 
-MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
-
-    : field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) ))
-
-{
-
-    //THREE.ImmediateRenderObject.call( this, material );
-
-    this->enableUvs = enableUvs;
-    this->enableColors = enableColors;
-
-    std::cout << resolution << " init"<< std::endl;
-
-    this->init( resolution );
-
-}
 
 /*
 THREE.MarchingCubes.prototype = Object.create( THREE.ImmediateRenderObject.prototype );
