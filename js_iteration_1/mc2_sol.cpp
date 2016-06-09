@@ -672,7 +672,7 @@ vector<TRIANGLE> make_grid()
         REAL y = c[1];
         REAL z = c[2];
         REAL f;
-        int shape = 2;
+        int shape = 1;
         if (shape == 1){
           REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
           REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
@@ -978,8 +978,7 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     verts_t verts = vf.first;
     faces_t faces = vf.second;
 
-    map <verts_t, int> dico_verts;
-    map <faces_t, int> dico_faces;
+  //  map <verts_t, int> dico_verts;
 
     int nv_new = 0;
 
@@ -990,19 +989,27 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     // initilization of faces_new
     faces_new = faces;
 
-    for(int i=0; i<nv; i++){
-        if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
-          nv_new ++;
-          dico_verts[{verts[i][0], verts[i][1], verts[i][2]}] = nv_new;
-        }
-    }
+    // for(int i=0; i<nv; i++){
+    //     if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
+    //       nv_new ++;
+    //       dico_verts.push_back({verts[i][0], verts[i][1], verts[i][2]}, nv_new);
+    //     }
+    // }
 
+    // for(int i=0; i<nv; i++){
+    //   for(int j=0; j<nv-1; j++){
+    //       if(verts[i][0] == verts[j][0] && verts[i][1] == verts[j][1] && verts[i][2] == verts[j][2]){
+    //
+    //       }
+    //   }
+    // }
     for(int i=0; i<nf-1; i++){
       for(int j=0; j<3; j++){
 
           //(faces_new[i][j] == faces_new[i+1][0])
         if (verts[3*i+j][0] == verts[3*(i+1)][0] && verts[3*i+j][1] == verts[3*(i+1)][1] && verts[3*i+j][2] == verts[3*(i+1)][2]){
           faces_new[i+1][0] = faces_new[i][j];
+
         }
               //faces_new[i][j] == faces_new[i+1][1]
         else if (verts[3*i+j][0] == verts[3*(i+1)+1][0] && verts[3*i+j][1] == verts[3*(i+1)+1][1] && verts[3*i+j][2] == verts[3*(i+1)+1][2]){
@@ -1013,13 +1020,15 @@ vf_t reindexing_verts_faces(vf_t const& vf)
           faces_new[i+1][2] = faces_new[i][j];
         }
         else {
-
+          verts_new[3*nv_new+j][0] = verts[3*i+j][0];
+          verts_new[3*nv_new+j][1] = verts[3*i+j][1];
+          verts_new[3*nv_new+j][2] = verts[3*i+j][2];
+          nv_new ++;
         }
       }
 
     }
 
-    verts_new = dico_verts.first;
     vf_t p2 = make_pair(verts_new, faces_new);
     return p2;
 }
@@ -1042,11 +1051,15 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     //very inefficient
     vf_t vf = vector_to_vertsfaces(ta);
     timr.stop("vector_to_vertsfaces()");
+    cout << "Number of verts_old" << vf.first.shape()[0] <<endl;
+    cout << "Number of faces_old" << vf.second.shape()[0] << endl;
 
     vf_t vf_new = reindexing_verts_faces(vf);
 
     *nv = vf_new.first.shape()[0];
     *nf = vf_new.second.shape()[0];
+    cout << "Number of verts" << *nv <<endl;
+    cout << "Number of faces" << *nf << endl;
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
@@ -1059,7 +1072,7 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
             faces[fi*3+si] = vf_new.second[fi][si];
         }
       }
-    timr.stop("finished");
+
 }
 
 int main0()
