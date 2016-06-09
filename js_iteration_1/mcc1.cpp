@@ -32,7 +32,7 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 //#define array1d  boost::multi_array<REAL, 1>
 typedef array1d::index  index_t;
 
-typedef struct { void call (void*) const { } } callback_t;
+struct callback_t { void call (void*) const { } callback_t(){} };
 
 /*template<typename Index_Type=int>
 boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
@@ -124,10 +124,11 @@ void begin();
 void end( const callback_t& renderCallback );
 
 
-
 public:
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
     ~MarchingCubes(); //why does this have to be public: ?
+
+    void flush_geometry(std::ostream&);
 
 
     //int polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol );
@@ -142,7 +143,7 @@ public:
     void reset(); //???? Nobody calls this.
 
 //geometry/threejs interface side.
-    void render(const callback_t& renderCallback );
+    void render_geometry(const callback_t& renderCallback );
 
 };
 
@@ -251,8 +252,6 @@ void MarchingCubes::init( dim_t resolution ) {
             this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
             this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
         }
-
-        // immediate render mode simulator
 
         // this::maxCount = 4096; // TODO: find the fastest size for this buffer
 
@@ -417,7 +416,7 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
         qyz = q + this->yd + this->zd,
         q1yz = q1 + this->yd + this->zd;
 
-    int cubeindex = 0;
+    unsigned int cubeindex = 0;
 
     REAL
         field0 = this->field[ q ],
@@ -438,10 +437,13 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     if ( field6 < isol ) cubeindex |= 128;
     if ( field7 < isol ) cubeindex |= 64;
 
+
     // if cube is entirely in/out of the surface - bail, nothing to draw
 
     int bits = edgeTable[ cubeindex ];
     if ( bits == 0x00 ) return 0;
+
+    std::cout  << cubeindex << " ";
 
     REAL d = this->delta,
         fx2 = fx + d,
@@ -558,14 +560,14 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
             renderCallback );
 
         i += 3;
-        numtris ++;
+        numtris++;
     }
     return numtris;
 }
 
 
 /////////////////////////////////////
-// Immediate render mode simulator
+// Immediate-render mode simulator
 /////////////////////////////////////
 
 void MarchingCubes::posnormtriv(
@@ -580,6 +582,11 @@ void MarchingCubes::posnormtriv(
     this->positionArray[ c ]     = pos__vlist[ o1 ];
     this->positionArray[ c + 1 ] = pos__vlist[ o1 + 1 ];
     this->positionArray[ c + 2 ] = pos__vlist[ o1 + 2 ];
+
+    std::cout << " >"
+        << this->positionArray[ c ]
+        << this->positionArray[ c + 1 ]
+        <<    this->positionArray[ c + 2 ] << "< ";
 
     this->positionArray[ c + 3 ] = pos__vlist[ o2 ];
     this->positionArray[ c + 4 ] = pos__vlist[ o2 + 1 ];
@@ -663,7 +670,7 @@ void MarchingCubes::end( const callback_t& renderCallback ) {
     // count := number of prepared (?)
     if ( this->count == 0 ) return;
 
-    //for ( int i = this->count * 3; i < this->positionArray.length; i ++ ) {
+    //for ( int i = this->count * 3; i < this->positionArray.length; i++ ) {
     //    this->positionArray[ i ] = 0.0;
     //}
 
@@ -819,7 +826,7 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
     REAL dist = size * sqrt( strength / subtract );
 
     if ( dist > size ) dist = size;
-    for ( z = 0; z < dist; z ++ ) {
+    for ( z = 0; z < dist; z++ ) {
         zdiv = z / (REAL)size;
         zz = zdiv * zdiv;
         val = strength / (REAL)( 0.0001 + zz ) - subtract;
@@ -853,7 +860,7 @@ void MarchingCubes::reset()
 
 
 // Renderes a geometry.
-void MarchingCubes::render(const callback_t& renderCallback ) {
+void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     this->begin();
 
     // Triangulate. Yeah, this is slow.
@@ -882,15 +889,15 @@ void MarchingCubes::render(const callback_t& renderCallback ) {
     this->end(renderCallback);
 }
 
-/*
 
-var geo_callback = function( object ) {
+/*
+void flush_geometry() {
 
     var i, x, y, z, vertex, normal,
         face, a, b, c, na, nb, nc, nfaces;
 
 
-    for ( i = 0; i < object.count; i ++ ) {
+    for ( i = 0; i < object.count; i++ ) {
 
         a = i * 3;
         b = a + 1;
@@ -914,7 +921,59 @@ var geo_callback = function( object ) {
 
     nfaces = object.count / 3;
 
-    for ( i = 0; i < nfaces; i ++ ) {
+    for ( i = 0; i < nfaces; i++ ) {
+
+        a = ( start + i ) * 3;
+        b = a + 1;
+        c = a + 2;
+
+        na = normals[ a ];
+        nb = normals[ b ];
+        nc = normals[ c ];
+
+        face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
+
+        geo.faces.push( face );
+
+    }
+
+    start += nfaces;
+    object.count = 0;
+}
+*/
+/*
+
+var geo_callback = function( object ) {
+
+    var i, x, y, z, vertex, normal,
+        face, a, b, c, na, nb, nc, nfaces;
+
+
+    for ( i = 0; i < object.count; i++ ) {
+
+        a = i * 3;
+        b = a + 1;
+        c = a + 2;
+
+        x = object.positionArray[ a ];
+        y = object.positionArray[ b ];
+        z = object.positionArray[ c ];
+        vertex = new THREE.Vector3( x, y, z );
+
+        x = object.normalArray[ a ];
+        y = object.normalArray[ b ];
+        z = object.normalArray[ c ];
+        normal = new THREE.Vector3( x, y, z );
+        normal.normalize();
+
+        geo.vertices.push( vertex );
+        normals.push( normal );
+
+    }
+
+    nfaces = object.count / 3;
+
+    for ( i = 0; i < nfaces; i++ ) {
 
         a = ( start + i ) * 3;
         b = a + 1;
@@ -940,7 +999,7 @@ Geometry generateGeometry = function()
 {
     var start = 0, geo = new THREE.Geometry();
     var normals = [];
-    this->render( geo_callback );
+    this->render_geometry( geo_callback );
     // console.log( "generated " + geo.faces.length + " triangles" );
     return geo;
 };
@@ -1258,6 +1317,41 @@ const int MarchingCubes::triTable[256*16] =
 };
 
 
+
+//void flush_geometry(MarchingCubes& object) {
+
+void MarchingCubes::flush_geometry(std::ostream& cout) {
+    cout << "Hello world. ";
+
+    cout << "count: " << this->count;
+
+    //MarchingCubes& this-> = *this;
+    cout << "count: " << this->count;
+    cout << std::endl;
+
+    for ( int i = 0; i < this->count; i++ ) {
+        int a = i * 3;
+        int b = a + 1;
+        int c = a + 2;
+
+        REAL x,y,z;
+        x = this->positionArray[ a ];
+        y = this->positionArray[ b ];
+        z = this->positionArray[ c ];
+        //vertex = new THREE.Vector3( x, y, z );
+        cout << "c: " << x << " " << y << " " << z << std::endl;
+
+        x = this->normalArray[ a ];
+        y = this->normalArray[ b ];
+        z = this->normalArray[ c ];
+        //normal = new THREE.Vector3( x, y, z ); normal.normalize();
+        //cout << x << " " << y << " " << z << endl;
+
+        //geo.vertices.push( vertex );
+        //normals.push( normal );
+    }
+}
+
 #include "timer.hpp"
 
 int main() {
@@ -1267,8 +1361,24 @@ int main() {
     bool enableUvs = true;
     bool enableColors = true;
     MarchingCubes mc(resolution, enableUvs, enableColors);
+    t.stop();
+
+    int numblobs = 4;
+    REAL subtract = 12.;
+    REAL strength = 1.2 / ( ( sqrt( numblobs ) - 1 ) / 4. + 1. );
+
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+
+    const callback_t renderCallback;
+    mc.render_geometry(renderCallback);
+    t.stop();
+
+
+    MarchingCubes& object = mc;
+
+    mc.flush_geometry(cout);
 
     cout << resolution << endl;
-    t.stop();
+
     return 0;
 }
