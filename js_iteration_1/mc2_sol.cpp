@@ -987,21 +987,32 @@ vf_t reindexing_verts_faces(vector<TRIANGLE> const& vf)
     boost::array<int, 2> f_shape = {{ nf, 3 }};
     boost::multi_array<REAL, 2> verts_new (v_shape);
     boost::multi_array<int, 2> faces_new (f_shape);
-    faces_new
+    // initilization of faces_new
+    faces_new = faces;
 
     for(int i=0; i<*nv; i++){
-        if (dico_verts.find(verts_t[i]) == dico_verts.end()){
+        if (dico_verts.find({verts_t[i][0], verts_t[i][1], verts_t[i][2]}) == dico_verts.end()){
           nv_new ++;
-          dico_verts[verts_t[i]] = nv_new;
+          dico_verts[{verts_t[i][0], verts_t[i][1], verts_t[i][2]}] = nv_new;
         }
     }
 
-    for(int i=0; i<*nv; i++){
-        if (dico_verts.find(verts_t[i]) == dico_verts.end()){
-          nv_new ++;
-
-        }
-    }
+    // for(int i=0; i<*nf-1; i++){
+    //   for(int j=0; j<3; j++){
+    //
+    //
+    //     if (faces_new[i][j] == faces_new[i+1][0]){
+    //       faces_new[i+1][0] = faces[i][j];
+    //     }
+    //     else if (faces_new[i][j] == faces_new[i+1][1]){
+    //       faces_new[i+1][1] = faces[i][j];
+    //     }
+    //     else if (faces_new[i][j] == faces_new[i+1][2]){
+    //       faces_new[i+1][2] = faces[i][j];
+    //     }
+    //   }
+    //
+    // }
 
     verts_new = dico_verts.first;
     vf_t p2 = make_pair(verts_new, faces_new);
