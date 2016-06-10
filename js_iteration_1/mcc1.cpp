@@ -13,11 +13,12 @@
 #include <cassert>
 #include <algorithm>
 #include <iostream>
+#include <vector>
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
-
+#include <math.h>
 
 
 //typedef unsigned short int size_t;
@@ -123,15 +124,16 @@ void VIntZ(index_t q, array1d& pout, array1d& nout,
 void compNorm( index_t q );
 void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, int o1, int o2, int o3, const callback_t& renderCallback );
 
-void begin();
-void end( const callback_t& renderCallback );
+void begin_queue();
+void finish_queue( const callback_t& renderCallback );
 
 
 public:
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
     ~MarchingCubes(); //why does this have to be public: ?
 
-    void flush_geometry(std::ostream&);
+    //void flush_geometry(std::ostream&);
+    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals);
 
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -228,19 +230,17 @@ void MarchingCubes::init( dim_t resolution ) {
         // this->field = array1d( field_shape );
         // //this->field = array1d( field_shape );
 */
-        std::cout << "trouble end" << std::endl;
 
         // this->normal_cache = new Float32Array( this->size3 * 3 );
         array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
         // array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
         this->normal_cache = array1d( normals_shape );
+
         // std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
-
-
         // std::fill from #include <algorithm>
         std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );
 
-
+        //todo: fill up other arrays with zero.
 
         // temp buffers used in polygonize_cube
 
@@ -663,15 +663,24 @@ void MarchingCubes::posnormtriv(
     }
 }
 
+
+static int static__normals_start = 0;
+static std::vector<REAL> static__normals(4100*3);
+
 // Takes the vales from the queue:
 void MarchingCubes::sow() {
+    /*
     typedef array1d::iterator  b_it;
     for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
         std::cout << *b << " ";
     std::cout << std::endl;
+    */
+    std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
+    this->flush_geometry(std::cout, static__normals_start, static__normals);
 }
 
-void MarchingCubes::begin() {
+void MarchingCubes::begin_queue() {
+    /** resets the queue. */
     this->queue_counter = 0;
 
     this->hasPositions = false;
@@ -680,7 +689,10 @@ void MarchingCubes::begin() {
     this->hasColors = false;
 }
 
-void MarchingCubes::end( const callback_t& renderCallback ) {
+//
+void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
+    /** Finish with the queue. Prepares to sow by the callback. */
+
     // queue_counter := number of prepared (?)
     if ( this->queue_counter == 0 ) return;
 
@@ -688,7 +700,7 @@ void MarchingCubes::end( const callback_t& renderCallback ) {
     //    this->positionQueue[ i ] = 0.0;
     //}
 
-    std::fill(this->positionQueue.begin(), this->positionQueue.end(), 0.0 );
+    std::fill(this->positionQueue.begin() + (this->queue_counter * 3), this->positionQueue.end(), 0.0 );
 
     this->hasPositions = true;
     this->hasNormals = true;
@@ -702,6 +714,7 @@ void MarchingCubes::end( const callback_t& renderCallback ) {
     }
 
     renderCallback.call(this);
+    sow();
 }
 
 
@@ -875,7 +888,7 @@ void MarchingCubes::reset()
 
 // Renderes a geometry.
 void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
-    this->begin();
+    this->begin_queue();
 
     // Triangulate. Yeah, this is slow.
 
@@ -898,16 +911,19 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
 
-
+                /*
+                only prints zeros
+                std::cout << "************************" << std::endl;
                 typedef array1d::iterator  b_it;
                 for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
                     std::cout << *b << " ";
                 std::cout << std::endl;
+                */
 
             }
         }
     }
-    this->end(renderCallback);
+    this->finish_queue(renderCallback);
 }
 
 
@@ -944,7 +960,7 @@ void flush_geometry() {
 
     for ( i = 0; i < nfaces; i++ ) {
 
-        a = ( start + i ) * 3;
+        a = ( normals_start + i ) * 3;
         b = a + 1;
         c = a + 2;
 
@@ -958,7 +974,7 @@ void flush_geometry() {
 
     }
 
-    start += nfaces;
+    normals_start += nfaces;
     object.queue_counter = 0;
 }
 */
@@ -996,7 +1012,7 @@ var geo_callback = function( object ) {
 
     for ( i = 0; i < nfaces; i++ ) {
 
-        a = ( start + i ) * 3;
+        a = ( normals_start + i ) * 3;
         b = a + 1;
         c = a + 2;
 
@@ -1010,7 +1026,7 @@ var geo_callback = function( object ) {
 
     }
 
-    start += nfaces;
+    normals_start += nfaces;
     object.queue_counter = 0;
 
 };
@@ -1018,7 +1034,7 @@ var geo_callback = function( object ) {
 //this->generateGeometry = function() {...}
 Geometry generateGeometry = function()
 {
-    var start = 0, geo = new THREE.Geometry();
+    var normals_start = 0, geo = new THREE.Geometry();
     var normals = [];
     this->render_geometry( geo_callback );
     // console.log( "generated " + geo.faces.length + " triangles" );
@@ -1343,7 +1359,10 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 
 //void flush_geometry(MarchingCubes& object) {
 
-void MarchingCubes::flush_geometry(std::ostream& cout) {
+void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals) {
+    //todo: receive a facces and verts vector.
+    /** consumes the queue. (sow)*/
+    //changes the queue. => should be inside the queue's "territory".
     cout << "Hello world. ";
 
     cout << "queue_counter: " << this->queue_counter;
@@ -1362,7 +1381,7 @@ void MarchingCubes::flush_geometry(std::ostream& cout) {
         y = this->positionQueue[ b ];
         z = this->positionQueue[ c ];
         //vertex = new THREE.Vector3( x, y, z );
-        cout << "c: " << x << " " << y << " " << z << "   -    ";
+        cout << "(" << x << " " << y << " " << z << ")    ";
 
         x = this->normalQueue[ a ];
         y = this->normalQueue[ b ];
@@ -1372,7 +1391,35 @@ void MarchingCubes::flush_geometry(std::ostream& cout) {
 
         //geo.vertices.push( vertex );
         //normals.push( normal );
+        REAL nd = sqrt((x*x)+(y*y)+(z*z));
+        if(fabs(nd)<0.000001)
+            nd = 0.0001;
+        normals.push_back( (REAL)(x / nd) );
+        normals.push_back( (REAL)(y / nd) );
+        normals.push_back( (REAL)(z / nd) );
     }
+
+
+    int nfaces = this->queue_counter / 3;
+
+    for ( int i = 0; i < nfaces; i++ ) {
+
+        int a = ( normals_start + i ) * 3;
+        int b = a + 1;
+        int c = a + 2;
+
+        REAL na = normals[ a ];
+        REAL nb = normals[ b ];
+        REAL nc = normals[ c ];
+
+        //face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
+        //geo.faces.push( face );
+
+    }
+
+    normals_start += nfaces;
+    this->queue_counter = 0;
+
 }
 
 #include "timer.hpp"
@@ -1399,7 +1446,8 @@ int main() {
 
     MarchingCubes& object = mc;
 
-    mc.flush_geometry(cout);
+    //int normals_start = 0;
+    mc.flush_geometry(cout, static__normals_start, static__normals);
 
     cout << resolution << endl;
 
