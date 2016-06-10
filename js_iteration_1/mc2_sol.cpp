@@ -1026,12 +1026,12 @@ vf_t reindexing_verts_faces(vf_t const& vf)
 
     }
 
-    cout << "number of unique verts" << nv_new << endl;
+  //  cout << "number of unique verts" << nv_new << endl;
     boost::array<int, 2> v_shape = {{ nv_new, 3 }};
     boost::multi_array<REAL, 2> verts_new(v_shape);
-    verts_new[0][0] = verts[0][0];
-    verts_new[0][1] = verts[0][1];
-    verts_new[0][2] = verts[0][2];
+    // verts_new[0][0] = verts[0][0];
+    // verts_new[0][1] = verts[0][1];
+    // verts_new[0][2] = verts[0][2];
     int nv_new_2 = 0;
     for(int i=0; i<nf-1; i++){
       for(int j=0; j<3; j++){
@@ -1050,18 +1050,21 @@ vf_t reindexing_verts_faces(vf_t const& vf)
           faces_new[i+1][2] = faces_new[i][j];
         }
         else {
-          nv_new_2 ++;
-    //      cout << "Patate" << verts_new.shape()[0] << "nv_new_2" << nv_new_2  << "nv_new" << nv_new << endl;
-          cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
-          assert (nv_new_2 <= verts_new.shape()[0]);
+      //    cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
+        //  assert (nv_new_2 <= verts_new.shape()[0]);
           verts_new[nv_new_2][0] = verts[3*i+j][0];
           verts_new[nv_new_2][1] = verts[3*i+j][1];
           verts_new[nv_new_2][2] = verts[3*i+j][2];
+          nv_new_2 ++;
         }
       }
 
     }
 
+    verts_new[0][0] = verts[0][0];
+    verts_new[0][1] = verts[0][1];
+    verts_new[0][2] = verts[0][2];
+    cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
     vf_t p2 = make_pair(verts_new, faces_new);
     return p2;
 }
