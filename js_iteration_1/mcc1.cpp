@@ -1453,7 +1453,10 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
 }
 
 
-void build_vf(){
+void build_vf(
+    std::vector<REAL>& verts3,
+    std::vector<int>& faces3
+    ){
     // Includes allocations.
 
     dim_t resolution = 28;  // 28;
@@ -1469,9 +1472,8 @@ void build_vf(){
 
     mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
-    std::vector<REAL> verts3;
-    std::vector<int> faces3;
-
+    verts3.resize(0);
+    faces3.resize(0);
     MarchingCubes& object = mc;
     mc.flush_geometry(std::cout, mc.static__normals_start, mc.static__normals, verts3, faces3);
 
@@ -1519,6 +1521,12 @@ int main() {
     cout << " ";
     cout << mc.static__faces3.size();
     cout << endl;
+
+    t.stop();
+
+    build_vf( verts3, faces3 );  // 21.3 msec using O3
+
+    t.stop();
 
     return 0;
 }
