@@ -974,7 +974,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
 vf_t reindexing_verts_faces(vf_t const& vf)
 {
-    REAL thl = 0.01; // olerance
+    REAL thl = 0.01; // tolerance sued to compare two float together
+    assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nv = vf.first.shape()[0];
     int nf = vf.second.shape()[0];
     verts_t verts = vf.first;
@@ -1005,25 +1006,27 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     //       }
     //   }
     // }
+    int k = 0;
     for(int i=0; i<nf-1; i++){
       for(int j=0; j<3; j++){
           //(faces_new[i][j] == faces_new[i+1][0])
         if (ABS(verts[3*i+j][0] - verts[3*(i+1)][0]) < thl && ABS(verts[3*i+j][1] - verts[3*(i+1)][1]) < thl
         && ABS( verts[3*i+j][2]-verts[3*(i+1)][2])< thl){
-
+          faces_new[i+1][0] = faces_new[i][j];
         }
               //faces_new[i][j] == faces_new[i+1][1]
         else if (ABS(verts[3*i+j][0] - verts[3*(i+1)+1][0]) < thl && ABS(verts[3*i+j][1] - verts[3*(i+1)+1][1]) < thl
          &&   ABS(verts[3*i+j][2] - verts[3*(i+1)+1][2]) < thl){
-
+           faces_new[i+1][1] = faces_new[i][j];
 
         }   //faces_new[i][j] == faces_new[i+1][2]
         else if (ABS(verts[3*i+j][0] - verts[3*(i+1)+2][0]) < thl &&  ABS(verts[3*i+j][1] - verts[3*(i+1)+2][1]) < thl
          && ABS(verts[3*i+j][2] - verts[3*(i+1)+2][2]) < thl){
-
+           faces_new[i+1][2] = faces_new[i][j];
         }
         else {
-
+          faces_new[i][j] = k;
+          k++;
           nv_new ++;
         }
       }
@@ -1043,20 +1046,21 @@ vf_t reindexing_verts_faces(vf_t const& vf)
           //(faces_new[i][j] == faces_new[i+1][0])
         if (ABS(verts[3*i+j][0] - verts[3*(i+1)][0]) < thl && ABS(verts[3*i+j][1] - verts[3*(i+1)][1]) < thl &&
         ABS(verts[3*i+j][2] - verts[3*(i+1)][2]) < thl ){
-          faces_new[i+1][0] = faces_new[i][j];
+
 
         }
               //faces_new[i][j] == faces_new[i+1][1]
         else if (ABS(verts[3*i+j][0] - verts[3*(i+1)+1][0]) < thl && ABS(verts[3*i+j][1] - verts[3*(i+1)+1][1]) < thl
          && ABS(verts[3*i+j][2] - verts[3*(i+1)+1][2]) < thl){
-          faces_new[i+1][1] = faces_new[i][j];
+
 
         }   //faces_new[i][j] == faces_new[i+1][2]
         else if (ABS(verts[3*i+j][0] - verts[3*(i+1)+2][0]) < thl && ABS(verts[3*i+j][1] - verts[3*(i+1)+2][1]) < thl
         && ABS(verts[3*i+j][2] - verts[3*(i+1)+2][2]) < thl) {
-          faces_new[i+1][2] = faces_new[i][j];
+
         }
         else {
+
       //    cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
           assert (nv_new_2 <= verts_new.shape()[0]);
           verts_new[nv_new_2][0] = verts[3*i+j][0];
@@ -1078,7 +1082,9 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     verts_new[2][1] = verts[2][1];
     verts_new[2][2] = verts[2][2];
 //    cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
-    cout <<  verts[5][0]  << "potatoes" << verts[3][0]  << endl;
+  //  cout <<  verts[5][0]  << "potatoes" << verts[3][0]  << endl;
+    cout <<"number of triangle" << nf << endl;
+
     vf_t p2 = make_pair(verts_new, faces_new);
     return p2;
 }

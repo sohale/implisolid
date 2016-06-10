@@ -152,14 +152,14 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
     //var vertexCount = 24; //vcount;
     //var indexCount = 36; //calculateIndexCount( widthSegments, heightSegments, depthSegments );
 
-    var vertexCount = 24; //verts.length;
-    var indexCount = 36; //faces.length;
+  //  var vertexCount = 24; //verts.length;
+  //  var indexCount = 36; //faces.length;
 
-    var vertexCount = calculateVertexCount( widthSegments, heightSegments, depthSegments );
-    var indexCount = calculateIndexCount( widthSegments, heightSegments, depthSegments );
+//    var vertexCount = calculateVertexCount( widthSegments, heightSegments, depthSegments );
+//    var indexCount = calculateIndexCount( widthSegments, heightSegments, depthSegments );
     var vertexCount = verts.length/3;
     var indexCount = faces.length;
-    var facecount = indexCount/3;
+    var nbr_faces = indexCount/3;
 
     console.log("vertexCount  indexCount")
     console.log(vertexCount+ "   ,  " + indexCount);
@@ -194,8 +194,8 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
     if(1){
         //console.log(verts.length);
         //console.log(faces.length);
-        //console.log(verts);
-        //console.log(faces);
+        console.log(verts);
+        console.log(faces);
         //exfdgdg()
         console.log("Vertexcount: "+vertexCount);
         console.log("**************************************");
@@ -240,12 +240,12 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
             uvs[i*2+1] = y/d2;
         }
 
-        for(var i=0; i < facecount; i++)
+        for(var i=0; i < nbr_faces; i++)
             for(var si=0; si<3; si++)
                 indices[i*3+si] = faces[i*3+si];
 
         materialIndex = 0;
-        this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
+        this.addGroup( 0, nbr_faces*3, materialIndex ); //not sure about *3 . Why??
         //console.log(vertices);
         //console.log(normals);
         //console.log(uvs);
