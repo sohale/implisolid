@@ -18,7 +18,12 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
-#include <math.h>
+//#include <math.h>
+
+extern "C" {
+    void produce_object(float* verts, int *nv, int* faces, int *nf, float param);
+    int main();
+}
 
 
 //typedef unsigned short int size_t;
@@ -1466,11 +1471,24 @@ void build_vf(
 
     MarchingCubes mc(resolution, enableUvs, enableColors);
 
+
+    int numblobs = 4;
+    REAL time = 0.1 ;
+    for (int i = 0; i < numblobs; i++) {
+        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
+        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+        REAL subtract = 12;
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+        mc.addBall(ballx, bally, ballz, strength, subtract);
+      }
+
+    /*
     int numblobs = 4;
     REAL subtract = (REAL)12.;
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-
     mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    */
     //MarchingCubes& object = mc;
     //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
@@ -1486,39 +1504,108 @@ void build_vf(
 }
 
 
-void produce_object(float* verts, int *nv, int* faces, int *nf){
-
-/*
-    build_vf( verts3, faces3 );
-
-    build_vf();
+void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
 
-    vector<TRIANGLE> ta = make_grid();
+    dim_t resolution = 28;  // 28;
+    bool enableUvs = true;
+    bool enableColors = true;
 
-    vf_t vf = vector_to_vertsfaces(ta);
 
-    *nv = vf.first.shape()[0];
-    *nf = vf.second.shape()[0];
+    MarchingCubes mc(resolution, enableUvs, enableColors);
 
-    for(int vi=0; vi<*nv; vi++){
+    int numblobs = 4;
+    //REAL time = 0.1 ;
+    for (int i = 0; i < numblobs; i++) {
+        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
+        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+        REAL subtract = 12;
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+        mc.addBall(ballx, bally, ballz, strength, subtract);
+      }
+
+    /*
+    int numblobs = 4;
+    REAL subtract = (REAL)12.;
+    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+
+    mc.addBall(0, 0, 0.5, strength, subtract);
+    */
+
+    const callback_t renderCallback;
+    mc.render_geometry(renderCallback);
+
+    //mc.result_faces.resize(100);
+
+    std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+
+
+    int ccc=0;
+    for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it++ ){
+    //for(std::vector<REAL>::iterator it=mc.result_verts.begin(); ccc<10; it++ ){
+        //std::cout << *it;
+        ccc++;
+        if(ccc==10)
+           break;
+    }
+
+    *nv = mc.result_verts.size()/3;
+    *nf = mc.result_faces.size()/3;
+
+    //REAL mn = 0;
+    int ctr = 0;
+    for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it+=3 ){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf.first[vi][di];
+            verts[ctr] = *( it + di );
+            //std::cout << verts[ctr];
+            ctr++;
+            //mn += std::abs(*( it + di ));
+        }
+      }
+    //std::cout << "mean " << mn << std::endl;
+
+    /*
+    std::cout << "*nv = " << *nv << std::endl;
+    for(int j=((*nv * 3)-100);j< (*nv * 3); j++)
+        std::cout << verts[j] << " ";
+    std::cout << "printed last 100 elements in vertices. len="<< *nv << std::endl;
+    */
+    /*
+    {
+        int n = mc.result_verts.size();
+        for(int j=n-100;j< n; j++){
+            std::cout << mc.result_verts[j] << " ";
+            std::cout << verts[j] << "; ";
+        }
+        std::cout << "printed last 100 elements in vertices.     len="<< n << std::endl;
+    }
+    */
+
+    ctr = 0;
+    for(std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ){
+        for(int di=0; di<3; di++){
+            faces[ctr] = *( it + di );
+            ctr++;
         }
       }
 
-    for(int fi=0; fi<*nf; fi++){
-        for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf.second[fi][si];
-        }
-      }
-*/
+    /*
+    std::cout << "*nf = " << *nf << std::endl;
+    for(int j=0;j< *nf; j++)
+        std::cout << faces[j] << " ";
+    std::cout << "printed all" << std::endl;
+    */
+
+
 }
 
 
 #include "timer.hpp"
 
 int main() {
+    /*
     timer t;
     t.stop();
     // MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
@@ -1566,7 +1653,7 @@ int main() {
 
 
     t.stop();
-
+*/
     return 0;
 }
 
