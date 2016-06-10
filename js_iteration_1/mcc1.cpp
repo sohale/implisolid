@@ -151,11 +151,11 @@ public:
     void sow();
 
 // output. filled using sow()
-    int static__normals_start = 0;
-    std::vector<REAL> static__normals;
+    int result_normals_start = 0;
+    std::vector<REAL> result_normals;
 
-    std::vector<REAL> static__verts3;
-    std::vector<int> static__faces3;
+    std::vector<REAL> result_verts;
+    std::vector<int> result_faces;
 
 };
 
@@ -188,9 +188,9 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     //preallocate
     int expected_vertices = 10;
     int expected_faces = 10;
-    this->static__normals.reserve(expected_faces*3);
-    this->static__verts3.reserve(expected_vertices*3);
-    this->static__faces3.reserve(expected_faces*3);
+    this->result_normals.reserve(expected_faces*3);
+    this->result_verts.reserve(expected_vertices*3);
+    this->result_faces.reserve(expected_faces*3);
     //what about normals?
 }
 
@@ -676,11 +676,11 @@ void MarchingCubes::posnormtriv(
 }
 
 /*
-static int static__normals_start = 0;
-static std::vector<REAL> static__normals(4100*3);
+static int result_normals_start = 0;  // static
+static std::vector<REAL> result_normals(4100*3);  // static
 
-static std::vector<REAL> static__verts3;
-static std::vector<int> static__faces3;
+static std::vector<REAL> result_verts;  // static
+static std::vector<int> result_faces; // static
 */
 
 // Takes the vales from the queue:
@@ -694,9 +694,9 @@ void MarchingCubes::sow() {
     //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
 
 
-    //this->flush_geometry(std::cout, static__normals_start, static__normals,  static__verts3, static__faces3);
+    //this->flush_geometry(std::cout, result_normals_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry(std::cout, this->static__normals_start, this->static__normals,  this->static__verts3, this->static__faces3);
+    this->flush_geometry(std::cout, this->result_normals_start, this->result_normals,  this->result_verts, this->result_faces);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1454,8 +1454,8 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
 
 
 void build_vf(
-    std::vector<REAL>& verts3,
-    std::vector<int>& faces3
+    //std::vector<REAL>& verts3,
+    //std::vector<int>& faces3
     ){
     // Includes allocations.
 
@@ -1471,13 +1471,50 @@ void build_vf(
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
 
     mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    //MarchingCubes& object = mc;
+    //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
-    verts3.resize(0);
-    faces3.resize(0);
-    MarchingCubes& object = mc;
-    mc.flush_geometry(std::cout, mc.static__normals_start, mc.static__normals, verts3, faces3);
+    //mc.flush_geometry(std::cout, mc.result_normals_start, mc.result_normals, verts3, faces3);
 
+    const callback_t renderCallback;
+    mc.render_geometry(renderCallback);
+
+    std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+
+    //verts3.resize(0);
+    //faces3.resize(0);
 }
+
+
+void produce_object(float* verts, int *nv, int* faces, int *nf){
+
+/*
+    build_vf( verts3, faces3 );
+
+    build_vf();
+
+
+    vector<TRIANGLE> ta = make_grid();
+
+    vf_t vf = vector_to_vertsfaces(ta);
+
+    *nv = vf.first.shape()[0];
+    *nf = vf.second.shape()[0];
+
+    for(int vi=0; vi<*nv; vi++){
+        for(int di=0; di<3; di++){
+            verts[vi*3+di] = vf.first[vi][di];
+        }
+      }
+
+    for(int fi=0; fi<*nf; fi++){
+        for(int si=0; si<3; si++){
+            faces[fi*3+si] = vf.second[fi][si];
+        }
+      }
+*/
+}
+
 
 #include "timer.hpp"
 
@@ -1507,7 +1544,7 @@ int main() {
     MarchingCubes& object = mc;
 
     //int normals_start = 0;
-    mc.flush_geometry(std::cout, mc.static__normals_start, mc.static__normals, verts3, faces3);
+    mc.flush_geometry(std::cout, mc.result_normals_start, mc.result_normals, verts3, faces3);
 
     t.stop();
 
@@ -1517,16 +1554,20 @@ int main() {
 
 
     cout << "verts, faces: ";
-    cout << mc.static__verts3.size();
+    cout << mc.result_verts.size();
     cout << " ";
-    cout << mc.static__faces3.size();
+    cout << mc.result_faces.size();
     cout << endl;
 
     t.stop();
 
-    build_vf( verts3, faces3 );  // 21.3 msec using O3
+    //build_vf( verts3, faces3 );  // 21.3 msec using O3
+    build_vf(  );  // 26 msec.
+
 
     t.stop();
 
     return 0;
 }
+
+
