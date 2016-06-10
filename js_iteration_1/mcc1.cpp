@@ -149,6 +149,14 @@ public:
 //geometry/threejs interface side.
     void render_geometry(const callback_t& renderCallback );
     void sow();
+
+// output. filled using sow()
+    int static__normals_start = 0;
+    std::vector<REAL> static__normals;
+
+    std::vector<REAL> static__verts3;
+    std::vector<int> static__faces3;
+
 };
 
 //static dim_t MarchingCubes::queueSize = ...;
@@ -176,6 +184,14 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
     this->init( resolution );
 
+
+    //preallocate
+    int expected_vertices = 10;
+    int expected_faces = 10;
+    this->static__normals.reserve(expected_faces*3);
+    this->static__verts3.reserve(expected_vertices*3);
+    this->static__faces3.reserve(expected_faces*3);
+    //what about normals?
 }
 
 
@@ -385,18 +401,14 @@ void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, 
 
 }
 
-void MarchingCubes:: compNorm( index_t q ) {
-
+void MarchingCubes::compNorm( index_t q ) {
         index_t q3 = q * 3;
-
         //What if the x happens to be 0.0 ?
         if ( this->normal_cache[ q3 ] == 0.0 ) {
-
             this->normal_cache[ q3 ] = this->field[ q - 1 ]            - this->field[ q + 1 ];
             this->normal_cache[ q3 + 1 ] = this->field[ q - this->yd ] - this->field[ q + this->yd ];
             this->normal_cache[ q3 + 2 ] = this->field[ q - this->zd ] - this->field[ q + this->zd ];
         }
-
 }
 
 
@@ -663,13 +675,13 @@ void MarchingCubes::posnormtriv(
     }
 }
 
-
+/*
 static int static__normals_start = 0;
 static std::vector<REAL> static__normals(4100*3);
 
 static std::vector<REAL> static__verts3;
 static std::vector<int> static__faces3;
-
+*/
 
 // Takes the vales from the queue:
 void MarchingCubes::sow() {
@@ -680,7 +692,11 @@ void MarchingCubes::sow() {
     std::cout << std::endl;
     */
     //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
-    this->flush_geometry(std::cout, static__normals_start, static__normals,  static__verts3, static__faces3);
+
+
+    //this->flush_geometry(std::cout, static__normals_start, static__normals,  static__verts3, static__faces3);
+
+    this->flush_geometry(std::cout, this->static__normals_start, this->static__normals,  this->static__verts3, this->static__faces3);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1436,10 +1452,36 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
 
 }
 
+
+void build_vf(){
+    // Includes allocations.
+
+    dim_t resolution = 28;  // 28;
+    bool enableUvs = true;
+    bool enableColors = true;
+
+
+    MarchingCubes mc(resolution, enableUvs, enableColors);
+
+    int numblobs = 4;
+    REAL subtract = (REAL)12.;
+    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
+
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+
+    std::vector<REAL> verts3;
+    std::vector<int> faces3;
+
+    MarchingCubes& object = mc;
+    mc.flush_geometry(std::cout, mc.static__normals_start, mc.static__normals, verts3, faces3);
+
+}
+
 #include "timer.hpp"
 
 int main() {
     timer t;
+    t.stop();
     // MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
     dim_t resolution = 28;  // 28;
     bool enableUvs = true;
@@ -1463,7 +1505,9 @@ int main() {
     MarchingCubes& object = mc;
 
     //int normals_start = 0;
-    mc.flush_geometry(cout, static__normals_start, static__normals, verts3, faces3);
+    mc.flush_geometry(std::cout, mc.static__normals_start, mc.static__normals, verts3, faces3);
+
+    t.stop();
 
     cout << resolution << endl;
 
@@ -1471,9 +1515,9 @@ int main() {
 
 
     cout << "verts, faces: ";
-    cout << static__verts3.size();
+    cout << mc.static__verts3.size();
     cout << " ";
-    cout << static__faces3.size();
+    cout << mc.static__faces3.size();
     cout << endl;
 
     return 0;
