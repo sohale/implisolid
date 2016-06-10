@@ -133,7 +133,7 @@ public:
     ~MarchingCubes(); //why does this have to be public: ?
 
     //void flush_geometry(std::ostream&);
-    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals);
+    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3);
 
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -445,7 +445,7 @@ int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL i
     int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
-    std::cout  << cubeindex << " ";
+    //std::cout  << cubeindex << " ";
 
     REAL d = this->delta,
         fx2 = fx + d,
@@ -600,7 +600,7 @@ void MarchingCubes::posnormtriv(
 
 
     //DEBUG_PA001(pos__vlist, o3);
-    std::cout << "[" << o3 << "] ";
+    //std::cout << "[" << o3 << "] ";
 
     // normals
 
@@ -667,6 +667,10 @@ void MarchingCubes::posnormtriv(
 static int static__normals_start = 0;
 static std::vector<REAL> static__normals(4100*3);
 
+static std::vector<REAL> static__verts3;
+static std::vector<int> static__faces3;
+
+
 // Takes the vales from the queue:
 void MarchingCubes::sow() {
     /*
@@ -675,8 +679,8 @@ void MarchingCubes::sow() {
         std::cout << *b << " ";
     std::cout << std::endl;
     */
-    std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
-    this->flush_geometry(std::cout, static__normals_start, static__normals);
+    //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
+    this->flush_geometry(std::cout, static__normals_start, static__normals,  static__verts3, static__faces3);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1359,7 +1363,7 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 
 //void flush_geometry(MarchingCubes& object) {
 
-void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals) {
+void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3) {
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/
     //changes the queue. => should be inside the queue's "territory".
@@ -1381,7 +1385,10 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
         y = this->positionQueue[ b ];
         z = this->positionQueue[ c ];
         //vertex = new THREE.Vector3( x, y, z );
-        cout << "(" << x << " " << y << " " << z << ")    ";
+        //cout << "(" << x << " " << y << " " << z << ")    ";
+        verts3.push_back(x);
+        verts3.push_back(y);
+        verts3.push_back(z);
 
         x = this->normalQueue[ a ];
         y = this->normalQueue[ b ];
@@ -1408,6 +1415,7 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
         int b = a + 1;
         int c = a + 2;
 
+        // Why does it store them in normals and reads them back?
         REAL na = normals[ a ];
         REAL nb = normals[ b ];
         REAL nc = normals[ c ];
@@ -1415,6 +1423,12 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
         //face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
         //geo.faces.push( face );
 
+        faces3.push_back(a);
+        faces3.push_back(b);
+        faces3.push_back(c);
+        //faces3.push_back(na);
+        //faces3.push_back(nb);
+        //faces3.push_back(nc);
     }
 
     normals_start += nfaces;
@@ -1444,12 +1458,23 @@ int main() {
     t.stop();
 
 
+    std::vector<REAL> verts3;
+    std::vector<int> faces3;
     MarchingCubes& object = mc;
 
     //int normals_start = 0;
-    mc.flush_geometry(cout, static__normals_start, static__normals);
+    mc.flush_geometry(cout, static__normals_start, static__normals, verts3, faces3);
 
     cout << resolution << endl;
+
+    cout << endl;
+
+
+    cout << "verts, faces: ";
+    cout << static__verts3.size();
+    cout << " ";
+    cout << static__faces3.size();
+    cout << endl;
 
     return 0;
 }
