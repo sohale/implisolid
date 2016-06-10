@@ -2,105 +2,31 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<script type="text/javascript" src="mcc1.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
-<!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
--->
-<!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
--->
 <script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
 <body>
-Based on MCC1
+Geometry that can be changed. (updated).
 
 <br>
 
 <script>
-    //'use strict';
+    'use strict';
 
     var WIREFRAME = false;
-    var produce_object;
     var main;
-
-    function init1()
-    {
-        produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
-        main = Module.cwrap('main', 'number', []);
-        console.log("ok");
-    }
 
     var global_time = 0;
 
-    function do_vf()
-    {
-        //const DBLFLOAT_SIZE = 8;
-        const FLOAT_SIZE = 4;
-        const INT_SIZE = 4;
-        //4 int
-        //4 float
-        //4 long
-
-        //var max_verts = 40000;  // *2
-        //var max_faces = 15000;  //*5
-
-        var max_verts = 6000;  // *2
-        var max_faces = 3000;  //*5
-        var verts_address = Module._malloc(FLOAT_SIZE*3*max_verts);
-        var nv_address = Module._malloc(INT_SIZE*1);
-        var faces_address = Module._malloc(INT_SIZE*3*max_faces)
-        var nf_address = Module._malloc(INT_SIZE*1);
-        //todo: how to make sure enough space is allocated.
-
-        //var time = 0.2;
-        global_time += 0.2;
-
-        /* ************************* */
-        /*   Call C++                */
-        produce_object(verts_address, nv_address, faces_address, nf_address, global_time);
-        /* ************************* */
-
-        //Module.HEAPF64 is a Float64Array
-        var nverts = Module.HEAPU32[nv_address/INT_SIZE];
-        var nfaces = Module.HEAPU32[nf_address/INT_SIZE];
-        var verts = Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/INT_SIZE, faces_address/INT_SIZE + 3*nfaces);
-        //what if there is not enough memory?
-
-        var h_len = (Module.HEAPF32.length);
-        var v_end=(verts_address/FLOAT_SIZE + 3*nverts);
-        var f_end = (faces_address/INT_SIZE + 3*nfaces);
-        if(h_len <= v_end || h_len <= f_end)
-            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
-        else
-            console.info("Heap size OK.");
-
-        //console.log("subarray");
-        //console.log(verts.subarray(verts.length-100, verts.length));
 
 
-        console.log("nverts : "+ nverts)
-        console.log("nfaces : "+ nfaces)
-
-        return [verts, faces];
-    }
-
-
-'use strict';
-
+/*
 MyBufferGeometry = function ( verts, faces ) {
-
-//MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
-
 
     //console.log(faces);
     console.log("MyBufferGeometry");
 
     THREE.BufferGeometry.call( this );
-
-    //console.log("raw v size " + verts.length);
-    //console.log("vl " + verts.length/3);
-    //console.log("fl " + faces.length/3);
-
     this.type = 'MyBufferGeometry';
 
     this.parameters = {
@@ -226,8 +152,8 @@ MyBufferGeometry = function ( verts, faces ) {
 
 MyBufferGeometry.prototype = Object.create( THREE.BufferGeometry.prototype );
 MyBufferGeometry.prototype.constructor = MyBufferGeometry;
-
-
+*/
+/*
 MyGeometry = function (verts, faces) {
     //vects, faces
 
@@ -236,12 +162,12 @@ MyGeometry = function (verts, faces) {
     this.type = 'ImplicitGeometry'; //?
 
     this.parameters = {
-        /*width: width,
-        height: height,
-        depth: depth,
-        widthSegments: widthSegments,
-        heightSegments: heightSegments,
-        depthSegments: depthSegments*/
+        //width: width,
+        //height: height,
+        //depth: depth,
+        //widthSegments: widthSegments,
+        //heightSegments: heightSegments,
+        //depthSegments: depthSegments
     };
 
 
@@ -254,86 +180,63 @@ MyGeometry = function (verts, faces) {
 MyGeometry.prototype = Object.create( THREE.Geometry.prototype );
 MyGeometry.prototype.constructor = MyGeometry;
 
+*/
 
 
-/*
 // MyLiveUpdatableGeometry
-LiveGeometry = function () {
-    //material = ...;
-    THREE.THREE.ImmediateRenderObject.call( this, material );
+function LiveGeometry() {
+    var material = undefined;
+    THREE.ImmediateRenderObject.call( this, material );
     this.setVF = function(verts, faces){
     }
 };
 LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
 LiveGeometry.prototype.constructor = LiveGeometry;
-*/
-
-function make_geometry()
-{
-
-    var startTime = new Date();
-    //new Date().getTime()
 
 
+var materials_list;
+main_mesh = null;
+var meshf = null;
+var mesh2 = null;
 
-    vf = do_vf();
-    v = vf[0];
-    f = vf[1];
+var o;
 
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    console.log("TIME: "+timeDiff);
-
-    return new MyGeometry(v, f);
-}
-
-mesh = null;
 function init2() {
 
     scene = new THREE.Scene();
 
-    WIDTH = 300;
-    HEIGHT = 300;
-    WIDTH = window.innerWidth;
-    HEIGHT = window.innerHeight;
-    camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+    //canvas_width = 300; canvas_height = 300;
+    var canvas_width = window.innerWidth,  canvas_height = window.innerHeight;
+    camera = new THREE.PerspectiveCamera( 75, canvas_width / canvas_height, 1, 10000 );
     camera.position.z = 1000;
-
 
     materials_list = look_nice(scene);
 
     material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
-    if(1){
-        //geometry = new THREE.BoxGeometry( 200, 200, 200 );
-        geometry = make_geometry();
 
-        mesh = new THREE.Mesh( geometry, material );
-        mesh.position.set( 0, 0, 0 );
-        //mesh.scale.set( 10*10, 10*10, 10*10 );
-        mesh.scale.set( 300, 300, 300 );
+    //geometry = new LiveGeometry();
+    geometry = new THREE.BoxGeometry( 200, 200, 200 );
 
-        //mesh.position.z = +0;
-        //mesh.rotation.y = -Math.PI * .5;
+    main_mesh = new THREE.Mesh( geometry, material );
+    main_mesh.position.set( 0, 0, 0 );
+    main_mesh.scale.set( 300, 300, 300 );
 
-        scene.add( mesh );
-        //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
-    }
-
-    material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
-
-        //meshf = new THREE.Mesh( geometry, material_f );
-        //nice ones: 2, 3,  (checked until 4)
-        meshf = new THREE.Mesh( geometry, materials_list[3] );
-        meshf.position.set( 0, 0, 0 );
-        meshf.scale.set( 300, 300, 300 );
-        scene.add( meshf );
+    scene.add( main_mesh );
 
 
-    geo2 = new THREE.BoxGeometry( 20, 20, 20 );
+    o = new THREE.ImmediateRenderObject(materials_list[3]);
+
+
+    meshf = new THREE.Mesh( geometry, materials_list[3] );
+    meshf.position.set( 0, 0, 0 );
+    meshf.scale.set( 300, 300, 300 );
+    scene.add( meshf );
+
+
+    var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
     mesh2 = new THREE.Mesh( geo2, material );
     mesh2.position.set( 0, 0, 0 );
     scene.add( mesh2 );
-    //mesh2.scale.set( 10, 10, 10 );
 
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
@@ -342,24 +245,23 @@ function init2() {
 
     console.log("RENDERER");
     renderer = new THREE.WebGLRenderer( { antialias: true } );
-    //renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setSize( WIDTH, HEIGHT );
+    renderer.setSize( canvas_width, canvas_height );
 
     document.body.appendChild( renderer.domElement );
 
-    function doKeyDownListener(event){
+    function doKeyPressListener(event){
         if ( event.keyCode == 32 ) {
             update_mc();
         }
         else
             console.log(event.keyCode);
     }
-    window.addEventListener( "keypress", doKeyDownListener, false );
+    window.addEventListener( "keydown", doKeyPressListener, false );
 
 
     // CONTROLS
     //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
-    cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
     cameraControls.target.set( 0, 0, 0 );
     cameraControls.addEventListener( 'change', function () {;} );
 
@@ -431,10 +333,10 @@ function animate() {
     requestAnimationFrame( animate );
 
 
-    var SPEED = 3. / 100;
-    if(mesh){
-    mesh.rotation.x += 0.01*SPEED;
-    mesh.rotation.y += 0.02*SPEED;
+    var SPEED = 3. / 10;
+    if(main_mesh){
+    main_mesh.rotation.x += 0.01*SPEED;
+    main_mesh.rotation.y += 0.02*SPEED;
     meshf.rotation.x += 0.01*SPEED;
     meshf.rotation.y += 0.02*SPEED;
     }
@@ -452,14 +354,14 @@ function animate() {
 }
 
 var scene, camera, renderer;
-var geometry, material, mesh;
+var geometry, material, main_mesh, mesh2, meshf;
 
 window.setTimeout(function()
 {
-    init1();
+    //init1();
     init2();
     animate();
-}, 3000);
+}, 10);
 
 
 </script>
