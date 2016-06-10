@@ -74,8 +74,10 @@ class MarchingCubes{
     array1d normal_cache;
 
     // parameters
-    static const dim_t maxCount = 4096;
-    // TODO(@sohale): find the fastest size for maxCount (AQ)
+    static const dim_t queueSize = 4096;  // Name history: maxCount
+    // TODO(@sohale): find the fastest size for queueSize (AQ)
+
+    //Queue, Buffer, Cache: sizes are: 4096, 16, 28**3, respectively.
 
  protected:
     index_t  temp_buffer_size = 12;
@@ -93,18 +95,18 @@ class MarchingCubes{
     bool hasColors = false;
     bool hasUvs = false;
 
-    array1d positionArray;  // size: MaxCount x 3
-    array1d normalArray;
+    array1d positionQueue;  // size: MaxCount x 3
+    array1d normalQueue;
 
-    // array1d &&colorArray; // = 0;
-    // array1d &&uvArray; // = 0;
-    array1d *colorArray = 0;
-    array1d *uvArray = 0;
+    // array1d &&colorQueue; // = 0;
+    // array1d &&uvQueue; // = 0;
+    array1d *colorQueue = 0;
+    array1d *uvQueue = 0;
 
     void kill();
 
-    static const int edgeTable[256];
-    static const int triTable[256*16];
+    static const int mc_edge_lookup_table[256];
+    static const int mc_triangles_table[256*16];
 
  protected:
     void init(dim_t resolution);
@@ -131,8 +133,7 @@ public:
     void flush_geometry(std::ostream&);
 
 
-    //int polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol );
-    int polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
+    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
 
 //shape:
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract );
@@ -144,10 +145,10 @@ public:
 
 //geometry/threejs interface side.
     void render_geometry(const callback_t& renderCallback );
-
+    void sow();
 };
 
-//static dim_t MarchingCubes::maxCount = ...;
+//static dim_t MarchingCubes::queueSize = ...;
 
 
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
@@ -158,8 +159,8 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
         nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 }) )),
 
-        positionArray(array1d(make_shape_1d(MarchingCubes::maxCount * 3))),
-        normalArray(array1d(make_shape_1d(MarchingCubes::maxCount * 3)))
+        positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3))),
+        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3)))
 
 {
 
@@ -240,7 +241,7 @@ void MarchingCubes::init( dim_t resolution ) {
 
 
 
-        // temp buffers used in polygonize
+        // temp buffers used in polygonize_cube
 
         // this->vlist_buffer = new Float32Array( 12 * 3 );
         // this->nlist_buffer = new Float32Array( 12 * 3 );
@@ -253,7 +254,7 @@ void MarchingCubes::init( dim_t resolution ) {
             this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
         }
 
-        // this::maxCount = 4096; // TODO: find the fastest size for this buffer
+        // this::queueSize = 4096; // TODO: find the fastest size for this buffer
 
         // counter of what?
         this->count = 0;
@@ -263,56 +264,56 @@ void MarchingCubes::init( dim_t resolution ) {
         this->hasColors = false;
         this->hasUvs = false;
 
-        // this->positionArray = new Float32Array( this->maxCount * 3 );
-        // this->normalArray   = new Float32Array( this->maxCount * 3 );
+        // this->positionQueue = new Float32Array( this->queueSize * 3 );
+        // this->normalQueue   = new Float32Array( this->queueSize * 3 );
 
 
-        auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::maxCount * 3);
-        // array_shape_t shape_maxCount_x_3 = {{ this->maxCount * 3, }};
-        this->positionArray = array1d(shape_maxCount_x_3);
-        this->normalArray   = array1d(shape_maxCount_x_3);
+        auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
+        // array_shape_t shape_maxCount_x_3 = {{ this->queueSize * 3, }};
+        this->positionQueue = array1d(shape_maxCount_x_3);
+        this->normalQueue   = array1d(shape_maxCount_x_3);
 
 
 
-        auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::maxCount * 2);
-        // array_shape_t  shape_maxCount_x_2 = {{ this->maxCount * 2, }};
+        auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
+        // array_shape_t  shape_maxCount_x_2 = {{ this->queueSize * 2, }};
 
 
         // can throw  std::bad_alloc
 
         if ( this->enableUvs ) {
-            // this->uvArray = new Float32Array( this->maxCount * 2 );
-            this->uvArray = 0; //for deconstructor, to see if this exited by an exception.
-            this->uvArray = new array1d(shape_maxCount_x_2);
-            // assert(this->uvArray != null);
+            // this->uvQueue = new Float32Array( this->queueSize * 2 );
+            this->uvQueue = 0; //for deconstructor, to see if this exited by an exception.
+            this->uvQueue = new array1d(shape_maxCount_x_2);
+            // assert(this->uvQueue != null);
         }
         // else
-        //    this->uvArray = NULL;
+        //    this->uvQueue = NULL;
 
         if ( this->enableColors ) {
-            this->colorArray = 0;
-            this->colorArray = new array1d(shape_maxCount_x_3);
-            // new Float32Array( this->maxCount * 3 );
+            this->colorQueue = 0;
+            this->colorQueue = new array1d(shape_maxCount_x_3);
+            // new Float32Array( this->queueSize * 3 );
         }
         // else
-        //    this->colorArray = NULL;
+        //    this->colorQueue = NULL;
 }
 
 MarchingCubes::~MarchingCubes() //deconstructor
 {
     if ( this->enableUvs )
     {
-        if(this->uvArray){
-            delete this->uvArray;
-            this->uvArray = 0;
+        if(this->uvQueue){
+            delete this->uvQueue;
+            this->uvQueue = 0;
         }
     }
     if ( this->enableColors )
     {
-        if(this->colorArray) // if is not necessary for colorArray,but keep this if.
+        if(this->colorQueue) // if is not necessary for colorQueue,but keep this if.
         {
-            delete this->colorArray;
-            this->colorArray = 0;
+            delete this->colorQueue;
+            this->colorQueue = 0;
         }
     }
 }
@@ -405,8 +406,9 @@ void MarchingCubes:: compNorm( index_t q ) {
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback )
-{
+int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
+    /** Polygonise a single cube in the grid. */
+
     // cache indices
     index_t q1 = q + 1,
         qy = q + this->yd,
@@ -440,7 +442,7 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
 
     // if cube is entirely in/out of the surface - bail, nothing to draw
 
-    int bits = edgeTable[ cubeindex ];
+    int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
     std::cout  << cubeindex << " ";
@@ -540,24 +542,26 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
 
     }
 
-    cubeindex <<= 4;  // re-purpose cubeindex into an offset into triTable
+    cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
 
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
 
     // here is where triangles are created
 
-    while ( triTable[ cubeindex + i ] != - 1 ) {
+    while ( mc_triangles_table[ cubeindex + i ] != - 1 ) {
         o1 = cubeindex + i;
         o2 = o1 + 1;
         o3 = o1 + 2;
 
+        //stores the triangles into the buffers
         this->posnormtriv(
             this->vlist_buffer, this->nlist_buffer,
-            3 * MarchingCubes::triTable[ o1 ],
-            3 * MarchingCubes::triTable[ o2 ],
-            3 * MarchingCubes::triTable[ o3 ],
+            3 * MarchingCubes::mc_triangles_table[ o1 ],
+            3 * MarchingCubes::mc_triangles_table[ o2 ],
+            3 * MarchingCubes::mc_triangles_table[ o3 ],
             renderCallback );
+        //renderCallback consumes them
 
         i += 3;
         numtris++;
@@ -565,6 +569,7 @@ int MarchingCubes::polygonize( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, 
     return numtris;
 }
 
+#define DEBUG_PA001(positionQueue , c)   {std::cout << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
 
 /////////////////////////////////////
 // Immediate-render mode simulator
@@ -579,71 +584,72 @@ void MarchingCubes::posnormtriv(
 
     // positions
 
-    this->positionArray[ c ]     = pos__vlist[ o1 ];
-    this->positionArray[ c + 1 ] = pos__vlist[ o1 + 1 ];
-    this->positionArray[ c + 2 ] = pos__vlist[ o1 + 2 ];
+    this->positionQueue[ c ]     = pos__vlist[ o1 ];
+    this->positionQueue[ c + 1 ] = pos__vlist[ o1 + 1 ];
+    this->positionQueue[ c + 2 ] = pos__vlist[ o1 + 2 ];
 
-    std::cout << " >"
-        << this->positionArray[ c ]
-        << this->positionArray[ c + 1 ]
-        <<    this->positionArray[ c + 2 ] << "< ";
+    //DEBUG_PA001(this->positionQueue , c);
 
-    this->positionArray[ c + 3 ] = pos__vlist[ o2 ];
-    this->positionArray[ c + 4 ] = pos__vlist[ o2 + 1 ];
-    this->positionArray[ c + 5 ] = pos__vlist[ o2 + 2 ];
+    this->positionQueue[ c + 3 ] = pos__vlist[ o2 ];
+    this->positionQueue[ c + 4 ] = pos__vlist[ o2 + 1 ];
+    this->positionQueue[ c + 5 ] = pos__vlist[ o2 + 2 ];
 
-    this->positionArray[ c + 6 ] = pos__vlist[ o3 ];
-    this->positionArray[ c + 7 ] = pos__vlist[ o3 + 1 ];
-    this->positionArray[ c + 8 ] = pos__vlist[ o3 + 2 ];
+    this->positionQueue[ c + 6 ] = pos__vlist[ o3 ];
+    this->positionQueue[ c + 7 ] = pos__vlist[ o3 + 1 ];
+    this->positionQueue[ c + 8 ] = pos__vlist[ o3 + 2 ];
+
+
+    //DEBUG_PA001(pos__vlist, o3);
+    std::cout << "[" << o3 << "] ";
 
     // normals
 
-    this->normalArray[ c ]     = norm__nlist[ o1 ];
-    this->normalArray[ c + 1 ] = norm__nlist[ o1 + 1 ];
-    this->normalArray[ c + 2 ] = norm__nlist[ o1 + 2 ];
+    this->normalQueue[ c ]     = norm__nlist[ o1 ];
+    this->normalQueue[ c + 1 ] = norm__nlist[ o1 + 1 ];
+    this->normalQueue[ c + 2 ] = norm__nlist[ o1 + 2 ];
 
-    this->normalArray[ c + 3 ] = norm__nlist[ o2 ];
-    this->normalArray[ c + 4 ] = norm__nlist[ o2 + 1 ];
-    this->normalArray[ c + 5 ] = norm__nlist[ o2 + 2 ];
+    this->normalQueue[ c + 3 ] = norm__nlist[ o2 ];
+    this->normalQueue[ c + 4 ] = norm__nlist[ o2 + 1 ];
+    this->normalQueue[ c + 5 ] = norm__nlist[ o2 + 2 ];
 
-    this->normalArray[ c + 6 ] = norm__nlist[ o3 ];
-    this->normalArray[ c + 7 ] = norm__nlist[ o3 + 1 ];
-    this->normalArray[ c + 8 ] = norm__nlist[ o3 + 2 ];
+    this->normalQueue[ c + 6 ] = norm__nlist[ o3 ];
+    this->normalQueue[ c + 7 ] = norm__nlist[ o3 + 1 ];
+    this->normalQueue[ c + 8 ] = norm__nlist[ o3 + 2 ];
 
     // uvs
 
     if ( this->enableUvs ) {
         int d = this->count * 2;
 
-        (*this->uvArray)[ d ]     = pos__vlist[ o1 ];
-        (*this->uvArray)[ d + 1 ] = pos__vlist[ o1 + 2 ];
+        (*this->uvQueue)[ d ]     = pos__vlist[ o1 ];
+        (*this->uvQueue)[ d + 1 ] = pos__vlist[ o1 + 2 ];
 
-        (*this->uvArray)[ d + 2 ] = pos__vlist[ o2 ];
-        (*this->uvArray)[ d + 3 ] = pos__vlist[ o2 + 2 ];
+        (*this->uvQueue)[ d + 2 ] = pos__vlist[ o2 ];
+        (*this->uvQueue)[ d + 3 ] = pos__vlist[ o2 + 2 ];
 
-        (*this->uvArray)[ d + 4 ] = pos__vlist[ o3 ];
-        (*this->uvArray)[ d + 5 ] = pos__vlist[ o3 + 2 ];
+        (*this->uvQueue)[ d + 4 ] = pos__vlist[ o3 ];
+        (*this->uvQueue)[ d + 5 ] = pos__vlist[ o3 + 2 ];
     }
 
     // colors
 
     if ( this->enableColors ) {
-        (*this->colorArray)[ c ]     = pos__vlist[ o1 ];
-        (*this->colorArray)[ c + 1 ] = pos__vlist[ o1 + 1 ];
-        (*this->colorArray)[ c + 2 ] = pos__vlist[ o1 + 2 ];
+        (*this->colorQueue)[ c ]     = pos__vlist[ o1 ];
+        (*this->colorQueue)[ c + 1 ] = pos__vlist[ o1 + 1 ];
+        (*this->colorQueue)[ c + 2 ] = pos__vlist[ o1 + 2 ];
 
-        (*this->colorArray)[ c + 3 ] = pos__vlist[ o2 ];
-        (*this->colorArray)[ c + 4 ] = pos__vlist[ o2 + 1 ];
-        (*this->colorArray)[ c + 5 ] = pos__vlist[ o2 + 2 ];
+        (*this->colorQueue)[ c + 3 ] = pos__vlist[ o2 ];
+        (*this->colorQueue)[ c + 4 ] = pos__vlist[ o2 + 1 ];
+        (*this->colorQueue)[ c + 5 ] = pos__vlist[ o2 + 2 ];
 
-        (*this->colorArray)[ c + 6 ] = pos__vlist[ o3 ];
-        (*this->colorArray)[ c + 7 ] = pos__vlist[ o3 + 1 ];
-        (*this->colorArray)[ c + 8 ] = pos__vlist[ o3 + 2 ];
+        (*this->colorQueue)[ c + 6 ] = pos__vlist[ o3 ];
+        (*this->colorQueue)[ c + 7 ] = pos__vlist[ o3 + 1 ];
+        (*this->colorQueue)[ c + 8 ] = pos__vlist[ o3 + 2 ];
     }
 
     this->count += 3;
 
-    if ( this->count >= this->maxCount - 3 ) {  //why equal?
+    if ( this->count >= this->queueSize - 3 ) {  //why equal?
         this->hasPositions = true;
         this->hasNormals = true;
         if ( this->enableUvs ) {
@@ -653,9 +659,17 @@ void MarchingCubes::posnormtriv(
             this->hasColors = true;
         }
         renderCallback.call( (void*)this );
+        this->sow();
     }
 }
 
+// Takes the vales from the queue:
+void MarchingCubes::sow() {
+    typedef array1d::iterator  b_it;
+    for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
+        std::cout << *b << " ";
+    std::cout << std::endl;
+}
 
 void MarchingCubes::begin() {
     this->count = 0;
@@ -670,11 +684,11 @@ void MarchingCubes::end( const callback_t& renderCallback ) {
     // count := number of prepared (?)
     if ( this->count == 0 ) return;
 
-    //for ( int i = this->count * 3; i < this->positionArray.length; i++ ) {
-    //    this->positionArray[ i ] = 0.0;
+    //for ( int i = this->count * 3; i < this->positionQueue.length; i++ ) {
+    //    this->positionQueue[ i ] = 0.0;
     //}
 
-    std::fill(this->positionArray.begin(), this->positionArray.end(), 0.0 );
+    std::fill(this->positionQueue.begin(), this->positionQueue.end(), 0.0 );
 
     this->hasPositions = true;
     this->hasNormals = true;
@@ -720,7 +734,7 @@ void MarchingCubes::addBall(
     int max_x = floor( xs + radius ); if ( max_x > this->size - 1 ) max_x = this->size - 1;
 
 
-    // Don't polygonize in the outer layer because normals aren't
+    // Don't polygonize_cube in the outer layer because normals aren't
     // well-defined there.
 
     // var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
@@ -743,7 +757,7 @@ void MarchingCubes::addBall(
             for ( x = min_x; x < max_x; x++ ) {
 
                 fx = x / (REAL)this->size - ballx;
-                val = strength / ( 0.000001 + fx * fx + fy2 + fz2 ) - subtract;
+                val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
                 if ( val > 0.0 ) this->field[ y_offset + x ] += val;
             }
         }
@@ -882,7 +896,14 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
                 REAL fx = ( x - this->halfsize ) / (REAL)this->halfsize; //+ 1
                 index_t q = y_offset + x;
 
-                this->polygonize( fx, fy, fz, q, this->isolation, renderCallback );
+                this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
+
+
+                typedef array1d::iterator  b_it;
+                for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
+                    std::cout << *b << " ";
+                std::cout << std::endl;
+
             }
         }
     }
@@ -903,14 +924,14 @@ void flush_geometry() {
         b = a + 1;
         c = a + 2;
 
-        x = object.positionArray[ a ];
-        y = object.positionArray[ b ];
-        z = object.positionArray[ c ];
+        x = object.positionQueue[ a ];
+        y = object.positionQueue[ b ];
+        z = object.positionQueue[ c ];
         vertex = new THREE.Vector3( x, y, z );
 
-        x = object.normalArray[ a ];
-        y = object.normalArray[ b ];
-        z = object.normalArray[ c ];
+        x = object.normalQueue[ a ];
+        y = object.normalQueue[ b ];
+        z = object.normalQueue[ c ];
         normal = new THREE.Vector3( x, y, z );
         normal.normalize();
 
@@ -955,14 +976,14 @@ var geo_callback = function( object ) {
         b = a + 1;
         c = a + 2;
 
-        x = object.positionArray[ a ];
-        y = object.positionArray[ b ];
-        z = object.positionArray[ c ];
+        x = object.positionQueue[ a ];
+        y = object.positionQueue[ b ];
+        z = object.positionQueue[ c ];
         vertex = new THREE.Vector3( x, y, z );
 
-        x = object.normalArray[ a ];
-        y = object.normalArray[ b ];
-        z = object.normalArray[ c ];
+        x = object.normalQueue[ a ];
+        y = object.normalQueue[ b ];
+        z = object.normalQueue[ c ];
         normal = new THREE.Vector3( x, y, z );
         normal.normalize();
 
@@ -1019,45 +1040,47 @@ THREE.MarchingCubes.prototype.constructor = THREE.MarchingCubes;
 // http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
 // who in turn got them from Cory Gene Bloyd.
 
-const int MarchingCubes::edgeTable[256] = {
-0x0,   0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
+// Maps (8bit -> 12 bit) all possible 2**8 cases of grid-node signs into a set of edges (12 edges in total).
+// former name: edgeTable.
+const int MarchingCubes::mc_edge_lookup_table[256] = {
+0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
-0x190, 0x99,  0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
+0x190, 0x099, 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
 0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
-0x230, 0x339, 0x33, 0x13a, 0x636, 0x73f, 0x435, 0x53c,
+0x230, 0x339, 0x033, 0x13a, 0x636, 0x73f, 0x435, 0x53c,
 0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
-0x3a0, 0x2a9, 0x1a3, 0xaa, 0x7a6, 0x6af, 0x5a5, 0x4ac,
+0x3a0, 0x2a9, 0x1a3, 0x0aa, 0x7a6, 0x6af, 0x5a5, 0x4ac,
 0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
-0x460, 0x569, 0x663, 0x76a, 0x66, 0x16f, 0x265, 0x36c,
+0x460, 0x569, 0x663, 0x76a, 0x066, 0x16f, 0x265, 0x36c,
 0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
-0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff, 0x3f5, 0x2fc,
+0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0x0ff, 0x3f5, 0x2fc,
 0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
-0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55, 0x15c,
+0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x055, 0x15c,
 0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
-0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc,
+0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0x0cc,
 0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
 0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc,
-0xcc, 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+0x0cc, 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
 0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c,
-0x15c, 0x55, 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+0x15c, 0x055, 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
 0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc,
-0x2fc, 0x3f5, 0xff, 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+0x2fc, 0x3f5, 0x0ff, 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
 0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c,
-0x36c, 0x265, 0x16f, 0x66, 0x76a, 0x663, 0x569, 0x460,
+0x36c, 0x265, 0x16f, 0x066, 0x76a, 0x663, 0x569, 0x460,
 0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac,
-0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa, 0x1a3, 0x2a9, 0x3a0,
+0x4ac, 0x5a5, 0x6af, 0x7a6, 0x0aa, 0x1a3, 0x2a9, 0x3a0,
 0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c,
-0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33, 0x339, 0x230,
+0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x033, 0x339, 0x230,
 0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c,
-0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99, 0x190,
+0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x099, 0x190,
 0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
-0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
+0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
 };
 
 
-//const int triTable[256][16] =
-const int MarchingCubes::triTable[256*16] =
-{
+// Contains 5*3+1 elements: 5 triples, plus a trailing -1
+// former name: triTable
+const int MarchingCubes::mc_triangles_table[256*16] = {
 - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1,
 0, 8, 3, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1,
 0, 1, 9, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1, - 1,
@@ -1335,15 +1358,15 @@ void MarchingCubes::flush_geometry(std::ostream& cout) {
         int c = a + 2;
 
         REAL x,y,z;
-        x = this->positionArray[ a ];
-        y = this->positionArray[ b ];
-        z = this->positionArray[ c ];
+        x = this->positionQueue[ a ];
+        y = this->positionQueue[ b ];
+        z = this->positionQueue[ c ];
         //vertex = new THREE.Vector3( x, y, z );
-        cout << "c: " << x << " " << y << " " << z << std::endl;
+        cout << "c: " << x << " " << y << " " << z << "   -    ";
 
-        x = this->normalArray[ a ];
-        y = this->normalArray[ b ];
-        z = this->normalArray[ c ];
+        x = this->normalQueue[ a ];
+        y = this->normalQueue[ b ];
+        z = this->normalQueue[ c ];
         //normal = new THREE.Vector3( x, y, z ); normal.normalize();
         //cout << x << " " << y << " " << z << endl;
 
@@ -1364,8 +1387,8 @@ int main() {
     t.stop();
 
     int numblobs = 4;
-    REAL subtract = 12.;
-    REAL strength = 1.2 / ( ( sqrt( numblobs ) - 1 ) / 4. + 1. );
+    REAL subtract = (REAL)12.;
+    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
 
     mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
