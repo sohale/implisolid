@@ -1008,36 +1008,31 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     int nv_new = 0;
     boost::array<int, 2> v_shape = {{ nv, 3 }};
     boost::multi_array<REAL, 2> verts_new(v_shape);
+//    cout << nf << " "<< nv << " "<< nv/3 << endl;
     for(int i=0; i<nv; i++){
+      bool new_vertex = true;
       for(int j=i+1; j<nv-1; j++){
-        if (i==j){
-          continue;
-        }
           //(faces_new[i][j] == faces_new[i+1][0])
-        else if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
+        if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
         ABS(verts[i][2] - verts[j][2]) < thl ){
-          if (i<j){
-            faces_new[j/3][j%3] = faces_new[i/3][i%3];
-            assert (j/3 + j%3 < nf);
-            assert (i/3 + i%3 < nf);
-          }
-          else{
-            faces_new[i/3][i%3] = faces_new[j/3][j%3];
-            assert (j/3 + j%3 < nf);
-            assert (i/3 + i%3 < nf);
-          }
-        }
-              //faces_new[i][j] == faces_new[i+1][1]
-        else {
-          verts_new[nv_new][0] = verts[i][0];
-          verts_new[nv_new][1] = verts[i][1];
-          verts_new[nv_new][2] = verts[i][2];
-        //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
-          nv_new ++;
+          new_vertex = false;
+          faces_new[j/3][j%3] = faces_new[i/3][i%3];
+          assert (j/3 + j%3 <= nf);
+          assert (i/3 + i%3 <= nf);
+
         }
       }
+              //faces_new[i][j] == faces_new[i+1][1]
+      if (new_vertex == true){
+        verts_new[nv_new][0] = verts[i][0];
+        verts_new[nv_new][1] = verts[i][1];
+        verts_new[nv_new][2] = verts[i][2];
+        faces_new[i/3][i%3] = nv_new;
+      //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
+        nv_new ++;
+      }
+
       assert (nv_new <= nv);
-      cout << nv_new  << endl;
     }
     cout << "here" << endl;
     // verts initialization
