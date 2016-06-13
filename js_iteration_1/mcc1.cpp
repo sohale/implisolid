@@ -166,17 +166,17 @@ public:
 
 //static dim_t MarchingCubes::queueSize = ...;
 
-
+int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
-        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 }) )),
+        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3   }) )),
 
-        positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3))),
-        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3)))
+        positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 + EXCESS))),
+        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 + EXCESS)))
 
 {
 
@@ -322,11 +322,14 @@ void MarchingCubes::init( dim_t resolution ) {
 
 MarchingCubes::~MarchingCubes() //deconstructor
 {
+    std::cout << "Destructor: ~MarchingCubes" << std::endl;
+
     if ( this->enableUvs )
     {
         if(this->uvQueue){
             delete this->uvQueue;
             this->uvQueue = 0;
+            std::cout << "delete this->uvQueue" << std::endl;
         }
     }
     if ( this->enableColors )
@@ -335,6 +338,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
         {
             delete this->colorQueue;
             this->colorQueue = 0;
+            std::cout << "delete this->colorQueue" << std::endl;
         }
     }
 }
@@ -1504,6 +1508,86 @@ void build_vf(
 }
 
 
+class MarchingCubesMock {
+    /*
+    bool enableUvs, enableColors;
+    dim_t resolution;
+    REAL isolation;
+    index_t size, size2, size3;
+    index_t  yd, zd;
+    REAL halfsize;
+    REAL delta;
+    array1d field;
+    array1d normal_cache;
+    static const dim_t queueSize = 4096;
+
+ protected:
+    index_t  temp_buffer_size = 12;
+    array1d vlist_buffer;
+    array1d nlist_buffer;
+    int queue_counter = 0;
+
+    bool hasPositions = false;
+    bool hasNormals = false;
+    bool hasColors = false;
+    bool hasUvs = false;
+    array1d positionQueue;
+    array1d normalQueue;
+    array1d *colorQueue = 0;
+    array1d *uvQueue = 0;
+
+    void kill();
+
+    //static const int mc_edge_lookup_table[256];
+    //static const int mc_triangles_table[256*16];
+
+ protected:
+    void init(dim_t resolution){};
+
+void VIntX(index_t q, array1d &pout, array1d &nout,
+    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 ) {};
+void VIntY(index_t q, array1d& pout, array1d& nout,
+    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 ) {};
+void VIntZ(index_t q, array1d& pout, array1d& nout,
+    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 ) {};
+
+void compNorm( index_t q ) {};
+void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, int o1, int o2, int o3, const callback_t& renderCallback ) {};
+
+void begin_queue() {};
+void finish_queue( const callback_t& renderCallback ) {};
+*/
+
+public:
+    MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
+    ~MarchingCubesMock() {}; //why does this have to be public: ?
+
+    //void flush_geometry(std::ostream&);
+    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3)
+        {};
+
+    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
+
+//shape:
+    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract ) {};
+    void addPlaneX( REAL strength, REAL subtract ) {};
+    void addPlaneZ( REAL strength, REAL subtract ) {};
+    void addPlaneY( REAL strength, REAL subtract ) {};
+//field
+    void reset() {};
+
+//geometry/threejs interface side.
+    void render_geometry(const callback_t& renderCallback ) {};
+    void sow() {};
+
+// output. filled using sow()
+    int result_normals_start = 0;
+    std::vector<REAL> result_normals;
+    std::vector<REAL> result_verts;
+    std::vector<int> result_faces;
+};
+
+
 void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
 
@@ -1511,8 +1595,13 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
+    std::cout << "Leak-free" << std::endl;
+
 
     MarchingCubes mc(resolution, enableUvs, enableColors);
+    //MarchingCubes* mc0 = new MarchingCubes(resolution, enableUvs, enableColors);
+    //MarchingCubes &mc = *mc0;
+    //MarchingCubesMock mc(resolution, enableUvs, enableColors);
 
     int numblobs = 4;
     //REAL time = 0.1 ;
@@ -1583,6 +1672,7 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     }
     */
 
+    // REPREATED CODE
     ctr = 0;
     for(std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ){
         for(int di=0; di<3; di++){
@@ -1598,6 +1688,8 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     std::cout << "printed all" << std::endl;
     */
 
+    //mc.result_faces.reserve(100000);
+    //mc.result_verts.reserve(100000);
 
 }
 

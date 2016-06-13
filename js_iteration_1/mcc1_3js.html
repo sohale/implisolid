@@ -2,6 +2,13 @@
 <head>
 <meta charset="utf-8"/>
 </head>
+<script type="text/javascript" src="memoryprofiler.js"></script>
+<script>
+        function letmeknow(){console.log("111111");}
+        Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
+
+</script>
+<body>
 <script type="text/javascript" src="mcc1.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
@@ -10,7 +17,7 @@
 -->
 <script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
-<body>
+<!--<body>-->
 Based on MCC1
 
 <br>
@@ -24,6 +31,10 @@ Based on MCC1
 
     function init1()
     {
+        function letmeknow(){console.log("111111");}
+        //Module.preRun.push(letmeknow,memoryprofiler_add_hooks,letmeknow);
+        //Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
+
         produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
         main = Module.cwrap('main', 'number', []);
         console.log("ok");
@@ -77,6 +88,15 @@ Based on MCC1
         //console.log("subarray");
         //console.log(verts.subarray(verts.length-100, verts.length));
 
+        // ****************************
+        // The actual leak was here !
+        // ****************************
+        //freeing resources
+        //also see http://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
+        Module._free(verts_address);
+        Module._free(nv_address);
+        Module._free(faces_address);
+        Module._free(nf_address);
 
         console.log("nverts : "+ nverts)
         console.log("nfaces : "+ nfaces)
