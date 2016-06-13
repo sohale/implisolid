@@ -69,10 +69,10 @@ Based on MCC1
 
     var global_time = 0;
 
-    function do_vf()
+    function do_vf(delta_t)
     {
         //var time = 0.2;
-        global_time += 0.2;
+        global_time += delta_t;
 
         //var max_verts = 40000;  // *2
         //var max_faces = 15000;  //*5
@@ -343,13 +343,16 @@ LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
 LiveGeometry.prototype.constructor = LiveGeometry;
 */
 
-function make_geometry()
+function make_geometry(delta_t)
 {
 
     var startTime = new Date();
     //new Date().getTime()
 
-    vf = do_vf();
+    if(delta_t === undefined)
+        delta_t = 0.2;
+
+    vf = do_vf(delta_t);
     v = vf[0];
     f = vf[1];
 
@@ -361,13 +364,15 @@ function make_geometry()
 }
 
 
-function make_geometry_new()
+function make_geometry_new(delta_t)
 {
     var startTime = new Date();
 
+    if(delta_t === undefined)
+        delta_t = 0.2;
     // Subjective time!
     //var time = 0.2;
-    global_time += 0.2;
+    global_time += delta_t;
 
 
     newProducer.build_geometry( 28, global_time);
@@ -471,9 +476,15 @@ function init2() {
 
     document.body.appendChild( renderer.domElement );
 
-    function doKeyDownListener(event){
+    function update_mc_multiple() {
+        var mc_icounter=0;
+        setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.); mc_icounter++; }, 30);
+
+    }
+    function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
-            update_mc();
+            //update_mc();
+            update_mc_multiple();
         }
         else
             console.log(event.keyCode);
@@ -489,16 +500,16 @@ function init2() {
 
 }
 
-function update_mc(){
+function update_mc(delta_t){
     scene.remove(mesh_solid);
     scene.remove(mesh_wireframe);
 
     var geometry;
     if(CALL_VERSION==1){
-        geometry = make_geometry();
+        geometry = make_geometry(delta_t);
     }
     else{
-        geometry = make_geometry_new();
+        geometry = make_geometry_new(delta_t);
     }
 
 
