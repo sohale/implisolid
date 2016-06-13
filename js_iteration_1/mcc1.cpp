@@ -329,7 +329,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
         if(this->uvQueue){
             delete this->uvQueue;
             this->uvQueue = 0;
-            std::cout << "delete this->uvQueue" << std::endl;
+            //std::cout << "delete this->uvQueue" << std::endl;
         }
     }
     if ( this->enableColors )
@@ -338,7 +338,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
         {
             delete this->colorQueue;
             this->colorQueue = 0;
-            std::cout << "delete this->colorQueue" << std::endl;
+            //std::cout << "delete this->colorQueue" << std::endl;
         }
     }
 }
@@ -1588,6 +1588,7 @@ public:
 };
 
 
+
 void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
 
@@ -1653,6 +1654,137 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
 
 }
+
+
+/*
+#include <emscripten/bind.h>
+using namespace emscripten;
+EMSCRIPTEN_BINDINGS(my_module) {
+    //produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time);
+    function("produce_object_bind", &produce_object);
+}
+*/
+//#include "mcc1-glue.cpp"
+
+
+/*void produce_v(){
+}*/
+
+extern "C" {
+    void build_geometry(int resolution, REAL time);
+    int get_v_size();
+    int get_f_size();
+    void get_f(int*, int);
+    void get_v(REAL*, int);
+    void finish_geometry();
+    //also: queue, etc.
+    //bad: one instance only.
+    //    Solution 1:  MarchingCubes* build_geometry();
+    //    Solution 2: ids (for workers! ; a statically determined number of them (slots/workers/buckets).).
+};
+
+
+typedef struct {
+    bool active = 0;
+    MarchingCubes* mc = 0;
+} state_t;
+
+state_t _state;
+
+//_state.active = false;
+//_state.mc = 0;
+
+void check_state() {
+    if(!_state.active) std::cout << "Error: not active.";
+}
+void check_state_null() {
+    if(_state.active)
+        std::cout << "Error: should not be active.";
+}
+
+void build_geometry(int resolution, REAL time){
+
+    check_state_null();
+
+    //dim_t resolution = 28;
+    bool enableUvs = true;
+    bool enableColors = true;
+
+    //std::cout << "Leak-free : new" << std::endl;
+
+    //MarchingCubes mc(resolution, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+    //std::cout << "constructor called." << std::endl;
+
+    int numblobs = 4;
+    for (int i = 0; i < numblobs; i++) {
+        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
+        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+        REAL subtract = 12;
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+        _state.mc->addBall(ballx, bally, ballz, strength, subtract);
+    }
+    //std::cout << "balls added." << std::endl;
+
+    const callback_t renderCallback;
+    _state.mc->render_geometry(renderCallback);
+    //std::cout << "MC executed" << std::endl;
+
+    std::cout << resolution << " " << time << std::endl;
+    std::cout << _state.mc << std::endl;
+    _state.active = true;
+
+    check_state();
+    //std::cout << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
+}
+int get_f_size() {
+    check_state();
+    return _state.mc->result_faces.size()/3;
+}
+int get_v_size(){
+    check_state();
+    return _state.mc->result_verts.size()/3;
+}
+void get_v(REAL* v_out, int vcount){
+    check_state();
+    //int nf = get_f_size();
+    // Vertices
+    int ctr = 0;
+    for(std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ){
+        for(int di=0; di<3; di++){
+            v_out[ctr] = *( it + di );
+            ctr++;
+        }
+    }
+    //assert nf*3 == ctr;
+    if(vcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
+}
+
+void get_f(int* f_out, int fcount){
+    check_state();
+    //int nf = get_f_size();
+    int ctr = 0;
+    for(std::vector<int>::iterator it=_state.mc->result_faces.begin(); it < _state.mc->result_faces.end(); it+=3 ){
+        for(int di=0; di<3; di++){
+            f_out[ctr] = *( it + di );
+            ctr++;
+        }
+    }
+    if(fcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
+};
+//int get_v_size(){};
+//int get_f_size(){};
+//void get_f(int*){};
+//void get_v(REAL*){};
+
+// Can cause an exception
+void finish_geometry() {
+    check_state();
+    delete _state.mc;
+    _state.active = false;
+    _state.mc = 0;
+};
 
 
 #include "timer.hpp"

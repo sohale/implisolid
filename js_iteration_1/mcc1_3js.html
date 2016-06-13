@@ -28,45 +28,63 @@ Based on MCC1
 <script>
     //'use strict';
 
+    //Version 1 has flaws: _free()s before returning the verts.
+    var CALL_VERSION = 2; //1 or 2
+
     var WIREFRAME = false;
     var produce_object;
     var main;
 
+    var newProducer;
     function init1()
     {
         function letmeknow(){console.log("111111");}
         //Module.preRun.push(letmeknow,memoryprofiler_add_hooks,letmeknow);
         //Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
 
-        produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
         main = Module.cwrap('main', 'number', []);
+
+        produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
+
+        newProducer={};
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+        newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
+        newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
+        newProducer.get_v = Module.cwrap('get_v', null, ['number']);
+        newProducer.get_f = Module.cwrap('get_f', null, ['number']);
+        newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
+
         console.log("ok");
     }
+
+
+    //const DBLFLOAT_SIZE = 8;
+    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    const _INT_SIZE = 4;
+    //4 int
+    //4 float
+    //4 long
+
+
 
     var global_time = 0;
 
     function do_vf()
     {
-        //const DBLFLOAT_SIZE = 8;
-        const FLOAT_SIZE = 4;
-        const INT_SIZE = 4;
-        //4 int
-        //4 float
-        //4 long
+        //var time = 0.2;
+        global_time += 0.2;
 
         //var max_verts = 40000;  // *2
         //var max_faces = 15000;  //*5
 
         var max_verts = 16000;  // *2
         var max_faces = 13000;  //*5
-        var verts_address = Module._malloc(FLOAT_SIZE*3*max_verts);
-        var nv_address = Module._malloc(INT_SIZE*1);
-        var faces_address = Module._malloc(INT_SIZE*3*max_faces)
-        var nf_address = Module._malloc(INT_SIZE*1);
+        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
+        var nv_address = Module._malloc(_INT_SIZE*1);
+        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
+        var nf_address = Module._malloc(_INT_SIZE*1);
         //todo: how to make sure enough space is allocated.
 
-        //var time = 0.2;
-        global_time += 0.2;
 
         /* ************************* */
         /*   Call C++                */
@@ -74,21 +92,30 @@ Based on MCC1
         /* ************************* */
 
         //Module.HEAPF64 is a Float64Array
-        var nverts = Module.HEAPU32[nv_address/INT_SIZE];
-        var nfaces = Module.HEAPU32[nf_address/INT_SIZE];
-        var verts = Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/INT_SIZE, faces_address/INT_SIZE + 3*nfaces);
+        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
+        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
         //what if there is not enough memory?
 
+        //         var result_faces = new Float32Array(dataHeap.buffer, dataHeap.byteOffset, data.length);
+        //verts_address is byteOffset?
+
+        //second attemtps: (still has problems)
+        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
+
+        //Thisrd solution:
+        //http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html
+
         var h_len = (Module.HEAPF32.length);
-        var v_end=(verts_address/FLOAT_SIZE + 3*nverts);
-        var f_end = (faces_address/INT_SIZE + 3*nfaces);
+        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
+        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
         if(h_len <= v_end || h_len <= f_end)
             console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
         else
             console.info("Heap size OK.");
 
-        console.log(Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*2));
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
 
         //console.log("subarray");
         //console.log(verts.subarray(verts.length-100, verts.length));
@@ -105,13 +132,30 @@ Based on MCC1
 
         //BUG! Accessed (returned) after "_Free"ing.
         // FIXME: FREED before actually copying
-        console.log(Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*2));
+
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
+        //console.log(result_verts.subarray(0, 3*2));
 
         console.log("nverts : "+ nverts)
         console.log("nfaces : "+ nfaces)
 
         return [verts, faces];
+        //return [result_verts, faces];
     }
+
+//    //third way:
+//    function     vf(){
+//            //function _produce_object($verts,$nv,$faces,$nf,$time){}
+//
+//  // $verts = $verts|0;
+//  // $nv = $nv|0;
+//  // $faces = $faces|0;
+//  // $nf = $nf|0;
+//  // $time = +$time;
+//  //$254 = $verts..
+//  //HEAPF32[$254>>2] = $251;
+//  //
+//    }
 
 
 'use strict';
@@ -305,8 +349,6 @@ function make_geometry()
     var startTime = new Date();
     //new Date().getTime()
 
-
-
     vf = do_vf();
     v = vf[0];
     f = vf[1];
@@ -317,6 +359,52 @@ function make_geometry()
 
     return new MyGeometry(v, f);
 }
+
+
+function make_geometry_new()
+{
+    var startTime = new Date();
+
+    // Subjective time!
+    //var time = 0.2;
+    global_time += 0.2;
+
+
+    newProducer.build_geometry( 28, global_time);
+
+    var nverts = newProducer.get_v_size();
+    var nfaces = newProducer.get_f_size();
+    console.log(nverts);
+
+    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
+    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
+
+    newProducer.get_v(verts_address, nverts);
+    newProducer.get_f(faces_address, nfaces);
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    //console.log(verts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    var geom = new MyGeometry(verts, faces);
+
+    // Now you can free the resources.
+
+    Module._free(verts_address);
+    Module._free(faces_address);
+
+    newProducer.finish_geometry();
+
+    console.log("nverts : "+ nverts);
+    console.log("nfaces : "+ nfaces);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    console.log("TIME: "+timeDiff);
+
+    return geom;
+}
+
 
 mesh_wireframe = null;
 function init2() {
@@ -334,21 +422,26 @@ function init2() {
     materials_list = look_nice(scene);
 
     material_wireframe = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
-    if(1){
-        //geometry = new THREE.BoxGeometry( 200, 200, 200 );
+
+    //geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    if(CALL_VERSION==1){
         geometry = make_geometry();
-
-        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-        mesh_wireframe.position.set( 0, 0, 0 );
-        //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
-        mesh_wireframe.scale.set( 300, 300, 300 );
-
-        //mesh_wireframe.position.z = +0;
-        //mesh_wireframe.rotation.y = -Math.PI * .5;
-
-        scene.add( mesh_wireframe );
-        //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
     }
+    else{
+        geometry = make_geometry_new();
+    }
+
+    mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+    mesh_wireframe.position.set( 0, 0, 0 );
+    //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
+    mesh_wireframe.scale.set( 300, 300, 300 );
+
+    //mesh_wireframe.position.z = +0;
+    //mesh_wireframe.rotation.y = -Math.PI * .5;
+
+    scene.add( mesh_wireframe );
+    //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
+
 
     material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
 
@@ -400,7 +493,14 @@ function update_mc(){
     scene.remove(mesh_solid);
     scene.remove(mesh_wireframe);
 
-    var geometry = make_geometry();
+    var geometry;
+    if(CALL_VERSION==1){
+        geometry = make_geometry();
+    }
+    else{
+        geometry = make_geometry_new();
+    }
+
 
     mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
     mesh_wireframe.position.set( 0, 0, 0 );
