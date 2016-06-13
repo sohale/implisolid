@@ -30,6 +30,7 @@ Based on MCC1
 
     //Version 1 has flaws: _free()s before returning the verts.
     var CALL_VERSION = 2; //1 or 2
+    const VERBOSE = false;
 
     var WIREFRAME = false;
     var produce_object;
@@ -136,8 +137,10 @@ Based on MCC1
         //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
         //console.log(result_verts.subarray(0, 3*2));
 
-        console.log("nverts : "+ nverts)
-        console.log("nfaces : "+ nfaces)
+        if(VERBOSE){
+            console.log("nverts : "+ nverts);
+            console.log("nfaces : "+ nfaces);
+        }
 
         return [verts, faces];
         //return [result_verts, faces];
@@ -166,7 +169,8 @@ MyBufferGeometry = function ( verts, faces ) {
 
 
     //console.log(faces);
-    console.log("MyBufferGeometry");
+    if(VERBOSE)
+        console.log("MyBufferGeometry");
 
     THREE.BufferGeometry.call( this );
 
@@ -188,7 +192,9 @@ MyBufferGeometry = function ( verts, faces ) {
     var facecount = faces.length/3;
     var indexCount = facecount*3;
 
-    console.log("vertexCount="+vertexCount+ "   ,  facecount=" + facecount+ "   facecount*3="+(facecount*3));
+    if(VERBOSE){
+        console.log("vertexCount="+vertexCount+ "   ,  facecount=" + facecount+ "   facecount*3="+(facecount*3));
+    }
 
     // buffers
     var indices = new ( indexCount > 65535 ? Uint32Array : Uint16Array )( indexCount );
@@ -358,7 +364,7 @@ function make_geometry(delta_t)
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
-    console.log("TIME: "+timeDiff);
+    console.log("TIME: "+timeDiff+ " msec.");
 
     return new MyGeometry(v, f);
 }
@@ -379,7 +385,9 @@ function make_geometry_new(delta_t)
 
     var nverts = newProducer.get_v_size();
     var nfaces = newProducer.get_f_size();
-    console.log(nverts);
+    if(VERBOSE){
+        console.log(nverts);
+    }
 
     var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
     var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
@@ -400,8 +408,10 @@ function make_geometry_new(delta_t)
 
     newProducer.finish_geometry();
 
-    console.log("nverts : "+ nverts);
-    console.log("nfaces : "+ nfaces);
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
@@ -469,7 +479,9 @@ function init2() {
     scene.add(dirLight);
 
 
-    console.log("RENDERER");
+    if(VERBOSE){
+        console.log("RENDERER");
+    }
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     //renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setSize( WIDTH, HEIGHT );
@@ -478,7 +490,7 @@ function init2() {
 
     function update_mc_multiple() {
         var mc_icounter=0;
-        setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.); mc_icounter++; }, 30);
+        setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.*5); mc_icounter++; }, 30);
 
     }
     function doKeyDownListener(event) {

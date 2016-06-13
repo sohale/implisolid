@@ -25,6 +25,7 @@ extern "C" {
     int main();
 }
 
+const bool VERBOSE = false;
 
 //typedef unsigned short int size_t;
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
@@ -185,7 +186,8 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->enableUvs = enableUvs;
     this->enableColors = enableColors;
 
-    std::cout << resolution << " init"<< std::endl;
+    if(VERBOSE)
+        std::cout << resolution << " init"<< std::endl;
 
     this->init( resolution );
 
@@ -322,7 +324,8 @@ void MarchingCubes::init( dim_t resolution ) {
 
 MarchingCubes::~MarchingCubes() //deconstructor
 {
-    std::cout << "Destructor: ~MarchingCubes" << std::endl;
+    if(VERBOSE)
+        std::cout << "Destructor: ~MarchingCubes" << std::endl;
 
     if ( this->enableUvs )
     {
@@ -1392,13 +1395,17 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/
     //changes the queue. => should be inside the queue's "territory".
-    cout << "Hello world. ";
+    if(VERBOSE)
+        cout << "Hello world. ";
 
-    cout << "queue_counter: " << this->queue_counter;
+    if(VERBOSE)
+        cout << "queue_counter: " << this->queue_counter;
 
     //MarchingCubes& this-> = *this;
-    cout << "queue_counter: " << this->queue_counter;
-    cout << std::endl;
+    if(VERBOSE){
+        cout << "queue_counter: " << this->queue_counter;
+        cout << std::endl;
+    }
 
     for ( int i = 0; i < this->queue_counter; i++ ) {
         int a = i * 3;
@@ -1501,7 +1508,8 @@ void build_vf(
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
 
-    std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+    if(VERBOSE)
+        std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     //verts3.resize(0);
     //faces3.resize(0);
@@ -1596,7 +1604,8 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    std::cout << "Leak-free" << std::endl;
+    if(VERBOSE)
+        std::cout << "Leak-free (old version)" << std::endl;
 
 
     MarchingCubes mc(resolution, enableUvs, enableColors);
@@ -1629,7 +1638,8 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
     //mc.result_faces.resize(100);
 
-    std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+    if(VERBOSE)
+        std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     *nv = mc.result_verts.size()/3;
     *nf = mc.result_faces.size()/3;
@@ -1731,8 +1741,10 @@ void build_geometry(int resolution, REAL time){
     _state.mc->render_geometry(renderCallback);
     //std::cout << "MC executed" << std::endl;
 
-    std::cout << resolution << " " << time << std::endl;
-    std::cout << _state.mc << std::endl;
+    if(VERBOSE){
+        std::cout << resolution << " " << time << std::endl;
+        std::cout << _state.mc << std::endl;
+    }
     _state.active = true;
 
     check_state();
