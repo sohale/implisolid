@@ -974,7 +974,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
 vf_t reindexing_verts_faces(vf_t const& vf)
 {
-    REAL thl = 0.01; // tolerance sued to compare two float together
+    REAL thl = 0.01; // tolerance used to compare two float together
     assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nv = vf.first.shape()[0];
     int nf = vf.second.shape()[0];
@@ -988,8 +988,11 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     boost::array<int, 2> f_shape = {{ nf, 3 }};
 //    boost::multi_array<REAL, 2> verts_new(v_shape);
     boost::multi_array<int, 2> faces_new(f_shape);
+
+    faces_new[0][0] = faces[0][0];
+    faces_new[0][1] = faces[0][1];
     // initilization of faces_new
-    faces_new = faces;
+//    faces_new = faces;
 
     // for(int i=0; i<nv; i++){
     //     if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
@@ -1013,13 +1016,14 @@ vf_t reindexing_verts_faces(vf_t const& vf)
       bool new_vertex = true;
       for(int j=i+1; j<nv-1; j++){
           //(faces_new[i][j] == faces_new[i+1][0])
+        faces_new[i/3][i%3] = i/3 + i%3;  
         if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
         ABS(verts[i][2] - verts[j][2]) < thl ){
           new_vertex = false;
           faces_new[j/3][j%3] = faces_new[i/3][i%3];
+    //    cout << j/3 + j%3 << endl;
           assert (j/3 + j%3 <= nf);
           assert (i/3 + i%3 <= nf);
-
         }
       }
               //faces_new[i][j] == faces_new[i+1][1]
@@ -1028,28 +1032,24 @@ vf_t reindexing_verts_faces(vf_t const& vf)
         verts_new[nv_new][1] = verts[i][1];
         verts_new[nv_new][2] = verts[i][2];
         faces_new[i/3][i%3] = nv_new;
+      //  cout << i/3 + i%3 << endl;
       //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
         nv_new ++;
       }
 
+  //    cout << faces_new[i/3][i%3] << endl;
       assert (nv_new <= nv);
     }
-    cout << "here" << endl;
+    cout << " Patate!!!- nv_new " << nv_new << endl;
     // verts initialization
     verts_new[0][0] = verts[0][0];
     verts_new[0][1] = verts[0][1];
     verts_new[0][2] = verts[0][2];
-    verts_new[1][0] = verts[1][0];
-    verts_new[1][1] = verts[1][1];
-    verts_new[1][2] = verts[1][2];
-    verts_new[2][0] = verts[2][0];
-    verts_new[2][1] = verts[2][1];
-    verts_new[2][2] = verts[2][2];
-//    cout << "Patate " << verts_new.shape()[0] << "nv_new_2 " << nv_new_2  <<  endl;
+
   //  cout <<  verts[5][0]  << "potatoes" << verts[3][0]  << endl;
 
-    cout <<"number of triangle" << nf << endl;
-//    verts_new.resize(boost::extents[nv_new][3]);
+  //  cout <<"number of triangle" << nf << endl;
+    verts_new.resize(boost::extents[nv_new][3]);
 
     vf_t p2 = make_pair(verts_new, faces_new);
     return p2;
