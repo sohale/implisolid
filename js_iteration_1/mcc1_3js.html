@@ -57,8 +57,8 @@ Based on MCC1
         //var max_verts = 40000;  // *2
         //var max_faces = 15000;  //*5
 
-        var max_verts = 6000;  // *2
-        var max_faces = 3000;  //*5
+        var max_verts = 16000;  // *2
+        var max_faces = 13000;  //*5
         var verts_address = Module._malloc(FLOAT_SIZE*3*max_verts);
         var nv_address = Module._malloc(INT_SIZE*1);
         var faces_address = Module._malloc(INT_SIZE*3*max_faces)
@@ -88,6 +88,8 @@ Based on MCC1
         else
             console.info("Heap size OK.");
 
+        console.log(Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*2));
+
         //console.log("subarray");
         //console.log(verts.subarray(verts.length-100, verts.length));
 
@@ -100,6 +102,10 @@ Based on MCC1
         Module._free(nv_address);
         Module._free(faces_address);
         Module._free(nf_address);
+
+        //BUG! Accessed (returned) after "_Free"ing.
+        // FIXME: FREED before actually copying
+        console.log(Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*2));
 
         console.log("nverts : "+ nverts)
         console.log("nfaces : "+ nfaces)
@@ -195,6 +201,8 @@ MyBufferGeometry = function ( verts, faces ) {
     for(var i=0; i < facecount; i++)
         for(var si=0; si<3; si++)
             indices[i*3+si] = faces[i*3+si];
+
+    //console.log(verts.subarray(0,3*3));
 
     //console.log(indices);
 

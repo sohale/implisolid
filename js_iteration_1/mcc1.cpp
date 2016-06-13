@@ -1630,49 +1630,19 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
     std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
-
-    int ccc=0;
-    for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it++ ){
-    //for(std::vector<REAL>::iterator it=mc.result_verts.begin(); ccc<10; it++ ){
-        //std::cout << *it;
-        ccc++;
-        if(ccc==10)
-           break;
-    }
-
     *nv = mc.result_verts.size()/3;
     *nf = mc.result_faces.size()/3;
 
-    //REAL mn = 0;
+    // Vertices
     int ctr = 0;
     for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it+=3 ){
         for(int di=0; di<3; di++){
             verts[ctr] = *( it + di );
-            //std::cout << verts[ctr];
             ctr++;
-            //mn += std::abs(*( it + di ));
         }
       }
-    //std::cout << "mean " << mn << std::endl;
 
-    /*
-    std::cout << "*nv = " << *nv << std::endl;
-    for(int j=((*nv * 3)-100);j< (*nv * 3); j++)
-        std::cout << verts[j] << " ";
-    std::cout << "printed last 100 elements in vertices. len="<< *nv << std::endl;
-    */
-    /*
-    {
-        int n = mc.result_verts.size();
-        for(int j=n-100;j< n; j++){
-            std::cout << mc.result_verts[j] << " ";
-            std::cout << verts[j] << "; ";
-        }
-        std::cout << "printed last 100 elements in vertices.     len="<< n << std::endl;
-    }
-    */
-
-    // REPREATED CODE
+    // Faces
     ctr = 0;
     for(std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ){
         for(int di=0; di<3; di++){
@@ -1681,15 +1651,6 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
         }
       }
 
-    /*
-    std::cout << "*nf = " << *nf << std::endl;
-    for(int j=0;j< *nf; j++)
-        std::cout << faces[j] << " ";
-    std::cout << "printed all" << std::endl;
-    */
-
-    //mc.result_faces.reserve(100000);
-    //mc.result_verts.reserve(100000);
 
 }
 
