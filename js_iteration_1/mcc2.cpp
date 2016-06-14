@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <map>
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -41,6 +42,8 @@ typedef array1d::index  index_t;
 
 typedef index_t index3_t; //Range of the element type has to be large enough, larger than (size^3)*3.
 typedef boost::multi_array<index3_t, 1>   array1d_e3;
+typedef std::map<index3_t,int>  e3map_t;
+
 
 struct callback_t { void call (void*) const { } callback_t(){} };
 
@@ -72,6 +75,10 @@ REAL lerp(REAL a, REAL b, REAL t ) {
 
 #define ENABLE_NORMALS false
 
+
+/** Pipeline:
+    (MC_table_loopup) --> *list_buffer --> *Queue --> result_*
+*/
 class MarchingCubes{
     bool enableUvs, enableColors;
     dim_t resolution;
@@ -108,6 +115,7 @@ class MarchingCubes{
 
     array1d positionQueue;  // size: MaxCount x 3
     array1d normalQueue;
+    array1d_e3 e3Queue;
 
     // array1d &&colorQueue; // = 0;
     // array1d &&uvQueue; // = 0;
@@ -141,7 +149,7 @@ public:
     REAL isolation;
 
     //void flush_geometry(std::ostream&);
-    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3);
+    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map);
 
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -164,7 +172,7 @@ public:
 
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
-
+    e3map_t result_e3map;
 };
 
 //static dim_t MarchingCubes::queueSize = ...;
@@ -174,12 +182,15 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
-        vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
-        nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3 * (ENABLE_NORMALS?1:0) } ) )),
         normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 *(ENABLE_NORMALS?1:0) }) )),
 
+        vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
+        nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3 * (ENABLE_NORMALS?1:0) } ) )),
+        e3list_buffer(array1d_e3(  make_shape_1d(temp_buffer_size)   )),
+
         positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 + EXCESS))),
-        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 * (ENABLE_NORMALS?1:0) + EXCESS)))
+        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 * (ENABLE_NORMALS?1:0) + EXCESS))),
+        e3Queue(array1d_e3(make_shape_1d(MarchingCubes::queueSize )))
 
 {
 
@@ -201,6 +212,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->result_verts.reserve(expected_vertices*3);
     this->result_faces.reserve(expected_faces*3);
     //what about normals?
+    this->result_e3map.reserve(expected_faces*3 ); //should be less than one third of expercted_verts
 }
 
 
@@ -301,6 +313,8 @@ void MarchingCubes::init( dim_t resolution ) {
         if(ENABLE_NORMALS){
             this->normalQueue   = array1d(shape_maxCount_x_3);
         }
+        auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
+        this->e3Queue = array1d_e3(shape_maxCount_x_1);
 
 
         auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
@@ -368,6 +382,8 @@ inline void MarchingCubes:: VIntX(
     REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
+    //std::cout << "VIntXX" << std::endl;
+
     // pout is vlist_buffer
     // nout is nlist_buffer
 
@@ -388,10 +404,23 @@ inline void MarchingCubes:: VIntX(
         nout[ offset + 1 ] = lerp( nc[ q + 1 ], nc[ q + 4 ], mu );
         nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q + 5 ], mu );
     }
+
+    //std::cout << "here2-a" << std::endl;
+
+    //offsetdiv3
+    index3_t e3x = ijk*3;
+    //std::cout << "here2-b" << std::endl;
+
+    //very short
+    //int offset333 = offset/3;
+    //e3out[offset333] = e3x;
+    e3out[offset/3] = e3x;
+    //std::cout << "here2-c" << std::endl;
+
 }
 
-void fp(){
-
+inline void fp(){
+    std::cout << "it";
 }
 //(void*()) fpp = fp;
 void (*fpp)() = fp;
@@ -399,6 +428,9 @@ void (*fpp)() = fp;
 inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
+    //(*fpp)();
+
+    //std::cout << "VIntYY" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& nc = this->normal_cache;
@@ -415,11 +447,22 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
         nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q2 + 2 ], mu );
     }
 
+    //std::cout << "here2-a" << std::endl;
+
+    index3_t e3x = ijk*3+1;
+    //std::cout << "here2-b" << std::endl;
+
+    //std::cout << "e3out.size()" << e3out.size() << std::endl;
+
+    e3out[offset/3] = e3x;
+    //std::cout << "here2-c" << std::endl;
 }
 
 inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
+
+    //std::cout << "VIntZZ" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& nc = this->normal_cache;
@@ -435,6 +478,9 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
         nout[ offset + 1 ] = lerp( nc[ q + 1 ], nc[ q2 + 1 ], mu );
         nout[ offset + 2 ] = lerp( nc[ q + 2 ], nc[ q2 + 2 ], mu );
     }
+
+    index3_t e3x = ijk*3+2;
+    e3out[offset/3] = e3x;
 }
 
 inline void MarchingCubes::compNorm( index_t q ) {
@@ -504,7 +550,10 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
         fy2 = fy + d,
         fz2 = fz + d;
 
-    index_t ijk;
+    //TODO: PUT A VLAUE HERE
+    index_t ijk = 0;
+
+    //std::cout << "here1" << std::endl;
 
     // top of the cube
 
@@ -622,6 +671,8 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
 
+    //std::cout << "here3" << std::endl;
+
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
 
@@ -657,6 +708,7 @@ void MarchingCubes::posnormtriv(
     array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list,
     int o1, int o2, int o3,
     const callback_t& renderCallback ) {
+    /** Moves data: _list[] into _Queue[] */
 
     int c = this->queue_counter * 3;
 
@@ -675,6 +727,12 @@ void MarchingCubes::posnormtriv(
     this->positionQueue[ c + 6 ] = pos__vlist[ o3 ];
     this->positionQueue[ c + 7 ] = pos__vlist[ o3 + 1 ];
     this->positionQueue[ c + 8 ] = pos__vlist[ o3 + 2 ];
+
+
+    int c_div_3 = this->queue_counter; //c/3;
+    this->e3Queue[ c_div_3 ]     = e3__e3list[ o1/3 ];
+    this->e3Queue[ c_div_3 + 1 ] = e3__e3list[ o2/3 ];
+    this->e3Queue[ c_div_3 + 2 ] = e3__e3list[ o3/3 ];  //(c + 3)/3
 
 
     //DEBUG_PA001(pos__vlist, o3);
@@ -763,7 +821,7 @@ void MarchingCubes::sow() {
 
     //this->flush_geometry(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces);
+    this->flush_geometry(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map);
 }
 
 void MarchingCubes::begin_queue() {
@@ -787,11 +845,11 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
     //    this->positionQueue[ i ] = 0.0;
     //}
 
+    // Is this really necessary??
     std::fill(this->positionQueue.begin() + (this->queue_counter * 3), this->positionQueue.end(), 0.0 );
 
     this->hasPositions = true;
     this->hasNormals = ENABLE_NORMALS;
-;
 
     if ( this->enableUvs ) {
         this->hasUvs = true;
@@ -800,6 +858,8 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
     if ( this->enableColors ) {
         this->hasColors = true;
     }
+
+    //std::fill(this->e3Queue.begin() + (this->queue_counter), this->e3Queue.end(), 0 );
 
     renderCallback.call(this);
     sow();
@@ -1446,10 +1506,12 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 };
 
 
-
 //void flush_geometry(MarchingCubes& object) {
 
-void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3) {
+void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start,
+    //outputs:
+    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
+{
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/
     //changes the queue. => should be inside the queue's "territory".
@@ -1480,6 +1542,11 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
         verts3.push_back(y);
         verts3.push_back(z);
 
+        index3_t  e3 = this->e3Queue[i];
+        e3map.emplace(e3, 1);
+        //e3map.push_back(e3);
+        //verts_e3
+
         if(ENABLE_NORMALS){
             x = this->normalQueue[ a ];
             y = this->normalQueue[ b ];
@@ -1496,6 +1563,8 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
             normals.push_back( (REAL)(y / nd) );
             normals.push_back( (REAL)(z / nd) );
         }
+
+
     }
 
 
@@ -1528,6 +1597,10 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start, std::
     normals_start += nfaces;
     this->queue_counter = 0;
 
+    std::cout << "MAP" << std::endl;
+
+    for (auto& kv_pair: e3map)
+        std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
 }
 
 
@@ -1633,7 +1706,7 @@ public:
     ~MarchingCubesMock() {}; //why does this have to be public: ?
 
     //void flush_geometry(std::ostream&);
-    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3)
+    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
@@ -1697,6 +1770,8 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
+
+    std::cout << "map2" << std::endl;
 
     //mc.result_faces.resize(100);
 
@@ -1805,6 +1880,12 @@ void build_geometry(int resolution, REAL time){
     const callback_t renderCallback;
     _state.mc->render_geometry(renderCallback);
     //std::cout << "MC executed" << std::endl;
+
+    std::cout << "map4" << std::endl;
+
+    for (auto& kv_pair: _state.mc->result_e3map)
+        std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
