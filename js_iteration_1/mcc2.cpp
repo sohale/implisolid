@@ -119,13 +119,9 @@ class MarchingCubes{
  protected:
     void init(dim_t resolution);
 
-inline void VIntX(index_t q,
-    array1d &pout, array1d &nout,
-    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-inline void VIntY(index_t q, array1d& pout, array1d& nout,
-    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-inline void VIntZ(index_t q, array1d& pout, array1d& nout,
-    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
+inline void VIntX(index_t q, array1d &pout, array1d &nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk);
+inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk);
+inline void VIntZ(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk);
 
 void compNorm( index_t q );
 void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, int o1, int o2, int o3, const callback_t& renderCallback );
@@ -357,13 +353,16 @@ void MarchingCubes::kill()
     ;
 }
 
+//index_t ijk, short_t dir
+
 inline void MarchingCubes:: VIntX(
     index_t q, array1d &pout, array1d &nout,
     int offset,
     REAL isol,
     REAL x, REAL y, REAL z,
     REAL valp1,
-    REAL valp2 )
+    REAL valp2,
+    index_t ijk )
 {
     // pout is vlist_buffer
     // nout is nlist_buffer
@@ -375,6 +374,10 @@ inline void MarchingCubes:: VIntX(
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
+    //e1 = ijk;
+    //eout[ eoffset ] = e1;
+    //eout[ eoffset + 1 ] = e2;
+
     if(ENABLE_NORMALS){
         //todo: check the type of q
         nout[ offset ]     = lerp( nc[ q ],     nc[ q + 3 ], mu );
@@ -383,8 +386,8 @@ inline void MarchingCubes:: VIntX(
     }
 }
 
-//index_t ijk, short_t dir
-inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
+inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
+    index_t ijk )
 {
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
@@ -404,7 +407,8 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
 
 }
 
-inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
+inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
+    index_t ijk )
 {
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
@@ -490,6 +494,8 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
         fy2 = fy + d,
         fz2 = fz + d;
 
+    index_t ijk;
+
     // top of the cube
 
     if ( bits & 1 ) {
@@ -497,7 +503,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q );
             this->compNorm( q1 );
         }
-        this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1 );
+        this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1,  ijk);
 
     }
 
@@ -506,7 +512,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q1 );
             this->compNorm( q1y );
         }
-        this->VIntY( q1 * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3 );
+        this->VIntY( q1 * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3,  ijk);
 
     }
 
@@ -515,7 +521,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( qy );
             this->compNorm( q1y );
         }
-        this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3 );
+        this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3,  ijk );
 
     }
 
@@ -524,7 +530,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q );
             this->compNorm( qy );
         }
-        this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2 );
+        this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2,  ijk);
 
     }
 
@@ -535,7 +541,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( qz );
             this->compNorm( q1z );
         }
-        this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5 );
+        this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5,  ijk );
 
     }
 
@@ -544,7 +550,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q1z );
             this->compNorm( q1yz );
         }
-        this->VIntY( q1z * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7 );
+        this->VIntY( q1z * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7,  ijk );
 
     }
 
@@ -553,7 +559,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( qyz );
             this->compNorm( q1yz );
         }
-        this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7 );
+        this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7,  ijk );
 
     }
 
@@ -562,7 +568,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( qz );
             this->compNorm( qyz );
         }
-        this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6 );
+        this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6,  ijk );
 
     }
 
@@ -573,7 +579,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q );
             this->compNorm( qz );
         }
-        this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4 );
+        this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4,  ijk );
 
     }
 
@@ -582,7 +588,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q1 );
             this->compNorm( q1z );
         }
-        this->VIntZ( q1 * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5 );
+        this->VIntZ( q1 * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5,  ijk );
 
     }
 
@@ -591,7 +597,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( q1y );
             this->compNorm( q1yz );
         }
-        this->VIntZ( q1y * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7 );
+        this->VIntZ( q1y * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7,  ijk );
 
     }
 
@@ -600,7 +606,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->compNorm( qy );
             this->compNorm( qyz );
         }
-        this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6 );
+        this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6,  ijk );
 
     }
 
