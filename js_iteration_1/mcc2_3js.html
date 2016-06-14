@@ -1,0 +1,738 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+</head>
+<!-- Memory profiler code by "jj":
+from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
+-->
+<script type="text/javascript" src="memoryprofiler.js"></script>
+<script>
+        function letmeknow(){console.log("111111");}
+        Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
+
+</script>
+<body>
+<script type="text/javascript" src="mcc2.cpp.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+<!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
+-->
+<!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
+-->
+<script type="text/javascript" src="./controls/OrbitControls.js"></script>
+
+<!--<body>-->
+Based on MCC1
+
+<br>
+
+<script>
+    //'use strict';
+
+    //Version 1 has flaws: _free()s before returning the verts.
+    var CALL_VERSION = 2; //1 or 2
+    const VERBOSE = false;
+
+    var WIREFRAME = false;
+    var produce_object;
+    var main;
+
+    var newProducer;
+    function init1()
+    {
+        function letmeknow(){console.log("111111");}
+        //Module.preRun.push(letmeknow,memoryprofiler_add_hooks,letmeknow);
+        //Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
+
+        main = Module.cwrap('main', 'number', []);
+
+        produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
+
+        newProducer={};
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+        newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
+        newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
+        newProducer.get_v = Module.cwrap('get_v', null, ['number']);
+        newProducer.get_f = Module.cwrap('get_f', null, ['number']);
+        newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
+
+        console.log("ok");
+    }
+
+
+    //const DBLFLOAT_SIZE = 8;
+    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    const _INT_SIZE = 4;
+    //4 int
+    //4 float
+    //4 long
+
+
+
+    var global_time = 0;
+
+    function do_vf(delta_t)
+    {
+        //var time = 0.2;
+        global_time += delta_t;
+
+        //var max_verts = 40000;  // *2
+        //var max_faces = 15000;  //*5
+
+        var max_verts = 16000;  // *2
+        var max_faces = 13000;  //*5
+        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
+        var nv_address = Module._malloc(_INT_SIZE*1);
+        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
+        var nf_address = Module._malloc(_INT_SIZE*1);
+        //todo: how to make sure enough space is allocated.
+
+
+        /* ************************* */
+        /*   Call C++                */
+        produce_object(verts_address, nv_address, faces_address, nf_address, global_time);
+        /* ************************* */
+
+        //Module.HEAPF64 is a Float64Array
+        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
+        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+        //what if there is not enough memory?
+
+        //         var result_faces = new Float32Array(dataHeap.buffer, dataHeap.byteOffset, data.length);
+        //verts_address is byteOffset?
+
+        //second attemtps: (still has problems)
+        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
+
+        //Thisrd solution:
+        //http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html
+
+        var h_len = (Module.HEAPF32.length);
+        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
+        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
+        if(h_len <= v_end || h_len <= f_end)
+            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
+        else
+            console.info("Heap size OK.");
+
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
+
+        //console.log("subarray");
+        //console.log(verts.subarray(verts.length-100, verts.length));
+
+        // ****************************
+        // The actual leak was here !
+        // ****************************
+        //freeing resources
+        //also see http://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
+        Module._free(verts_address);
+        Module._free(nv_address);
+        Module._free(faces_address);
+        Module._free(nf_address);
+
+        //BUG! Accessed (returned) after "_Free"ing.
+        // FIXME: FREED before actually copying
+
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
+        //console.log(result_verts.subarray(0, 3*2));
+
+        if(VERBOSE){
+            console.log("nverts : "+ nverts);
+            console.log("nfaces : "+ nfaces);
+        }
+
+        return [verts, faces];
+        //return [result_verts, faces];
+    }
+
+//    //third way:
+//    function     vf(){
+//            //function _produce_object($verts,$nv,$faces,$nf,$time){}
+//
+//  // $verts = $verts|0;
+//  // $nv = $nv|0;
+//  // $faces = $faces|0;
+//  // $nf = $nf|0;
+//  // $time = +$time;
+//  //$254 = $verts..
+//  //HEAPF32[$254>>2] = $251;
+//  //
+//    }
+
+
+'use strict';
+
+MyBufferGeometry = function ( verts, faces ) {
+
+//MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
+
+
+    //console.log(faces);
+    if(VERBOSE)
+        console.log("MyBufferGeometry");
+
+    THREE.BufferGeometry.call( this );
+
+    //console.log("raw v size " + verts.length);
+    //console.log("vl " + verts.length/3);
+    //console.log("fl " + faces.length/3);
+
+    this.type = 'MyBufferGeometry';
+
+    this.parameters = {
+        //width: width,
+        //height: height,
+        //depth: depth,
+        //widthSegments: widthSegments,
+        //heightSegments: heightSegments,
+        //depthSegments: depthSegments
+    };
+    var vertexCount = verts.length/3;
+    var facecount = faces.length/3;
+    var indexCount = facecount*3;
+
+    if(VERBOSE){
+        console.log("vertexCount="+vertexCount+ "   ,  facecount=" + facecount+ "   facecount*3="+(facecount*3));
+    }
+
+    // buffers
+    var indices = new ( indexCount > 65535 ? Uint32Array : Uint16Array )( indexCount );
+    var vertices = new Float32Array( vertexCount * 3 );
+    var normals = new Float32Array( vertexCount * 3 );
+    var uvs = new Float32Array( vertexCount * 2 );
+
+    // offset variables
+    //var vertexBufferOffset = 0;
+    //var uvBufferOffset = 0;
+    //var indexBufferOffset = 0;
+    //var numberOfVertices = 0;
+
+    // group variables
+    //var groupStart = 0;
+
+    // build each side of the box geometry
+    //output: vertices, normals, uvs, indices
+
+    nans_warnings = 0;
+    //console.log("vertexCount " + vertexCount)
+    SCALE = 1.
+    for(var i=0; i < vertexCount; i++)
+    {
+        for(var di = 0; di < 3; di++)
+            vertices[i*3+di] = verts[i*3+di] * SCALE;
+        x = verts[i*3+0];
+        y = verts[i*3+1];
+        z = verts[i*3+2];
+        //console.log(x+" , " + y + " , " + z);
+
+        d = Math.sqrt(x*x+y*y+z*z);
+        d=d+0.;
+        //if(d==0) d=1.;
+        if(isNaN(d)) {
+            d=1.;x=1.;y=1.;z=1.;
+            console.log("Warning");
+        }
+        //console.log("x y z"+x+" "+y+" "+z+"   / "+ d)
+
+        sgn = +1;
+        normals[i*3 + 0] = x/d*sgn;
+        normals[i*3 + 1] = y/d*sgn;
+        normals[i*3 + 2] = z/d*sgn;
+
+        if(isNaN(x/d))
+            nans_warnings ++;
+
+        d2 = Math.sqrt(x*x+y*y);
+        uvs[i*2+0] = x/d2;
+        uvs[i*2+1] = y/d2;
+    }
+
+    for(var i=0; i < facecount; i++)
+        for(var si=0; si<3; si++)
+            indices[i*3+si] = faces[i*3+si];
+
+    //console.log(verts.subarray(0,3*3));
+
+    //console.log(indices);
+
+    materialIndex = 0;
+    this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
+
+    if(nans_warnings > 0)
+        console.error("WARNING: NaN in vertices. "+nans_warnings/978+" out of "+vertexCount/978+ "  subtract:"+(vertexCount-nans_warnings)/978);
+
+
+
+
+    //this.addGroup( groupStart, groupCount, materialIndex );  //groupCount is same as indices' index.
+
+    //modified, but not output: indexBufferOffset, vertexBufferOffset, uvBufferOffset, numberOfVertices, groupStart
+
+    // build geometry
+    this.setIndex( new THREE.BufferAttribute( indices, 3 ) );
+    this.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+    this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
+
+    // helper functions
+
+    function calculateVertexCount ( w, h, d ) {
+
+        var vertices = 0;
+
+        // calculate the amount of vertices for each side (plane)
+        vertices += (w + 1) * (h + 1) * 2; // xy
+        vertices += (w + 1) * (d + 1) * 2; // xz
+        vertices += (d + 1) * (h + 1) * 2; // zy
+
+        return vertices;
+
+    }
+
+    function calculateIndexCount ( w, h, d ) {
+
+        var index = 0;
+
+        // calculate the amount of squares for each side
+        index += w * h * 2; // xy
+        index += w * d * 2; // xz
+        index += d * h * 2; // zy
+
+        return index * 6; // two triangles per square => six vertices per square
+
+    }
+
+};
+
+MyBufferGeometry.prototype = Object.create( THREE.BufferGeometry.prototype );
+MyBufferGeometry.prototype.constructor = MyBufferGeometry;
+
+
+MyGeometry = function (verts, faces) {
+    //vects, faces
+
+    THREE.Geometry.call( this );
+
+    this.type = 'ImplicitGeometry'; //?
+
+    this.parameters = {
+        /*width: width,
+        height: height,
+        depth: depth,
+        widthSegments: widthSegments,
+        heightSegments: heightSegments,
+        depthSegments: depthSegments*/
+    };
+
+
+    //faces = faces.subarray(0, 300);
+    this.fromBufferGeometry( new MyBufferGeometry( verts, faces ) );
+    //this.mergeVertices();
+
+};
+
+MyGeometry.prototype = Object.create( THREE.Geometry.prototype );
+MyGeometry.prototype.constructor = MyGeometry;
+
+
+
+/*
+// MyLiveUpdatableGeometry
+LiveGeometry = function () {
+    //material_wireframe = ...;
+    THREE.THREE.ImmediateRenderObject.call( this, material_wireframe );
+    this.setVF = function(verts, faces){
+    }
+};
+LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
+LiveGeometry.prototype.constructor = LiveGeometry;
+*/
+
+function make_geometry(delta_t)
+{
+
+    var startTime = new Date();
+    //new Date().getTime()
+
+    if(delta_t === undefined)
+        delta_t = 0.2;
+
+    vf = do_vf(delta_t);
+    v = vf[0];
+    f = vf[1];
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    console.log("TIME: "+timeDiff+ " msec.");
+
+    return new MyGeometry(v, f);
+}
+
+
+function make_geometry_new(delta_t)
+{
+    var startTime = new Date();
+
+    if(delta_t === undefined)
+        delta_t = 0.2;
+    // Subjective time!
+    //var time = 0.2;
+    global_time += delta_t;
+
+
+    newProducer.build_geometry( 28, global_time);
+
+    var nverts = newProducer.get_v_size();
+    var nfaces = newProducer.get_f_size();
+    if(VERBOSE){
+        console.log(nverts);
+    }
+
+    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
+    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
+
+    newProducer.get_v(verts_address, nverts);
+    newProducer.get_f(faces_address, nfaces);
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    //console.log(verts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    var geom = new MyGeometry(verts, faces);
+
+    // Now you can free the resources.
+
+    Module._free(verts_address);
+    Module._free(faces_address);
+
+    newProducer.finish_geometry();
+
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    console.log("TIME: "+timeDiff);
+
+    return geom;
+}
+
+
+mesh_wireframe = null;
+function init2() {
+
+    scene = new THREE.Scene();
+
+    WIDTH = 300;
+    HEIGHT = 300;
+    WIDTH = window.innerWidth;
+    HEIGHT = window.innerHeight - 200; //for memory profiler
+    camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+    camera.position.z = 1000;
+
+
+    materials_list = look_nice(scene);
+
+    material_wireframe = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
+
+    //geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    if(CALL_VERSION==1){
+        geometry = make_geometry();
+    }
+    else{
+        geometry = make_geometry_new();
+    }
+
+    mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+    mesh_wireframe.position.set( 0, 0, 0 );
+    //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
+    mesh_wireframe.scale.set( 300, 300, 300 );
+
+    //mesh_wireframe.position.z = +0;
+    //mesh_wireframe.rotation.y = -Math.PI * .5;
+
+    scene.add( mesh_wireframe );
+    //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
+
+
+    material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
+
+        //mesh_solid = new THREE.Mesh( geometry, material_f );
+        //nice ones: 2, 3,  (checked until 4)
+        mesh_solid = new THREE.Mesh( geometry, materials_list[3] );
+        mesh_solid.position.set( 0, 0, 0 );
+        mesh_solid.scale.set( 300, 300, 300 );
+        scene.add( mesh_solid );
+
+
+    geo2 = new THREE.BoxGeometry( 20, 20, 20 );
+    mesh2_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
+    mesh2_box_wireframe	.position.set( 0, 0, 0 );
+    scene.add( mesh2_box_wireframe	 );
+    //mesh2_box_wireframe	.scale.set( 10, 10, 10 );
+
+    var dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(100, 100, 50);
+    scene.add(dirLight);
+
+
+    if(VERBOSE){
+        console.log("RENDERER");
+    }
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    //renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( WIDTH, HEIGHT );
+
+    document.body.appendChild( renderer.domElement );
+
+
+    /*
+      function update_mc_multiple() {
+            var mc_icounter=0;
+            setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.*5); mc_icounter++; }, 30);
+        }
+    */
+
+    //var interval_active = 0;
+    var last_active = 0;
+    var intervals_counter = 0;
+
+    function update_mc_multiple() {
+        //var mc_icounter=0;
+        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
+        var burst_counter = 0;
+
+        //already_busy_doing_it level1: right now.
+        //already_busy_doing_it: interval (level 2)
+
+        intervals_counter++;
+        if(intervals_counter>1) //dont start if there is already one running
+        {
+            intervals_counter--;
+            return;
+        }
+        last_active = setInterval (
+            function()
+            {
+                /*
+                var ls="";
+                for (var lft=0;lft<100;lft++){
+                    ls+=" ";
+                }
+                console.log(ls.slice(1));
+                console.log("1msec");
+                return;
+                */
+                if(!last_active)
+                    console.error("!last_active");
+
+                burst_counter++; // mc_icounter
+
+                if(burst_counter<10)  //This code is amazingly similar to Bursting dyamics in neurons.
+                {
+
+                    if(already_busy_doing_it<1) //removable
+                    {
+                        already_busy_doing_it++;
+                        update_mc(0.2/10.*5);
+                        if(already_busy_doing_it>1)
+                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
+                        if(!last_active)
+                            console.error("!last_active");
+                        already_busy_doing_it--;
+                    }else{
+                        console.log("hit");
+                    }
+                }
+                else
+                {
+                    // The interval has finished its job. Time to go.
+                    if(!last_active)
+                        console.error("!last_active");
+                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
+                    intervals_counter--; // Allow next one in future
+                    burst_counter = 0;
+                    last_active = 0;
+                }
+            },
+            1 //30
+        );
+
+        /*
+        //broken code:
+        //fast x 1, fast x10, fast x 100
+        last_active = setInterval(
+            function()
+            {
+                console.info(interval_active+ " "+mc_icounter+"   busy already_busy_doing_it:"+already_busy_doing_it);
+                if(interval_active === 0)  // interval_active is shared "between" calls to this
+                {
+                    console.log("****START****");
+                    interval_active = 1;
+                    if(mc_icounter<10)
+                    {
+                        if(already_busy_doing_it<1)
+                        {
+                            already_busy_doing_it++;
+                            update_mc(0.2/10.*5);
+                            console.log(">>>already_busy_doing_it:"+already_busy_doing_it);
+                            already_busy_doing_it--;
+                        }
+                    }
+                    else
+                    {
+                        if(last_active === 0)
+                            console.error("a");
+                        clearInterval(last_active);
+                        last_active = 0;
+                        interval_active=0;
+                    }
+                    //mc_icounter++;
+                    console.log("****STOP****");
+                }
+                mc_icounter++;
+                if(mc_icounter>10)
+                {
+                        clearInterval(last_active);
+                        interval_active=0;
+                }
+            }, 30);
+        */
+
+    }
+    function doKeyDownListener(event) {
+        if ( event.keyCode == 17 ) {
+            //update_mc();
+            update_mc_multiple();
+        }
+        else
+            console.log(event.keyCode);
+    }
+    window.addEventListener( "keydown", doKeyDownListener, false );  // keydown  keypress
+
+
+    // CONTROLS
+    //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
+    cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    cameraControls.target.set( 0, 0, 0 );
+    cameraControls.addEventListener( 'change', function () {;} );
+
+}
+
+function update_mc(delta_t){
+    scene.remove(mesh_solid);
+    scene.remove(mesh_wireframe);
+
+    var geometry;
+    if(CALL_VERSION==1){
+        geometry = make_geometry(delta_t);
+    }
+    else{
+        geometry = make_geometry_new(delta_t);
+    }
+
+
+    mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+    mesh_wireframe.position.set( 0, 0, 0 );
+    mesh_wireframe.scale.set( 300, 300, 300 );
+    scene.add( mesh_wireframe );
+
+    mesh_solid = new THREE.Mesh( geometry, materials_list[3] );
+    mesh_solid.position.set( 0, 0, 0 );
+    mesh_solid.scale.set( 300, 300, 300 );
+    scene.add( mesh_solid );
+}
+
+//based on http://threejs.org/examples/#webgl_materials
+function generateTexture() {
+                var canvas = document.createElement( 'canvas' );
+                canvas.width = 256;
+                canvas.height = 256;
+                var context = canvas.getContext( '2d' );
+                var image = context.getImageData( 0, 0, 256, 256 );
+                var x = 0, y = 0;
+                for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
+                    x = j % 256;
+                    y = x == 0 ? y + 1 : y;
+                    image.data[ i ] = 255;
+                    image.data[ i + 1 ] = 255;
+                    image.data[ i + 2 ] = 255;
+                    image.data[ i + 3 ] = Math.floor( x ^ y );
+                }
+                context.putImageData( image, 0, 0 );
+                return canvas;
+            }
+
+function look_nice(scene){
+    var materials = [];
+    // Grid
+    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } ),
+        geometry = new THREE.Geometry(),
+        floor = -75, step = 25;
+    for ( var i = 0; i <= 40; i ++ ) {
+        geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+        geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+    }
+    var line = new THREE.LineSegments( geometry, line_material );
+    scene.add( line );
+    // Materials
+    var texture = new THREE.Texture( generateTexture() );
+    texture.needsUpdate = true;
+    materials.push( new THREE.MeshLambertMaterial( { map: texture, transparent: true } ) );
+    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.FlatShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.FlatShading } ) );
+    materials.push( new THREE.MeshNormalMaterial( ) );
+    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
+    //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
+    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
+    materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
+    materials.push( new THREE.MeshDepthMaterial() );
+    materials.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000, shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, shading: THREE.SmoothShading, opacity: 0.9, transparent: true } ) );
+    materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
+    return materials;
+}
+function animate() {
+
+    requestAnimationFrame( animate );
+
+
+    var SPEED = 3. / 100;
+    if(mesh_wireframe){
+    mesh_wireframe.rotation.x += 0.01*SPEED;
+    mesh_wireframe.rotation.y += 0.02*SPEED;
+    mesh_solid.rotation.x += 0.01*SPEED;
+    mesh_solid.rotation.y += 0.02*SPEED;
+    }
+
+    mesh2_box_wireframe	.rotation.z += 0.01*SPEED;
+    mesh2_box_wireframe	.rotation.y += 0.02*SPEED;
+
+
+
+    //materials_list[ materials.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * timer ) ) );
+    //materials_list[ materials.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * timer ) ) );
+
+    renderer.render( scene, camera );
+
+}
+
+var scene, camera, renderer;
+var geometry, material_wireframe, mesh_wireframe;
+
+window.setTimeout(function()
+{
+    init1();
+    init2();
+    animate();
+}, 3000);
+
+
+</script>
