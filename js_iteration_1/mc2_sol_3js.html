@@ -166,9 +166,9 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
     // buffers
     var indices = new ( indexCount > 65535 ? Uint32Array : Uint16Array )( indexCount );
-    var vertices = new Float32Array( vertexCount * 3 );
-    var normals = new Float32Array( vertexCount * 3 );
-    var uvs = new Float32Array( vertexCount * 2 );
+    var vertices = new Float32Array( indexCount);
+    var normals = new Float32Array( indexCount );
+    var uvs = new Float32Array( indexCount * 2./3.0);
 
     // offset variables
     var vertexBufferOffset = 0;
@@ -199,13 +199,19 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
         //exfdgdg()
         console.log("Vertexcount: "+vertexCount);
         console.log("**************************************");
-        for(var i=0; i < vertexCount; i++)
-        {
+        for(var i=0; i < indexCount; i++)
+        {   var fi = i/3;
+            var si = i%3;
             for(var di=0;di<3;di++)
-                vertices[i*3+di] = verts[i*3+di] * SCALE;
-            x = verts[i*3+0];
-            y = verts[i*3+1];
-            z = verts[i*3+2];
+        //        vertices[i*3+di] = verts[faces[fi*3+ si]*3+di] * SCALE;
+    //            vertices[i*3+di] = verts[i*3+di] * SCALE;
+                  vertices[i*3+di] = verts[faces[i*3+di]]*SCALE;
+            x = verts[faces[i*3+0]];
+            y = verts[faces[i*3+1]];
+            z = verts[faces[i*3+2]];
+            // x = verts[faces[i]*3+0];
+            // y = verts[faces[i]*3+1];
+            // z = verts[faces[i]*3+2];
             d = Math.sqrt(x*x+y*y+z*z);
             d=d+0.;
             //if(d==0) d=1.;
@@ -242,7 +248,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
         for(var i=0; i < nbr_faces; i++)
             for(var si=0; si<3; si++)
-                indices[i*3+si] = faces[i*3+si];
+                indices[i*3+si] = i*3+si;
 
         materialIndex = 0;
         this.addGroup( 0, nbr_faces*3, materialIndex ); //not sure about *3 . Why??

@@ -673,8 +673,9 @@ vector<TRIANGLE> make_grid()
         REAL z = c[2];
         int shape = 1;
         if (shape == 1){
-          REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
-          REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+      //    REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
+    //      REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+          REAL f = 0.1- (pow(x-0.1,2) + pow(y-0.1,2) + pow(z-0.1,2));
           values[xi][yi][zi] = f;
           }
         else if(shape == 2){
@@ -1071,6 +1072,7 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
 
     vf_t vf_new = reindexing_verts_faces(vf);
     vf_t vf_2 = vf_new;
+  //  vf_t vf_2 = vf;
     *nv = vf_2.first.shape()[0];
     *nf = vf_2.second.shape()[0];
 
