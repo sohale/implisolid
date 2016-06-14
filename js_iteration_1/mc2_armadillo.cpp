@@ -560,7 +560,7 @@ void test1()
     cout << r;
 }
 
-
+#include <typeinfo>
 #include <armadillo>
 //void make_grid( boost::multi_array<REAL, 4>& grid_out, boost::multi_array<REAL, 3>& values_out )
 using namespace arma;
@@ -582,11 +582,20 @@ vf_t mc(const fmat& values )
 //void make_XYZ(REAL pa[3], XYZ&output){
 //const boost::multi_array<REAL, 1>
 //void make_XYZ(const boost::array<int, 3> & pa, XYZ & output)
-void make_XYZ(const icube & pa, XYZ & output)
+
+
+// void make_XYZ(const icube & pa, XYZ & output)
+// {
+//     output.x=pa[0];
+//     output.y=pa[1];
+//     output.z=pa[2)];
+// }
+
+void make_XYZ(const int & px, const int & py, const int & pz, XYZ & output)
 {
-    output.x=pa[0];
-    output.y=pa[1];
-    output.z=pa[2)];
+    output.x=px;
+    output.y=py;
+    output.z=pz;
 }
 
 void print_triangle_array(int count, TRIANGLE* tra)
@@ -603,6 +612,13 @@ void print_triangle_array(int count, TRIANGLE* tra)
 
 int nsize = 20;
 fcube values(nsize, nsize, nsize);
+// int nx = values.n_rows;
+// int ny = values.n_cols;
+// int nz = values.n_slices;
+//
+// icube grid_x(nx, ny, nz);
+// icube grid_y(nx, ny, nz);
+// icube grid_z(nx, ny, nz);
 
 //todo: Warning: may make a copy. (may call the copy constructor)
 
@@ -613,7 +629,9 @@ vector<TRIANGLE> make_grid()
     int ny = values.n_cols;
     int nz = values.n_slices;
 
-    icube grid(nx, ny, nz);
+    icube grid_x(nx, ny, nz);
+    icube grid_y(nx, ny, nz);
+    icube grid_z(nx, ny, nz);
     // boost::array<int, 4> grid_shape = {{ nx, ny, nz, 3 }};
     // boost::multi_array<REAL, 4> grid (grid_shape);
 
@@ -648,7 +666,14 @@ vector<TRIANGLE> make_grid()
     for(int yi=0; yi < ny; yi++)
     for(int zi=0; zi < nz; zi++)
     {
-        grid[xi, yi, zi] = (grid_min + grid_step * (REAL)xi, grid_min + grid_step * (REAL)yi, grid_min + grid_step * (REAL)zi);
+        int gx = grid_min + grid_step * (REAL)xi;
+        int gy = grid_min + grid_step * (REAL)yi;
+        int gz = grid_min + grid_step * (REAL)zi;
+        cout << typeid(grid_x).name() << endl;
+        grid_x[xi][yi][zi] = gx;
+        grid_y[xi][yi][zi] = gy;
+        grid_z[xi][yi][zi] = gz;
+
     }
 
 
@@ -669,9 +694,12 @@ vector<TRIANGLE> make_grid()
         // REAL x = grid.row(xi);
         // REAL y = grid.col(yi);
         // REAL z = grid.slice(zi);
-        REAL x = grid[xi];
-        REAL y = grid[yi];
-        REAL z = grid[zi];
+        REAL x = grid_x[xi][yi][zi];
+        REAL y = grid_y[xi][yi][zi];
+        REAL z = grid_z[xi][yi][zi];
+        // REAL x = grid[xi][:][:];
+        // REAL y = grid[:][yi][:];
+        // REAL z = grid[:][:][zi];
         //REAL f = 2.0 - (x*x+y*y+z*z);
         for(int i=0;i<1;i++){
             x = x*x;
@@ -748,14 +776,14 @@ vector<TRIANGLE> make_grid()
 
         GRIDCELL g;
 
-        make_XYZ (grid[xi][yi][zi], g.p[0] );
-        make_XYZ (grid[xi+1][yi][zi], g.p[3] );
-        make_XYZ (grid[xi][yi+1][zi], g.p[1] );
-        make_XYZ (grid[xi+1][yi+1][zi], g.p[2] );
-        make_XYZ (grid[xi][yi][zi+1], g.p[4] );
-        make_XYZ (grid[xi+1][yi][zi+1], g.p[7] );
-        make_XYZ (grid[xi][yi+1][zi+1], g.p[5] );
-        make_XYZ (grid[xi+1][yi+1][zi+1], g.p[6] );
+        make_XYZ (grid_x[xi][yi][zi], grid_y[xi][yi][zi],grid_z[xi][yi][zi], g.p[0] );
+        make_XYZ (grid_x[xi+1][yi][zi], grid_y[xi][yi][zi],grid_z[xi][yi][zi], g.p[3] );
+        make_XYZ (grid_x[xi][yi][zi], grid_y[xi][yi+1][zi],grid_z[xi][yi][zi], g.p[1] );
+        make_XYZ (grid_x[xi+1][yi][zi], grid_y[xi][yi+1][zi],grid_z[xi][yi][zi], g.p[2] );
+        make_XYZ (grid_x[xi][yi][zi], grid_y[xi][yi][zi],grid_z[xi][yi][zi+1], g.p[4] );
+        make_XYZ (grid_x[xi+1][yi][zi], grid_y[xi][yi][zi],grid_z[xi][yi][zi+1], g.p[7] );
+        make_XYZ (grid_x[xi][yi][zi], grid_y[xi][yi+1][zi],grid_z[xi][yi][zi+1], g.p[5] );
+        make_XYZ (grid_x[xi+1][yi][zi], grid_y[xi][yi+1][zi],grid_z[xi][yi][zi+1], g.p[6] );
 
 
 /*
@@ -1103,7 +1131,8 @@ int main0()
 
 
 int main()
-{
+{     icube grid(12,4,12);
+    grid[0][0][0] = 12;
      test_ext_prod();
      if(false)
         test_gridcell1();

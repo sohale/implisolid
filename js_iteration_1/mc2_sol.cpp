@@ -981,18 +981,13 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     verts_t verts = vf.first;
     faces_t faces = vf.second;
 
-  //  map <verts_t, int> dico_verts;
 
-  //  boost::array<int, 2> v_shape = {{ nv_new, 3 }};
-//    boost::multi_array<REAL, 2> verts_copy(nv);
     boost::array<int, 2> f_shape = {{ nf, 3 }};
-//    boost::multi_array<REAL, 2> verts_new(v_shape);
+
     boost::multi_array<int, 2> faces_new(f_shape);
 
     faces_new[0][0] = faces[0][0];
     faces_new[0][1] = faces[0][1];
-    // initilization of faces_new
-//    faces_new = faces;
 
     // for(int i=0; i<nv; i++){
     //     if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
@@ -1016,7 +1011,7 @@ vf_t reindexing_verts_faces(vf_t const& vf)
       bool new_vertex = true;
       for(int j=i+1; j<nv-1; j++){
           //(faces_new[i][j] == faces_new[i+1][0])
-        faces_new[i/3][i%3] = i/3 + i%3;  
+        faces_new[i/3][i%3] = i/3 + i%3;
         if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
         ABS(verts[i][2] - verts[j][2]) < thl ){
           new_vertex = false;
@@ -1040,7 +1035,7 @@ vf_t reindexing_verts_faces(vf_t const& vf)
   //    cout << faces_new[i/3][i%3] << endl;
       assert (nv_new <= nv);
     }
-    cout << " Patate!!!- nv_new " << nv_new << endl;
+    cout << " nv_new " << nv_new << endl;
     // verts initialization
     verts_new[0][0] = verts[0][0];
     verts_new[0][1] = verts[0][1];

@@ -124,165 +124,6 @@ def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
     return result_x_arr
 
 
-def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge):
-    """ see set_centers_on_surface__ohtake() """
-    print "Projecting the centroids: new age"
-
-    # print "s", ; flush()
-
-    THRESHOLD_minimum_gradient_len = 0.000001  # kill gradients smaller than this
-    THRESHOLD_zero_interval = 0.0001  # f == TH is NOT zero.
-    MAX_ITER = 20
-
-    max_dist = average_edge
-
-    x = centroids
-
-    fc_a = iobj.implicitFunction(x)
-    g_a = iobj.implicitGradient(x)
-    glen_a = np.linalg.norm(g_a, axis=1)
-    glen_a[np.abs(glen_a) < THRESHOLD_minimum_gradient_len] = 1.
-
-    g_normalization_factors = 1. / glen_a[:, np.newaxis]
-    g_direction_a = g_a * g_normalization_factors
-
-    signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
-
-    x0 = x
-
-    dx1_c = - g_direction_a * signs_c[:, np.newaxis]
-
-    step_size = max_dist / 2. * 2.
-
-    alpha_list = []
-    assert step_size > 0.001
-    while step_size > 0.001:
-        step_size = step_size * 0.5
-        max_step = min(MAX_ITER, int(math.floor(max_dist/math.fabs(step_size) + 0.001)))
-        assert max_step >= 2  # at least one step
-        # if max_step
-        # violated only at first time but the first point is already done.
-        for i in range(1, max_step+1, 2):  # Step size is two, to avoid aready visited points
-            alpha = float(i)*step_size
-            # print i, alpha/average_edge
-            alpha_list += [alpha/average_edge]
-            alpha_list += [-alpha/average_edge]
-            # alpha is prepared
-
-    # The algorithm
-    n = x0.shape[0]
-    best_result_x = np.ones((n, 3))
-    active_indices = np.arange(0, n, dtype=int)
-    active_count = n
-    print n
-    del n
-
-    still_nonsuccess_indices = active_indices
-
-    print "points: ", active_count, ".",
-    already_success = fc_a*0 > 1.  # all False
-    success = already_success.copy()  # falses  #.copy() is necessary
-    assert not np.any(already_success)
-
-    # print "left(found)",
-    for alpha in alpha_list:
-            x1_half = x0 + (max_dist*alpha)*dx1_c
-            FAST = True
-            if FAST:
-                active_indices = still_nonsuccess_indices
-                # set_trace()
-                # Todo: For those that have changed sign, check if they are closer actually.
-                f_a = iobj.implicitFunction(x1_half[active_indices, :])
-                signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
-                # success = signs_a * signs_c <= 0.
-                success0 = signs_a * signs_c[active_indices] <= 0.
-                success[:] = False
-                # success[success0] = True
-                assert np.all(success == False)
-                assert np.all(success[active_indices] == False)
-                success[active_indices] = success0
-                # print "success:", np.sum(success),
-            else:
-                # Todo: For those that have changed sign, check if they are closer actually.
-                f_a = iobj.implicitFunction(x1_half)
-                signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
-                success = signs_a * signs_c <= 0.
-                # print "success:", np.sum(success),
-            assert success.ndim == 1
-            # print "success", np.sum(success)
-            # print "already_success", np.sum(already_success)
-
-            new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
-
-            still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
-            best_result_x[new_success_indices, :] = x1_half[new_success_indices, :]
-
-            # for next round
-            already_success = np.logical_or(success, already_success)  # Union
-
-            print ("%d(+%d) " % (still_nonsuccess_indices.size, new_success_indices.size)),
-
-            if still_nonsuccess_indices.shape[0] == 0:
-                break
-    # if still_nonsuccess_indices.shape[0] > 0:
-    best_result_x[still_nonsuccess_indices, :] = x0[still_nonsuccess_indices, :]  # failed to converge
-
-    TEST = False
-    if TEST and not optimised_used():
-
-        f1 = iobj.implicitFunction(x0)
-        f2 = iobj.implicitFunction(best_result_x)
-        s = f1*f2
-        print s[still_nonsuccess_indices]
-        s[still_nonsuccess_indices] = -1.
-        # print s[s > 0]
-        assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
-        print "OK"
-
-    # ------------
-    # Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
-
-    # collect the zero ones
-
-    f1 = fc_a
-    assert np.all(f1 == iobj.implicitFunction(x0), axis=None)
-    f2 = iobj.implicitFunction(best_result_x)
-    zeros2 = np.abs(f2) <= THRESHOLD_zero_interval
-    # Copy the zeros onto results
-    zeros1 = np.abs(f1) <= THRESHOLD_zero_interval
-    best_result_x[zeros1, :3] = x0[zeros1, :3]
-    zeros12 = np.logical_or(zeros1, zeros2)  # output
-    assert np.all(np.abs(iobj.implicitFunction(best_result_x[zeros12, :])) <= THRESHOLD_zero_interval)
-
-    ROOT_TOLERANCE = THRESHOLD_zero_interval  # because of the assert
-
-    relevants_boolean = np.logical_and(already_success, np.logical_not(zeros12))
-
-    assert np.all(np.abs(f2[relevants_boolean]) > +THRESHOLD_zero_interval)
-    assert np.all(np.abs(f2[zeros12]) <= +THRESHOLD_zero_interval)
-
-    x0_v4 = centroids[relevants_boolean, :]
-    x2_v4 = best_result_x[relevants_boolean, :]
-    f1 = iobj.implicitFunction(x0_v4)
-    f2 = iobj.implicitFunction(x2_v4)
-    s = f1*f2
-    assert np.all(s <= +THRESHOLD_zero_interval)
-
-    # Swap negatives and positives
-    swap = f2 < -THRESHOLD_zero_interval
-    temp = x2_v4[swap, :]
-    x2_v4[swap, :] = x0_v4[swap, :]
-    x0_v4[swap, :] = temp
-    temp_f = f2[swap]
-    f2[swap] = f1[swap]
-    f1[swap] = temp_f
-
-    bsresults = bisection_vectorized5_(iobj, x0_v4, x2_v4, ROOT_TOLERANCE)
-    assert bsresults.shape[0] == np.sum(relevants_boolean)
-    centroids[relevants_boolean, :] = bsresults[:, :]  # x4
-    return
-
-
 def compute_triangle_areas(vertex, faces, return_normals=False):
     """ facet_normals: can contain NaN if the area is zero"""
 
@@ -900,7 +741,6 @@ def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroid
 
         # experimental value
         tau = 680.  # 10. ** 2.83
-
         s[s / s[0] < 1.0/tau] = 0
         rank = np.sum(s / s[0] > 1.0/tau)
 
@@ -1800,7 +1640,7 @@ def demo_combination_plus_qem():
     NUMBER_OF_ITERATION_GLOBAL = 2
 
     from example_objects import make_example_vectorized
-    object_name = "sphere_example"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
