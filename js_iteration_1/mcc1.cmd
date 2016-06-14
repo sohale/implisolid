@@ -19,6 +19,7 @@ em++ ^
         -s NO_EXIT_RUNTIME=1          ^
                                           ^
         -pedantic -std=c++14  ^
+        -Winline         ^
     mcc1.cpp  ^
         -o  mcc1.cpp.js
 

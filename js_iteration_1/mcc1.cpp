@@ -118,15 +118,15 @@ class MarchingCubes{
  protected:
     void init(dim_t resolution);
 
-void VIntX(index_t q,
+inline void VIntX(index_t q,
     array1d &pout, array1d &nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-void VIntY(index_t q, array1d& pout, array1d& nout,
+inline void VIntY(index_t q, array1d& pout, array1d& nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
-void VIntZ(index_t q, array1d& pout, array1d& nout,
+inline void VIntZ(index_t q, array1d& pout, array1d& nout,
     int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 );
 
-void compNorm( index_t q );
+inline void compNorm( index_t q );
 void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, int o1, int o2, int o3, const callback_t& renderCallback );
 
 void begin_queue();
@@ -143,7 +143,7 @@ public:
     void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3);
 
 
-    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
+    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
 
 //shape:
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract );
@@ -353,7 +353,7 @@ void MarchingCubes::kill()
     ;
 }
 
-void MarchingCubes:: VIntX(
+inline void MarchingCubes:: VIntX(
     index_t q, array1d &pout, array1d &nout,
     int offset,
     REAL isol,
@@ -378,7 +378,7 @@ void MarchingCubes:: VIntX(
 }
 
 
-void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
+inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
 {
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
@@ -396,7 +396,7 @@ void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset,
 
 }
 
-void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
+inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2 )
 {
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
@@ -414,7 +414,7 @@ void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, 
 
 }
 
-void MarchingCubes::compNorm( index_t q ) {
+inline void MarchingCubes::compNorm( index_t q ) {
         index_t q3 = q * 3;
         //What if the x happens to be 0.0 ?
         if ( this->normal_cache[ q3 ] == 0.0 ) {
@@ -431,7 +431,7 @@ void MarchingCubes::compNorm( index_t q ) {
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
+inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
     /** Polygonise a single cube in the grid. */
 
     // cache indices
@@ -1575,7 +1575,7 @@ public:
     void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3)
         {};
 
-    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
+    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
 
 //shape:
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract ) {};
