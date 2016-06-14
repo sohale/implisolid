@@ -429,7 +429,7 @@ function init2() {
     WIDTH = 300;
     HEIGHT = 300;
     WIDTH = window.innerWidth;
-    HEIGHT = window.innerHeight;
+    HEIGHT = window.innerHeight - 200; //for memory profiler
     camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
     camera.position.z = 1000;
 
@@ -488,9 +488,119 @@ function init2() {
 
     document.body.appendChild( renderer.domElement );
 
+
+    /*
+      function update_mc_multiple() {
+            var mc_icounter=0;
+            setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.*5); mc_icounter++; }, 30);
+        }
+    */
+
+    //var interval_active = 0;
+    var last_active = 0;
+    var intervals_counter = 0;
+
     function update_mc_multiple() {
-        var mc_icounter=0;
-        setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.*5); mc_icounter++; }, 30);
+        //var mc_icounter=0;
+        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
+        var burst_counter = 0;
+
+        //already_busy_doing_it level1: right now.
+        //already_busy_doing_it: interval (level 2)
+
+        intervals_counter++;
+        if(intervals_counter>1) //dont start if there is already one running
+        {
+            intervals_counter--;
+            return;
+        }
+        last_active = setInterval (
+            function()
+            {
+                /*
+                var ls="";
+                for (var lft=0;lft<100;lft++){
+                    ls+=" ";
+                }
+                console.log(ls.slice(1));
+                console.log("1msec");
+                return;
+                */
+                if(!last_active)
+                    console.error("!last_active");
+
+                burst_counter++; // mc_icounter
+
+                if(burst_counter<10)  //This code is amazingly similar to Bursting dyamics in neurons.
+                {
+
+                    if(already_busy_doing_it<1) //removable
+                    {
+                        already_busy_doing_it++;
+                        update_mc(0.2/10.*5);
+                        if(already_busy_doing_it>1)
+                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
+                        if(!last_active)
+                            console.error("!last_active");
+                        already_busy_doing_it--;
+                    }else{
+                        console.log("hit");
+                    }
+                }
+                else
+                {
+                    // The interval has finished its job. Time to go.
+                    if(!last_active)
+                        console.error("!last_active");
+                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
+                    intervals_counter--; // Allow next one in future
+                    burst_counter = 0;
+                    last_active = 0;
+                }
+            },
+            1 //30
+        );
+
+        /*
+        //broken code:
+        //fast x 1, fast x10, fast x 100
+        last_active = setInterval(
+            function()
+            {
+                console.info(interval_active+ " "+mc_icounter+"   busy already_busy_doing_it:"+already_busy_doing_it);
+                if(interval_active === 0)  // interval_active is shared "between" calls to this
+                {
+                    console.log("****START****");
+                    interval_active = 1;
+                    if(mc_icounter<10)
+                    {
+                        if(already_busy_doing_it<1)
+                        {
+                            already_busy_doing_it++;
+                            update_mc(0.2/10.*5);
+                            console.log(">>>already_busy_doing_it:"+already_busy_doing_it);
+                            already_busy_doing_it--;
+                        }
+                    }
+                    else
+                    {
+                        if(last_active === 0)
+                            console.error("a");
+                        clearInterval(last_active);
+                        last_active = 0;
+                        interval_active=0;
+                    }
+                    //mc_icounter++;
+                    console.log("****STOP****");
+                }
+                mc_icounter++;
+                if(mc_icounter>10)
+                {
+                        clearInterval(last_active);
+                        interval_active=0;
+                }
+            }, 30);
+        */
 
     }
     function doKeyDownListener(event) {

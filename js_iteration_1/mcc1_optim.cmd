@@ -5,6 +5,7 @@ em++ ^
  ^
         -s EXPORTED_FUNCTIONS="['_produce_object', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry']" ^
         -s NO_EXIT_RUNTIME=1          ^
+        --llvm-lto 1     ^
  ^
         -pedantic -std=c++14  ^
     mcc1.cpp  ^

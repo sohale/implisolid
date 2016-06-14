@@ -71,7 +71,6 @@ REAL lerp(REAL a, REAL b, REAL t ) {
 class MarchingCubes{
     bool enableUvs, enableColors;
     dim_t resolution;
-    REAL isolation;
     index_t size, size2, size3;
     index_t  yd, zd;
     REAL halfsize;
@@ -137,6 +136,8 @@ void finish_queue( const callback_t& renderCallback );
 public:
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
     ~MarchingCubes(); //why does this have to be public: ?
+
+    REAL isolation;
 
     //void flush_geometry(std::ostream&);
     void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3);
@@ -1725,6 +1726,9 @@ void build_geometry(int resolution, REAL time){
     //MarchingCubes mc(resolution, enableUvs, enableColors);
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
     //std::cout << "constructor called." << std::endl;
+
+    _state.mc -> isolation = 80.0/4;
+
 
     int numblobs = 4;
     for (int i = 0; i < numblobs; i++) {
