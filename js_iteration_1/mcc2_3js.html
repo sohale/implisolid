@@ -537,7 +537,7 @@ function init2() {
                     if(already_busy_doing_it<1) //removable
                     {
                         already_busy_doing_it++;
-                        update_mc(0.2/10.*5);
+                        update_mc(0.2/10.*5 /5.);
                         if(already_busy_doing_it>1)
                             console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
                         if(!last_active)
@@ -623,6 +623,8 @@ function init2() {
 }
 
 function update_mc(delta_t){
+    var p1 = [mesh_solid.position, mesh_solid.rotation];
+    var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
     scene.remove(mesh_solid);
     scene.remove(mesh_wireframe);
 
@@ -639,10 +641,16 @@ function update_mc(delta_t){
     mesh_wireframe.position.set( 0, 0, 0 );
     mesh_wireframe.scale.set( 300, 300, 300 );
     scene.add( mesh_wireframe );
+    //copy so that we dont lose the rotation, position of the meshes.
+
+    mesh_wireframe.position.copy(p1[0]);
+    mesh_wireframe.rotation.copy(p1[1]);
 
     mesh_solid = new THREE.Mesh( geometry, materials_list[3] );
     mesh_solid.position.set( 0, 0, 0 );
     mesh_solid.scale.set( 300, 300, 300 );
+    mesh_solid.position.copy(p2[0]);
+    mesh_solid.rotation.copy(p2[1]);
     scene.add( mesh_solid );
 }
 

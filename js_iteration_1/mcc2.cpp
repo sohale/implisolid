@@ -149,8 +149,8 @@ public:
 
     REAL isolation;
 
-    //void flush_geometry(std::ostream&);
-    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map);
+    //void flush_geometry_queue(std::ostream&);
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map);
 
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -833,9 +833,9 @@ void MarchingCubes::sow() {
     //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
 
 
-    //this->flush_geometry(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
+    //this->flush_geometry_queue(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map);
+    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1092,7 +1092,7 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
 
 /*
-void flush_geometry() {
+void flush_geometry_queue() {
 
     var i, x, y, z, vertex, normal,
         face, a, b, c, na, nb, nc, nfaces;
@@ -1520,9 +1520,9 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 };
 
 
-//void flush_geometry(MarchingCubes& object) {
+//void flush_geometry_queue(MarchingCubes& object) {
 
-void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start,
+void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
     //outputs:
     std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
 {
@@ -1611,13 +1611,20 @@ void MarchingCubes::flush_geometry(std::ostream& cout, int& normals_start,
     normals_start += nfaces;
     this->queue_counter = 0;
 
-    std::cout << "MAP" << std::endl;
+    // Why not directly write back an array into the "index" and other geometry arrays? (i.e. doing part of the making of geometry on C++ side)
+    if(REPORT_STATS){
+    std::cout << "flush_geometry_queue(): " ;
     int mapctr = 0;
     for (auto& kv_pair: e3map){
-        std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+        if(0)
+            std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
     }
-    std::cout << " count: " << mapctr << std::endl;
+    std::cout << " e3Map: " << mapctr;
+    std::cout << " Faces: " << faces3.size()/3;
+    std::cout << " Verts: " << verts3.size()/3;
+    std::cout << std::endl;
+    }
 }
 
 
@@ -1655,7 +1662,7 @@ void build_vf(
     //MarchingCubes& object = mc;
     //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
-    //mc.flush_geometry(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
+    //mc.flush_geometry_queue(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
@@ -1674,8 +1681,8 @@ public:
     MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
     ~MarchingCubesMock() {}; //why does this have to be public: ?
 
-    //void flush_geometry(std::ostream&);
-    void flush_geometry(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
+    //void flush_geometry_queue(std::ostream&);
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
@@ -1852,14 +1859,21 @@ void build_geometry(int resolution, REAL time){
     _state.mc->render_geometry(renderCallback);
     //std::cout << "MC executed" << std::endl;
 
-    std::cout << "map4" << std::endl;
+    //std::cout << "map4" << std::endl;
 
     int mapctr = 0;
     for (auto& kv_pair: _state.mc->result_e3map){
-        std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+        if(0)
+            std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
     }
-    std::cout << " count: " << mapctr << std::endl;
+    /*
+    std::cout << "build_geometry(): ";
+    std::cout << " e3Map: " << mapctr;
+    std::cout << " Faces: " << _state.mc->result_faces.size()/3;
+    std::cout << " Verts: " << _state.mc->result_verts.size()/3;
+    std::cout << std::endl;
+    */
 
 
     if(VERBOSE){
@@ -1949,7 +1963,7 @@ int main() {
     MarchingCubes& object = mc;
 
     //int normals_start = 0;
-    mc.flush_geometry(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
+    mc.flush_geometry_queue(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
 
     t.stop();
 
