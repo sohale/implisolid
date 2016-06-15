@@ -1085,11 +1085,8 @@ void MarchingCubes::reset_result() {
 
 // Renderes a geometry.
 void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
-    //std::cout << "a" << std::flush;
     this->reset_result();  //receiver of the queue
-    //std::cout << "b" << std::flush;
     this->begin_queue();
-    //std::cout << "c" << std::flush;
 
     // Triangulate. Yeah, this is slow.
 
@@ -1558,7 +1555,6 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 
 
 const bool VERTS_FROM_MAP = true;
-int gooloobal = 0;
 
 
 typedef struct {
@@ -1578,23 +1574,11 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/
     //changes the queue. => should be inside the queue's "territory".
-    if(VERBOSE)
-        cout << "Hello world. ";
-
-    if(VERBOSE)
-        cout << "queue_counter: " << this->queue_counter;
 
     //MarchingCubes& this-> = *this;
-    if(VERBOSE){
-        cout << "queue_counter: " << this->queue_counter;
-        cout << std::endl;
-    }
-
-    //std::cout << "pre: " << std::endl << std::flush;
 
     //todo: refactor: vert_i -> local_vert_i,  global_vert_i = local_vert_i + normals_start*3;  ; local === within/in Queue
     for ( int vert_i = 0; vert_i < this->queue_counter; vert_i++ ) {
-        //std::cout << "for: " << std::endl << std::flush;
 
         int a = vert_i * 3;
         int b = a + 1;
@@ -1615,71 +1599,40 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         if(VERTS_FROM_MAP)
         {
 
-        //index3_t  e3_code = this->e3Queue[vert_i];
-        //index3_t  e3_code = this->e3Queue[vert_i + normals_start*3];
-        index3_t  e3_code = this->e3Queue[vert_i];
-        std::pair<e3map_t::iterator, bool> e = e3map.emplace(e3_code, next_unique_vect_counter);
-        const bool& novel = e.second;
+            //index3_t  e3_code = this->e3Queue[vert_i];
+            //index3_t  e3_code = this->e3Queue[vert_i + normals_start*3];
+            index3_t  e3_code = this->e3Queue[vert_i];
+            std::pair<e3map_t::iterator, bool> e = e3map.emplace(e3_code, next_unique_vect_counter);
+            const bool& novel = e.second;
 
 
+            int overall_vert_index;
+            if(novel)
+                overall_vert_index = next_unique_vect_counter;
+            else
+                overall_vert_index = e.first->second;
 
-        /*
-        auto element_location = e.first;
-        auto map_begin = e3map.begin(); //cbegin or begin?
-        int lk = std::distance(element_location, map_begin);
-        */
-        /*if(vert_i==0){
-            //std::cout << " it:" << lk << " " << std::endl;
-            //if(lk<10)
-            //    std::cout << " it:" << lk << " " << std::endl;
-        }*/
-        int overall_vert_index = -1;
-        //if(VERTS_FROM_MAP)
-        //{
-            //verts3.push_back(x);
-            //verts3.push_back(y);
-            //verts3.push_back(z);
+            if(novel)
+                next_unique_vect_counter++;
 
-        if(novel){
-            overall_vert_index = next_unique_vect_counter;
-        }
-        else{
-            overall_vert_index = e.first->second;
-        }
-
-        if(novel)
-            next_unique_vect_counter++;
-
+            //struct {} next_unique_vect_counter;
+            // Dont use next_unique_vect_counter below this point.
 
             if(novel){
                 verts3.push_back(x);
                 verts3.push_back(y);
                 verts3.push_back(z);
-                if(gooloobal % 100 == 0){
-                    //std::cout << verts3.size()/3 << " : " << lk+1 << std::endl;
-                    //std::cout << verts3.size()/3 << std::endl;
-                    //gooloobal++;
-                }
-                gooloobal++;
-                //assert(verts3.size()/3 == next_unique_vect_counter);
-                //overall_vert_index = next_unique_vect_counter;
             }
             else{
-                //overall_vert_index = e.first->second;
-                assert(verts3.size()/3 == next_unique_vect_counter);
                 assert(verts3.size()/3 > overall_vert_index);
-                assert(next_unique_vect_counter > overall_vert_index);
-                //std::cout << overall_vert_index << " " << std::endl << std::flush;
+                assert(overall_vert_index < next_unique_vect_counter);
             }
 
+            //Loop invariant
+            assert(verts3.size()/3 == next_unique_vect_counter);
 
-
-
-            //std::cout << "here: " << overall_vert_index<< " " << verts3.size()/3 << std::endl << std::flush;
             faces3.push_back(overall_vert_index);
-            //faces3.push_back(vert_i + normals_start*3);
-
-
+            int old_overall_vert_index = vert_i + normals_start*3;  // // old index was this. not used now.
         }
 
         //e3map_counter ++;
@@ -1958,8 +1911,6 @@ void check_state_null() {
 
 void build_geometry(int resolution, REAL time){
 
-    //std::cout << "q" << std::flush;
-
     check_state_null();
 
     //dim_t resolution = 28;
@@ -1972,7 +1923,6 @@ void build_geometry(int resolution, REAL time){
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
     //std::cout << "constructor called." << std::endl;
 
-    //std::cout << "rr" << std::flush;
 
     _state.mc -> isolation = 80.0/4;
 
@@ -2078,7 +2028,6 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
-    //std::cout << "66667" << std::flush << std::endl;
     /*
     timer t;
     t.stop();

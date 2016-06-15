@@ -557,7 +557,9 @@ function init2() {
                     last_active = 0;
                 }
             },
-            1 //30
+            40  // 1   // in Milliseconds
+            // Works well on too small values (Semaphore).
+            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
         );
 
         /*
