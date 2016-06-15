@@ -27,6 +27,7 @@ extern "C" {
 }
 
 const bool VERBOSE = false;
+const bool REPORT_STATS = false;
 
 //typedef unsigned short int size_t;
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
@@ -150,8 +151,8 @@ public:
     REAL isolation;
 
     //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map);
-
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
+    void reset_result();
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
 
@@ -174,6 +175,7 @@ public:
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
     e3map_t result_e3map;
+    int next_unique_vect_counter = 0;
 };
 
 //static dim_t MarchingCubes::queueSize = ...;
@@ -205,7 +207,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
     this->init( resolution );
 
-
+/*
     //preallocate
     int expected_vertices = 10;
     int expected_faces = 10;
@@ -213,9 +215,9 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->result_verts.reserve(expected_vertices*3);
     this->result_faces.reserve(expected_faces*3);
     //what about normals?
-
     //Unfortunately, you cannot reserve elements for a C++ STL map.
     //this->result_e3map.reserve(expected_faces*3 ); //should be less than one third of expercted_verts
+*/
 }
 
 
@@ -835,7 +837,7 @@ void MarchingCubes::sow() {
 
     //this->flush_geometry_queue(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map);
+    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1049,10 +1051,45 @@ void MarchingCubes::reset()
 }
 
 
+void MarchingCubes::reset_result() {
+    //std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter
+
+    /*
+    this->next_unique_vect_counter = 0;
+    this->result_faces = std::vector<int>();
+    this->result_verts = std::vector<REAL>();
+    this->result_normals = std::vector<REAL>();
+    this->result_e3map = e3map_t();
+    */
+
+    this->next_unique_vect_counter = 0;
+    //this->result_faces = std::vector<int>();
+    //this->result_verts = std::vector<REAL>();
+    //this->result_normals = std::vector<REAL>();
+    //this->result_e3map = e3map_t();
+
+    //preallocate
+    int expected_vertices = 10;
+    int expected_faces = 10;
+    this->result_normals.reserve(expected_faces*3 *(ENABLE_NORMALS?1:0));
+    this->result_verts.reserve(expected_vertices*3);
+    this->result_faces.reserve(expected_faces*3);
+    //what about normals?
+    //Unfortunately, you cannot reserve elements for a C++ STL map.
+    //this->result_e3map.reserve(expected_faces*3 ); //should be less than one third of expercted_verts
+
+
+    //This does not belong here: this->resultqueue_faces_start
+
+}
 
 // Renderes a geometry.
 void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
+    //std::cout << "a" << std::flush;
+    this->reset_result();  //receiver of the queue
+    //std::cout << "b" << std::flush;
     this->begin_queue();
+    //std::cout << "c" << std::flush;
 
     // Triangulate. Yeah, this is slow.
 
@@ -1122,9 +1159,9 @@ void flush_geometry_queue() {
 
     nfaces = object.queue_counter / 3;
 
-    for ( i = 0; i < nfaces; i++ ) {
+    for ( face_i = 0; face_i < nfaces; face_i++ ) {
 
-        a = ( normals_start + i ) * 3;
+        a = ( normals_start + face_i ) * 3;
         b = a + 1;
         c = a + 2;
 
@@ -1520,11 +1557,23 @@ const int MarchingCubes::mc_triangles_table[256*16] = {
 };
 
 
+const bool VERTS_FROM_MAP = true;
+int gooloobal = 0;
+
+
+typedef struct {
+    std::vector<REAL> &normals;
+    std::vector<REAL> &verts3;
+    std::vector<int> &faces3;
+    e3map_t &e3map;
+    int& next_unique_vect_counter;
+} result_state;
+
 //void flush_geometry_queue(MarchingCubes& object) {
 
 void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
     //outputs:
-    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
+    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/
@@ -1541,8 +1590,13 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         cout << std::endl;
     }
 
-    for ( int i = 0; i < this->queue_counter; i++ ) {
-        int a = i * 3;
+    //std::cout << "pre: " << std::endl << std::flush;
+
+    //todo: refactor: vert_i -> local_vert_i,  global_vert_i = local_vert_i + normals_start*3;  ; local === within/in Queue
+    for ( int vert_i = 0; vert_i < this->queue_counter; vert_i++ ) {
+        //std::cout << "for: " << std::endl << std::flush;
+
+        int a = vert_i * 3;
         int b = a + 1;
         int c = a + 2;
 
@@ -1552,13 +1606,84 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         z = this->positionQueue[ c ];
         //vertex = new THREE.Vector3( x, y, z );
         //cout << "(" << x << " " << y << " " << z << ")    ";
-        verts3.push_back(x);
-        verts3.push_back(y);
-        verts3.push_back(z);
+        if(!VERTS_FROM_MAP){
+            verts3.push_back(x);
+            verts3.push_back(y);
+            verts3.push_back(z);
+        }
 
-        index3_t  e3 = this->e3Queue[i];
-        e3map.emplace(e3, 1);
-        //e3map.push_back(e3);
+        if(VERTS_FROM_MAP)
+        {
+
+        //index3_t  e3_code = this->e3Queue[vert_i];
+        //index3_t  e3_code = this->e3Queue[vert_i + normals_start*3];
+        index3_t  e3_code = this->e3Queue[vert_i];
+        std::pair<e3map_t::iterator, bool> e = e3map.emplace(e3_code, next_unique_vect_counter);
+        const bool& novel = e.second;
+
+
+
+        /*
+        auto element_location = e.first;
+        auto map_begin = e3map.begin(); //cbegin or begin?
+        int lk = std::distance(element_location, map_begin);
+        */
+        /*if(vert_i==0){
+            //std::cout << " it:" << lk << " " << std::endl;
+            //if(lk<10)
+            //    std::cout << " it:" << lk << " " << std::endl;
+        }*/
+        int overall_vert_index = -1;
+        //if(VERTS_FROM_MAP)
+        //{
+            //verts3.push_back(x);
+            //verts3.push_back(y);
+            //verts3.push_back(z);
+
+        if(novel){
+            overall_vert_index = next_unique_vect_counter;
+        }
+        else{
+            overall_vert_index = e.first->second;
+        }
+
+        if(novel)
+            next_unique_vect_counter++;
+
+
+            if(novel){
+                verts3.push_back(x);
+                verts3.push_back(y);
+                verts3.push_back(z);
+                if(gooloobal % 100 == 0){
+                    //std::cout << verts3.size()/3 << " : " << lk+1 << std::endl;
+                    //std::cout << verts3.size()/3 << std::endl;
+                    //gooloobal++;
+                }
+                gooloobal++;
+                //assert(verts3.size()/3 == next_unique_vect_counter);
+                //overall_vert_index = next_unique_vect_counter;
+            }
+            else{
+                //overall_vert_index = e.first->second;
+                assert(verts3.size()/3 == next_unique_vect_counter);
+                assert(verts3.size()/3 > overall_vert_index);
+                assert(next_unique_vect_counter > overall_vert_index);
+                //std::cout << overall_vert_index << " " << std::endl << std::flush;
+            }
+
+
+
+
+            //std::cout << "here: " << overall_vert_index<< " " << verts3.size()/3 << std::endl << std::flush;
+            faces3.push_back(overall_vert_index);
+            //faces3.push_back(vert_i + normals_start*3);
+
+
+        }
+
+        //e3map_counter ++;
+        //e3map.push_back(e3_code);
         //verts_e3
 
         if(ENABLE_NORMALS){
@@ -1584,9 +1709,9 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
     int nfaces = this->queue_counter / 3;
 
-    for ( int i = 0; i < nfaces; i++ ) {
+    for ( int face_i = 0; face_i < nfaces; face_i++ ) {
 
-        int a = ( normals_start + i ) * 3;
+        int a = ( normals_start + face_i ) * 3;
         int b = a + 1;
         int c = a + 2;
 
@@ -1600,9 +1725,11 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         //face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
         //geo.faces.push( face );
 
-        faces3.push_back(a);
-        faces3.push_back(b);
-        faces3.push_back(c);
+        if(!VERTS_FROM_MAP){
+            faces3.push_back(a);
+            faces3.push_back(b);
+            faces3.push_back(c);
+        }
         //faces3.push_back(na);
         //faces3.push_back(nb);
         //faces3.push_back(nc);
@@ -1644,10 +1771,10 @@ void build_vf(
 
     int numblobs = 4;
     REAL time = 0.1 ;
-    for (int i = 0; i < numblobs; i++) {
-        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
-        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         mc.addBall(ballx, bally, ballz, strength, subtract);
@@ -1682,7 +1809,7 @@ public:
     ~MarchingCubesMock() {}; //why does this have to be public: ?
 
     //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map)
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
@@ -1728,10 +1855,10 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
     int numblobs = 4;
     //REAL time = 0.1 ;
-    for (int i = 0; i < numblobs; i++) {
-        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
-        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         mc.addBall(ballx, bally, ballz, strength, subtract);
@@ -1745,6 +1872,8 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
 
     mc.addBall(0, 0, 0.5, strength, subtract);
     */
+
+    //todo: init-receiver side
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
@@ -1829,6 +1958,8 @@ void check_state_null() {
 
 void build_geometry(int resolution, REAL time){
 
+    //std::cout << "q" << std::flush;
+
     check_state_null();
 
     //dim_t resolution = 28;
@@ -1841,14 +1972,16 @@ void build_geometry(int resolution, REAL time){
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
     //std::cout << "constructor called." << std::endl;
 
+    //std::cout << "rr" << std::flush;
+
     _state.mc -> isolation = 80.0/4;
 
 
     int numblobs = 4;
-    for (int i = 0; i < numblobs; i++) {
-        REAL ballx = sin(i + 1.26 * time * (1.03 + 0.5*cos(0.21 * i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(i + 1.12 * time * cos(1.22 + 0.1424 * i))) * 0.77; // dip into the floor
-        REAL ballz = cos(i + 1.32 * time * 0.1*sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
@@ -1861,6 +1994,7 @@ void build_geometry(int resolution, REAL time){
 
     //std::cout << "map4" << std::endl;
 
+    if(REPORT_STATS){
     int mapctr = 0;
     for (auto& kv_pair: _state.mc->result_e3map){
         if(0)
@@ -1874,6 +2008,7 @@ void build_geometry(int resolution, REAL time){
     std::cout << " Verts: " << _state.mc->result_verts.size()/3;
     std::cout << std::endl;
     */
+    }
 
 
     if(VERBOSE){
@@ -1901,9 +2036,12 @@ void get_v(REAL* v_out, int vcount){
     for(std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ){
         for(int di=0; di<3; di++){
             v_out[ctr] = *( it + di );
+            //if(ctr<3*3*3)
+            //    std::cout << v_out[ctr] << " ";
             ctr++;
         }
     }
+    //std::cout << std::endl;
     //assert nf*3 == ctr;
     if(vcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
 }
@@ -1915,10 +2053,13 @@ void get_f(int* f_out, int fcount){
     for(std::vector<int>::iterator it=_state.mc->result_faces.begin(); it < _state.mc->result_faces.end(); it+=3 ){
         for(int di=0; di<3; di++){
             f_out[ctr] = *( it + di );
+            //if(ctr<3*3*3)
+            //    std::cout << f_out[ctr] << " ";
             ctr++;
         }
     }
     if(fcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
+    //std::cout << std::endl;
 };
 //int get_v_size(){};
 //int get_f_size(){};
@@ -1937,6 +2078,7 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
+    //std::cout << "66667" << std::flush << std::endl;
     /*
     timer t;
     t.stop();

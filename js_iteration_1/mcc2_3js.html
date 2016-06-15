@@ -252,9 +252,8 @@ MyBufferGeometry = function ( verts, faces ) {
         for(var si=0; si<3; si++)
             indices[i*3+si] = faces[i*3+si];
 
-    //console.log(verts.subarray(0,3*3));
-
-    //console.log(indices);
+    //console.log(verts.subarray(0,3*3*3));
+    //console.log(indices.subarray(0,3*3*3));
 
     materialIndex = 0;
     this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
