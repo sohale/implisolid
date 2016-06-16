@@ -77,17 +77,13 @@ Based on MCC1
     //const DBLFLOAT_SIZE = 8;
     const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
     const _INT_SIZE = 4;
-    //4 int
-    //4 float
-    //4 long
+    //int:4, float: 4, long: 4
 
     var global_time = 0;
 
     /* old style. This leaves memory footprints (memory leak) */
-    function do_vf_old(delta_t)
+    function do_vf_old(subjective_time)
     {
-        //var time = 0.2;
-        global_time += delta_t;
 
         //var max_verts = 40000;  // *2
         //var max_faces = 15000;  //*5
@@ -103,7 +99,7 @@ Based on MCC1
 
         /* ************************* */
         /*   Call C++                */
-        produce_object(verts_address, nv_address, faces_address, nf_address, global_time);
+        produce_object(verts_address, nv_address, faces_address, nf_address, subjective_time);
         /* ************************* */
 
         //Module.HEAPF64 is a Float64Array
@@ -173,16 +169,13 @@ Based on MCC1
 //  //HEAPF32[$254>>2] = $251;
 //  //
 //    }
-function make_geometry_old(delta_t)
+function make_geometry_old(subjective_time)
 {
 
     var startTime = new Date();
     //new Date().getTime()
 
-    if(delta_t === undefined)
-        delta_t = 0.2;
-
-    vf = do_vf_old(delta_t);
+    vf = do_vf_old(subjective_time);
     v = vf[0];
     f = vf[1];
 
@@ -290,19 +283,13 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 
 
 
-function make_geometry_new(newPolygonizer, delta_t)
+function make_geometry_new(newPolygonizer, subjective_time)
 {
     var startTime = new Date();
 
-    if(delta_t === undefined)
-        delta_t = 0.2;
-    // Subjective time!
-    //var time = 0.2;
-    global_time += delta_t;
-
 
     //console.log(newPolygonizer);
-    newPolygonizer.build_geometry( 28, global_time);
+    newPolygonizer.build_geometry( 28, subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -376,12 +363,18 @@ function init_scene(newPolygonizer) {
 
     material_wireframe = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
 
+    //if(delta_t === undefined)
+    var delta_t = 0.2;
+    // Subjective time!
+    global_time += delta_t;
+
+
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
     if(CALL_VERSION==1){
-        geometry = make_geometry_old();
+        geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer);
+        geometry = make_geometry_new(newPolygonizer, global_time);
     }
 
     mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
@@ -460,12 +453,17 @@ function update_mc(newPolygonizer, delta_t){
     scene.remove(mesh_solid);
     scene.remove(mesh_wireframe);
 
+    if(delta_t === undefined)
+        delta_t = 0.2;
+    // Subjective time!
+    global_time += delta_t;
+
     var geometry;
     if(CALL_VERSION==1){
-        geometry = make_geometry_old(delta_t);
+        geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer, delta_t);
+        geometry = make_geometry_new(newPolygonizer, global_time);
     }
 
 
