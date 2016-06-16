@@ -887,7 +887,7 @@ void test_gridcell2()
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
-    REAL thl = 0.01; // tolerance used to compare two float together
+    REAL thl = 0.02; // tolerance used to compare two float together
     assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nt = ta.size();
     int nv = ta.size()*3;
@@ -989,7 +989,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     verts_new.resize(boost::extents[new_vx][3]);
     cout << "New vertex " << new_vx << endl;
     cout << "Vertex_new shape " << verts_new.shape()[0] << endl;
-  vf_t p2 = make_pair(verts_new, faces);
+    vf_t p2 = make_pair(verts_new, faces);
   //  vf_t p2 = make_pair(verts, faces);
     return p2;
 }
@@ -1117,7 +1117,7 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     vf_t vf = vector_to_vertsfaces(ta);
     timr.stop("vector_to_vertsfaces()");
 
-    vf_t vf_new = reindexing_verts_faces(vf);
+  //  vf_t vf_new = reindexing_verts_faces(vf);
   //  vf_t vf_2 = vf_new;
     vf_t vf_2 = vf;
     *nv = vf_2.first.shape()[0];

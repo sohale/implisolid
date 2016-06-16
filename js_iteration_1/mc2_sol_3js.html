@@ -172,9 +172,9 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
     // var vertices = new Float32Array( indexCount);
     // var normals = new Float32Array( indexCount );
     // var uvs = new Float32Array( indexCount * 2./3.0);
-    var vertices = new Float32Array( indexCount*3);
-    var normals = new Float32Array( indexCount*3 );
-    var uvs = new Float32Array( indexCount * 2.);
+    var vertices = new Float32Array( vertexCount*3 );
+    var normals = new Float32Array( vertexCount*3 );
+    var uvs = new Float32Array( vertexCount * 2.);
 
     // offset variables
     var vertexBufferOffset = 0;
@@ -205,7 +205,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
         //exfdgdg()
         console.log("Vertexcount: "+vertexCount);
         console.log("**************************************");
-        for(var i=0; i < indexCount; i++)
+        for(var i=0; i < vertexCount; i++)
         {   var fi = i/3;
             var si = i%3;
             for(var di=0;di<3;di++)
@@ -254,17 +254,17 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
             uvs[i*2+0] = x/d2;
             uvs[i*2+1] = y/d2;
         }
-
+        console.log(vertices);
         for(var i=0; i < nbr_faces; i++)
             for(var si=0; si<3; si++)
-                indices[i*3+si] = i*3+si; //here faces[i*3 + si ] = i*3 + si;
+                indices[i*3+si] = faces[i*3+si]; //here faces[i*3 + si ] = i*3 + si;
 
         materialIndex = 0;
         this.addGroup( 0, nbr_faces*3, materialIndex ); //not sure about *3 . Why??
-        //console.log(vertices);
-        //console.log(normals);
-        //console.log(uvs);
-        //console.log(indices);
+        // console.log(vertices);
+        // console.log(normals);
+        // console.log(uvs);
+        console.log(indices);
     }
     //this.addGroup( groupStart, groupCount, materialIndex );  //groupCount is same as indices' index.
 
