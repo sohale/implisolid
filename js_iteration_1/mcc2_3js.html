@@ -81,11 +81,10 @@ Based on MCC1
     //4 float
     //4 long
 
-
-
     var global_time = 0;
 
-    function do_vf(delta_t)
+    /* old style. This leaves memory footprints (memory leak) */
+    function do_vf_old(delta_t)
     {
         //var time = 0.2;
         global_time += delta_t;
@@ -174,6 +173,25 @@ Based on MCC1
 //  //HEAPF32[$254>>2] = $251;
 //  //
 //    }
+function make_geometry_old(delta_t)
+{
+
+    var startTime = new Date();
+    //new Date().getTime()
+
+    if(delta_t === undefined)
+        delta_t = 0.2;
+
+    vf = do_vf_old(delta_t);
+    v = vf[0];
+    f = vf[1];
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    console.log("TIME: "+timeDiff+ " msec.");
+
+    return new MyGeometry(v, f);
+}
 
 
 
@@ -270,25 +288,6 @@ LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
 LiveGeometry.prototype.constructor = LiveGeometry;
 */
 
-function make_geometry_old(delta_t)
-{
-
-    var startTime = new Date();
-    //new Date().getTime()
-
-    if(delta_t === undefined)
-        delta_t = 0.2;
-
-    vf = do_vf(delta_t);
-    v = vf[0];
-    f = vf[1];
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    console.log("TIME: "+timeDiff+ " msec.");
-
-    return new MyGeometry(v, f);
-}
 
 
 function make_geometry_new(newPolygonizer, delta_t)
@@ -344,12 +343,24 @@ function make_geometry_new(newPolygonizer, delta_t)
 }
 
 
+'use strict';
+
 // global variables for meshes that are accessed and updated in the render loop, etc.
 var mesh_solid;
-var mesh2_box_wireframe;
-
+var mesh2_tiny_box_wireframe;
 var materials_list, material_f;
-mesh_wireframe = null;
+var material_wireframe, mesh_wireframe = null;
+const CHOSEN_MATERIAL_INDEX = 7; //3;
+    //1: grayscale boring phong.
+    //2: faceted. (good for debug / shape study)
+    //3: colorful
+    //4: semi opaque (good for debug / shape study)
+    //6: striped
+    //7: rainbow
+    //8 is wireframe
+    //9: plain white?
+    //10: changing peach
+    //11: changing cyan
 
 function init_scene(newPolygonizer) {
 
@@ -387,19 +398,19 @@ function init_scene(newPolygonizer) {
 
     material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
 
-        //mesh_solid = new THREE.Mesh( geometry, material_f );
-        //nice ones: 2, 3,  (checked until 4)
-        mesh_solid = new THREE.Mesh( geometry, materials_list[3] );
-        mesh_solid.position.set( 0, 0, 0 );
-        mesh_solid.scale.set( 300, 300, 300 );
-        scene.add( mesh_solid );
+    //mesh_solid = new THREE.Mesh( geometry, material_f );
+    //nice ones: 2, 3,  (checked until 4)
+    mesh_solid = new THREE.Mesh( geometry, materials_list[CHOSEN_MATERIAL_INDEX] );
+    mesh_solid.position.set( 0, 0, 0 );
+    mesh_solid.scale.set( 300, 300, 300 );
+    scene.add( mesh_solid );
 
 
     var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
-    mesh2_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
-    mesh2_box_wireframe	.position.set( 0, 0, 0 );
-    scene.add( mesh2_box_wireframe	 );
-    //mesh2_box_wireframe	.scale.set( 10, 10, 10 );
+    mesh2_tiny_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
+    mesh2_tiny_box_wireframe	.position.set( 0, 0, 0 );
+    scene.add( mesh2_tiny_box_wireframe	 );
+    //mesh2_tiny_box_wireframe	.scale.set( 10, 10, 10 );
 
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
@@ -459,16 +470,15 @@ function update_mc(newPolygonizer, delta_t){
 
 
     mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-    mesh_wireframe.position.set( 0, 0, 0 );
+    //mesh_wireframe.position.set( 0, 0, 0 );
     mesh_wireframe.scale.set( 300, 300, 300 );
-    scene.add( mesh_wireframe );
     //copy so that we dont lose the rotation, position of the meshes.
-
     mesh_wireframe.position.copy(p1[0]);
     mesh_wireframe.rotation.copy(p1[1]);
+    scene.add( mesh_wireframe );
 
-    mesh_solid = new THREE.Mesh( geometry, materials_list[3] );
-    mesh_solid.position.set( 0, 0, 0 );
+    mesh_solid = new THREE.Mesh( geometry, materials_list[CHOSEN_MATERIAL_INDEX] );
+    //mesh_solid.position.set( 0, 0, 0 );
     mesh_solid.scale.set( 300, 300, 300 );
     mesh_solid.position.copy(p2[0]);
     mesh_solid.rotation.copy(p2[1]);
@@ -547,20 +557,21 @@ function animate() {
         mesh_solid.rotation.y += 0.02*SPEED;
     }
 
-    mesh2_box_wireframe	.rotation.z += 0.01*SPEED;
-    mesh2_box_wireframe	.rotation.y += 0.02*SPEED;
+    mesh2_tiny_box_wireframe	.rotation.z += 0.01*SPEED;
+    mesh2_tiny_box_wireframe	.rotation.y += 0.02*SPEED;
 
     //Updating the matrials
 
-    //materials_list[ materials_list.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * global_time ) ) );
-    //materials_list[ materials_list.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * global_time ) ) );
+    //material update callback
+    //materials_list[ materials_list.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * global_time / 20. ) ) );
+    //materials_list[ materials_list.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * global_time / 20.) ) );
 
     renderer.render( scene, camera );
 
 }
 
 var scene, camera, renderer;
-var geometry, material_wireframe, mesh_wireframe;
+var geometry;
 
 //var newPolygonizer; //no longer global. Hopefully does not affect the performance.
 window.setTimeout(function()
