@@ -367,7 +367,7 @@ LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
 LiveGeometry.prototype.constructor = LiveGeometry;
 */
 
-function make_geometry(delta_t)
+function make_geometry_old(delta_t)
 {
 
     var startTime = new Date();
@@ -448,7 +448,7 @@ var mesh2_box_wireframe;
 var materials_list, material_f;
 mesh_wireframe = null;
 
-function init2(newPolygonizer) {
+function init_scene(newPolygonizer) {
 
     scene = new THREE.Scene();
 
@@ -464,7 +464,7 @@ function init2(newPolygonizer) {
 
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
     if(CALL_VERSION==1){
-        geometry = make_geometry();
+        geometry = make_geometry_old();
     }
     else{
         geometry = make_geometry_new(newPolygonizer);
@@ -514,7 +514,7 @@ function init2(newPolygonizer) {
 
 
     /*
-      function update_mc_multiple() {
+      function call_multiple_times() {
             var mc_icounter=0;
             setInterval(function(){ if(mc_icounter<10) update_mc(newPolygonizer, 0.2/10.*5); mc_icounter++; }, 30);
         }
@@ -524,7 +524,14 @@ function init2(newPolygonizer) {
     var last_active = 0;
     var intervals_counter = 0;
 
-    function update_mc_multiple(newPolygonizer) {
+    function call_multiple_times(newPolygonizer, update_mc) {
+        /** does a series of call to the function  update_mc().
+        update_mc_mul tiple() */
+        var BURST_COUNT = 10;
+        var INTERVAL_MSEC = 40  // 1   // in Milliseconds
+            // Works well on too small values (Semaphore).
+            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
         //var mc_icounter=0;
         var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
         var burst_counter = 0;
@@ -555,13 +562,15 @@ function init2(newPolygonizer) {
 
                 burst_counter++; // mc_icounter
 
-                if(burst_counter<10)  //This code is amazingly similar to Bursting dyamics in neurons.
+                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
                 {
 
                     if(already_busy_doing_it<1) //removable
                     {
                         already_busy_doing_it++;
+
                         update_mc(newPolygonizer, 0.2/10.*5 /5.);
+
                         if(already_busy_doing_it>1)
                             console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
                         if(!last_active)
@@ -582,57 +591,14 @@ function init2(newPolygonizer) {
                     last_active = 0;
                 }
             },
-            40  // 1   // in Milliseconds
-            // Works well on too small values (Semaphore).
-            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+            INTERVAL_MSEC
         );
-
-        /*
-        //broken code:
-        //fast x 1, fast x10, fast x 100
-        last_active = setInterval(
-            function()
-            {
-                console.info(interval_active+ " "+mc_icounter+"   busy already_busy_doing_it:"+already_busy_doing_it);
-                if(interval_active === 0)  // interval_active is shared "between" calls to this
-                {
-                    console.log("****START****");
-                    interval_active = 1;
-                    if(mc_icounter<10)
-                    {
-                        if(already_busy_doing_it<1)
-                        {
-                            already_busy_doing_it++;
-                            update_mc(newPolygonizer, 0.2/10.*5);
-                            console.log(">>>already_busy_doing_it:"+already_busy_doing_it);
-                            already_busy_doing_it--;
-                        }
-                    }
-                    else
-                    {
-                        if(last_active === 0)
-                            console.error("a");
-                        clearInterval(last_active);
-                        last_active = 0;
-                        interval_active=0;
-                    }
-                    //mc_icounter++;
-                    console.log("****STOP****");
-                }
-                mc_icounter++;
-                if(mc_icounter>10)
-                {
-                        clearInterval(last_active);
-                        interval_active=0;
-                }
-            }, 30);
-        */
-
     }
+
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
             //update_mc(newPolygonizer);
-            update_mc_multiple(newPolygonizer);
+            call_multiple_times(newPolygonizer, update_mc);
         }
         else
             console.log(event.keyCode);
@@ -656,7 +622,7 @@ function update_mc(newPolygonizer, delta_t){
 
     var geometry;
     if(CALL_VERSION==1){
-        geometry = make_geometry(delta_t);
+        geometry = make_geometry_old(delta_t);
     }
     else{
         geometry = make_geometry_new(newPolygonizer, delta_t);
@@ -680,25 +646,28 @@ function update_mc(newPolygonizer, delta_t){
     scene.add( mesh_solid );
 }
 
-//based on http://threejs.org/examples/#webgl_materials
+/**
+    Stuff to make things look pretty.
+    Taken from http://threejs.org/examples/#webgl_materials
+*/
 function generateTexture() {
-                var canvas = document.createElement( 'canvas' );
-                canvas.width = 256;
-                canvas.height = 256;
-                var context = canvas.getContext( '2d' );
-                var image = context.getImageData( 0, 0, 256, 256 );
-                var x = 0, y = 0;
-                for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
-                    x = j % 256;
-                    y = x == 0 ? y + 1 : y;
-                    image.data[ i ] = 255;
-                    image.data[ i + 1 ] = 255;
-                    image.data[ i + 2 ] = 255;
-                    image.data[ i + 3 ] = Math.floor( x ^ y );
-                }
-                context.putImageData( image, 0, 0 );
-                return canvas;
-            }
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = 256;
+    canvas.height = 256;
+    var context = canvas.getContext( '2d' );
+    var image = context.getImageData( 0, 0, 256, 256 );
+    var x = 0, y = 0;
+    for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
+        x = j % 256;
+        y = x == 0 ? y + 1 : y;
+        image.data[ i ] = 255;
+        image.data[ i + 1 ] = 255;
+        image.data[ i + 2 ] = 255;
+        image.data[ i + 3 ] = Math.floor( x ^ y );
+    }
+    context.putImageData( image, 0, 0 );
+    return canvas;
+}
 
 function look_nice(scene){
     var materials = [];
@@ -733,26 +702,29 @@ function look_nice(scene){
     materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
     return materials;
 }
+
+
+
 function animate() {
 
     requestAnimationFrame( animate );
 
-
+    //Updating the meshes
     var SPEED = 3. / 100;
     if(mesh_wireframe){
-    mesh_wireframe.rotation.x += 0.01*SPEED;
-    mesh_wireframe.rotation.y += 0.02*SPEED;
-    mesh_solid.rotation.x += 0.01*SPEED;
-    mesh_solid.rotation.y += 0.02*SPEED;
+        mesh_wireframe.rotation.x += 0.01*SPEED;
+        mesh_wireframe.rotation.y += 0.02*SPEED;
+        mesh_solid.rotation.x += 0.01*SPEED;
+        mesh_solid.rotation.y += 0.02*SPEED;
     }
 
     mesh2_box_wireframe	.rotation.z += 0.01*SPEED;
     mesh2_box_wireframe	.rotation.y += 0.02*SPEED;
 
+    //Updating the matrials
 
-
-    //materials_list[ materials.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * timer ) ) );
-    //materials_list[ materials.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * timer ) ) );
+    //materials_list[ materials_list.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * global_time ) ) );
+    //materials_list[ materials_list.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * global_time ) ) );
 
     renderer.render( scene, camera );
 
@@ -765,7 +737,7 @@ var geometry, material_wireframe, mesh_wireframe;
 window.setTimeout(function()
 {
     var newPolygonizer = init_polygonizer();
-    init2(newPolygonizer);
+    init_scene(newPolygonizer);
     animate();
 }, 3000);
 
