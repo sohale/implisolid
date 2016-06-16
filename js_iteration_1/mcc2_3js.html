@@ -7,8 +7,11 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
 -->
 <script type="text/javascript" src="memoryprofiler.js"></script>
 <script>
-        function letmeknow(){console.log("111111");}
-        Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
+        //function letmeknow(){console.log("Loading memory profiler");}
+        Module={preRun:[
+            letmeknow=function (){console.log("Loading memory profiler");},
+            memoryprofiler_add_hooks
+        ]};
 
 </script>
 <body>
@@ -30,21 +33,12 @@ Based on MCC1
 <br>
 
 <script>
-    //'use strict';
-
-    //Version 1 has flaws: _free()s before returning the verts.
-    var CALL_VERSION = 2; //1 or 2
-    const VERBOSE = false;
-
-    var WIREFRAME = false;
-    var produce_object;
-    var main;
-
+    'use strict';
     //var newProducer;
-    function init1()
+    function init_polygonizer()
     {
-        function letmeknow(){console.log("111111");}
-        //Module.preRun.push(letmeknow,memoryprofiler_add_hooks,letmeknow);
+        //too late for pre-run
+        //Module.preRun.push(letmeknow,memoryprofiler_add_hooks, letmeknow = function (){console.log("ok");});
         //Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
 
         main = Module.cwrap('main', 'number', []);
@@ -62,6 +56,21 @@ Based on MCC1
         //console.log("ok");
         return newProducer;
     }
+
+</script>
+<script>
+    'use strict';
+    //'use asm';
+
+    //'use strict';
+
+    //Version 1 has flaws: _free()s before returning the verts.
+    var CALL_VERSION = 2; //1 or 2
+    const VERBOSE = false;
+
+    var WIREFRAME = false;
+    var produce_object;
+    var main;
 
 
     //const DBLFLOAT_SIZE = 8;
@@ -168,7 +177,7 @@ Based on MCC1
 
 'use strict';
 
-MyBufferGeometry = function ( verts, faces ) {
+var MyBufferGeometry = function ( verts, faces ) {
 
 //MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
 
@@ -314,7 +323,7 @@ MyBufferGeometry.prototype = Object.create( THREE.BufferGeometry.prototype );
 MyBufferGeometry.prototype.constructor = MyBufferGeometry;
 
 
-MyGeometry = function (verts, faces) {
+var MyGeometry = function (verts, faces) {
     //vects, faces
 
     THREE.Geometry.call( this );
@@ -428,15 +437,19 @@ function make_geometry_new(newPolygonizer, delta_t)
 }
 
 
+// global variables for meshes that are accessed and updated in the render loop, etc.
+var mesh_solid;
+var mesh2_box_wireframe;
+
+var materials_list, material_f;
 mesh_wireframe = null;
+
 function init2(newPolygonizer) {
 
     scene = new THREE.Scene();
 
-    WIDTH = 300;
-    HEIGHT = 300;
-    WIDTH = window.innerWidth;
-    HEIGHT = window.innerHeight - 200; //for memory profiler
+    //var WIDTH = 300, HEIGHT = 300;
+    var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
     camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
     camera.position.z = 1000;
 
@@ -475,7 +488,7 @@ function init2(newPolygonizer) {
         scene.add( mesh_solid );
 
 
-    geo2 = new THREE.BoxGeometry( 20, 20, 20 );
+    var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
     mesh2_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
     mesh2_box_wireframe	.position.set( 0, 0, 0 );
     scene.add( mesh2_box_wireframe	 );
@@ -625,7 +638,7 @@ function init2(newPolygonizer) {
 
     // CONTROLS
     //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
-    cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
     cameraControls.target.set( 0, 0, 0 );
     cameraControls.addEventListener( 'change', function () {;} );
 
@@ -747,7 +760,7 @@ var geometry, material_wireframe, mesh_wireframe;
 //var newPolygonizer; //no longer global. Hopefully does not affect the performance.
 window.setTimeout(function()
 {
-    var newPolygonizer = init1();
+    var newPolygonizer = init_polygonizer();
     init2(newPolygonizer);
     animate();
 }, 3000);
