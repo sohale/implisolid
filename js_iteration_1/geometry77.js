@@ -1,12 +1,11 @@
 'use strict';
 
 
-
+/** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
 var
 MyBufferGeometry77 = function ( verts, faces ) {
 
-//MyBufferGeometry77 = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
-
+    //MyBufferGeometry77 = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
 
     //console.log(faces);
     if(VERBOSE)
