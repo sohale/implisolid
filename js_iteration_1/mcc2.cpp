@@ -10,6 +10,16 @@
  * http://webglsamples.googlecode.com/hg/blob/blob.html
  */
 
+/*
+Todo:
+- WebWorker (incremental)
+- Improve JS data exchange to Geometry
+- Adding walls
+- WebWorker wrappen in a Geometry
+- Geometry in 3js r73
+-
+*/
+
 #include <cassert>
 #include <algorithm>
 #include <iostream>

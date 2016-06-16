@@ -14,10 +14,14 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
 <body>
 <script type="text/javascript" src="mcc2.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+<!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
+
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
 -->
 <!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
 -->
+<script type="text/javascript" src="./ww_geometry77.js"></script>
+
 <script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
 <!--<body>-->
@@ -36,7 +40,7 @@ Based on MCC1
     var produce_object;
     var main;
 
-    var newProducer;
+    //var newProducer;
     function init1()
     {
         function letmeknow(){console.log("111111");}
@@ -47,7 +51,7 @@ Based on MCC1
 
         produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
 
-        newProducer={};
+        var newProducer={};
         newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
@@ -55,7 +59,8 @@ Based on MCC1
         newProducer.get_f = Module.cwrap('get_f', null, ['number']);
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
-        console.log("ok");
+        //console.log("ok");
+        return newProducer;
     }
 
 
@@ -214,9 +219,10 @@ MyBufferGeometry = function ( verts, faces ) {
     // build each side of the box geometry
     //output: vertices, normals, uvs, indices
 
-    nans_warnings = 0;
+    var nans_warnings = 0;
     //console.log("vertexCount " + vertexCount)
-    SCALE = 1.
+    var SCALE = 1.
+    var x,y,z,d;
     for(var i=0; i < vertexCount; i++)
     {
         for(var di = 0; di < 3; di++)
@@ -235,7 +241,7 @@ MyBufferGeometry = function ( verts, faces ) {
         }
         //console.log("x y z"+x+" "+y+" "+z+"   / "+ d)
 
-        sgn = +1;
+        var sgn = +1;
         normals[i*3 + 0] = x/d*sgn;
         normals[i*3 + 1] = y/d*sgn;
         normals[i*3 + 2] = z/d*sgn;
@@ -243,7 +249,7 @@ MyBufferGeometry = function ( verts, faces ) {
         if(isNaN(x/d))
             nans_warnings ++;
 
-        d2 = Math.sqrt(x*x+y*y);
+        var d2 = Math.sqrt(x*x+y*y);
         uvs[i*2+0] = x/d2;
         uvs[i*2+1] = y/d2;
     }
@@ -255,7 +261,7 @@ MyBufferGeometry = function ( verts, faces ) {
     //console.log(verts.subarray(0,3*3*3));
     //console.log(indices.subarray(0,3*3*3));
 
-    materialIndex = 0;
+    var materialIndex = 0;
     this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
 
     if(nans_warnings > 0)
@@ -369,7 +375,7 @@ function make_geometry(delta_t)
 }
 
 
-function make_geometry_new(delta_t)
+function make_geometry_new(newPolygonizer, delta_t)
 {
     var startTime = new Date();
 
@@ -380,10 +386,11 @@ function make_geometry_new(delta_t)
     global_time += delta_t;
 
 
-    newProducer.build_geometry( 28, global_time);
+    //console.log(newPolygonizer);
+    newPolygonizer.build_geometry( 28, global_time);
 
-    var nverts = newProducer.get_v_size();
-    var nfaces = newProducer.get_f_size();
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
     if(VERBOSE){
         console.log(nverts);
     }
@@ -391,21 +398,22 @@ function make_geometry_new(delta_t)
     var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
     var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
 
-    newProducer.get_v(verts_address, nverts);
-    newProducer.get_f(faces_address, nfaces);
+    newPolygonizer.get_v(verts_address, nverts);
+    newPolygonizer.get_f(faces_address, nfaces);
 
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
     //console.log(verts);
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
-    var geom = new MyGeometry(verts, faces);
+    //var geom = new MyGeometry(verts, faces);
+    var geom = new WGeometry77(verts, faces);
 
     // Now you can free the resources.
 
     Module._free(verts_address);
     Module._free(faces_address);
 
-    newProducer.finish_geometry();
+    newPolygonizer.finish_geometry();
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -421,7 +429,7 @@ function make_geometry_new(delta_t)
 
 
 mesh_wireframe = null;
-function init2() {
+function init2(newPolygonizer) {
 
     scene = new THREE.Scene();
 
@@ -442,7 +450,7 @@ function init2() {
         geometry = make_geometry();
     }
     else{
-        geometry = make_geometry_new();
+        geometry = make_geometry_new(newPolygonizer);
     }
 
     mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
@@ -491,7 +499,7 @@ function init2() {
     /*
       function update_mc_multiple() {
             var mc_icounter=0;
-            setInterval(function(){ if(mc_icounter<10) update_mc(0.2/10.*5); mc_icounter++; }, 30);
+            setInterval(function(){ if(mc_icounter<10) update_mc(newPolygonizer, 0.2/10.*5); mc_icounter++; }, 30);
         }
     */
 
@@ -499,7 +507,7 @@ function init2() {
     var last_active = 0;
     var intervals_counter = 0;
 
-    function update_mc_multiple() {
+    function update_mc_multiple(newPolygonizer) {
         //var mc_icounter=0;
         var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
         var burst_counter = 0;
@@ -536,7 +544,7 @@ function init2() {
                     if(already_busy_doing_it<1) //removable
                     {
                         already_busy_doing_it++;
-                        update_mc(0.2/10.*5 /5.);
+                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
                         if(already_busy_doing_it>1)
                             console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
                         if(!last_active)
@@ -578,7 +586,7 @@ function init2() {
                         if(already_busy_doing_it<1)
                         {
                             already_busy_doing_it++;
-                            update_mc(0.2/10.*5);
+                            update_mc(newPolygonizer, 0.2/10.*5);
                             console.log(">>>already_busy_doing_it:"+already_busy_doing_it);
                             already_busy_doing_it--;
                         }
@@ -606,8 +614,8 @@ function init2() {
     }
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
-            //update_mc();
-            update_mc_multiple();
+            //update_mc(newPolygonizer);
+            update_mc_multiple(newPolygonizer);
         }
         else
             console.log(event.keyCode);
@@ -623,7 +631,7 @@ function init2() {
 
 }
 
-function update_mc(delta_t){
+function update_mc(newPolygonizer, delta_t){
     var p1 = [mesh_solid.position, mesh_solid.rotation];
     var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
     scene.remove(mesh_solid);
@@ -634,7 +642,7 @@ function update_mc(delta_t){
         geometry = make_geometry(delta_t);
     }
     else{
-        geometry = make_geometry_new(delta_t);
+        geometry = make_geometry_new(newPolygonizer, delta_t);
     }
 
 
@@ -736,10 +744,11 @@ function animate() {
 var scene, camera, renderer;
 var geometry, material_wireframe, mesh_wireframe;
 
+//var newPolygonizer; //no longer global. Hopefully does not affect the performance.
 window.setTimeout(function()
 {
-    init1();
-    init2();
+    var newPolygonizer = init1();
+    init2(newPolygonizer);
     animate();
 }, 3000);
 
