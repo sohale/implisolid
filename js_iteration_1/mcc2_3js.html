@@ -354,6 +354,84 @@ MyGeometry.prototype.constructor = MyGeometry;
 
 'use strict';
 
+/**  Asynchronously does a series of calls to the function  update_mc(). */
+var call_multiple_times = function() {
+    // private:
+    var last_active = 0;
+    var intervals_counter = 0;
+
+    function _call_multiple_times(newPolygonizer, update_mc) {
+        /** Asynchronously does a series of calls to the function  update_mc().
+        Previous name: update_mc_mul tiple() */
+        var BURST_COUNT = 10;
+        var INTERVAL_MSEC = 40  // 1   // in Milliseconds
+            // Works well on too small values (Semaphore).
+            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
+        //var mc_icounter=0;
+        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
+        var burst_counter = 0;
+
+        //already_busy_doing_it level1: right now.
+        //already_busy_doing_it: interval (level 2)
+
+        intervals_counter++;
+        if(intervals_counter>1) //dont start if there is already one running
+        {
+            intervals_counter--;
+            return;
+        }
+        last_active = setInterval (
+            function()
+            {
+                /*
+                var ls="";
+                for (var lft=0;lft<100;lft++){
+                    ls+=" ";
+                }
+                console.log(ls.slice(1));
+                console.log("1msec");
+                return;
+                */
+                if(!last_active)
+                    console.error("!last_active");
+
+                burst_counter++; // mc_icounter
+
+                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
+                {
+
+                    if(already_busy_doing_it<1) //removable
+                    {
+                        already_busy_doing_it++;
+
+                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
+
+                        if(already_busy_doing_it>1)
+                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
+                        if(!last_active)
+                            console.error("!last_active");
+                        already_busy_doing_it--;
+                    }else{
+                        console.log("hit");
+                    }
+                }
+                else
+                {
+                    // The interval has finished its job. Time to go.
+                    if(!last_active)
+                        console.error("!last_active");
+                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
+                    intervals_counter--; // Allow next one in future
+                    burst_counter = 0;
+                    last_active = 0;
+                }
+            },
+            INTERVAL_MSEC
+        );
+    }
+    return _call_multiple_times;
+}();
 
 /*
 // MyLiveUpdatableGeometry
@@ -520,80 +598,6 @@ function init_scene(newPolygonizer) {
         }
     */
 
-    //var interval_active = 0;
-    var last_active = 0;
-    var intervals_counter = 0;
-
-    function call_multiple_times(newPolygonizer, update_mc) {
-        /** does a series of call to the function  update_mc().
-        update_mc_mul tiple() */
-        var BURST_COUNT = 10;
-        var INTERVAL_MSEC = 40  // 1   // in Milliseconds
-            // Works well on too small values (Semaphore).
-            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
-
-        //var mc_icounter=0;
-        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
-        var burst_counter = 0;
-
-        //already_busy_doing_it level1: right now.
-        //already_busy_doing_it: interval (level 2)
-
-        intervals_counter++;
-        if(intervals_counter>1) //dont start if there is already one running
-        {
-            intervals_counter--;
-            return;
-        }
-        last_active = setInterval (
-            function()
-            {
-                /*
-                var ls="";
-                for (var lft=0;lft<100;lft++){
-                    ls+=" ";
-                }
-                console.log(ls.slice(1));
-                console.log("1msec");
-                return;
-                */
-                if(!last_active)
-                    console.error("!last_active");
-
-                burst_counter++; // mc_icounter
-
-                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
-                {
-
-                    if(already_busy_doing_it<1) //removable
-                    {
-                        already_busy_doing_it++;
-
-                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
-
-                        if(already_busy_doing_it>1)
-                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
-                        if(!last_active)
-                            console.error("!last_active");
-                        already_busy_doing_it--;
-                    }else{
-                        console.log("hit");
-                    }
-                }
-                else
-                {
-                    // The interval has finished its job. Time to go.
-                    if(!last_active)
-                        console.error("!last_active");
-                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
-                    intervals_counter--; // Allow next one in future
-                    burst_counter = 0;
-                    last_active = 0;
-                }
-            },
-            INTERVAL_MSEC
-        );
-    }
 
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
