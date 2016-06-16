@@ -671,11 +671,11 @@ vector<TRIANGLE> make_grid()
         REAL x = c[0];
         REAL y = c[1];
         REAL z = c[2];
-        int shape = 1;
+        int shape = 2;
         if (shape == 1){
           REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
-          REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-    //      REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
+        //  REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+          REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
           values[xi][yi][zi] = f;
           }
         else if(shape == 2){
@@ -887,7 +887,7 @@ void test_gridcell2()
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
-    REAL thl = 0.005; // tolerance used to compare two float together
+    REAL thl = 0.0001; // tolerance used to compare two float together
   //  assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nt = ta.size();
     int nv = ta.size()*3;
@@ -954,17 +954,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         assert (new_vx <= nv);
       }
     }
-    const bool ADD_THE_SPIKES = false;
-    if(ADD_THE_SPIKES){
-        // Add the spikes !
-        int spike_triangle=100;
-        for (int j=0;j<nt*3; j += 100){
-            spike_triangle = j;
-            verts[spike_triangle][0] *= 2;
-            verts[spike_triangle][1] *= 2;
-            verts[spike_triangle][2] *= 2;
-        }
-    }
+
     verts_new.resize(boost::extents[new_vx][3]);
     cout << "New vertex " << new_vx << endl;
     cout << "Vertex_new shape " << verts_new.shape()[0] << endl;
@@ -973,7 +963,18 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     return p2;
 }
 
-
+verts_t compute_centroids(vf_t vf){
+  int nt = vf.second.shape()[0];
+  faces_t faces = vf.second;
+  verts_t verts = vf.first;
+  verts_t centroids;
+  for (int j=0;j<nt; j++){
+    for (int di=0; di<3; di++){
+        centroids[j][di] = (verts[faces[j][0]][di] + verts[faces[j][1]][di] + verts[faces[j][2]][di])/3.;
+    }
+  }
+  return centroids;
+}
 
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
