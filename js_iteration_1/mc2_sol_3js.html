@@ -43,6 +43,7 @@ Written using C++ and ThreeJS.
     }
     function do_vf()
     {
+
         //const DBLFLOAT_SIZE = 8;
         const FLOAT_SIZE = 4;
         const INT_SIZE = 4;
@@ -58,10 +59,10 @@ Written using C++ and ThreeJS.
         var nv_address = Module._malloc(INT_SIZE*1);
         var faces_address = Module._malloc(INT_SIZE*3*max_faces)
         var nf_address = Module._malloc(INT_SIZE*1);
-        //Module.HEAPF64.set(new Float64Array(q), offset/DBLFLOAT_SIZE);
+        //Module.HEAPF64.set  (new Float64Array(q), offset/DBLFLOAT_SIZE);
 
         make_object(verts_address, nv_address, faces_address, nf_address);
-
+//        console.log("Patatee")
         //Module.HEAPF64 is a Float64Array
         var nverts = Module.HEAPU32[nv_address/INT_SIZE];
         console.log("nverts : "+ nverts)
@@ -70,7 +71,9 @@ Written using C++ and ThreeJS.
         var verts = Module.HEAPF32.subarray(verts_address/FLOAT_SIZE, verts_address/FLOAT_SIZE + 3*nverts);
         var faces = Module.HEAPU32.subarray(faces_address/INT_SIZE, faces_address/INT_SIZE + 3*nfaces);
         //var verts = undefined;
+
         return [verts, faces];
+
     }
 
     //init1();
@@ -119,7 +122,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
     this.type = 'MyBufferGeometry';
 
-    //console.log(verts);
+//    console.log(verts);
     width=20;
     height=20;
     depth=20;
@@ -166,9 +169,12 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
     // buffers
     var indices = new ( indexCount > 65535 ? Uint32Array : Uint16Array )( indexCount );
-    var vertices = new Float32Array( indexCount);
-    var normals = new Float32Array( indexCount );
-    var uvs = new Float32Array( indexCount * 2./3.0);
+    // var vertices = new Float32Array( indexCount);
+    // var normals = new Float32Array( indexCount );
+    // var uvs = new Float32Array( indexCount * 2./3.0);
+    var vertices = new Float32Array( indexCount*3);
+    var normals = new Float32Array( indexCount*3 );
+    var uvs = new Float32Array( indexCount * 2.);
 
     // offset variables
     var vertexBufferOffset = 0;
@@ -204,11 +210,14 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
             var si = i%3;
             for(var di=0;di<3;di++)
         //        vertices[i*3+di] = verts[faces[fi*3+ si]*3+di] * SCALE;
-    //            vertices[i*3+di] = verts[i*3+di] * SCALE;
-                  vertices[i*3+di] = verts[faces[i*3+di]]*SCALE;
-            x = verts[faces[i*3+0]];
-            y = verts[faces[i*3+1]];
-            z = verts[faces[i*3+2]];
+            //       vertices[i*3+di] = verts[faces[i*3+di]]*SCALE;
+            // x = verts[faces[i*3+0]];
+            // y = verts[faces[i*3+1]];
+            // z = verts[faces[i*3+2]];
+              vertices[i*3+di] = verts[i*3+di]*SCALE;
+            x = verts[i*3+0];
+            y = verts[i*3+1];
+            z = verts[i*3+2];
             // x = verts[faces[i]*3+0];
             // y = verts[faces[i]*3+1];
             // z = verts[faces[i]*3+2];
@@ -248,7 +257,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
 
         for(var i=0; i < nbr_faces; i++)
             for(var si=0; si<3; si++)
-                indices[i*3+si] = i*3+si;
+                indices[i*3+si] = i*3+si; //here faces[i*3 + si ] = i*3 + si;
 
         materialIndex = 0;
         this.addGroup( 0, nbr_faces*3, materialIndex ); //not sure about *3 . Why??

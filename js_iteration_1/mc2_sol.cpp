@@ -673,9 +673,9 @@ vector<TRIANGLE> make_grid()
         REAL z = c[2];
         int shape = 1;
         if (shape == 1){
-      //    REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
-    //      REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-          REAL f = 0.1- (pow(x-0.1,2) + pow(y-0.1,2) + pow(z-0.1,2));
+          REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
+          REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+      //    REAL f = 0.1- (pow(x-0.1,2) + pow(y-0.1,2) + pow(z-0.1,2));
           values[xi][yi][zi] = f;
           }
         else if(shape == 2){
@@ -887,7 +887,8 @@ void test_gridcell2()
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
-
+    REAL thl = 0.01; // tolerance used to compare two float together
+    assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nt = ta.size();
     int nv = ta.size()*3;
 
@@ -895,7 +896,9 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     boost::array<int, 2> f_shape = {{ nt, 3 }};
     boost::multi_array<REAL, 2> verts (v_shape);
     boost::multi_array<int, 2> faces (f_shape);
-
+    boost::multi_array<REAL, 2> verts_new(v_shape);
+    faces[0][0] = 0;
+    ASSERT(nt*3 == verts.shape()[0]);
     int FLIP[3] = {0, 2, 1};
     for(int ti=0; ti<nt; ti++)
     {
@@ -907,6 +910,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
               //0;
               //rnd() > 0.5;
               (sgn<0);
+
         for(int side=0; side<3; side++){
             int side2 = side;
             if(flip_verts){
@@ -921,20 +925,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             verts[ti*3+side][2] = tr.p[side2].z+NOISE_LEVEL*rnd();
         }
     }
-    ASSERT(nt*3 == verts.shape()[0]);
 
-    for(int ti=0; ti<nt; ti++){
-      bool flip = 0; //!(ti % 2);
-      faces[ti][0] = ti*3 + 0;
-      if(flip){
-        faces[ti][1] = ti*3 + 2;
-        faces[ti][2] = ti*3 + 1;
-      }
-      else{
-        faces[ti][1] = ti*3 + 1;
-        faces[ti][2] = ti*3 + 2;
-      }
-    }
+
 
     //Twitch
     for (int j=0;j<nt; j+= 1){
@@ -955,7 +947,34 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             }
         }
     }
+    //faces
+    int new_vx = 0;
+    for(int ti=0; ti<nv-1; ti++){
+      bool new_vertex = true;
 
+      for(int tj=0; tj<ti; tj++){
+
+        if (ABS(verts[ti][0] - verts[tj][0]) < thl && ABS(verts[ti][1] - verts[tj][1]) < thl &&
+        ABS(verts[ti][2] - verts[tj][2]) < thl ){
+          faces[ti/3][ti%3] = faces[tj/3][tj%3];
+          new_vertex = false;
+          continue;
+          assert (ti/3 + ti%3 <= nt);
+          assert (tj/3 + tj%3 <= nt);
+          assert (ti <= nv);
+          assert (tj <= nv);
+        }
+      }
+      if (new_vertex){
+        faces[ti/3][ti%3] = new_vx;
+        verts_new[new_vx][0] = verts[ti][0];
+        verts_new[new_vx][1] = verts[ti][1];
+        verts_new[new_vx][2] = verts[ti][2];
+        new_vx ++;
+        assert (ti/3 + ti%3 <= nt);
+        assert (new_vx <= nv);
+      }
+    }
     const bool ADD_THE_SPIKES = false;
     if(ADD_THE_SPIKES){
         // Add the spikes !
@@ -967,8 +986,11 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
             verts[spike_triangle][2] *= 2;
         }
     }
-
-    vf_t p2 = make_pair(verts, faces);
+    verts_new.resize(boost::extents[new_vx][3]);
+    cout << "New vertex " << new_vx << endl;
+    cout << "Vertex_new shape " << verts_new.shape()[0] << endl;
+  vf_t p2 = make_pair(verts_new, faces);
+  //  vf_t p2 = make_pair(verts, faces);
     return p2;
 }
 
@@ -1008,35 +1030,60 @@ vf_t reindexing_verts_faces(vf_t const& vf)
     boost::array<int, 2> v_shape = {{ nv, 3 }};
     boost::multi_array<REAL, 2> verts_new(v_shape);
 //    cout << nf << " "<< nv << " "<< nv/3 << endl;
-    for(int i=0; i<nv; i++){
-      bool new_vertex = true;
-      for(int j=i+1; j<nv-1; j++){
-          //(faces_new[i][j] == faces_new[i+1][0])
-        faces_new[i/3][i%3] = i/3 + i%3;
-        if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
-        ABS(verts[i][2] - verts[j][2]) < thl ){
-          new_vertex = false;
-          faces_new[j/3][j%3] = faces_new[i/3][i%3];
-    //    cout << j/3 + j%3 << endl;
-          assert (j/3 + j%3 <= nf);
-          assert (i/3 + i%3 <= nf);
-        }
-      }
-              //faces_new[i][j] == faces_new[i+1][1]
-      if (new_vertex == true){
-        verts_new[nv_new][0] = verts[i][0];
-        verts_new[nv_new][1] = verts[i][1];
-        verts_new[nv_new][2] = verts[i][2];
-        faces_new[i/3][i%3] = nv_new;
-      //  cout << i/3 + i%3 << endl;
-      //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
-        nv_new ++;
-      }
+    // for(int i=nv-2; i>0; i--){
+    //   bool new_vertex = true;
+    //   for(int j=0; j<i; j++){
+    //       //(faces_new[i][j] == faces_new[i+1][0])
+    //     faces_new[i/3][i%3] = i/3 + i%3;
+    //     if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
+    //     ABS(verts[i][2] - verts[j][2]) < thl ){
+    //       new_vertex = false;
+    //       faces_new[i/3][i%3] = faces_new[j/3][j%3];
+    // //    cout << j/3 + j%3 << endl;
+    //       assert (j/3 + j%3 <= nf);
+    //       assert (i/3 + i%3 <= nf);
+    //     //  break;
+    //     continue;
+    //     }
+    //   }
+    //           //faces_new[i][j] == faces_new[i+1][1]
+    //   if (new_vertex == true){
+    //     verts_new[nv_new][0] = verts[i][0];
+    //     verts_new[nv_new][1] = verts[i][1];
+    //     verts_new[nv_new][2] = verts[i][2];
+    //     faces_new[i/3][i%3] = nv_new;
+    //   //  cout << i/3 + i%3 << endl;
+    //   //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
+    //     nv_new ++;
+    //   }
+      for(int i=1; i<nv-1; i++){
+        bool new_vertex = true;
+        for(int j=0; j<i; j++){
+            //(faces_new[i][j] == faces_new[i+1][0])
+          faces_new[i/3][i%3] = i/3 + i%3;
+          if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
+          ABS(verts[i][2] - verts[j][2]) < thl ){
+            new_vertex = false;
+            faces_new[i/3][i%3] = faces_new[j/3][j%3];
 
+            assert (j/3 + j%3 <= nf);
+            assert (i/3 + i%3 <= nf);
+          }
+        }
+                //faces_new[i][j] == faces_new[i+1][1]
+        if (new_vertex == true){
+          verts_new[nv_new][0] = verts[i][0];
+          verts_new[nv_new][1] = verts[i][1];
+          verts_new[nv_new][2] = verts[i][2];
+          faces_new[i/3][i%3] = nv_new;
+        //  cout << i/3 + i%3 << endl;
+        //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
+          nv_new ++;
+        }
   //    cout << faces_new[i/3][i%3] << endl;
       assert (nv_new <= nv);
     }
-    cout << " nv_new " << nv_new << endl;
+  //  cout << " nv_new " << nv_new << endl;
     // verts initialization
     verts_new[0][0] = verts[0][0];
     verts_new[0][1] = verts[0][1];
@@ -1071,8 +1118,8 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     timr.stop("vector_to_vertsfaces()");
 
     vf_t vf_new = reindexing_verts_faces(vf);
-    vf_t vf_2 = vf_new;
-  //  vf_t vf_2 = vf;
+  //  vf_t vf_2 = vf_new;
+    vf_t vf_2 = vf;
     *nv = vf_2.first.shape()[0];
     *nf = vf_2.second.shape()[0];
 
@@ -1196,6 +1243,7 @@ vf_t triangles_to_vertsfaces(vector<TRIANGLE> const& ta)
 
     for(int ti=0; ti<nt; ti++){
       bool flip = 0; //!(ti % 2);
+
       faces[ti][0] = ti*3 + 0;
       if(flip){
         faces[ti][1] = ti*3 + 2;
