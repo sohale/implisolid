@@ -675,7 +675,7 @@ vector<TRIANGLE> make_grid()
         if (shape == 1){
           REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
           REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-      //    REAL f = 0.1- (pow(x-0.1,2) + pow(y-0.1,2) + pow(z-0.1,2));
+    //      REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
           values[xi][yi][zi] = f;
           }
         else if(shape == 2){
@@ -887,8 +887,8 @@ void test_gridcell2()
 
 vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
-    REAL thl = 0.02; // tolerance used to compare two float together
-    assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
+    REAL thl = 0.005; // tolerance used to compare two float together
+  //  assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
     int nt = ta.size();
     int nv = ta.size()*3;
 
@@ -926,27 +926,6 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         }
     }
 
-
-
-    //Twitch
-    for (int j=0;j<nt; j+= 1){
-        boost::array<REAL, 3> centroid = {0,0,0};
-
-        for (int s=0;s<3; s+= 1){
-            for (int d=0;d<3; d+= 1){
-                centroid[d] += verts[j*3+s][d] / 3.;
-            }
-        }
-
-
-        const REAL alpha = 0.90;
-        const REAL beta = 1. - alpha;
-        for (int s=0;s<3; s+= 1){
-            for (int d=0;d<3; d+= 1){
-                verts[j*3+s][d]  = verts[j*3+s][d] * alpha + centroid[d] * beta;
-            }
-        }
-    }
     //faces
     int new_vx = 0;
     for(int ti=0; ti<nv-1; ti++){
@@ -995,109 +974,6 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 }
 
 
-vf_t reindexing_verts_faces(vf_t const& vf)
-{
-    REAL thl = 0.01; // tolerance used to compare two float together
-    assert (thl > 0.005); // must be superior to this value because if it is not the function does not detect same verticies
-    int nv = vf.first.shape()[0];
-    int nf = vf.second.shape()[0];
-    verts_t verts = vf.first;
-    faces_t faces = vf.second;
-
-
-    boost::array<int, 2> f_shape = {{ nf, 3 }};
-
-    boost::multi_array<int, 2> faces_new(f_shape);
-
-    faces_new[0][0] = faces[0][0];
-    faces_new[0][1] = faces[0][1];
-
-    // for(int i=0; i<nv; i++){
-    //     if (dico_verts.find({verts[i][0], verts[i][1], verts[i][2]}) == dico_verts.end()){
-    //       nv_new ++;
-    //       dico_verts.push_back({verts[i][0], verts[i][1], verts[i][2]}, nv_new);
-    //     }
-    // for(int i=0; i<nv; i++){
-    //   for(int j=0; j<nv-1; j++){
-    //       if(verts[i][0] == verts[j][0] && verts[i][1] == verts[j][1] && verts[i][2] == verts[j][2]){
-    //
-    //       }
-    //   }
-    // }
-
-  //  cout << "number of unique verts" << nv_new << endl;
-    int nv_new = 0;
-    boost::array<int, 2> v_shape = {{ nv, 3 }};
-    boost::multi_array<REAL, 2> verts_new(v_shape);
-//    cout << nf << " "<< nv << " "<< nv/3 << endl;
-    // for(int i=nv-2; i>0; i--){
-    //   bool new_vertex = true;
-    //   for(int j=0; j<i; j++){
-    //       //(faces_new[i][j] == faces_new[i+1][0])
-    //     faces_new[i/3][i%3] = i/3 + i%3;
-    //     if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
-    //     ABS(verts[i][2] - verts[j][2]) < thl ){
-    //       new_vertex = false;
-    //       faces_new[i/3][i%3] = faces_new[j/3][j%3];
-    // //    cout << j/3 + j%3 << endl;
-    //       assert (j/3 + j%3 <= nf);
-    //       assert (i/3 + i%3 <= nf);
-    //     //  break;
-    //     continue;
-    //     }
-    //   }
-    //           //faces_new[i][j] == faces_new[i+1][1]
-    //   if (new_vertex == true){
-    //     verts_new[nv_new][0] = verts[i][0];
-    //     verts_new[nv_new][1] = verts[i][1];
-    //     verts_new[nv_new][2] = verts[i][2];
-    //     faces_new[i/3][i%3] = nv_new;
-    //   //  cout << i/3 + i%3 << endl;
-    //   //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
-    //     nv_new ++;
-    //   }
-      for(int i=1; i<nv-1; i++){
-        bool new_vertex = true;
-        for(int j=0; j<i; j++){
-            //(faces_new[i][j] == faces_new[i+1][0])
-          faces_new[i/3][i%3] = i/3 + i%3;
-          if (ABS(verts[i][0] - verts[j][0]) < thl && ABS(verts[i][1] - verts[j][1]) < thl &&
-          ABS(verts[i][2] - verts[j][2]) < thl ){
-            new_vertex = false;
-            faces_new[i/3][i%3] = faces_new[j/3][j%3];
-
-            assert (j/3 + j%3 <= nf);
-            assert (i/3 + i%3 <= nf);
-          }
-        }
-                //faces_new[i][j] == faces_new[i+1][1]
-        if (new_vertex == true){
-          verts_new[nv_new][0] = verts[i][0];
-          verts_new[nv_new][1] = verts[i][1];
-          verts_new[nv_new][2] = verts[i][2];
-          faces_new[i/3][i%3] = nv_new;
-        //  cout << i/3 + i%3 << endl;
-        //  faces_new[nv_new/3][nv_new%3] = faces_new[i/3][j%3];
-          nv_new ++;
-        }
-  //    cout << faces_new[i/3][i%3] << endl;
-      assert (nv_new <= nv);
-    }
-  //  cout << " nv_new " << nv_new << endl;
-    // verts initialization
-    verts_new[0][0] = verts[0][0];
-    verts_new[0][1] = verts[0][1];
-    verts_new[0][2] = verts[0][2];
-
-  //  cout <<  verts[5][0]  << "potatoes" << verts[3][0]  << endl;
-
-  //  cout <<"number of triangle" << nf << endl;
-    verts_new.resize(boost::extents[nv_new][3]);
-
-    vf_t p2 = make_pair(verts_new, faces_new);
-    return p2;
-}
-
 
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
@@ -1117,21 +993,18 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     vf_t vf = vector_to_vertsfaces(ta);
     timr.stop("vector_to_vertsfaces()");
 
-  //  vf_t vf_new = reindexing_verts_faces(vf);
-  //  vf_t vf_2 = vf_new;
-    vf_t vf_2 = vf;
-    *nv = vf_2.first.shape()[0];
-    *nf = vf_2.second.shape()[0];
+    *nv = vf.first.shape()[0];
+    *nf = vf.second.shape()[0];
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf_2.first[vi][di];
+            verts[vi*3+di] = vf.first[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf_2.second[fi][si];
+            faces[fi*3+si] = vf.second[fi][si];
         }
       }
 
