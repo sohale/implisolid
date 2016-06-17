@@ -32,7 +32,7 @@ Todo:
 //#include <math.h>
 
 extern "C" {
-    void produce_object(float* verts, int *nv, int* faces, int *nf, float param);
+    void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
     int main();
 }
 
@@ -1799,9 +1799,9 @@ public:
 };
 
 
-
-void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
-
+//Not used
+void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
+    //not used
 
     dim_t resolution = 28;  // 28;
     bool enableUvs = true;
@@ -1819,9 +1819,10 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     int numblobs = 4;
     //REAL time = 0.1 ;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
+        REAL D = 1;
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D; // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         mc.addBall(ballx, bally, ballz, strength, subtract);
@@ -1936,7 +1937,18 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc -> isolation = 80.0/4;
 
-
+    int numblobs = 4;
+    //REAL time = 0.1 ;
+    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+        REAL D = 1;
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D; // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
+        REAL subtract = 12;
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+        _state.mc->addBall(ballx, bally, ballz, strength, subtract);
+      }
+/*
     int numblobs = 4;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
@@ -1946,6 +1958,7 @@ void build_geometry(int resolution, REAL time){
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
     }
+*/
     //std::cout << "balls added." << std::endl;
 
     const callback_t renderCallback;

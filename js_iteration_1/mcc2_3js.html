@@ -35,6 +35,12 @@ Based on MCC1
 
 <script>
     'use strict';
+
+    // Exported
+
+    var produce_object;
+    var main;
+
     //var newProducer;
     function init_polygonizer()
     {
@@ -44,7 +50,7 @@ Based on MCC1
 
         main = Module.cwrap('main', 'number', []);
 
-        produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
+        produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
 
         var newProducer={};
         newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
@@ -70,8 +76,6 @@ Based on MCC1
     const VERBOSE = false;
 
     var WIREFRAME = false;
-    var produce_object;
-    var main;
 
 
     //const DBLFLOAT_SIZE = 8;
@@ -289,7 +293,7 @@ function make_geometry_new(newPolygonizer, subjective_time)
 
 
     //console.log(newPolygonizer);
-    newPolygonizer.build_geometry( 28, subjective_time);
+    newPolygonizer.build_geometry( 28*2, subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -579,5 +583,48 @@ window.setTimeout(function()
     animate();
 }, 3000);
 
+</script>
 
+<!--script type="text/javascript" src="wwexample1.js"></script-->
+<script type="text/javascript">
+if(0){
+//worker example
+if (window.Worker) {
+    var myWorker = new Worker("wwexample1.js");
+    myWorker.postMessage({a:3, b:6});
+    myWorker.postMessage({a:8, b:9});
+    myWorker.onmessage = function(e) {
+        console.log('I received this from worker');
+        //console.log(e);
+        console.log(e.data);
+
+        /*
+    bubbles    : false
+    cancelBubble    : false
+    cancelable    : false
+    currentTarget    : Worker
+    data    : Object
+    defaultPrevented    : false
+    eventPhase    : 0
+    isTrusted    : true
+    isTrusted    : true
+    lastEventId    : ""
+    origin    : ""
+    path    : Array[0]
+    ports    : Array[0]
+    returnValue    : true
+    source    : null
+    srcElement    : Worker
+    target    : Worker
+    timeStamp    : 1555.6200000000001
+    type    : "message"
+
+        */
+
+    }
+}
+else{
+    console.warning("Your browser does not support WebWorkers. See http://stackoverflow.com/questions/4739916/what-browsers-currently-support-web-workers ");
+}
+}
 </script>
