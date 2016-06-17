@@ -1,32 +1,9 @@
 'use strict';
 
+//Core contains the mesh (or changes to the mesh)
+function make_geometry_core( verts, faces) {
 
-/** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
-var
-MyBufferGeometry77 = function ( verts, faces ) {
 
-    //MyBufferGeometry77 = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
-
-    //console.log(faces);
-    if(VERBOSE)
-        console.log("MyBufferGeometry77");
-
-    THREE.BufferGeometry.call( this );
-
-    //console.log("raw v size " + verts.length);
-    //console.log("vl " + verts.length/3);
-    //console.log("fl " + faces.length/3);
-
-    this.type = 'MyBufferGeometry77';
-
-    this.parameters = {
-        //width: width,
-        //height: height,
-        //depth: depth,
-        //widthSegments: widthSegments,
-        //heightSegments: heightSegments,
-        //depthSegments: depthSegments
-    };
     var vertexCount = verts.length/3;
     var facecount = faces.length/3;
     var indexCount = facecount*3;
@@ -95,52 +72,59 @@ MyBufferGeometry77 = function ( verts, faces ) {
     //console.log(verts.subarray(0,3*3*3));
     //console.log(indices.subarray(0,3*3*3));
 
-    var materialIndex = 0;
-    this.addGroup( 0, facecount*3, materialIndex ); //not sure about *3 . Why??
 
     if(nans_warnings > 0)
         console.error("WARNING: NaN in vertices. "+nans_warnings/978+" out of "+vertexCount/978+ "  subtract:"+(vertexCount-nans_warnings)/978);
 
+    return {
+        indices: indices,
+        vertices: vertices,
+        normals: normals,
+        uvs: uvs
+    };
+}
 
+/** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
+var
+MyBufferGeometry77 = function ( verts, faces ) {
 
+    //MyBufferGeometry77 = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
+
+    //console.log(faces);
+    if(VERBOSE)
+        console.log("MyBufferGeometry77");
+
+    THREE.BufferGeometry.call( this );
+
+    //console.log("raw v size " + verts.length);
+    //console.log("vl " + verts.length/3);
+    //console.log("fl " + faces.length/3);
+
+    this.type = 'MyBufferGeometry77';
+
+    this.parameters = {
+        //width: width,
+        //height: height,
+        //depth: depth,
+        //widthSegments: widthSegments,
+        //heightSegments: heightSegments,
+        //depthSegments: depthSegments
+    };
+
+    var mesh_core = make_geometry_core(verts, faces);
+
+    var materialIndex = 0;
+    this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
 
     //this.addGroup( groupStart, groupCount, materialIndex );  //groupCount is same as indices' index.
 
     //modified, but not output: indexBufferOffset, vertexBufferOffset, uvBufferOffset, numberOfVertices, groupStart
 
     // build geometry
-    this.setIndex( new THREE.BufferAttribute( indices, 3 ) );
-    this.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
-    this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
-
-    // helper functions
-
-    function calculateVertexCount ( w, h, d ) {
-
-        var vertices = 0;
-
-        // calculate the amount of vertices for each side (plane)
-        vertices += (w + 1) * (h + 1) * 2; // xy
-        vertices += (w + 1) * (d + 1) * 2; // xz
-        vertices += (d + 1) * (h + 1) * 2; // zy
-
-        return vertices;
-
-    }
-
-    function calculateIndexCount ( w, h, d ) {
-
-        var index = 0;
-
-        // calculate the amount of squares for each side
-        index += w * h * 2; // xy
-        index += w * d * 2; // xz
-        index += d * h * 2; // zy
-
-        return index * 6; // two triangles per square => six vertices per square
-
-    }
+    this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
+    this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
+    this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
+    this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
 
 };
 
