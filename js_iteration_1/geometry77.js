@@ -1,5 +1,7 @@
 'use strict';
 
+const ENABLE_NORMALS = false;
+
 //Core contains the mesh (or changes to the mesh)
 function make_geometry_core( verts, faces) {
 
@@ -15,8 +17,16 @@ function make_geometry_core( verts, faces) {
     // buffers
     var indices = new ( indexCount > 65535 ? Uint32Array : Uint16Array )( indexCount );
     var vertices = new Float32Array( vertexCount * 3 );
-    var normals = new Float32Array( vertexCount * 3 );
-    var uvs = new Float32Array( vertexCount * 2 );
+
+    var normals, uvs;  // plan
+    if(ENABLE_NORMALS){
+        normals = new Float32Array( vertexCount * 3 );
+        uvs = new Float32Array( vertexCount * 2 );
+    }
+    else{
+        normals = null;
+        uvs = null;
+    }
 
     // offset variables
     //var vertexBufferOffset = 0;
@@ -52,17 +62,19 @@ function make_geometry_core( verts, faces) {
         }
         //console.log("x y z"+x+" "+y+" "+z+"   / "+ d)
 
-        var sgn = +1;
-        normals[i*3 + 0] = x/d*sgn;
-        normals[i*3 + 1] = y/d*sgn;
-        normals[i*3 + 2] = z/d*sgn;
+        if(ENABLE_NORMALS){
+            var sgn = +1;
+            normals[i*3 + 0] = x/d*sgn;
+            normals[i*3 + 1] = y/d*sgn;
+            normals[i*3 + 2] = z/d*sgn;
 
-        if(isNaN(x/d))
-            nans_warnings ++;
+            if(isNaN(x/d))
+                nans_warnings ++;
 
-        var d2 = Math.sqrt(x*x+y*y);
-        uvs[i*2+0] = x/d2;
-        uvs[i*2+1] = y/d2;
+            var d2 = Math.sqrt(x*x+y*y);
+            uvs[i*2+0] = x/d2;
+            uvs[i*2+1] = y/d2;
+        }
     }
 
     for(var i=0; i < facecount; i++)
@@ -123,8 +135,10 @@ MyBufferGeometry77 = function ( verts, faces ) {
     // build geometry
     this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
     this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
-    this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
-    this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+    if(mesh_core.normals) {
+        this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
+        this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+    }
 
 };
 
@@ -132,7 +146,7 @@ MyBufferGeometry77.prototype = Object.create( THREE.BufferGeometry.prototype );
 MyBufferGeometry77.prototype.constructor = MyBufferGeometry77;
 
 
-
+// This class is not actually necessary.
 function WGeometry77(verts, faces) {
     //vects, faces
 

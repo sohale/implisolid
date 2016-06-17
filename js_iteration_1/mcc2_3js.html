@@ -187,7 +187,8 @@ function make_geometry_old(subjective_time)
     var timeDiff = endTime - startTime;
     console.log("TIME: "+timeDiff+ " msec.");
 
-    return new MyGeometry(v, f);
+    //return new MyGeometry(v, f);
+    return new MyBufferGeometry77(v, f);
 }
 
 
@@ -293,7 +294,7 @@ function make_geometry_new(newPolygonizer, subjective_time)
 
 
     //console.log(newPolygonizer);
-    newPolygonizer.build_geometry( 28*2, subjective_time);
+    newPolygonizer.build_geometry( 28, subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
