@@ -10,7 +10,7 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
         //function letmeknow(){console.log("Loading memory profiler");}
         Module={preRun:[
             letmeknow=function (){console.log("Loading memory profiler");},
-            memoryprofiler_add_hooks
+            //memoryprofiler_add_hooks
         ]};
 
 </script>
@@ -205,7 +205,7 @@ var call_multiple_times = function() {
         /** Asynchronously does a series of calls to the function  update_mc().
         Previous name: update_mc_mul tiple() */
         var BURST_COUNT = 10;
-        var INTERVAL_MSEC = 40  // 1   // in Milliseconds
+        var INTERVAL_MSEC = 8; //40  // 1   // in Milliseconds
             // Works well on too small values (Semaphore).
             // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
 

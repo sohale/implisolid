@@ -1,10 +1,26 @@
 'use strict';
 
-const ENABLE_NORMALS = false;
 
-//Core contains the mesh (or changes to the mesh)
 function make_geometry_core( verts, faces) {
 
+    var indices = faces;
+    var vertices = verts;
+    var normals = null, uvs = null;
+    //vertices = verts;
+    //indices = faces;
+
+    return {
+        indices: indices,
+        vertices: vertices,
+        normals: normals,
+        uvs: uvs
+    };
+}
+
+//Core contains the mesh (or changes to the mesh)
+function make_geometry_core_slower( verts, faces) {
+
+    const ENABLE_NORMALS = false;
 
     var vertexCount = verts.length/3;
     var facecount = faces.length/3;
@@ -100,44 +116,37 @@ function make_geometry_core( verts, faces) {
 var
 MyBufferGeometry77 = function ( verts, faces ) {
 
-    //MyBufferGeometry77 = function ( verts, faces, width, height, depth, widthSegments, heightSegments, depthSegments ) {
-
-    //console.log(faces);
-    if(VERBOSE)
-        console.log("MyBufferGeometry77");
-
     THREE.BufferGeometry.call( this );
-
-    //console.log("raw v size " + verts.length);
-    //console.log("vl " + verts.length/3);
-    //console.log("fl " + faces.length/3);
-
     this.type = 'MyBufferGeometry77';
 
-    this.parameters = {
-        //width: width,
-        //height: height,
-        //depth: depth,
-        //widthSegments: widthSegments,
-        //heightSegments: heightSegments,
-        //depthSegments: depthSegments
-    };
+    this.parameters = { };
 
-    var mesh_core = make_geometry_core(verts, faces);
+    const faster = true;
+    if(faster){
 
-    var materialIndex = 0;
-    this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
+        if(1){
+            var materialIndex = 0;
+            this.addGroup( 0, faces.length, materialIndex ); //not sure about *3 . Why??
+        }
+        // build geometry
+        this.setIndex( new THREE.BufferAttribute( faces, 3 ) );
+        this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
 
-    //this.addGroup( groupStart, groupCount, materialIndex );  //groupCount is same as indices' index.
+    }else{
+        var mesh_core = make_geometry_core(verts, faces);
 
-    //modified, but not output: indexBufferOffset, vertexBufferOffset, uvBufferOffset, numberOfVertices, groupStart
+        if(1){
+            var materialIndex = 0;
+            this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
+        }
 
-    // build geometry
-    this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
-    this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
-    if(mesh_core.normals) {
-        this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
-        this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+        // build geometry
+        this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
+        this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
+        if(mesh_core.normals) {
+            this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
+            this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+        }
     }
 
 };
