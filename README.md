@@ -7,12 +7,12 @@ This document describes how to set up your installation so that you can work on 
 **Table of Contents**
 
 > - [Prerequisites](#prerequisites) 
-- [File organisation](#File-organisation)
-- [Python](#Python-scripts)
-- [C++ to javascript](#Python-scripts)
-    - [Boost](#Boost)
-    - [Emscripten](#Emscripten)
-    - [How to compile](#How-to-compile)
+- [File organisation](#file-organisation)
+- [Python](#python)
+- [C++ to javascript](#c++-to-javascript)
+    - [Boost](#boost)
+    - [Emscripten](#emscripten)
+    - [How to compile](#how-to-compile)
 
 
 ----------
@@ -49,10 +49,10 @@ Python
 
 In order to work on and execute the python scripts you may need to install the following libraries : 
 - apdb : the debugging process is made easier
-- vtk : It is mainly used to compute a marching cube mesh, the first step of the main algorithm described above. You may want to follow this tutorial to install vtk : `http://www.vtk.org/Wiki/VTK/Building/Linux`.
+- vtk : It is mainly used to compute a marching cube mesh, the first step of the main algorithm described above. You may want to follow this tutorial to install vtk : http://www.vtk.org/Wiki/VTK/Building/Linux.
 - numpy : mathematical functions
 - traits
-- mayavi : display. This tutorial can help you install mayavi and traits and check wether your installation was succesfull : `http://docs.enthought.com/mayavi/mayavi/installation.html`
+- mayavi : display. This tutorial can help you install mayavi and traits and check wether your installation was succesfull : http://docs.enthought.com/mayavi/mayavi/installation.html
 
 For most of those libraries, a simple `sudo apt-get install python-LibraryName` will do the trick. If not you may want to try the `easy_install` command or the use of pip.
 
@@ -65,7 +65,7 @@ In this part of the project, Emscripten is used to convert c++ code into javascr
 For the c++ code, we use the Boost library. It does not need to be built but still need to be installed. You can follow this tutorial to do so : http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html. 
 
 #### <b>Emscripten</b>
-The installation of Emscripten often proves a little trickier than the other installations. Here are two tutorials you should follow <b>in the order proposed</b> : `https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#platform-notes-installation-instructions-portable-sdk`  `http://kripken.github.io/emscripten-site/docs/building_from_source/building_fastcomp_manually_from_source.html#building-fastcomp-from-source`.
+The installation of Emscripten often proves a little trickier than the other installations. Here are two tutorials you should follow <b>in the order proposed</b> : https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#platform-notes-installation-instructions-portable-sdk  http://kripken.github.io/emscripten-site/docs/building_from_source/building_fastcomp_manually_from_source.html#building-fastcomp-from-source.
 
 #### <b>How to compile</b>
 The combined use of the Boost library and Emscripten makes compiling a little bit different. For this, we have created the `mc_name.sh` files. For exemple, I use the `mc_marc.sh` file to compile a c++ file into a js file (that is later called in the html file you will simply need to launch in your browser). In this `mc_name.sh` file you'll only find on uncommented line : it is used to compile your c++ file and goes like this : 
