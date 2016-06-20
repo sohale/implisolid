@@ -10,7 +10,7 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
         //function letmeknow(){console.log("Loading memory profiler");}
         Module={preRun:[
             letmeknow=function (){console.log("Loading memory profiler");},
-            //memoryprofiler_add_hooks
+            memoryprofiler_add_hooks
         ]};
 
 </script>
@@ -187,8 +187,10 @@ function make_geometry_old(subjective_time)
     var timeDiff = endTime - startTime;
     console.log("TIME: "+timeDiff+ " msec.");
 
+    //This is not used
     //return new MyGeometry(v, f);
     return new MyBufferGeometry77(v, f);
+    //This is not used
 }
 
 
@@ -204,7 +206,7 @@ var call_multiple_times = function() {
     function _call_multiple_times(newPolygonizer, update_mc) {
         /** Asynchronously does a series of calls to the function  update_mc().
         Previous name: update_mc_mul tiple() */
-        var BURST_COUNT = 10;
+        var BURST_COUNT = 50;
         var INTERVAL_MSEC = 8; //40  // 1   // in Milliseconds
             // Works well on too small values (Semaphore).
             // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
@@ -288,7 +290,7 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 
 
 
-function make_geometry_new(newPolygonizer, subjective_time)
+function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
 {
     var startTime = new Date();
 
@@ -312,8 +314,18 @@ function make_geometry_new(newPolygonizer, subjective_time)
     //console.log(verts);
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
-    //var geom = new MyGeometry(verts, faces);
-    var geom = new WGeometry77(verts, faces);
+    if(!old_geometry){
+        //var geom = new MyGeometry(verts, faces);
+        //var geom = new MyBufferGeometry77(verts, faces);  //weird results. But much faster.
+
+        //best so far:
+        var geom = new WGeometry77(verts, faces);
+
+        //var geom = UpdatableGeometry77(verts, faces);
+    }else{
+        geom = old_geometry;
+        old_geometry.update(verts, faces);
+    }
 
     // Now you can free the resources.
 
@@ -353,6 +365,8 @@ const CHOSEN_MATERIAL_INDEX = 7; //3;
     //9: plain white?
     //10: changing peach
     //11: changing cyan
+var chosen_matrial;
+const SHOW_WIREFRAME = true;
 
 function init_scene(newPolygonizer) {
 
@@ -365,8 +379,14 @@ function init_scene(newPolygonizer) {
 
 
     materials_list = look_nice(scene);
+    chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
+    //chosen_matrial = new THREE.MeshBasicMaterial( {
+    //    color: 0xaaffff, wireframe: false, opacity:0.5,  transparent: true,
+    //    side:THREE.DoubleSide } );
+    //THREE.FrontSide or THREE.BackSide or  THREE.DoubleSide.
 
-    material_wireframe = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true, } );
+    material_wireframe = new THREE.MeshBasicMaterial( {
+        color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true,} );
 
     //if(delta_t === undefined)
     var delta_t = 0.2;
@@ -379,18 +399,22 @@ function init_scene(newPolygonizer) {
         geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer, global_time);
+        geometry = make_geometry_new(newPolygonizer, global_time, null);
     }
 
-    mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-    mesh_wireframe.position.set( 0, 0, 0 );
-    //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
-    mesh_wireframe.scale.set( 300, 300, 300 );
+    if(SHOW_WIREFRAME){
 
-    //mesh_wireframe.position.z = +0;
-    //mesh_wireframe.rotation.y = -Math.PI * .5;
+        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+        mesh_wireframe.position.set( 0, 0, 0 );
+        //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
+        mesh_wireframe.scale.set( 300, 300, 300 );
 
-    scene.add( mesh_wireframe );
+        //mesh_wireframe.position.z = +0;
+        //mesh_wireframe.rotation.y = -Math.PI * .5;
+
+        scene.add( mesh_wireframe );
+    }
+
     //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
 
 
@@ -398,7 +422,7 @@ function init_scene(newPolygonizer) {
 
     //mesh_solid = new THREE.Mesh( geometry, material_f );
     //nice ones: 2, 3,  (checked until 4)
-    mesh_solid = new THREE.Mesh( geometry, materials_list[CHOSEN_MATERIAL_INDEX] );
+    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
     mesh_solid.position.set( 0, 0, 0 );
     mesh_solid.scale.set( 300, 300, 300 );
     scene.add( mesh_solid );
@@ -454,9 +478,19 @@ function init_scene(newPolygonizer) {
 
 function update_mc(newPolygonizer, delta_t){
     var p1 = [mesh_solid.position, mesh_solid.rotation];
-    var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
+    if(SHOW_WIREFRAME){
+        var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
+    }
     scene.remove(mesh_solid);
-    scene.remove(mesh_wireframe);
+    if(SHOW_WIREFRAME){
+        scene.remove(mesh_wireframe);
+    }
+
+    var reused_last_geom = mesh_solid.geometry;
+    mesh_solid.geometry.dispose();
+    //mesh_wireframe.geometry.dispose();
+    mesh_solid = null;
+    mesh_wireframe = null;
 
     if(delta_t === undefined)
         delta_t = 0.2;
@@ -468,23 +502,24 @@ function update_mc(newPolygonizer, delta_t){
         geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer, global_time);
+        geometry = make_geometry_new(newPolygonizer, global_time, null); //, reused_last_geom);
     }
 
+    if(SHOW_WIREFRAME){
+        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+        //mesh_wireframe.position.set( 0, 0, 0 );
+        mesh_wireframe.scale.set( 300, 300, 300 );
+        //copy so that we dont lose the rotation, position of the meshes.
+        mesh_wireframe.position.copy(p2[0]);
+        mesh_wireframe.rotation.copy(p2[1]);
+        scene.add( mesh_wireframe );
+    }
 
-    mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-    //mesh_wireframe.position.set( 0, 0, 0 );
-    mesh_wireframe.scale.set( 300, 300, 300 );
-    //copy so that we dont lose the rotation, position of the meshes.
-    mesh_wireframe.position.copy(p1[0]);
-    mesh_wireframe.rotation.copy(p1[1]);
-    scene.add( mesh_wireframe );
-
-    mesh_solid = new THREE.Mesh( geometry, materials_list[CHOSEN_MATERIAL_INDEX] );
+    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
     //mesh_solid.position.set( 0, 0, 0 );
     mesh_solid.scale.set( 300, 300, 300 );
-    mesh_solid.position.copy(p2[0]);
-    mesh_solid.rotation.copy(p2[1]);
+    mesh_solid.position.copy(p1[0]);
+    mesh_solid.rotation.copy(p1[1]);
     scene.add( mesh_solid );
 }
 
@@ -523,8 +558,9 @@ function look_nice(scene){
         geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
         geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
     }
-    var line = new THREE.LineSegments( geometry, line_material );
-    scene.add( line );
+    var grid_lines = new THREE.LineSegments( geometry, line_material );
+    scene.add( grid_lines );
+
     // Materials
     var texture = new THREE.Texture( generateTexture() );
     texture.needsUpdate = true;
@@ -536,7 +572,9 @@ function look_nice(scene){
     //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
     materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
-    materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading,
+        //opacity:0.5,  transparent: true, side:THREE.DoubleSide
+    } ));
     materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
     materials.push( new THREE.MeshDepthMaterial() );
     materials.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000, shading: THREE.SmoothShading } ) );
