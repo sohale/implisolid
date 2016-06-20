@@ -50,7 +50,6 @@ REAL ABS(REAL x){
 
 // -s ASSERTIONS=1 ??
 
-
 //#include <algorithm>
 
 std::ostream& operator<<( std::ostream& sout, XYZ p)
@@ -567,6 +566,7 @@ void test1()
 #include <cassert>
 #include <map>
 #include <vector>
+#include <string>
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
@@ -575,13 +575,29 @@ typedef vector<int> vector_int;
 typedef std::map<int, vector_int> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
+string object_name = "sphere";
+
+REAL sphere(REAL x, REAL y, REAL z){
+  REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
+  return f;
+}
+
+REAL modified_sphere(REAL x, REAL y, REAL z){
+  REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
+  REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+  return f;
+}
+
+REAL glass(REAL x, REAL y, REAL z){
+  REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
+  return f;
+}
 
 vf_t mc(const boost::multi_array<REAL, 3>& values)
 {
     vf_t vf;
     return vf;
 }
-
 
 void make_XYZ(const boost::multi_array<REAL, 1> & pa, XYZ & output)
 {
@@ -675,29 +691,42 @@ vector<TRIANGLE> make_grid()
         REAL x = c[0];
         REAL y = c[1];
         REAL z = c[2];
-        int shape = 2;
-        if (shape == 1){
-          REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
-        //  REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-          REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
-          values[xi][yi][zi] = f;
-          }
-        else if(shape == 2){
-          REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
-          values[xi][yi][zi] = f;
-          }
 
-        else if(shape == 3){// not working now
-          REAL R = 1.;
-          REAL a = 0.2;
-          REAL c = 0.01;
-          REAL f1 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(x,2)+pow(y,2));
-          REAL f2 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(x,2)+pow(z,2));
-          REAL f3 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(y,2)+pow(z,2));
-  //        REAL f = f1*f2*f3 - c ;
-          REAL f = f2;
-          values[xi][yi][zi] = f;
+        if (object_name == "sphere"){
+          values[xi][yi][zi] = sphere(x,y,z);
         }
+        else if (object_name == "modified_sphere"){
+          values[xi][yi][zi] = modified_sphere(x,y,z);
+        }
+        else if (object_name == "glass"){
+          values[xi][yi][zi] = glass(x,y,z);
+        }
+        else{
+          cout << "error" << endl;
+        }
+  //   //    int shape = 1;
+  //       if (shape == 1){
+  //         REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
+  //       //  REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
+  //         REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
+  //         values[xi][yi][zi] = f;
+  //         }
+  //       else if(shape == 2){
+  //         REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
+  //         values[xi][yi][zi] = f;
+  //         }
+  //
+  //       else if(shape == 3){// not working now
+  //         REAL R = 1.;
+  //         REAL a = 0.2;
+  //         REAL c = 0.01;
+  //         REAL f1 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(x,2)+pow(y,2));
+  //         REAL f2 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(x,2)+pow(z,2));
+  //         REAL f3 = pow((pow(x,2) + pow(y,2) + pow(z,2)+ pow(R,2) - pow(a,2)),2) - 4.*pow(R,2)*(pow(y,2)+pow(z,2));
+  // //        REAL f = f1*f2*f3 - c ;
+  //         REAL f = f2;
+  //         values[xi][yi][zi] = f;
+  //       }
 
     }
 
@@ -1003,6 +1032,7 @@ verts_t compute_centroid_gradient(verts_t centroids){
 // }
 
 
+
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
     int main();
@@ -1011,7 +1041,7 @@ extern "C" {
 #include "timer.hpp"
 
 void make_object(float* verts, int *nv, int* faces, int *nf){
-
+    REAL f;
     timer timr;
 
     vector<TRIANGLE> ta = make_grid();
