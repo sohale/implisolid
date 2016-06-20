@@ -58,7 +58,20 @@ Based on MCC1
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
         newProducer.get_v = Module.cwrap('get_v', null, ['number']);
         newProducer.get_f = Module.cwrap('get_f', null, ['number']);
+        newProducer.get_v_ptr = Module.cwrap('get_v_ptr', 'number', []);
+        newProducer.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
+
+        newProducer.init = function(){ newProducer.needsFinish = false; }
+        newProducer.finish_with = function (){
+            //after the last round.
+            if(!newPolygonizer.needsFinish)
+                console.error("cannot `finish_geometry()`. Geometry not produced.");
+            newPolygonizer.finish_geometry();
+            newPolygonizer.needsFinish = false;
+        }
+
+        newProducer.init();
 
         //console.log("ok");
         return newProducer;
@@ -289,7 +302,7 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 */
 
 
-
+// Keep this method, although it is not used.
 function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
 {
     var startTime = new Date();
@@ -342,6 +355,62 @@ function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
     var endTime = new Date();
     var timeDiff = endTime - startTime;
     console.log("TIME: "+timeDiff);
+
+    return geom;
+}
+
+/*
+Three ways:
+1-
+2-  make_geometry_new()
+3-  make_geometry_new2()
+*/
+
+function make_geometry_new2(newPolygonizer, subjective_time, old_geometry)
+{
+    var startTime = new Date();
+
+    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+        //console.log("newPolygonizer.needsFinish " + newPolygonizer.needsFinish);
+        newPolygonizer.finish_geometry();
+        newPolygonizer.needsFinish = false;
+    }
+    else{
+        //console.error("Should not get here");
+        //newPolygonizer.finish_geometry();
+    }
+    //newPolygonizer.finish_geometry();
+
+    newPolygonizer.build_geometry( 28, subjective_time);
+
+    newPolygonizer.needsFinish = true;
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    if(VERBOSE){
+        console.log(nverts);
+    }
+
+    var verts_address = newPolygonizer.get_v_ptr();
+    var faces_address = newPolygonizer.get_f_ptr();
+    //no need to free anymore!
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    //verts[2] -= 0.1;
+    verts[2 + nverts*3-3] += 0.3;
+
+    var geom = new WGeometry77(verts, faces);
+
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    console.log("Time: "+timeDiff+ " msec.");
 
     return geom;
 }
@@ -399,7 +468,7 @@ function init_scene(newPolygonizer) {
         geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer, global_time, null);
+        geometry = make_geometry_new2(newPolygonizer, global_time, null);
     }
 
     if(SHOW_WIREFRAME){
@@ -502,7 +571,7 @@ function update_mc(newPolygonizer, delta_t){
         geometry = make_geometry_old(global_time);
     }
     else{
-        geometry = make_geometry_new(newPolygonizer, global_time, null); //, reused_last_geom);
+        geometry = make_geometry_new2(newPolygonizer, global_time, null); //, reused_last_geom);
     }
 
     if(SHOW_WIREFRAME){

@@ -1895,6 +1895,8 @@ extern "C" {
     void get_f(int*, int);
     void get_v(REAL*, int);
     void finish_geometry();
+    void* get_f_ptr();
+    void* get_v_ptr();
     //also: queue, etc.
     //bad: one instance only.
     //    Solution 1:  MarchingCubes* build_geometry();
@@ -2034,14 +2036,34 @@ void get_f(int* f_out, int fcount){
     if(fcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
     //std::cout << std::endl;
 };
+
+/* Data is already there, so why copy it? Also, keep it until next round. */
+void* get_v_ptr(){
+    check_state();
+    return (void*)(_state.mc->result_verts.data());
+}
+
+void* get_f_ptr(){
+    check_state();
+    return (void*)(_state.mc->result_faces.data());
+}
+
+
 //int get_v_size(){};
 //int get_f_size(){};
 //void get_f(int*){};
 //void get_v(REAL*){};
+//void* get_f_ptr();
+//void* get_v_ptr();
+//void finish_geometry();
 
-// Can cause an exception
+// Can cause an exception (but not when null).
 void finish_geometry() {
     check_state();
+    if(_state.mc == 0){
+        std::cout << "Error: finish_geometry() before producing the shape()" << std::endl;
+    }
+    //Dos not cause an exception if null.
     delete _state.mc;
     _state.active = false;
     _state.mc = 0;

@@ -1,5 +1,12 @@
 'use strict';
 
+/*
+Three ways:
+1- Using WGeometry77  using  faster=true
+2- " " " using faster=false which uses  make_geometry_core()
+3- " " " using faster=false which uses  make_geometry_core_slower()
+4- UsingUpdatable geometry; WGeometry77.prototype.update()
+*/
 
 function make_geometry_core( verts, faces) {
 
