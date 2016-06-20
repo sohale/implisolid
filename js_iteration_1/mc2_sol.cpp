@@ -572,7 +572,7 @@ void test1()
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;
 typedef vector<int> vector_int;
-typedef std::map<int, vector_int> neighbour;
+typedef vector<vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
@@ -984,23 +984,22 @@ verts_t compute_centroid_gradient(verts_t centroids){
 // to do
 }
 
-// neighbour make_neighbour_faces_of_vertex(vf_t vf){
-//   int nt = vf.second.shape()[0];
-//   neighbour neighbour_faces_of_vertex;
-//   faces_t faces = vf.second;
-//   for (int fi=0; fi< nt; fi++){
-//     for (int vi=0; vi<3; vi++){
-//       int v1 = faces[fi][vi];
-//       if (neighbour_faces_of_vertex.find(v1) == neighbour_faces_of_vertex.end()){
-//         neighbour_faces_of_vertex.insert( make_pair(v1, fi));
-//       }
-//       else {
-//         neighbour_faces_of_vertex[v1].push_back(fi);
-//       }
-//     }
-//   }
-//   return neighbour_faces_of_vertex;
-// }
+vector< vector<int>> make_neighbour_faces_of_vertex(vf_t vf){
+  int nt = vf.second.shape()[0];
+  int vt = vf.first.shape()[0];
+  vector< vector<int>> neighbour_faces_of_vertex;
+  for (int fi=0; fi< vt; fi++){
+    neighbour_faces_of_vertex.push_back(vector<int>());
+  }
+  faces_t faces = vf.second;
+  for (int fi=0; fi< nt; fi++){
+    for (int vi=0; vi<3; vi++){
+      int v1 = faces[fi][vi];
+      neighbour_faces_of_vertex[v1].push_back(fi);
+    }
+  }
+  return neighbour_faces_of_vertex;
+}
 
 
 extern "C" {

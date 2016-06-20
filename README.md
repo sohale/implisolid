@@ -9,7 +9,7 @@ This document describes how to set up your installation so that you can work on 
 > - [Prerequisites](#prerequisites) 
 - [File organisation](#file-organisation)
 - [Python](#python)
-- [C++ to javascript](#c++-to-javascript)
+- [C++ to javascript](#c-to-javascript)
     - [Boost](#boost)
     - [Emscripten](#emscripten)
     - [How to compile](#how-to-compile)
