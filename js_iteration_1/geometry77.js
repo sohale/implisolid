@@ -126,14 +126,16 @@ MyBufferGeometry77 = function ( verts, faces ) {
 
         if(1){
             var materialIndex = 0;
-            this.addGroup( 0, faces.length, materialIndex ); //not sure about *3 . Why??
+            this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
+            //console.log("ok2");
         }
         // build geometry
-        this.setIndex( new THREE.BufferAttribute( faces, 3 ) );
+        this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
         this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
 
     }else{
         var mesh_core = make_geometry_core(verts, faces);
+        //var mesh_core = make_geometry_core_slower(verts, faces);
 
         if(1){
             var materialIndex = 0;
@@ -181,4 +183,53 @@ function WGeometry77(verts, faces) {
 
 WGeometry77.prototype = Object.create( THREE.Geometry.prototype );
 WGeometry77.prototype.constructor = WGeometry77;
+
+/* The following code will not work, but is in progress.
+WGeometry77.prototype.update = function(verts, faces) {
+    var geom = this;
+    //for ( var vi = 0, l = geom.vertices.length; vi < l; vi ++ ) {
+    //    var time = Math.random();
+    //    geom.vertices[ vi ].y += 0.01*(Math.random()-0.5) ; // 0.1* 35 * Math.sin( vi / 5 + ( time + vi ) / 7 );
+    //}
+    var l = Math.min(geom.vertices.length, verts.length/3);
+    for ( var vi = 0; vi < l; vi ++ ) {
+        //geom.vertices[ vi ].x += verts[vi*3+0];
+        //geom.vertices[ vi ].y += verts[vi*3+1];
+        //geom.vertices[ vi ].z += verts[vi*3+2];
+        geom.vertices[ vi ].x = verts[vi*3+0];
+        geom.vertices[ vi ].y = verts[vi*3+1];
+        geom.vertices[ vi ].z = verts[vi*3+2];
+    }
+    var lv = Math.min(geom.faces.length, faces.length/3);
+    for ( var fi = 0; fi < lv; fi ++ ) {
+        geom.faces[ fi ].a = faces[fi*3+0];
+        geom.faces[ fi ].b = faces[fi*3+1];
+        geom.faces[ fi ].c = faces[fi*3+2];
+    }
+
+    geom.verticesNeedUpdate = true;
+}
+*/
+
+/*
+function UpdatableGeometry77(verts, faces)
+{
+    WGeometry77.call( this, verts, faces );
+    this.type = 'UpdatableGeometry77';
+
+}
+
+//this.geo = new WGeometry77(verts, faces);
+UpdatableGeometry77.prototype.update = function(verts, faces) {
+    geom = this;
+    var time = math.random();
+    for ( var vi = 0, l = geom.vertices.length; vi < l; vi ++ ) {
+            geom.vertices[ vi ].y += 35 * Math.sin( vi / 5 + ( time + vi ) / 7 );
+        }
+    geom.verticesNeedUpdate = true;
+}
+
+UpdatableGeometry77.prototype = Object.create( WGeometry77.prototype );
+UpdatableGeometry77.prototype.constructor = UpdatableGeometry77;
+*/
 

@@ -257,7 +257,7 @@ MyBufferGeometry = function ( verts, faces, width, height, depth, widthSegments,
         console.log(vertices);
         for(var i=0; i < nbr_faces; i++)
             for(var si=0; si<3; si++)
-                indices[i*3+si] = faces[i*3+si]; //here faces[i*3 + si ] = i*3 + si;
+                indices[i*3+si] = faces[i*3+si];
 
         materialIndex = 0;
         this.addGroup( 0, nbr_faces*3, materialIndex ); //not sure about *3 . Why??
@@ -665,8 +665,8 @@ function animate() {
 
     requestAnimationFrame( animate );
 
-    var SPEED = 0;
-    //var SPEED = 3. / 100;
+    //var SPEED = 0;
+    var SPEED = 3. / 100;
     if(mesh){
     mesh.rotation.x += 0.01*SPEED;
     mesh.rotation.y += 0.02*SPEED;
