@@ -577,20 +577,25 @@ typedef pair<verts_t, faces_t> vf_t;
 
 string object_name = "sphere";
 
-REAL sphere(REAL x, REAL y, REAL z){
-  REAL f = 1.0 - (pow(x,2) + pow(y,2) + pow(z,2));
-  return f;
+
+void sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+  //assert points.shape()[0]==f.shape()[0]
+  for (int i = 0; i<points.shape()[0];i++){
+    f[i] = 1.0 - (pow(points[i][0],2) + pow(points[i][1],2) + pow(points[i][2],2));
+  }
 }
 
-REAL modified_sphere(REAL x, REAL y, REAL z){
-  REAL orb = exp(-abs(pow(z,2))*10*2)*5.+1.;
-  REAL f = 2.0 - (pow(x,2) + pow(y,2) + pow(z,2))*orb;
-  return f;
+void modified_sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+  //assert points.shape()[0]==f.shape()[0]
+  for (int i = 0; i<points.shape()[0];i++){
+    REAL orb = exp(-abs(pow(points[i][2],2))*10*2)*5.+1.;
+    f[i] = 2.0 - (pow(points[i][0],2) + pow(points[i][1],2) + pow(points[i][2],2))*orb;}
 }
 
-REAL glass(REAL x, REAL y, REAL z){
-  REAL f = pow(x,2) + pow(y,2) - pow(log(z + 3.20),2) - 0.02;
-  return f;
+void glass(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+  //assert points.shape()[0]==f.shape()[0]
+  for (int i = 0; i<points.shape()[0];i++){
+    f[i] = pow(points[i][0],2) + pow(points[i][1],2) - pow(log(points[i][2] + 3.20),2) - 0.02;}
 }
 
 vf_t mc(const boost::multi_array<REAL, 3>& values)
@@ -686,20 +691,23 @@ vector<TRIANGLE> make_grid()
     for(int zi=0; zi < nz; zi++)
     {
         //78 msec version
-        boost::multi_array<float, 1> c = grid[xi][yi][zi];
+        boost::array<int, 2> c_shape = {{ 1, 3}};
+        boost::multi_array<REAL, 2> c (c_shape);
+        c[0] = grid[xi][yi][zi];
+        boost::array<int, 1> d_shape = {{ 1}};
+        boost::multi_array<REAL, 1> d (d_shape);
         //float f = 2.0 - (c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
-        REAL x = c[0];
-        REAL y = c[1];
-        REAL z = c[2];
-
         if (object_name == "sphere"){
-          values[xi][yi][zi] = sphere(x,y,z);
+          sphere(c, d);
+          values[xi][yi][zi] = d[0];
         }
         else if (object_name == "modified_sphere"){
-          values[xi][yi][zi] = modified_sphere(x,y,z);
+          modified_sphere(c, d);
+          values[xi][yi][zi] = d[0];
         }
         else if (object_name == "glass"){
-          values[xi][yi][zi] = glass(x,y,z);
+          glass(c, d);
+          values[xi][yi][zi] = d[0];
         }
         else{
           cout << "error" << endl;
