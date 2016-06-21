@@ -53,9 +53,6 @@ def make_edge_lookup_old(faces):
             assert not e[1] == e[0]
             eu_pair_int = int(eu[0] + eu[1] * modulo)
             eu_pair_int_signed = eu_pair_int
-            if not e[1] > e[0]:
-                eu_pair_int_signed = eu_pair_int
-            eu_pair_int_signed = eu_pair_int
 
             if VERBOSE:
                 print("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
@@ -143,6 +140,8 @@ def make_edge_lookup_old(faces):
     return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
 
 import scipy.sparse as sp
+
+
 def make_edge_lookup_sparse(faces):
     """ does make_edge_lookup_old() using sparse matrices. An alternatve solution would be using adictionary."""
     # Todo: Rewrite using asparse matrix (e.g. DOK) as Adjacency matrix. In that case, `modulo` will not be used.
@@ -175,10 +174,6 @@ def make_edge_lookup_sparse(faces):
             assert not e[1] == e[0]
             eu_pair_int = int(eu[0] + eu[1] * modulo)
 
-            eu_pair_int_signed = eu_pair_int
-            if not e[1] > e[0]:
-                # eu_pair_int_signed = -eu_pair_int
-                eu_pair_int_signed = eu_pair_int
             eu_pair_int_signed = eu_pair_int
 
             if VERBOSE:

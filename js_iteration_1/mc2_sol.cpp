@@ -955,10 +955,10 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
         for(int side=0; side<3; side++){
             int side2 = side;
             if(flip_verts){
-                 side2 = FLIP[side];
+                side2 = FLIP[side];
             }
             else
-                 side2 = side;
+                side2 = side;
 
             const REAL NOISE_LEVEL= 0.1*0;
             verts[ti*3+side][0] = tr.p[side2].x+NOISE_LEVEL*rnd();
@@ -1036,12 +1036,50 @@ vector< vector<int>> make_neighbour_faces_of_vertex(vf_t vf){
   return neighbour_faces_of_vertex;
 }
 
-void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& vertpairs_of_edges){
+void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = 3*faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
-//  long int modulo = long long num_edges;
+  boost::array<int, 2> vertpairs_of_edges_shape = {{ num_edges, 1 }};
+  boost::multi_array<int, 2>  vertpairs_of_edges(vertpairs_of_edges_shape);
+
+  long modulo = long(num_edges);
+  long lookup_array_size = modulo*num_edges + num_edges;
+  map<int, int> eulookup;
+  int edge_counter = 0;
+  for (int fi=0; fi<nfaces; fi++){
+    for (int vj=0; vj<3; vj++){
+      bool new_edge = false;
+      int v2j = (vj+1)%3;
+      int e1 = faces[fi][vj];
+      int e2 = faces[fi][v2j];
+      if (e2 > e1){
+        int eu_pair_int = int(e1 + e2*modulo);
+      }
+      else{
+        int eu_pair_int = int(e2 + e1*modulo);
+      }
+
+      key = eulookup.find(eu_pair_int);
+      if (key!= eulookup.end()){
+        new_edge = true;
+      }
+      if (new_edge){
+        int e_id = edge_counter;
+        edges_of_faces[fi][vj] = e_id;
+        faces_of_edges[e_id, 0] = fi;
+        assert (vj!= v2j);
+        vertpairs_of_edges[e_id] = ABS(eu_pair_int);
+        eulookup.insert(pair<int,int>(eu_pair_int,e_id));
+        edge_counter ++;
+      }
+      else{
+    //    int e_id = eulookup
+      }
+    }
+  }
+
 }
 
 void build_faces_of_faces(boost::multi_array<int, 2>&  edges_of_faces, boost::multi_array<int, 2>&  faces_of_edges, boost::multi_array<int, 2>&  faces_of_faces){
@@ -1065,11 +1103,10 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
   boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
-  boost::array<int, 2> vertpairs_of_edges_shape = {{ num_edges, 1 }};
 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
-  boost::multi_array<int, 2>  vertpairs_of_edges(vertpairs_of_edges_shape);
+
   centroids = compute_centroids(faces, verts);
 
 }
