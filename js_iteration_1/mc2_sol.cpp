@@ -1004,10 +1004,8 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     return p2;
 }
 
-verts_t compute_centroids(vf_t vf){
-  int nt = vf.second.shape()[0];
-  faces_t faces = vf.second;
-  verts_t verts = vf.first;
+verts_t compute_centroids(faces_t faces, verts_t verts){
+  int nt = faces.shape()[0];
   verts_t centroids;
   for (int j=0;j<nt; j++){
     for (int di=0; di<3; di++){
@@ -1043,6 +1041,16 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
+//  long int modulo = long long num_edges;
+}
+
+
+void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
+
+  int nfaces = 3*faces.shape()[0];
+  assert(nfaces % 2 == 0);
+  int num_edges = nfaces*3./2.;
+
   boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
   boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
   boost::array<int, 2> vertpairs_of_edges_shape = {{ num_edges, 1 }};
@@ -1050,9 +1058,9 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
   boost::multi_array<int, 2>  vertpairs_of_edges(vertpairs_of_edges_shape);
-  long int modulo = long num_edges;
-}
+  centroids = compute_centroids(faces, verts);
 
+}
 
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
@@ -1061,7 +1069,7 @@ extern "C" {
 
 #include "timer.hpp"
 
-void make_object(float* verts, int *nv, int* faces, int *nf){
+void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     REAL f;
     timer timr;
 
@@ -1075,15 +1083,20 @@ void make_object(float* verts, int *nv, int* faces, int *nf){
     *nv = vf.first.shape()[0];
     *nf = vf.second.shape()[0];
 
+    faces_t faces = vf.second;
+    verts_t verts = vf.first;
+    verts_t centroids;
+    verts_t new_verts;
+
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts[vi*3+di] = vf.first[vi][di];
+            verts_to_js[vi*3+di] = vf.first[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces[fi*3+si] = vf.second[fi][si];
+            faces_to_js[fi*3+si] = vf.second[fi][si];
         }
       }
 
