@@ -1044,6 +1044,18 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
 //  long int modulo = long long num_edges;
 }
 
+void build_faces_of_faces(boost::multi_array<int, 2>&  edges_of_faces, boost::multi_array<int, 2>&  faces_of_edges, boost::multi_array<int, 2>&  faces_of_faces){
+  //TODO this part will need faces_of_faces to have been initialised as a nfaces*3 array
+  for(int face = 0 ; face<edges_of_faces.shape()[0]; face++){
+    for(int edge = 0; edge < 3; edge++){
+    if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
+      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][0];
+    else
+      //assert faces_of_edges[edges_of_faces[i][edge]][1] != i
+      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];
+  }}
+
+}
 
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
 
