@@ -1041,12 +1041,10 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
-  boost::array<int, 2> vertpairs_of_edges_shape = {{ num_edges, 1 }};
-  boost::multi_array<int, 2>  vertpairs_of_edges(vertpairs_of_edges_shape);
-
   long modulo = long(num_edges);
   long lookup_array_size = modulo*num_edges + num_edges;
   map<int, int> eulookup;
+  map<int, int>::iterator iter;
   int edge_counter = 0;
   for (int fi=0; fi<nfaces; fi++){
     for (int vj=0; vj<3; vj++){
@@ -1054,31 +1052,40 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
       int v2j = (vj+1)%3;
       int e1 = faces[fi][vj];
       int e2 = faces[fi][v2j];
+      int eu_pair_int;
       if (e2 > e1){
-        int eu_pair_int = int(e1 + e2*modulo);
+        eu_pair_int = int(e1 + e2*modulo);
       }
       else{
-        int eu_pair_int = int(e2 + e1*modulo);
+        eu_pair_int = int(e2 + e1*modulo);
       }
 
-      key = eulookup.find(eu_pair_int);
-      if (key!= eulookup.end()){
+      iter = eulookup.find(eu_pair_int);
+      if (iter!= eulookup.end()){
         new_edge = true;
       }
       if (new_edge){
         int e_id = edge_counter;
         edges_of_faces[fi][vj] = e_id;
-        faces_of_edges[e_id, 0] = fi;
+        faces_of_edges[e_id][0] = fi;
         assert (vj!= v2j);
-        vertpairs_of_edges[e_id] = ABS(eu_pair_int);
+
         eulookup.insert(pair<int,int>(eu_pair_int,e_id));
         edge_counter ++;
       }
       else{
-    //    int e_id = eulookup
+        iter = eulookup.find(eu_pair_int);
+        int e_id = iter->second;
+        assert (e_id >= 0);
+        edges_of_faces[fi][vj] = e_id;
+        faces_of_edges[e_id][1] = fi;
+        assert (vj!= v2j);
+        int other_fi = faces_of_edges[e_id][0];
+
       }
     }
   }
+
 
 }
 
