@@ -1117,7 +1117,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
 
 }
 
-void build_faces_of_faces(boost::multi_array<int, 2>&  edges_of_faces, boost::multi_array<int, 2>&  faces_of_edges, boost::multi_array<int, 2>&  faces_of_faces){
+void build_faces_of_faces(faces_t&  edges_of_faces, faces_t&  faces_of_edges, faces_t&  faces_of_faces){
   //TODO this part will need faces_of_faces to have been initialised as a nfaces*3 array
   for(int face = 0 ; face<edges_of_faces.shape()[0]; face++){
     for(int edge = 0; edge < 3; edge++){
@@ -1143,6 +1143,9 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
 
   centroids = compute_centroids(faces, verts);
+  verts_t centroid_normals_normalized;
+  centroid_normals_normalized = compute_centroid_gradient(centroids);
+  //vector< vector<int>> make_neighbour_faces_of_vertex(v)
 
 }
 
