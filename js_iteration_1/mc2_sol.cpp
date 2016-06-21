@@ -1030,6 +1030,20 @@ vector< vector<int>> make_neighbour_faces_of_vertex(vf_t vf){
   return neighbour_faces_of_vertex;
 }
 
+void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& vertpairs_of_edges){
+  int nfaces = 3*faces.shape()[0];
+  assert(nfaces % 2 == 0);
+  int num_edges = nfaces*3./2.;
+
+  boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
+  boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
+  boost::array<int, 2> vertpairs_of_edges_shape = {{ num_edges, 1 }};
+
+  boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
+  boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
+  boost::multi_array<int, 2>  vertpairs_of_edges(vertpairs_of_edges_shape);
+  long int modulo = long num_edges;
+}
 
 
 extern "C" {
