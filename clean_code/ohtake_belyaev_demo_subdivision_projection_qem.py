@@ -156,7 +156,7 @@ def build_faces_of_faces(faces):
     containing the face index of neighbours of each face.
     Since each face has exactly three neighbours, the size of the result is n x 3."""
     from mesh_utils import make_edge_lookup_sparse
-    (edges_of_faces, faces_of_edges, vertpairs_of_edges) = \
+    (edges_of_faces, faces_of_edges) = \
         make_edge_lookup_sparse(faces)
 
     nfaces = faces.shape[0]

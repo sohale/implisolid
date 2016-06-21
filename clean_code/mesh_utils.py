@@ -160,7 +160,6 @@ def make_edge_lookup_sparse(faces):
 
     modulo = long(num_edges)    # *2
     lookup_array_size = modulo * num_edges + num_edges
-
     eulookup = sp.dok_matrix((lookup_array_size, 1), dtype=int)
     edge_counter = 0
     for fi in range(len(faces)):
@@ -278,7 +277,7 @@ def make_edge_lookup_sparse(faces):
     # faces_of_edges : index = edge number, value = face number, face number
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
     # eulookup[eu_paired_int, 0] = edge number index + 1
-    return (edges_of_faces, faces_of_edges, vertpairs_of_edges)
+    return (edges_of_faces, faces_of_edges)
 
 
 if __name__ == '__main__':
