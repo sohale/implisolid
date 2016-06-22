@@ -39,6 +39,9 @@ MC algorithm based on http://paulbourke.net/geometry/polygonise/
 #include <map>
 #include <vector>
 #include <string>
+#include "timer.hpp"
+#include <tuple>
+
 using namespace std;
 
 #define ASSERTS 1
@@ -48,16 +51,12 @@ typedef struct {
    REAL x, y, z;
 } XYZ;
 
-//#define ABS(x) ((x<0)?(-x):(x))   //Why is this wrong??
+
 REAL ABS(REAL x){
   if(x<0)
     return -x;
   return x;
 }
-
-// -s ASSERTIONS=1 ??
-
-//#include <algorithm>
 
 std::ostream& operator<<( std::ostream& sout, XYZ p)
 {
@@ -99,7 +98,6 @@ XYZ VertexInterp(
    return(p);
 }
 
-
 typedef struct {
    XYZ p[3];
 } TRIANGLE;
@@ -109,10 +107,12 @@ typedef struct {
    REAL val[8];
 } GRIDCELL;
 
+typedef boost::multi_array<REAL, 2> verts_t;
+typedef boost::multi_array<int, 2> faces_t;
+typedef vector<int> vector_int;
+typedef vector<vector<int>> neighbour;
+typedef pair<verts_t, faces_t> vf_t;
 
-
-//template<class CharT, class Traits>
-//template<class CharT>
 std::ostream& operator<<(
       std::ostream& sout,
       TRIANGLE tr)
@@ -566,13 +566,6 @@ void test1()
     cout << r;
 }
 
-
-
-typedef boost::multi_array<REAL, 2> verts_t;
-typedef boost::multi_array<int, 2> faces_t;
-typedef vector<int> vector_int;
-typedef vector<vector<int>> neighbour;
-typedef pair<verts_t, faces_t> vf_t;
 
 string object_name = "sphere";
 
@@ -1160,7 +1153,6 @@ extern "C" {
     int main();
 }
 
-#include "timer.hpp"
 
 void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     REAL f;
@@ -1231,7 +1223,6 @@ int main()
 //CODE THAT IS NOT USED YET:
 //IN PROGRESS
 
-#include <tuple>
 
 vf_t triangles_to_vertsfaces(vector<TRIANGLE> const& ta)
 {
