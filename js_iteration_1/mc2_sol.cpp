@@ -1220,6 +1220,18 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
 }
 
+void compute_average_edge_length(verts_t vertex, faces_t faces, REAL& average_edge_length){
+  int nfaces = faces.shape()[0];
+  for(int face = 0; face<nfaces; face++){
+    for(int edge = 0 ; edge<3; edge++){
+      average_edge_length += norm(vertex[faces[face][(edge+1)%3]][0] - vertex[faces[face][edge]][0],
+                                  vertex[faces[face][(edge+1)%3]][1] - vertex[faces[face][edge]][1],
+                                  vertex[faces[face][(edge+1)%3]][2] - vertex[faces[face][edge]][2]);
+    }
+  }
+  average_edge_length /= (nfaces * 3);
+}
+
 extern "C" {
     void make_object(float* verts, int *nv, int* faces, int *nf);
     int main();
