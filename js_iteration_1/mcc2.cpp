@@ -1934,7 +1934,7 @@ void build_geometry(int resolution, REAL time){
 
     //MarchingCubes mc(resolution, enableUvs, enableColors);
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
-    //std::cout << "constructor called." << std::endl;
+    //std::cout << "constructor called. " << _state.mc << std::endl;
 
 
     _state.mc -> isolation = 80.0/4;
@@ -2063,7 +2063,13 @@ void finish_geometry() {
     if(_state.mc == 0){
         std::cout << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
-    //Dos not cause an exception if null.
+    if(!_state.active){
+        //std::cout << "Cannot finish_geometry() while still active." << std::endl;
+    }
+    else{
+        //std::cout << "_state.active " << _state.active << "  _state.mc " << _state.mc << std::endl;
+    }
+    //Dos not cause an exception if null. But it causes exception.
     delete _state.mc;
     _state.active = false;
     _state.mc = 0;

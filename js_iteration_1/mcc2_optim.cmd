@@ -11,6 +11,7 @@ em++ ^
         --llvm-lto 1     ^
         -Winline         ^
         -s TOTAL_MEMORY=30100100    ^
+        -s ASSERTIONS=1   ^
  ^
         -pedantic -std=c++14  ^
     mcc2.cpp  ^

@@ -121,7 +121,7 @@ function make_geometry_core_slower( verts, faces) {
 
 /** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
 var
-MyBufferGeometry77 = function ( verts, faces ) {
+MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
 
     THREE.BufferGeometry.call( this );
     this.type = 'MyBufferGeometry77';
@@ -136,9 +136,76 @@ MyBufferGeometry77 = function ( verts, faces ) {
             this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
             //console.log("ok2");
         }
+        function checktype(src, _type){
+            //if(typeof src !== type_name)
+            if(!(src instanceof _type))
+             {
+                console.error();
+                throw "Developer's error; " + (typeof src) + (Object.prototype.toString.call(src.buffer));
+            }
+        }
+
+        // See  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+
+        function copy_Float32Array(src)  {
+            checktype(src, Float32Array);
+            return new Float32Array(src);
+        }
+        function copy_Uint32Array(src)  {
+            checktype(src, Uint32Array);
+            return new Uint32Array(src);
+        }
+        function copy_Uint16Array(src)  {
+            checktype(src, Uint16Array);
+            return new Uint16Array(src);
+        }
+
+        function copy_Float32Array_preallocated(src, prealloc_size)  {
+            checktype(src, Float32Array);
+            var TYPE_SIZE = 4;
+            var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
+            var dst = new ArrayBuffer(len_bytes);
+            var r = new Float32Array(dst);
+            r.set(new Float32Array(src));
+            return r;
+        }
+        function copy_Uint32Array_preallocated(src, prealloc_size)  {
+            checktype(src, Uint32Array);
+            var TYPE_SIZE = 4;
+            var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
+            var dst = new ArrayBuffer(len_bytes);
+            var r = new Uint32Array(dst);
+            r.set(new Uint32Array(src));
+            return r;
+        }
+        function copy_Uint16Array_preallocated(src, prealloc_size)  {
+            checktype(src, Uint16Array);
+            var TYPE_SIZE = 2;
+            var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);;
+            var dst = new ArrayBuffer(len_bytes);
+            var r = new Uint16Array(dst);
+            r.set(new Uint16Array(src));
+            return r;
+        }
+
+        if(re_allocate){
+            //Float32Array, Uint32Array
+            /*
+            faces = copy_Uint32Array(faces, prealloc_size);
+            verts = copy_Float32Array(verts, prealloc_size);
+            */
+            faces = copy_Uint32Array_preallocated(faces, 30000*3);
+            verts = copy_Float32Array_preallocated(verts, 30000*3);
+        }
+
         // build geometry
-        this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
         this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
+        this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
+        for(var j=0;j<faces.length;j++)
+            if(this.index.array[j] !== faces[j])
+                console.error(j);
+        //my_assert(this.index.array === faces);
+
 
     }else{
         var mesh_core = make_geometry_core(verts, faces);

@@ -10,7 +10,7 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
         //function letmeknow(){console.log("Loading memory profiler");}
         Module={preRun:[
             letmeknow=function (){console.log("Loading memory profiler");},
-            memoryprofiler_add_hooks
+            //memoryprofiler_add_hooks
         ]};
 
 </script>
@@ -36,6 +36,7 @@ Based on MCC1
 <script>
     'use strict';
 
+    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needsFinish
     // Exported
 
     var produce_object;
@@ -67,6 +68,9 @@ Based on MCC1
             //after the last round.
             if(!newPolygonizer.needsFinish)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
+
+            //todo: try-catch
+            //d(1);
             newPolygonizer.finish_geometry();
             newPolygonizer.needsFinish = false;
         }
@@ -186,7 +190,7 @@ Based on MCC1
 //  //HEAPF32[$254>>2] = $251;
 //  //
 //    }
-function make_geometry_old(subjective_time)
+function make_geometry_oldold(subjective_time, re_allocate_buffers)
 {
 
     var startTime = new Date();
@@ -196,13 +200,18 @@ function make_geometry_old(subjective_time)
     v = vf[0];
     f = vf[1];
 
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    console.log("TIME: "+timeDiff+ " msec.");
 
     //This is not used
     //return new MyGeometry(v, f);
-    return new MyBufferGeometry77(v, f);
+    var geom = new MyBufferGeometry77(v, f, re_allocate_buffers);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    //console.log("TIME: "+timeDiff+ " msec.");
+    report_time(timeDiff);
+
+    return geom;
+
     //This is not used
 }
 
@@ -220,7 +229,7 @@ var call_multiple_times = function() {
         /** Asynchronously does a series of calls to the function  update_mc().
         Previous name: update_mc_mul tiple() */
         var BURST_COUNT = 50;
-        var INTERVAL_MSEC = 8; //40  // 1   // in Milliseconds
+        var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
             // Works well on too small values (Semaphore).
             // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
 
@@ -303,12 +312,13 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 
 
 // Keep this method, although it is not used.
-function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
+function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
 {
     var startTime = new Date();
 
 
     //console.log(newPolygonizer);
+    //d("2   G..");
     newPolygonizer.build_geometry( 28, subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
@@ -327,25 +337,31 @@ function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
     //console.log(verts);
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
-    if(!old_geometry){
+    /*
+    if(!reusable_geometry){
         //var geom = new MyGeometry(verts, faces);
-        //var geom = new MyBufferGeometry77(verts, faces);  //weird results. But much faster.
+        //var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
 
         //best so far:
         var geom = new WGeometry77(verts, faces);
 
         //var geom = UpdatableGeometry77(verts, faces);
     }else{
-        geom = old_geometry;
-        old_geometry.update(verts, faces);
+        geom = reusable_geometry;
+        reusable_geometry.update(verts, faces);
     }
+    */
+
+    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
 
     // Now you can free the resources.
 
     Module._free(verts_address);
     Module._free(faces_address);
 
+    //d(1);
     newPolygonizer.finish_geometry();
+    newPolygonizer.needsFinish = false;
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -354,35 +370,39 @@ function make_geometry_new(newPolygonizer, subjective_time, old_geometry)
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
-    console.log("TIME: "+timeDiff);
+    //console.log("TIME: "+timeDiff);
+    report_time(timeDiff);
 
     return geom;
 }
 
 /*
 Three ways:
-1-
-2-  make_geometry_new()
+1-  make_geometry_oldold()
+2-  make_geometry_old1()
 3-  make_geometry_new2()
 */
 
-function make_geometry_new2(newPolygonizer, subjective_time, old_geometry)
+function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
 {
+    // reusable_geometry is not used;
     var startTime = new Date();
 
     if(newPolygonizer.needsFinish) {  // Remove data from last round.
         //console.log("newPolygonizer.needsFinish " + newPolygonizer.needsFinish);
+        //d(1);
         newPolygonizer.finish_geometry();
         newPolygonizer.needsFinish = false;
     }
     else{
         //console.error("Should not get here");
         //newPolygonizer.finish_geometry();
+        //newPolygonizer.needsFinish = false;
     }
     //newPolygonizer.finish_geometry();
 
+    //d("2   G");
     newPolygonizer.build_geometry( 28, subjective_time);
-
     newPolygonizer.needsFinish = true;
 
     var nverts = newPolygonizer.get_v_size();
@@ -399,9 +419,10 @@ function make_geometry_new2(newPolygonizer, subjective_time, old_geometry)
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
     //verts[2] -= 0.1;
-    verts[2 + nverts*3-3] += 0.3;
+    //verts[2 + nverts*3-3] += 0.3;
 
-    var geom = new WGeometry77(verts, faces);
+    //var geom = new WGeometry77(verts, faces);
+    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -410,11 +431,91 @@ function make_geometry_new2(newPolygonizer, subjective_time, old_geometry)
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
-    console.log("Time: "+timeDiff+ " msec.");
+    //console.log("Time: "+timeDiff+ " msec.");
+
+    report_time(timeDiff);
 
     return geom;
 }
 
+function my_assert(cond, text){if(!cond)console.error("ASSERT FAILED: "); if(text) console.log(text);}
+
+function update_reused_geometry(newPolygonizer, subjective_time, geom) {
+    var startTime = new Date();
+
+    //console.log(newPolygonizer.needsFinish);
+    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+        //d(1);
+        newPolygonizer.finish_geometry();
+        newPolygonizer.needsFinish = false;
+    }
+
+    if(newPolygonizer.needsFinish)
+        console.error("not deallocated.");
+    try{
+        //d("2   G.");
+        newPolygonizer.build_geometry( 28, subjective_time);
+        newPolygonizer.needsFinish = true;
+    }catch(err){
+        console.error("An error occured dugin MCC C++")
+        console.info(err);
+    }finally {
+    }
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    var verts_address = newPolygonizer.get_v_ptr();
+    var faces_address = newPolygonizer.get_f_ptr();
+    var verts = Module.HEAPF32.subarray(
+        verts_address/_FLOAT_SIZE,
+        verts_address/_FLOAT_SIZE + 3*nverts);
+    var faces = Module.HEAPU32.subarray(
+        faces_address/_INT_SIZE,
+        faces_address/_INT_SIZE + 3*nfaces);
+
+    //var g_nverts = geometry.attributes.position.count/3;  // Displayed size
+    //check allocated space
+    var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
+    var g_nfaces = geometry.index.array.length/3;
+
+    //console.log(nverts); console.log(g_nverts);
+    //console.log(nfaces); console.log(g_nfaces);
+
+    //Bug revealed by commenting the following! Changing the geometry broke the C++ code !
+    var nv3 = Math.min(nverts, g_nverts) * 3;
+    var nf3 = Math.min(nfaces, g_nfaces) * 3;
+    //console.log(nv3/3. +" === "+ verts.length/3.)
+    my_assert(nv3 === verts.length);
+    my_assert(nf3 === faces.length);
+    /*
+    for(var i=0;i<nv3;i++){
+        geometry.attributes.position.array[i] = verts[i];  //or use copy
+    }
+    for(var i=0;i<nf3;i++){
+        geometry.index.array[ i ] = faces[i];
+    }
+    */
+    geometry.attributes.position.array.set(verts);
+    geometry.index.array.set(faces);
+
+    geometry.setDrawRange( 0, nf3 );
+    geometry.attributes.position.needsUpdate = true;
+    geometry.index.needsUpdate = true;
+    //geometry.index.array[i] === faces[i]
+    geometry.clearGroups();
+    geometry.addGroup( 0, faces.length, 0 );
+
+    for(var j=0;j<faces.length;j++)
+        if(geometry.index.array[j] !== faces[j])
+            console.error(j);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    //console.log(nv3 + " , " + nf3);
+    //console.log("Time: "+timeDiff+ " msec.");
+
+    report_time(timeDiff);
+}
 
 'use strict';
 
@@ -446,7 +547,6 @@ function init_scene(newPolygonizer) {
     camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
     camera.position.z = 1000;
 
-
     materials_list = look_nice(scene);
     chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
     //chosen_matrial = new THREE.MeshBasicMaterial( {
@@ -465,10 +565,11 @@ function init_scene(newPolygonizer) {
 
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
     if(CALL_VERSION==1){
-        geometry = make_geometry_old(global_time);
+        geometry = make_geometry_oldold(global_time);
     }
     else{
-        geometry = make_geometry_new2(newPolygonizer, global_time, null);
+        geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+        //geometry = make_geometry_old1(newPolygonizer, global_time, null);
     }
 
     if(SHOW_WIREFRAME){
@@ -546,50 +647,90 @@ function init_scene(newPolygonizer) {
 }
 
 function update_mc(newPolygonizer, delta_t){
+
+    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = true;
+    if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
+        console.error("Wrong condition.");
+
     var p1 = [mesh_solid.position, mesh_solid.rotation];
     if(SHOW_WIREFRAME){
         var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
     }
-    scene.remove(mesh_solid);
-    if(SHOW_WIREFRAME){
-        scene.remove(mesh_wireframe);
-    }
 
     var reused_last_geom = mesh_solid.geometry;
-    mesh_solid.geometry.dispose();
-    //mesh_wireframe.geometry.dispose();
-    mesh_solid = null;
-    mesh_wireframe = null;
+
+    if(!EVEN_REUSE_MESH_OBJECT){
+        scene.remove(mesh_solid);
+        if(SHOW_WIREFRAME){
+            scene.remove(mesh_wireframe);
+        }
+    }
+
+    //Not sure about the condision
+    if(!UPDATE_SAME_GEOM_OBJECT){
+        mesh_solid.geometry.dispose();
+        //mesh_wireframe.geometry.dispose(); // Don't do it twice!
+    }
+
+    // var reused_last_geom = mesh_solid.geometry;
+    if(!EVEN_REUSE_MESH_OBJECT){
+        mesh_solid = null;
+        mesh_wireframe = null;
+    }
 
     if(delta_t === undefined)
         delta_t = 0.2;
     // Subjective time!
     global_time += delta_t;
 
-    var geometry;
-    if(CALL_VERSION==1){
-        geometry = make_geometry_old(global_time);
+    var geometry = null;
+    if(UPDATE_SAME_GEOM_OBJECT) {
+        geometry = reused_last_geom;
+        update_reused_geometry(newPolygonizer, global_time, geometry);
     }
-    else{
-        geometry = make_geometry_new2(newPolygonizer, global_time, null); //, reused_last_geom);
+    else {
+        if(CALL_VERSION==1){
+            geometry = make_geometry_oldold(global_time);
+        }
+        else{
+            //reused_last_geom = null;
+            //geometry = make_geometry_new2(newPolygonizer, global_time, reused_last_geom, false);
+            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
+        }
+    };
+    /*
+    "";
+    for(var i=0;i<10*3;i++){
+        //geometry.attributes.position.setXYZ( i, x, y, z );
+        geometry.attributes.position.array[i] += 0.0002 * (i% 2);
+        //geometry.index.array[ i ] += (i % 2)*40 ;
+        var nverts = geometry.attributes.position.count/3;
+        geometry.index.array[ i ] = (geometry.index.array[ i ] % (nverts));
     }
+    //geometry.attributes.position.needsUpdate = true;
+    //geometry.index.needsUpdate = true;
+    "";
+    */
 
-    if(SHOW_WIREFRAME){
-        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-        //mesh_wireframe.position.set( 0, 0, 0 );
-        mesh_wireframe.scale.set( 300, 300, 300 );
-        //copy so that we dont lose the rotation, position of the meshes.
-        mesh_wireframe.position.copy(p2[0]);
-        mesh_wireframe.rotation.copy(p2[1]);
-        scene.add( mesh_wireframe );
-    }
+    if(!EVEN_REUSE_MESH_OBJECT){
+        if(SHOW_WIREFRAME){
+            mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+            //mesh_wireframe.position.set( 0, 0, 0 );
+            mesh_wireframe.scale.set( 300, 300, 300 );
+            //copy so that we dont lose the rotation, position of the meshes.
+            mesh_wireframe.position.copy(p2[0]);
+            mesh_wireframe.rotation.copy(p2[1]);
+            scene.add( mesh_wireframe );
+        }
 
-    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-    //mesh_solid.position.set( 0, 0, 0 );
-    mesh_solid.scale.set( 300, 300, 300 );
-    mesh_solid.position.copy(p1[0]);
-    mesh_solid.rotation.copy(p1[1]);
-    scene.add( mesh_solid );
+        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        //mesh_solid.position.set( 0, 0, 0 );
+        mesh_solid.scale.set( 300, 300, 300 );
+        mesh_solid.position.copy(p1[0]);
+        mesh_solid.rotation.copy(p1[1]);
+        scene.add( mesh_solid );
+    }
 }
 
 /**
@@ -653,7 +794,20 @@ function look_nice(scene){
 }
 
 
-
+var time_queue = [];
+var time_queue__last_timeout = 0;
+function report_time(time_msec){
+    time_queue.push(time_msec);
+    if(time_queue__last_timeout){
+        clearTimeout(time_queue__last_timeout);
+        time_queue__last_timeout = 0;
+    }
+    time_queue__last_timeout = setTimeout(function(){
+        console.log("Time: (msec)");
+        console.log(time_queue);
+        time_queue__last_timeout =0;
+    }, 1000);
+}
 function animate() {
 
     requestAnimationFrame( animate );
