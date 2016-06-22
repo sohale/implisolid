@@ -11,11 +11,12 @@ em++ ^
         --llvm-lto 1     ^
         -Winline         ^
         -s TOTAL_MEMORY=30100100    ^
-        -s ASSERTIONS=1   ^
  ^
         -pedantic -std=c++14  ^
     mcc2.cpp  ^
         -o  mcc2.cpp.js
 
+@rem ******* DISABLED OPTIONS: **********
+@rem         -s ASSERTIONS=1   ^
 @rem      -s ALLOW_MEMORY_GROWTH=1  ^   # This makes it 3X slower!
 @rem     -s TOTAL_MEMORY=16777216

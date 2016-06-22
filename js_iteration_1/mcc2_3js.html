@@ -10,11 +10,13 @@ from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
         //function letmeknow(){console.log("Loading memory profiler");}
         Module={preRun:[
             letmeknow=function (){console.log("Loading memory profiler");},
-            //memoryprofiler_add_hooks
+            memoryprofiler_add_hooks
         ]};
 
 </script>
 <body>
+<canvas id="my_canvas"></canvas>
+
 <script type="text/javascript" src="mcc2.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
 <!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
@@ -402,6 +404,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     //newPolygonizer.finish_geometry();
 
     //d("2   G");
+    //28*2 --> 27 sec    28->3.75--7 msec?
     newPolygonizer.build_geometry( 28, subjective_time);
     newPolygonizer.needsFinish = true;
 
@@ -433,7 +436,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     var timeDiff = endTime - startTime;
     //console.log("Time: "+timeDiff+ " msec.");
 
-    report_time(timeDiff);
+    report_time(timeDiff, function(){hist();});
 
     return geom;
 }
@@ -612,7 +615,9 @@ function init_scene(newPolygonizer) {
     if(VERBOSE){
         console.log("RENDERER");
     }
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    var render_canvas = document.getElementById( 'my_canvas' );
+    console.log(render_canvas);
+    renderer = new THREE.WebGLRenderer( { antialias: true, canvas: render_canvas } );
     //renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setSize( WIDTH, HEIGHT );
 
@@ -648,8 +653,13 @@ function init_scene(newPolygonizer) {
 
 function update_mc(newPolygonizer, delta_t){
 
-    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
-    var EVEN_REUSE_MESH_OBJECT = true;
+    //Three modes of speed here for (UPDATE_SAME_GEOM_OBJECT, EVEN_REUSE_MESH_OBJECT):
+    //  (false, false) // Creates a new Geometry object at each loop iteration.
+    //  (true, false)  // Keeps geometry object instance
+    //  (true, true)   // Keeps mesh instance (as well as geometry)
+
+    var UPDATE_SAME_GEOM_OBJECT = false;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = false;
     if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
         console.error("Wrong condition.");
 
@@ -739,6 +749,7 @@ function update_mc(newPolygonizer, delta_t){
 */
 function generateTexture() {
     var canvas = document.createElement( 'canvas' );
+    //var canvas = document.getElementById( 'my_canvas' );
     canvas.width = 256;
     canvas.height = 256;
     var context = canvas.getContext( '2d' );
@@ -796,7 +807,7 @@ function look_nice(scene){
 
 var time_queue = [];
 var time_queue__last_timeout = 0;
-function report_time(time_msec){
+function report_time(time_msec, callback){
     time_queue.push(time_msec);
     if(time_queue__last_timeout){
         clearTimeout(time_queue__last_timeout);
@@ -805,6 +816,8 @@ function report_time(time_msec){
     time_queue__last_timeout = setTimeout(function(){
         console.log("Time: (msec)");
         console.log(time_queue);
+        if(callback)
+            callback();
         time_queue__last_timeout =0;
     }, 1000);
 }
@@ -890,3 +903,84 @@ else{
 }
 }
 </script>
+
+<!-- Graph -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
+
+<script>
+var ggraph = 0;
+function show_hist(data_array){
+    if(ggraph==0){
+        add_graph_div();
+        google.charts.load("current", {packages:["corechart"]});
+    }
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable(data_array);
+        var options = {
+            title: 'Time ( Milliseconds )',
+            legend: { position: 'none' },
+            colors: ['#e7711c'],
+            histogram: {
+                bucketSize: 1,
+                //maxNumBuckets: 200,
+                //minValue: -1,
+                //maxValue: 200
+            },
+            //chartArea: { width: 401 },
+            hAxis: {
+              //ticks: [-1, 0,1,2,3,4,5,6,7,8,9,10,12,14,20,30,40,50,60,80,100,120,140,160,180,200],
+              //ticks: [ -1, 0,1,2,3,4,5,6,7,8,9,10,11,12 ],
+              //Array.from(Array(10).keys())
+              //[...Array(10).keys()]
+              ticks: (Array.from(Array(30*1.).keys())).map(function(x){return x/1.;}, Number),
+            },
+            //vAxis: { scaleType: 'mirrorLog' }
+        };
+        //see https://developers.google.com/chart/interactive/docs/gallery/histogram#controlling-buckets
+        var div_element = document.getElementById('chart_div');
+        console.log(div_element);
+        var chart = new google.visualization.Histogram(div_element);
+        chart.draw(data, options);
+    }
+    ggraph++;
+}
+
+var global_histogram_accumulator = [];
+function hist_delayed() {
+    var a = time_queue;
+    //var q = [];
+    if(global_histogram_accumulator.length==0){
+        global_histogram_accumulator.push(["Time"]);
+    }
+    var UPPER_BOUND = 12;
+    for(var i=0;i<a.length;i++){
+        if(a[i]<=UPPER_BOUND)
+            global_histogram_accumulator.push([a[i]*1.]); //The precision of the timing is 1 msec :(
+    }
+    show_hist(global_histogram_accumulator);
+}
+
+function hist(){
+    //hist_delayed();
+}
+
+//setTimeout(function()}{
+function add_graph_div(){
+    //<div id="chart_div" style="width: 900px; height: 500px;"></div>
+    //var elemDiv = document.createElement('div');
+    //document.body.appendChild(elemDiv);
+    //not nice:
+    //document.body.innerHTML += "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
+}
+
+</script>
+
+<!--
+To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed();
+-->
+<!--
+<div id="chart_div" style="width: 900px; height: 500px;">
+</div>
+-->
