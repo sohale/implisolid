@@ -1150,6 +1150,15 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
 }}
 }
 
+REAL kij(int i, int j, verts_t& centroids){
+  assert (i!=j);
+  REAL pi_x = centroids[i][0];
+  REAL pi_y = centroids[i][1];
+  REAL pi_z = centroids[i][2];
+  REAL pj_x = centroids[j][0];
+  REAL pj_y = centroids[j][1];
+  REAL pj_z = centroids[j][2];
+}
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
