@@ -1028,41 +1028,38 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     return p2;
 }
 
-verts_t compute_centroids(faces_t& faces, verts_t& verts){
+void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   int nt = faces.shape()[0];
-  verts_t centroids;
   for (int j=0;j<nt; j++){
     for (int di=0; di<3; di++){
         centroids[j][di] = (verts[faces[j][0]][di] + verts[faces[j][1]][di] + verts[faces[j][2]][di])/3.;
     }
   }
-  return centroids;
 }
 
-verts_t compute_centroid_gradient(verts_t centroids){
+void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized){
   bool normalise = true;
-  verts_t centroid_gradients;
   if (object_name == "sphere"){
-    gradient_sphere(centroids,centroid_gradients);
+    gradient_sphere(centroids,centroid_normals_normalized);
   }
   else if (object_name == "modified_sphere"){
-    gradient_modified_sphere(centroids,centroid_gradients);
+    gradient_modified_sphere(centroids,centroid_normals_normalized);
   }
   else if (object_name == "glass"){
-    gradient_glass(centroids,centroid_gradients);
+    gradient_glass(centroids,centroid_normals_normalized);
   }
   else{
     cout << "error" << endl;
   }
   if(normalise){
-    for(int centroid = 0; centroid < centroid_gradients.shape()[0]; centroid++){
-      REAL norm = sqrt(pow(centroid_gradients[centroid][0],2)+pow(centroid_gradients[centroid][1],2)+pow(centroid_gradients[centroid][2],2));
+    for(int centroid = 0; centroid < centroid_normals_normalized.shape()[0]; centroid++){
+      REAL norm = sqrt(pow(centroid_normals_normalized[centroid][0],2)+pow(centroid_normals_normalized[centroid][1],2)+pow(centroid_normals_normalized[centroid][2],2));
       for(int coordinate = 0; coordinate < 3; coordinate++){
-        centroid_gradients[centroid][coordinate]=centroid_gradients[centroid][coordinate]/norm;
+        centroid_normals_normalized[centroid][coordinate]=centroid_normals_normalized[centroid][coordinate]/norm;
       }
     }
   }
-  return centroid_gradients;
+
 }
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
@@ -1212,17 +1209,15 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   int nfaces = 3*faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
-
   boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
   boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
   faces_t faces_of_faces;
-
-  centroids = compute_centroids(faces, verts);
+  compute_centroids(faces, verts, centroids);
   verts_t centroid_normals_normalized;
-  centroid_normals_normalized = compute_centroid_gradient(centroids);
+  compute_centroid_gradient(centroids, centroid_normals_normalized);
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
@@ -1263,8 +1258,8 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
 
     faces_t faces = vf.second;
     verts_t verts = vf.first;
-    verts_t centroids;
     verts_t new_verts;
+    verts_t centroids;
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
