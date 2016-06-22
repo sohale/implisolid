@@ -1195,6 +1195,15 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
+  int nfaces = centroids.shape()[0];
+
+  boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};
+  boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
+
+  for (int i_faces=0; i_faces<nfaces; i_faces++){
+    REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2.0);
+    wi_total_array[i_faces] = w;
+  }
 
 }
 

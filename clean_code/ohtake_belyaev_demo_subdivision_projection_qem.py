@@ -240,17 +240,17 @@ def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, ce
     umbrella_faces = faceslist_neighbours_of_vertex[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
     print("umbrella_faces: ", umbrella_faces)
     # wa = np.zeros()
-    w_list = []
-    for i_faces in umbrella_faces:
-
-        print("i_facet", i_faces)
-        three_faces = faces_of_faces[i_faces, :]
-        print(i_faces, three_faces)
-        w = wi(i_faces, three_faces, c_)  # three_facets should be neighbours of the facet i_facet
-        # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
-        print("w_i, i=", i_faces, w)
-        w_list.append(w)
-    print "w_list ", w_list
+    # w_list = []
+    # for i_faces in umbrella_faces:
+    #
+    #     print("i_facet", i_faces)
+    #     three_faces = faces_of_faces[i_faces, :]
+    #     print(i_faces, three_faces)
+    #     w = wi(i_faces, three_faces, c_)  # three_facets should be neighbours of the facet i_facet
+    #     # The weight (based on curvature) of neighbour P_i (facet i.e. centroid),
+    #     print("w_i, i=", i_faces, w)
+    #     w_list.append(w)
+    # print "w_list ", w_list
 
     print("===============")
     # w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
@@ -265,7 +265,7 @@ def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, ce
 
     umbrella_faces = np.array(faceslist_neighbours_of_vertex[1])  # empty
     print "umbrella_faces", umbrella_faces.shape, "****"
-    assert np.allclose(wi_total_array[umbrella_faces] - np.array(w_list), 0)
+    #assert np.allclose(wi_total_array[umbrella_faces] - np.array(w_list), 0)
 
     def lift_vertex(vertex, centroids):
         new_vertex = vertex.copy()
