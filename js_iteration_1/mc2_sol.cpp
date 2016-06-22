@@ -32,6 +32,13 @@ MC algorithm based on http://paulbourke.net/geometry/polygonise/
 
 
 #include <iostream>
+#include "boost/multi_array.hpp"
+#include "boost/array.hpp"
+#include <math.h>
+#include <cassert>
+#include <map>
+#include <vector>
+#include <string>
 using namespace std;
 
 #define ASSERTS 1
@@ -559,14 +566,6 @@ void test1()
     cout << r;
 }
 
-
-#include "boost/multi_array.hpp"
-#include "boost/array.hpp"
-#include <math.h>
-#include <cassert>
-#include <map>
-#include <vector>
-#include <string>
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
@@ -1131,7 +1130,7 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
-  
+
 }
 
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
