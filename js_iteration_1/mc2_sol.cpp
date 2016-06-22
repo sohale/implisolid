@@ -1180,6 +1180,17 @@ REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized)
     return 0;
   }
   REAL kij = REAL(acos(REAL(mimj)))/pipj;
+  return kij;
+}
+
+REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0){
+  REAL ki = 0;
+  for (int j_faces=0; j_faces<3; j_faces ++){
+    ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
+  }
+  REAL wi = 1.0 + c*ki;
+  return wi;
+
 }
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
