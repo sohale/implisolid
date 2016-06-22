@@ -868,6 +868,7 @@ XYZ get_triangle_normal(TRIANGLE const& t){
 
 REAL norm(REAL x, REAL y, REAL z){
   REAL norm = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+  return norm;
 }
 
 XYZ example_xyz(REAL x, REAL y, REAL z)
@@ -1150,7 +1151,7 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
 }}
 }
 
-REAL kij(int i, int j, verts_t& centroids){
+REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized){
   assert (i!=j);
   REAL pi_x = centroids[i][0];
   REAL pi_y = centroids[i][1];
@@ -1158,6 +1159,27 @@ REAL kij(int i, int j, verts_t& centroids){
   REAL pj_x = centroids[j][0];
   REAL pj_y = centroids[j][1];
   REAL pj_z = centroids[j][2];
+  REAL mi_x = centroid_normals_normalized[i][0];
+  REAL mi_y = centroid_normals_normalized[i][1];
+  REAL mi_z = centroid_normals_normalized[i][2];
+  REAL mj_x = centroid_normals_normalized[j][0];
+  REAL mj_y = centroid_normals_normalized[j][1];
+  REAL mj_z = centroid_normals_normalized[j][2];
+
+  REAL mimj = mi_x*mj_x + mi_y*mj_y + mi_z*mj_z;
+
+  if(mimj > 1.0){
+    mimj = 1.0;
+  }
+  if(mimj < -1.0){
+    mimj = -1.0;
+  }
+
+  REAL pipj = norm(pi_x - pj_x, pi_y - pj_y, pi_z - pj_z);
+  if (pipj == 0){
+    return 0;
+  }
+  REAL kij = REAL(acos(REAL(mimj)))/pipj;
 }
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
