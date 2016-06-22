@@ -1109,17 +1109,22 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
 }
 
 void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& faces_of_faces){
-  //TODO this part need faces_of_faces to have been initialised as a nfaces*3 array
-  for(int face = 0 ; face<edges_of_faces.shape()[0]; face++){
-    for(int edge = 0; edge < 3; edge++){
+  for(int face = 0; face < edges_of_faces.shape()[0]; face++){
+  for(int edge = 0; edge < 3; edge++){
     if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
       faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][0];
-    else
-      //assert faces_of_edges[edges_of_faces[i][edge]][1] != i
-      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];
+    else{
+      assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
+      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
   }}
-
+  for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
+    for(int faces = 0; faces<3; faces++){
+      assert(faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][0] ||
+          faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][1] ||
+          faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][2]);
+}}
 }
+
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
