@@ -570,14 +570,14 @@ void test1()
 string object_name = "sphere";
 
 
-void sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+void sphere(verts_t points, boost::multi_array<REAL, 1>& f){
   //assert points.shape()[0]==f.shape()[0]
   for (int i = 0; i<points.shape()[0];i++){
     f[i] = 1.0 - (pow(points[i][0],2) + pow(points[i][1],2) + pow(points[i][2],2));
   }
 }
 
-void gradient_sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 2>& fprime){
+void gradient_sphere(verts_t points, verts_t& fprime){
   //assert points.shape()[0]==fprime.shape()[0]
   for (int i = 0; i<points.shape()[0];i++){
     fprime[i][0] = -points[i][0]*2.0;
@@ -586,14 +586,14 @@ void gradient_sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL
   }
 }
 
-void modified_sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+void modified_sphere(verts_t points, boost::multi_array<REAL, 1>& f){
   //assert points.shape()[0]==f.shape()[0]
   for (int i = 0; i<points.shape()[0];i++){
     REAL orb = exp(-abs(pow(points[i][2],2))*10*2)*5.+1.;
     f[i] = 2.0 - (pow(points[i][0],2) + pow(points[i][1],2) + pow(points[i][2],2))*orb;}
 }
 
-void gradient_modified_sphere(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 2>& fprime){
+void gradient_modified_sphere(verts_t points, verts_t& fprime){
     //assert points.shape()[0]==fprime.shape()[0]
   for (int i = 0; i<points.shape()[0];i++){
     REAL orb = exp(-abs(pow(points[i][2],2))*10*2)*5.+1.;
@@ -603,7 +603,7 @@ void gradient_modified_sphere(boost::multi_array<REAL, 2> points, boost::multi_a
   }
 }
 
-void glass(boost::multi_array<REAL, 2> points, boost::multi_array<REAL, 1>& f){
+void glass(verts_t points, boost::multi_array<REAL, 1>& f){
   //assert points.shape()[0]==f.shape()[0]
   for (int i = 0; i<points.shape()[0];i++){
     f[i] = pow(points[i][0],2) + pow(points[i][1],2) - pow(log(points[i][2] + 3.20),2) - 0.02;}
