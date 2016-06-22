@@ -1036,7 +1036,29 @@ verts_t compute_centroids(faces_t& faces, verts_t& verts){
 }
 
 verts_t compute_centroid_gradient(verts_t centroids){
-// to do
+  bool normalise = true;
+  verts_t centroid_gradients;
+  if (object_name == "sphere"){
+    gradient_sphere(centroids,centroid_gradients);
+  }
+  else if (object_name == "modified_sphere"){
+    gradient_modified_sphere(centroids,centroid_gradients);
+  }
+  else if (object_name == "glass"){
+    gradient_glass(centroids,centroid_gradients);
+  }
+  else{
+    cout << "error" << endl;
+  }
+  if(normalise){
+    for(int centroid = 0; centroid < centroid_gradients.shape()[0]; centroid++){
+      REAL norm = sqrt(pow(centroid_gradients[centroid][0],2)+pow(centroid_gradients[centroid][1],2)+pow(centroid_gradients[centroid][2],2));
+      for(int coordinate = 0; coordinate < 3; coordinate++){
+        centroid_gradients[centroid][coordinate]=centroid_gradients[centroid][coordinate]/norm;
+      }
+    }
+  }
+  return centroid_gradients;
 }
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
