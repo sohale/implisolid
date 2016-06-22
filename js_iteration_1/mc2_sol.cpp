@@ -25,7 +25,7 @@ Versions tested:
   Boost: 1_61_0
   ThreeJS: r77
 
-@author Sohail
+@authors Sohail, Solene, Marc
 
 MC algorithm based on http://paulbourke.net/geometry/polygonise/
 */
@@ -1205,7 +1205,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
     vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
     vector<REAL> w;
     REAL sum_w = 0;
-    // sum_w could be calculate by a function
+    // sum_w could be calculated by a function
     for (int j=0; j< umbrella_faces.size(); j++){
       sum_w += wi_total_array[umbrella_faces[j]];
     }
@@ -1243,6 +1243,8 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
+  vertex_resampling(new_vertex, faceslist_neighbours_of_vertex, faces_of_faces,
+   centroids, centroid_normals_normalized, float c=2.0);
 
 }
 
