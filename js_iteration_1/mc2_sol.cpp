@@ -866,6 +866,9 @@ XYZ get_triangle_normal(TRIANGLE const& t){
 
 #define rnd() (rand() / (REAL)(RAND_MAX))
 
+REAL norm(REAL x, REAL y, REAL z){
+  REAL norm = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+}
 
 XYZ example_xyz(REAL x, REAL y, REAL z)
 {
