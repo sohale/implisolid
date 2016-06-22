@@ -1201,7 +1201,29 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
     REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2.0);
     wi_total_array[i_faces] = w;
   }
-
+  for (int i=0; i< centroids.shape()[0]; i++){
+    vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
+    vector<REAL> w;
+    REAL sum_w = 0;
+    // sum_w could be calculate by a function
+    for (int j=0; j< umbrella_faces.size(); j++){
+      sum_w += wi_total_array[umbrella_faces[j]];
+    }
+    for (int j=0; j< umbrella_faces.size(); j++){
+      w.push_back(wi_total_array[umbrella_faces[j]]/sum_w);
+    }
+    REAL new_vertex_x = 0;
+    REAL new_vertex_y = 0;
+    REAL new_vertex_z = 0;
+    for (int j=0; j< umbrella_faces.size(); j++){
+      new_vertex_x += w[j]*centroids[umbrella_faces[j]][0];
+      new_vertex_y += w[j]*centroids[umbrella_faces[j]][1];
+      new_vertex_z += w[j]*centroids[umbrella_faces[j]][2];
+    }
+    new_vertex[i][0] = new_vertex_x;
+    new_vertex[i][1] = new_vertex_y;
+    new_vertex[i][2] = new_vertex_z;
+  }
 }
 
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
