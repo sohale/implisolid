@@ -993,7 +993,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
 
     //faces
     int new_vx = 0;
-    for(int ti=0; ti<nv-1; ti++){
+    for(int ti=0; ti<nv; ti++){
       bool new_verts = true;
 
       for(int tj=0; tj<ti; tj++){
@@ -1316,10 +1316,9 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
     }
 
-    verts = new_verts;
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts_to_js[vi*3+di] = verts[vi][di];
+          verts_to_js[vi*3+di] =new_verts[vi][di];
         }
       }
 
