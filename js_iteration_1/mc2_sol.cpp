@@ -1140,12 +1140,12 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
       assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
       faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
   }}
-  for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
-    for(int faces = 0; faces<3; faces++){
-      assert(faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][0] ||
-          faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][1] ||
-          faces_of_faces[face][faces]==faces_of_faces[faces_of_faces[face][faces]][2]);
-}}
+//   for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
+//     for(int faces = 0; faces<3; faces++){
+//       assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
+//           face==faces_of_faces[faces_of_faces[face][faces]][1] ||
+//           face==faces_of_faces[faces_of_faces[face][faces]][2]);
+// }}
 }
 
 REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized){
@@ -1201,7 +1201,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2.0);
     wi_total_array[i_faces] = w;
   }
-  for (int i=0; i< centroids.shape()[0]; i++){
+  for (int i=0; i< new_vertex.shape()[0]; i++){
     vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
     vector<REAL> w;
     REAL sum_w = 0;
@@ -1293,10 +1293,10 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
 
     boost::array<int, 2> f_shape = {{ *nf, 3 }};
     boost::multi_array<REAL, 2> centroids (f_shape);
-
+    boost::array<int, 2> v_shape = {{ *nv, 3 }};
+    boost::multi_array<REAL, 2> new_vertex (v_shape);
     faces_t faces = vf.second;
     verts_t verts = vf.first;
-    verts_t new_vertex;
 
     process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
