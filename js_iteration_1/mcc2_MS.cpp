@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "timer.hpp"
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -1500,8 +1501,6 @@ void finish_geometry() {
     _state.mc = 0;
 };
 
-
-#include "timer.hpp"
 
 int main() {
 
