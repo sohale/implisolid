@@ -1237,7 +1237,9 @@ void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
   faces_t faces_of_faces;
+  //cout << "coucou!!!!"<< endl;
   compute_centroids(faces, verts, centroids);
+  cout << "coucou!!!!"<< endl;
   verts_t centroid_normals_normalized;
   compute_centroid_gradient(centroids, centroid_normals_normalized);
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
@@ -1280,10 +1282,13 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     *nv = vf.first.shape()[0];
     *nf = vf.second.shape()[0];
 
+    boost::array<int, 2> f_shape = {{ *nf, 3 }};
+    boost::multi_array<REAL, 2> centroids (f_shape);
+
     faces_t faces = vf.second;
     verts_t verts = vf.first;
     verts_t new_vertex;
-    verts_t centroids;
+  //  verts_t centroids;
 
     process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
