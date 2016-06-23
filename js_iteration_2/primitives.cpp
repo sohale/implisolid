@@ -51,26 +51,10 @@ class TwistedObject::ImplicitObject(){
 //implicit_func, gradient
 
 //implicit_func, gradient_func
+//eval_implicit,
 
-class ImplicitFunction {
-/*
-    void func(const vectorized_vect& x, vectorized_scalar& output) = 0;
-    void grad(const vectorized_vect& x, vectorized_vect& output) = 0;
-*/
-public:
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) = 0;
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) = 0;
 
-protected:
-    virtual bool integrity_invariant() = 0;
-
-public:
-    virtual ~ImplicitFunction() { };  // ?
-};
-
-//trait:
-//SignedDistanceImplicitPointwise, PrimitiveBase
-
+#include "implicit_function.hpp"
 
 inline REAL squared(REAL x){
     return x*x;
@@ -80,60 +64,5 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
     return x*x + y*y + z*z;
 }
 
-class UnitSphere : public ImplicitFunction {
-
-protected:
-    REAL r;
-
-public:
-    UnitSphere(REAL r){
-        this->r = r;
-    }
-
-    //boost::array<int, 2> big_shape = {{ 10000, 3 }};
-    //boost::multi_array<REAL, 2> huge_test =  boost::multi_array<REAL, 2>(big_shape);
-
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output){
-        my_assert(assert_implicit_function_io(x, f_output), "");
-        my_assert(this->integrity_invariant(), "");
-
-        const REAL r2 = squared(this->r);
-        //auto i = x.begin();
-        auto i_end = x.end();
-        int output_ctr=0;
-        //const vectorized_vect::iterator
-        auto i = x.begin();
-        for(; i<i_end; i++, output_ctr++){
-            //f_output[output_ctr] = (*x)[0];
-            (*f_output)[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] );
-        }
-        /*
-        for(auto i = x.begin(); i<i_end; i++, output_ctr++){
-            //f_output[output_ctr] = (*x)[0];
-            f_output[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] );
-        }
-        */
-
-
-      /*for (int i = 0; i<points.shape()[0];i++){
-        f[i] = 1.0 - (pow(points[i][0],2) + pow(points[i][1],2) + pow(points[i][2],2));
-      }*/
-
-    }
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output){
-        //(*output) = x;
-
-        int output_ctr=0;
-        auto i = x.begin();
-        auto i_end = x.end();
-        for(; i<i_end; i++, output_ctr++){
-            (*output)[output_ctr][0] = -2. * (*i)[0];
-            (*output)[output_ctr][1] = -2. * (*i)[1];
-            (*output)[output_ctr][2] = -2. * (*i)[2];
-        }
-    }
-    bool integrity_invariant(){
-        return true;
-    }
-};
+#include "unit_sphere.hpp"
 

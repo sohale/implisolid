@@ -1,5 +1,5 @@
 #include "../primitives.cpp"
-
+#include "../timer.hpp"
 
 void immutable_test(const vectorized_vect& v){
     // IS multi_array immutable?
@@ -27,7 +27,7 @@ auto make_shape_2d(int n, int m) {
     return values_shape;
 }
 
-//UnitSphere s(2.0);
+//unit_sphere s(2.0);
 
 //Sphere s();
 
@@ -63,13 +63,13 @@ void test_sphere_one_point(){
     vectorized_scalar  f = vectorized_scalar(sf);
 
     vectorized_vect x = make_test_vector(1.5,2.5,3.5);
-    UnitSphere s(2.0);
+    unit_sphere s(2.0);
     //s.implicit_func(x, f);
     s.eval_implicit(x, &f);
 
     std::cout << f[0] << std::endl;
 
-    ImplicitFunction* s2 = new UnitSphere(2.0);
+    implicit_function* s2 = new unit_sphere(2.0);
     s2->eval_implicit(x, &f);
 
     std::cout << f[0] << std::endl;
@@ -78,8 +78,9 @@ void test_sphere_one_point(){
 
     delete s2;
 
-    // s2 -> ~ImplicitFunction()
+    // s2 -> ~implicit_function()
 }
+
 
 boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     auto sf = make_shape_1d(nsize);
@@ -90,7 +91,7 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     return values;
 }
 
-
+//Don't do this. For educational purpose only. This will crash the system.
 boost::multi_array<REAL, 2>&  make_empty_x_2(const int nsize){
     //primitives_test.cpp:100:12: warning: reference to stack memory associated with local variable 'values' returned [-Wreturn-stack-address]
     auto sf = make_shape_1d(nsize);
@@ -110,37 +111,7 @@ void  make_empty_x_inplace(const int nsize, boost::multi_array<REAL, 2>& output)
     output = values;
 }
 
-
-#include "../timer.hpp"
-void test_memoryleak_sphere(){
-
-    const int nsize = 10000;
-
-    auto sf = make_shape_1d(nsize);
-    vectorized_scalar  f = vectorized_scalar(sf);
-
-    vectorized_vect x = make_empty_x(nsize);
-
-    UnitSphere s(2.0);
-
-    s.eval_implicit(x, &f);
-
-    std::cout << f[0] << std::endl;
-
-    timer t;
-    for(int i=0;i<1000*10;i++){
-        ImplicitFunction* s2 = new UnitSphere(2.0);
-        s2->eval_implicit(x, &f);
-        delete s2;
-    }
-    t.stop();
-    //100000 x size(10000), took 5.764 sec. (1 Billion evaluations!)
-
-    // s2 -> ~ImplicitFunction()
-}
-
-
-void test_return_alloc() {
+void test_three_types_of_return_alloc() {
 
     const int nsize = 10000;
     const int REPEATS = 100;
@@ -199,13 +170,47 @@ make_empty_x_inplace
 }
 
 
+
+
+void test_memoryleak_sphere(){
+
+    const int nsize = 10000;
+
+    auto sf = make_shape_1d(nsize);
+    vectorized_scalar  f = vectorized_scalar(sf);
+
+    vectorized_vect x = make_empty_x(nsize);
+
+    unit_sphere s(2.0);
+
+    s.eval_implicit(x, &f);
+
+    std::cout << f[0] << std::endl;
+
+    timer t;
+    for(int i=0;i<1000*10;i++){
+        implicit_function* s2 = new unit_sphere(2.0);
+        s2->eval_implicit(x, &f);
+        delete s2;
+    }
+    t.stop();
+    //100000 x size(10000), took 5.764 sec. (1 Billion evaluations!)
+
+    // s2 -> ~implicit_function()
+}
+
+
+
+
 void grad_test(){
     ;
 }
 
 int main() {
-    test_return_alloc();
-    return 0;
+    if(0) {
+        // Don't call following. It can crash the system.
+        test_three_types_of_return_alloc();
+    }
 
     my_assert(assertion_side_effect(), "");
     //immutable_test(x);
