@@ -1191,9 +1191,9 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 }
 
 void vertex_resampling(verts_t& new_vertex, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
-verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
+verts_t& centroids, verts_t& centroid_normals_normalized){
   int nfaces = centroids.shape()[0];
-
+  float c=2.0;
   boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
@@ -1226,7 +1226,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0 ){
   }
 }
 
-void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
+void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, verts_t& verts, verts_t& centroids){
 
   int nfaces = 3*faces.shape()[0];
   assert(nfaces % 2 == 0);
@@ -1244,7 +1244,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
   vertex_resampling(new_vertex, faceslist_neighbours_of_vertex, faces_of_faces,
-   centroids, centroid_normals_normalized, float c=2.0);
+   centroids, centroid_normals_normalized);
 
 }
 
@@ -1282,10 +1282,10 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
 
     faces_t faces = vf.second;
     verts_t verts = vf.first;
-    verts_t new_verts;
+    verts_t new_vertex;
     verts_t centroids;
 
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+    process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
             verts_to_js[vi*3+di] = vf.first[vi][di];
