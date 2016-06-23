@@ -2,9 +2,6 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<!-- Memory profiler code by "jj":
-from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
--->
 <script type="text/javascript" src="./lib/memoryprofiler.js"></script>
 <script>
 
@@ -55,7 +52,6 @@ Based on MCC1
 
         newProducer.init = function(){ newProducer.needsFinish = false; }
         newProducer.finish_with = function (){
-            //after the last round.
             if(!newPolygonizer.needsFinish)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
@@ -74,90 +70,16 @@ Based on MCC1
 <script>
     'use strict';
 
-
-    //Version 1 has flaws: _free()s before returning the verts.
-    var CALL_VERSION = 2; //1 or 2
+    var CALL_VERSION = 2;
     const VERBOSE = false;
 
     var WIREFRAME = false;
 
-    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    const _FLOAT_SIZE = 4;
     const _INT_SIZE = 4;
 
 
     var global_time = 0;
-
-
-    function do_vf_old(subjective_time)
-    {
-
-        var max_verts = 16000;
-        var max_faces = 13000;
-        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
-        var nv_address = Module._malloc(_INT_SIZE*1);
-        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
-        var nf_address = Module._malloc(_INT_SIZE*1);
-
-
-        /* ************************* */
-        /*   Call C++                */
-        produce_object(verts_address, nv_address, faces_address, nf_address, subjective_time);
-        /* ************************* */
-
-        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
-        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
-        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
-
-
-
-        var h_len = (Module.HEAPF32.length);
-        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
-        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
-        if(h_len <= v_end || h_len <= f_end)
-            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
-        else
-            console.info("Heap size OK.");
-
-
-        Module._free(verts_address);
-        Module._free(nv_address);
-        Module._free(faces_address);
-        Module._free(nf_address);
-
-
-        if(VERBOSE){
-            console.log("nverts : "+ nverts);
-            console.log("nfaces : "+ nfaces);
-        }
-
-        return [verts, faces];
-
-    }
-
-function make_geometry_oldold(subjective_time, re_allocate_buffers)
-{
-
-    var startTime = new Date();
-
-    vf = do_vf_old(subjective_time);
-    v = vf[0];
-    f = vf[1];
-
-    var geom = new MyBufferGeometry77(v, f, re_allocate_buffers);
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    report_time(timeDiff);
-
-    return geom;
-
-}
-
-
-'use strict';
 
 var call_multiple_times = function() {
 
@@ -221,51 +143,6 @@ var call_multiple_times = function() {
     }
     return _call_multiple_times;
 }();
-
-function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
-{
-    var startTime = new Date();
-
-    newPolygonizer.build_geometry( 28, subjective_time);
-
-    var nverts = newPolygonizer.get_v_size();
-    var nfaces = newPolygonizer.get_f_size();
-    if(VERBOSE){
-        console.log(nverts);
-    }
-
-    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
-    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
-
-    newPolygonizer.get_v(verts_address, nverts);
-    newPolygonizer.get_f(faces_address, nfaces);
-
-    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-
-    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
-
-
-    Module._free(verts_address);
-    Module._free(faces_address);
-
-    newPolygonizer.finish_geometry();
-    newPolygonizer.needsFinish = false;
-
-    if(VERBOSE){
-        console.log("nverts : "+ nverts);
-        console.log("nfaces : "+ nfaces);
-    }
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-
-    report_time(timeDiff);
-
-    return geom;
-}
-
 
 function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
 {
@@ -378,16 +255,6 @@ var mesh2_tiny_box_wireframe;
 var materials_list, material_f;
 var material_wireframe, mesh_wireframe = null;
 const CHOSEN_MATERIAL_INDEX = 7; //3;
-    //1: grayscale boring phong.
-    //2: faceted. (good for debug / shape study)
-    //3: colorful
-    //4: semi opaque (good for debug / shape study)
-    //6: striped
-    //7: rainbow
-    //8 is wireframe
-    //9: plain white?
-    //10: changing peach
-    //11: changing cyan
 var chosen_matrial;
 const SHOW_WIREFRAME = true;
 
@@ -411,9 +278,6 @@ function init_scene(newPolygonizer) {
 
     global_time += delta_t;
 
-
-    if(CALL_VERSION==1){
-        geometry = make_geometry_oldold(global_time);
     }
     else{
         geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
@@ -521,9 +385,6 @@ function update_mc(newPolygonizer, delta_t){
         update_reused_geometry(newPolygonizer, global_time, geometry);
     }
     else {
-        if(CALL_VERSION==1){
-            geometry = make_geometry_oldold(global_time);
-        }
         else{
 
             geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
@@ -669,30 +530,6 @@ if (window.Worker) {
         console.log('I received this from worker');
         //console.log(e);
         console.log(e.data);
-
-        /*
-    bubbles    : false
-    cancelBubble    : false
-    cancelable    : false
-    currentTarget    : Worker
-    data    : Object
-    defaultPrevented    : false
-    eventPhase    : 0
-    isTrusted    : true
-    isTrusted    : true
-    lastEventId    : ""
-    origin    : ""
-    path    : Array[0]
-    ports    : Array[0]
-    returnValue    : true
-    source    : null
-    srcElement    : Worker
-    target    : Worker
-    timeStamp    : 1555.6200000000001
-    type    : "message"
-
-        */
-
     }
 }
 else{
