@@ -8,12 +8,6 @@
 #include "boost/array.hpp"
 
 
-
-extern "C" {
-    void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
-    int main();
-}
-
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
 
@@ -55,10 +49,9 @@ class MarchingCubes{
     REAL halfsize;
     REAL delta;
 
-    array1d field;      // local_ yd and zd
+    array1d field;
     array1d normal_cache;
 
-    // parameters
     static const dim_t queueSize = 4096;  // Name history: maxCount
 
  protected:
@@ -269,11 +262,6 @@ MarchingCubes::~MarchingCubes() //deconstructor
     }
 }
 
-void MarchingCubes::kill()
-
-{
-    ;
-}
 
 inline void MarchingCubes:: VIntX(
     index_t q, array1d &pout, array1d &nout,
@@ -292,7 +280,6 @@ inline void MarchingCubes:: VIntX(
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
-
     if(ENABLE_NORMALS){
 
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q + 3 ], mu );
@@ -304,14 +291,8 @@ inline void MarchingCubes:: VIntX(
 
     e3out[offset/3] = e3x;
 
-
 }
 
-inline void fp(){
-    std::cout << "it";
-}
-
-void (*fpp)() = fp;
 
 inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
@@ -363,7 +344,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
 
 inline void MarchingCubes::compNorm( index_t q ) {
         if(!ENABLE_NORMALS){
-            std::cout << "This should not hapepn.";
+            std::cout << "Error in the normals";
             return;
         }
         index_t q3 = q * 3;
@@ -546,26 +527,21 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     }
 
-    cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
+    cubeindex <<= 4;
 
-    //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
-
-    // here is where triangles are created
 
     while ( mc_triangles_table[ cubeindex + i ] != - 1 ) {
         o1 = cubeindex + i;
         o2 = o1 + 1;
         o3 = o1 + 2;
 
-        //stores the triangles into the buffers
         this->posnormtriv(
             this->vlist_buffer, this->nlist_buffer, this->e3list_buffer,
             3 * MarchingCubes::mc_triangles_table[ o1 ],
             3 * MarchingCubes::mc_triangles_table[ o2 ],
             3 * MarchingCubes::mc_triangles_table[ o3 ],
             renderCallback );
-        //renderCallback consumes them
 
         i += 3;
         numtris++;
@@ -587,7 +563,6 @@ void MarchingCubes::posnormtriv(
     int c = this->queue_counter * 3;
 
     // positions
-
     this->positionQueue[ c ]     = pos__vlist[ o1 ];
     this->positionQueue[ c + 1 ] = pos__vlist[ o1 + 1 ];
     this->positionQueue[ c + 2 ] = pos__vlist[ o1 + 2 ];
@@ -600,7 +575,6 @@ void MarchingCubes::posnormtriv(
     this->positionQueue[ c + 6 ] = pos__vlist[ o3 ];
     this->positionQueue[ c + 7 ] = pos__vlist[ o3 + 1 ];
     this->positionQueue[ c + 8 ] = pos__vlist[ o3 + 2 ];
-
 
     int c_div_3 = this->queue_counter;
     this->e3Queue[ c_div_3 ]     = e3__e3list[ o1/3 ];
@@ -1268,7 +1242,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
             assert(verts3.size()/3 == next_unique_vect_counter);
 
             faces3.push_back(overall_vert_index);
-            int old_overall_vert_index = vert_i + normals_start*3;  // // old index was this. not used now.
+
         }
 
         if(ENABLE_NORMALS){
@@ -1393,65 +1367,6 @@ public:
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
 };
-
-
-//Not used
-void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
-    //not used
-
-    dim_t resolution = 28;  // 28;
-    bool enableUvs = true;
-    bool enableColors = true;
-
-    if(VERBOSE)
-        std::cout << "Leak-free (old version)" << std::endl;
-
-
-    MarchingCubes mc(resolution, enableUvs, enableColors);
-
-    int numblobs = 4;
-
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL D = 1;
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
-      }
-
-    const callback_t renderCallback;
-    mc.render_geometry(renderCallback);
-
-    std::cout << "map2" << std::endl;
-
-    if(VERBOSE)
-        std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
-
-    *nv = mc.result_verts.size()/3;
-    *nf = mc.result_faces.size()/3;
-
-    // Vertices
-    int ctr = 0;
-    for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it+=3 ){
-        for(int di=0; di<3; di++){
-            verts[ctr] = *( it + di );
-            ctr++;
-        }
-      }
-
-    // Faces
-    ctr = 0;
-    for(std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ){
-        for(int di=0; di<3; di++){
-            faces[ctr] = *( it + di );
-            ctr++;
-        }
-      }
-
-
-}
 
 
 extern "C" {

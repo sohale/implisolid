@@ -1311,7 +1311,7 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
 
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-          verts_to_js[vi*3+di] =new_verts[vi][di];
+          verts_to_js[vi*3+di] = new_verts[vi][di];
         }
       }
 
