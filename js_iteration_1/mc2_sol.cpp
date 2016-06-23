@@ -1064,7 +1064,7 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
   int nt = faces.shape()[0];
-  int vt = 3*verts.shape()[0];
+  int vt = verts.shape()[0];
   vector< vector<int>> neighbour_faces_of_vertex;
   for (int fi=0; fi< vt; fi++){
     neighbour_faces_of_vertex.push_back(vector<int>());
@@ -1075,6 +1075,10 @@ vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& fac
       neighbour_faces_of_vertex[v1].push_back(fi);
     }
   }
+  //for(int i=0; i<neighbour_faces_of_vertex.size(); i++){
+    //cout << neighbour_faces_of_vertex[i][0] << endl;
+    //cout << neighbour_faces_of_vertex[i][1] << endl;
+  //}
   return neighbour_faces_of_vertex;
 }
 
@@ -1140,6 +1144,11 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
       assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
       faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
   }}
+  for(int edge = 0; edge < faces_of_edges.shape()[0]; edge ++){
+    for(int faces = 0; faces<2; faces++){
+        cout << faces_of_edges[edge][faces] << endl;
+
+      }}
 //   for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
 //     for(int faces = 0; faces<3; faces++){
 //       assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
@@ -1256,6 +1265,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, 
   cout << "build_faces_of_faces" << endl;
   vertex_resampling(new_vertex, faceslist_neighbours_of_vertex, faces_of_faces,
    centroids, centroid_normals_normalized);
+    cout << "vertex resampling" << endl;
 
 }
 
