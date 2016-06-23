@@ -1079,7 +1079,7 @@ vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& fac
 }
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
-  int nfaces = 3*faces.shape()[0];
+  int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
@@ -1228,23 +1228,32 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
 
 void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, verts_t& verts, verts_t& centroids){
 
-  int nfaces = 3*faces.shape()[0];
+  int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
   boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
   boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
+  boost::array<int, 2> faces_of_faces_shape = {{ nfaces, 3 }};
 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
-  faces_t faces_of_faces;
+  boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
+
   //cout << "coucou!!!!"<< endl;
   compute_centroids(faces, verts, centroids);
-  cout << "coucou!!!!"<< endl;
-  verts_t centroid_normals_normalized;
+
+  boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
+  boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
+
   compute_centroid_gradient(centroids, centroid_normals_normalized);
+
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
+
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
+  cout << "make_edge_lookup!!!!!!!"<< endl;
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
+
+  cout << "build_faces_of_faces" << endl;
   vertex_resampling(new_vertex, faceslist_neighbours_of_vertex, faces_of_faces,
    centroids, centroid_normals_normalized);
 
@@ -1288,7 +1297,6 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     faces_t faces = vf.second;
     verts_t verts = vf.first;
     verts_t new_vertex;
-  //  verts_t centroids;
 
     process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
