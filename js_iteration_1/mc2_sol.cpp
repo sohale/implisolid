@@ -1086,6 +1086,7 @@ vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& fac
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = faces.shape()[0];
+  cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
@@ -1096,6 +1097,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   int edge_counter = 0;
   for (int fi=0; fi<nfaces; fi++){
     for (int vj=0; vj<3; vj++){
+      //cout << "let's check this edge yes yes" << endl;
       bool new_edge = false;
       int v2j = (vj+1)%3;
       int e1 = faces[fi][vj];
@@ -1109,7 +1111,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
       }
 
       iter = eulookup.find(eu_pair_int);
-      if (iter!= eulookup.end()){
+      if (iter== eulookup.end()){
         new_edge = true;
       }
       if (new_edge){
@@ -1133,7 +1135,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
       }
     }
   }
-
+  cout << "edge lookup over" << endl;
 
 }
 
@@ -1148,7 +1150,7 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
   }}
   for(int edge = 0; edge < faces_of_edges.shape()[0]; edge ++){
     for(int faces = 0; faces<2; faces++){
-        cout << faces_of_edges[edge][faces] << endl;
+        //cout << faces_of_edges[edge][faces] << endl;
 
       }}
 //   for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
@@ -1250,7 +1252,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, 
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
   boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
 
-  //cout << "coucou!!!!"<< endl;
+  cout << "coucou!!!!"<< endl;
   compute_centroids(faces, verts, centroids);
 
   boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
@@ -1259,7 +1261,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_vertex, faces_t& faces, 
   compute_centroid_gradient(centroids, centroid_normals_normalized);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
-
+  cout << "let's make_edge_lookup!!!!!!!"<< endl;
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
   cout << "make_edge_lookup!!!!!!!"<< endl;
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
