@@ -38,8 +38,6 @@ Based on MCC1
 
         main = Module.cwrap('main', 'number', []);
 
-        produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
-
         var newProducer={};
         newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
@@ -278,11 +276,9 @@ function init_scene(newPolygonizer) {
 
     global_time += delta_t;
 
-    }
-    else{
-        geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+    geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
 
-    }
+
 
     if(SHOW_WIREFRAME){
 
@@ -385,10 +381,7 @@ function update_mc(newPolygonizer, delta_t){
         update_reused_geometry(newPolygonizer, global_time, geometry);
     }
     else {
-        else{
-
-            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
-        }
+    geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
     };
 
 

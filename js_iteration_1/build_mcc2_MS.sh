@@ -23,7 +23,7 @@ fi
 
 if [ $OPTIM -eq 1 ]
 then
-    echo "** optimised version **"
+    echo "** optimized version **"
 
     ~/Desktop/emsdk_portable/emscripten/master/em++ \
             -I $BOOST_FOLDER   \
