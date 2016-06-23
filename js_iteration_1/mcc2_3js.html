@@ -831,6 +831,7 @@ function report_time(time_msec, callback){
         console.log(time_queue);
         if(callback)
             callback();
+        time_queue = [];
         time_queue__last_timeout =0;
     }, 1000);
 }
