@@ -567,7 +567,7 @@ void test1()
 }
 
 
-string object_name = "sphere";
+string object_name = "modified_sphere";
 
 
 void sphere(verts_t points, boost::multi_array<REAL, 1>& f){
@@ -1095,7 +1095,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   map<int, int> eulookup;
   map<int, int>::iterator iter;
   int edge_counter = 0;
-  for (int fi=0; fi<nfaces-1; fi++){
+  for (int fi=0; fi<nfaces; fi++){
     for (int vj=0; vj<3; vj++){
       assert(fi<nfaces);
       //cout << "let's check this edge yes yes" << endl;
@@ -1149,17 +1149,12 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
       assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
       faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
   }}
-  for(int edge = 0; edge < faces_of_edges.shape()[0]; edge ++){
-    for(int faces = 0; faces<2; faces++){
-        //cout << faces_of_edges[edge][faces] << endl;
-
-      }}
-//   for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
-//     for(int faces = 0; faces<3; faces++){
-//       assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
-//           face==faces_of_faces[faces_of_faces[face][faces]][1] ||
-//           face==faces_of_faces[faces_of_faces[face][faces]][2]);
-// }}
+  for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
+    for(int faces = 0; faces<3; faces++){
+      assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
+          face==faces_of_faces[faces_of_faces[face][faces]][1] ||
+          face==faces_of_faces[faces_of_faces[face][faces]][2]);
+}}
 }
 
 REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized){
@@ -1253,7 +1248,6 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
   boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
 
-  cout << "coucou!!!!"<< endl;
   compute_centroids(faces, verts, centroids);
 
   boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
@@ -1262,15 +1256,14 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   compute_centroid_gradient(centroids, centroid_normals_normalized);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
-  cout << "let's make_edge_lookup!!!!!!!"<< endl;
+
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
-  cout << "make_edge_lookup!!!!!!!"<< endl;
+
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
 
-  cout << "build_faces_of_faces" << endl;
   vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
    centroids, centroid_normals_normalized);
-    cout << "vertex resampling" << endl;
+
 
 }
 
