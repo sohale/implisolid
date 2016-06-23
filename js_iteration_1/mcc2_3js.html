@@ -5,19 +5,10 @@
 <!-- Memory profiler code by "jj":
 from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
 -->
-<script type="text/javascript" src="./lib/memoryprofiler.js"></script>
-<script>
-        //function letmeknow(){console.log("Loading memory profiler");}
-        Module={preRun:[
-            letmeknow=function (){console.log("Loading memory profiler");},
-            memoryprofiler_add_hooks
-        ]};
 
-</script>
 <body>
 <canvas id="my_canvas"></canvas>
 
-<script type="text/javascript" src="mcc2.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
 <!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
 
@@ -865,12 +856,13 @@ var scene, camera, renderer;
 var geometry;
 
 //var newPolygonizer; //no longer global. Hopefully does not affect the performance.
-window.setTimeout(function()
-{
-    var newPolygonizer = init_polygonizer();
-    init_scene(newPolygonizer);
-    animate();
-}, 3000);
+window.setTimeout(
+    // function() {
+    //     var newPolygonizer = init_polygonizer();
+    //     init_scene(newPolygonizer);
+    //     animate();
+    // },
+3000);
 
 </script>
 
@@ -998,3 +990,25 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 <div id="chart_div" style="width: 900px; height: 500px;">
 </div>
 -->
+
+<script>
+    // The code that runs immediately after finishing loading of the Emscripten-generated js.
+    function set_off() {
+        console.log("ready.");
+        var newPolygonizer = init_polygonizer();
+        init_scene(newPolygonizer);
+        animate();
+    };
+</script>
+
+<script type="text/javascript" src="./lib/memoryprofiler.js"></script>
+<script>
+        //function letmeknow(){console.log("Loading memory profiler");}
+        Module={preRun:[
+            letmeknow=function (){console.log("Loading memory profiler");},
+            memoryprofiler_add_hooks
+        ],
+        onRuntimeInitialized: set_off,
+    };
+</script>
+<script type="text/javascript" src="mcc2.cpp.js"></script>

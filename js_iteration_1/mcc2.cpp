@@ -2128,6 +2128,7 @@ int main() {
 
     t.stop();
 */
+    std::cout << "main();" << std::endl;
     return 0;
 }
 
