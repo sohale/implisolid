@@ -1285,6 +1285,7 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     verts_t new_verts;
     verts_t centroids;
 
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
             verts_to_js[vi*3+di] = vf.first[vi][di];
