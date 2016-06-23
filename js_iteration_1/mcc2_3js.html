@@ -507,6 +507,10 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     //geometry.index.array[i] === faces[i]
     geometry.clearGroups();
     geometry.addGroup( 0, faces.length, 0 );
+    //geometry.setBou
+
+    //geometry.computeFaceNormals();
+    //geometry.computeBoundingSphere();
 
     for(var j=0;j<faces.length;j++)
         if(geometry.index.array[j] !== faces[j])
@@ -734,8 +738,17 @@ function update_mc(newPolygonizer, delta_t){
             scene.add( mesh_wireframe );
         }
 
+
+        /*var material1 = new THREE.MeshPhongMaterial( {
+                            color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
+                            side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+                        } );
+
+        mesh_solid = new THREE.Mesh( geometry, material1 );
+        */
+
         mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-        //mesh_solid.position.set( 0, 0, 0 );
+        //   //mesh_solid.position.set( 0, 0, 0 );
         mesh_solid.scale.set( 300, 300, 300 );
         mesh_solid.position.copy(p1[0]);
         mesh_solid.rotation.copy(p1[1]);

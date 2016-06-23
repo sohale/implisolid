@@ -207,6 +207,11 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
         //my_assert(this.index.array === faces);
 
 
+        var normals = copy_Float32Array_preallocated(verts, 30000*3);
+        var colors = copy_Float32Array_preallocated(verts, 30000*3);
+        this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
+        this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
+
     }else{
         var mesh_core = make_geometry_core(verts, faces);
         //var mesh_core = make_geometry_core_slower(verts, faces);
