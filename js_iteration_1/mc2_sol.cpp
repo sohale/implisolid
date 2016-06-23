@@ -1095,7 +1095,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   map<int, int> eulookup;
   map<int, int>::iterator iter;
   int edge_counter = 0;
-  for (int fi=0; fi<nfaces; fi++){
+  for (int fi=0; fi<nfaces-1; fi++){
     for (int vj=0; vj<3; vj++){
       assert(fi<nfaces);
       //cout << "let's check this edge yes yes" << endl;
@@ -1316,15 +1316,16 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
     }
 
+    verts = new_verts;
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
-            verts_to_js[vi*3+di] = vf.first[vi][di];
+            verts_to_js[vi*3+di] = verts[vi][di];
         }
       }
 
     for(int fi=0; fi<*nf; fi++){
         for(int si=0; si<3; si++){
-            faces_to_js[fi*3+si] = vf.second[fi][si];
+            faces_to_js[fi*3+si] = faces[fi][si];
         }
       }
 
