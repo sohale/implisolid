@@ -1033,6 +1033,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   for (int j=0;j<nt; j++){
     for (int di=0; di<3; di++){
         centroids[j][di] = (verts[faces[j][0]][di] + verts[faces[j][1]][di] + verts[faces[j][2]][di])/3.;
+
     }
   }
 }
@@ -1075,6 +1076,7 @@ vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& fac
       neighbour_faces_of_vertex[v1].push_back(fi);
     }
   }
+
   //for(int i=0; i<neighbour_faces_of_vertex.size(); i++){
     //cout << neighbour_faces_of_vertex[i][0] << endl;
     //cout << neighbour_faces_of_vertex[i][1] << endl;
@@ -1307,8 +1309,10 @@ void make_object(float* verts_to_js, int *nv, int* faces_to_js, int *nf){
     boost::multi_array<REAL, 2> new_vertex (v_shape);
     faces_t faces = vf.second;
     verts_t verts = vf.first;
+    for (int m=0; m<3; m++){
+      process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
+    }
 
-    process2_vertex_resampling_relaxation(new_vertex, faces, verts, centroids);
     for(int vi=0; vi<*nv; vi++){
         for(int di=0; di<3; di++){
             verts_to_js[vi*3+di] = vf.first[vi][di];
