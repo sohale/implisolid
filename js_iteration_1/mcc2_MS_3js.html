@@ -1,0 +1,762 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+</head>
+<!-- Memory profiler code by "jj":
+from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
+-->
+<script type="text/javascript" src="./lib/memoryprofiler.js"></script>
+<script>
+
+        Module={preRun:[
+            letmeknow=function (){console.log("Loading memory profiler");},
+            memoryprofiler_add_hooks
+        ]};
+
+</script>
+<body>
+<canvas id="my_canvas"></canvas>
+
+<script type="text/javascript" src="mcc2.cpp.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+
+<script type="text/javascript" src="./geometry77.js"></script>
+
+<script type="text/javascript" src="./controls/OrbitControls.js"></script>
+
+Based on MCC1
+
+<br>
+
+<script>
+    'use strict';
+
+
+    var produce_object;
+    var main;
+
+
+    function init_polygonizer()
+    {
+
+        main = Module.cwrap('main', 'number', []);
+
+        produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
+
+        var newProducer={};
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+        newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
+        newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
+        newProducer.get_v = Module.cwrap('get_v', null, ['number']);
+        newProducer.get_f = Module.cwrap('get_f', null, ['number']);
+        newProducer.get_v_ptr = Module.cwrap('get_v_ptr', 'number', []);
+        newProducer.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
+        newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
+
+        newProducer.init = function(){ newProducer.needsFinish = false; }
+        newProducer.finish_with = function (){
+            //after the last round.
+            if(!newPolygonizer.needsFinish)
+                console.error("cannot `finish_geometry()`. Geometry not produced.");
+
+
+            newPolygonizer.finish_geometry();
+            newPolygonizer.needsFinish = false;
+        }
+
+        newProducer.init();
+
+
+        return newProducer;
+    }
+
+</script>
+<script>
+    'use strict';
+
+
+    //Version 1 has flaws: _free()s before returning the verts.
+    var CALL_VERSION = 2; //1 or 2
+    const VERBOSE = false;
+
+    var WIREFRAME = false;
+
+    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    const _INT_SIZE = 4;
+
+
+    var global_time = 0;
+
+
+    function do_vf_old(subjective_time)
+    {
+
+        var max_verts = 16000;
+        var max_faces = 13000;
+        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
+        var nv_address = Module._malloc(_INT_SIZE*1);
+        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
+        var nf_address = Module._malloc(_INT_SIZE*1);
+
+
+        /* ************************* */
+        /*   Call C++                */
+        produce_object(verts_address, nv_address, faces_address, nf_address, subjective_time);
+        /* ************************* */
+
+        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
+        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
+
+
+
+        var h_len = (Module.HEAPF32.length);
+        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
+        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
+        if(h_len <= v_end || h_len <= f_end)
+            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
+        else
+            console.info("Heap size OK.");
+
+
+        Module._free(verts_address);
+        Module._free(nv_address);
+        Module._free(faces_address);
+        Module._free(nf_address);
+
+
+        if(VERBOSE){
+            console.log("nverts : "+ nverts);
+            console.log("nfaces : "+ nfaces);
+        }
+
+        return [verts, faces];
+
+    }
+
+function make_geometry_oldold(subjective_time, re_allocate_buffers)
+{
+
+    var startTime = new Date();
+
+    vf = do_vf_old(subjective_time);
+    v = vf[0];
+    f = vf[1];
+
+    var geom = new MyBufferGeometry77(v, f, re_allocate_buffers);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    report_time(timeDiff);
+
+    return geom;
+
+}
+
+
+'use strict';
+
+var call_multiple_times = function() {
+
+    var last_active = 0;
+    var intervals_counter = 0;
+
+    function _call_multiple_times(newPolygonizer, update_mc) {
+
+        var BURST_COUNT = 50;
+        var INTERVAL_MSEC = 8-1;
+        var already_busy_doing_it=0;
+        var burst_counter = 0;
+
+
+        intervals_counter++;
+        if(intervals_counter>1)
+        {
+            intervals_counter--;
+            return;
+        }
+        last_active = setInterval (
+            function()
+            {
+
+                if(!last_active)
+                    console.error("!last_active");
+
+                burst_counter++;
+
+                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
+                {
+
+                    if(already_busy_doing_it<1)
+                    {
+                        already_busy_doing_it++;
+
+                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
+
+                        if(already_busy_doing_it>1)
+                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
+                        if(!last_active)
+                            console.error("!last_active");
+                        already_busy_doing_it--;
+                    }else{
+                        console.log("hit");
+                    }
+                }
+                else
+                {
+
+                    if(!last_active)
+                        console.error("!last_active");
+                    clearInterval(last_active);
+                    intervals_counter--;
+                    burst_counter = 0;
+                    last_active = 0;
+                }
+            },
+            INTERVAL_MSEC
+        );
+    }
+    return _call_multiple_times;
+}();
+
+function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+{
+    var startTime = new Date();
+
+    newPolygonizer.build_geometry( 28, subjective_time);
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    if(VERBOSE){
+        console.log(nverts);
+    }
+
+    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
+    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
+
+    newPolygonizer.get_v(verts_address, nverts);
+    newPolygonizer.get_f(faces_address, nfaces);
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
+
+
+    Module._free(verts_address);
+    Module._free(faces_address);
+
+    newPolygonizer.finish_geometry();
+    newPolygonizer.needsFinish = false;
+
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+    report_time(timeDiff);
+
+    return geom;
+}
+
+
+function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+{
+
+    var startTime = new Date();
+
+    if(newPolygonizer.needsFinish) {
+        newPolygonizer.finish_geometry();
+        newPolygonizer.needsFinish = false;
+    }
+
+    newPolygonizer.build_geometry( 28, subjective_time);
+    newPolygonizer.needsFinish = true;
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    if(VERBOSE){
+        console.log(nverts);
+    }
+
+    var verts_address = newPolygonizer.get_v_ptr();
+    var faces_address = newPolygonizer.get_f_ptr();
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
+
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+
+    report_time(timeDiff, function(){hist();});
+
+    return geom;
+}
+
+function my_assert(cond, text){if(!cond)console.error("ASSERT FAILED: "); if(text) console.log(text);}
+
+function update_reused_geometry(newPolygonizer, subjective_time, geom) {
+    var startTime = new Date();
+
+    if(newPolygonizer.needsFinish) {
+        newPolygonizer.finish_geometry();
+        newPolygonizer.needsFinish = false;
+    }
+
+    if(newPolygonizer.needsFinish)
+        console.error("not deallocated.");
+    try{
+        newPolygonizer.build_geometry( 28, subjective_time);
+        newPolygonizer.needsFinish = true;
+    }catch(err){
+        console.error("An error occured dugin MCC C++")
+        console.info(err);
+    }finally {
+    }
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    var verts_address = newPolygonizer.get_v_ptr();
+    var faces_address = newPolygonizer.get_f_ptr();
+    var verts = Module.HEAPF32.subarray(
+        verts_address/_FLOAT_SIZE,
+        verts_address/_FLOAT_SIZE + 3*nverts);
+    var faces = Module.HEAPU32.subarray(
+        faces_address/_INT_SIZE,
+        faces_address/_INT_SIZE + 3*nfaces);
+
+    var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
+    var g_nfaces = geometry.index.array.length/3;
+
+
+    var nv3 = Math.min(nverts, g_nverts) * 3;
+    var nf3 = Math.min(nfaces, g_nfaces) * 3;
+
+    my_assert(nv3 === verts.length);
+    my_assert(nf3 === faces.length);
+
+    geometry.attributes.position.array.set(verts);
+    geometry.index.array.set(faces);
+
+    geometry.setDrawRange( 0, nf3 );
+    geometry.attributes.position.needsUpdate = true;
+    geometry.index.needsUpdate = true;
+
+    geometry.clearGroups();
+    geometry.addGroup( 0, faces.length, 0 );
+
+
+    for(var j=0;j<faces.length;j++)
+        if(geometry.index.array[j] !== faces[j])
+            console.error(j);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+    report_time(timeDiff);
+}
+
+'use strict';
+
+var mesh_solid;
+var mesh2_tiny_box_wireframe;
+var materials_list, material_f;
+var material_wireframe, mesh_wireframe = null;
+const CHOSEN_MATERIAL_INDEX = 7; //3;
+    //1: grayscale boring phong.
+    //2: faceted. (good for debug / shape study)
+    //3: colorful
+    //4: semi opaque (good for debug / shape study)
+    //6: striped
+    //7: rainbow
+    //8 is wireframe
+    //9: plain white?
+    //10: changing peach
+    //11: changing cyan
+var chosen_matrial;
+const SHOW_WIREFRAME = true;
+
+function init_scene(newPolygonizer) {
+
+    scene = new THREE.Scene();
+
+
+    var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
+    camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+    camera.position.z = 1000;
+
+    materials_list = look_nice(scene);
+    chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
+
+
+    material_wireframe = new THREE.MeshBasicMaterial( {
+        color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true,} );
+
+    var delta_t = 0.2;
+
+    global_time += delta_t;
+
+
+    if(CALL_VERSION==1){
+        geometry = make_geometry_oldold(global_time);
+    }
+    else{
+        geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+
+    }
+
+    if(SHOW_WIREFRAME){
+
+        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+        mesh_wireframe.position.set( 0, 0, 0 );
+
+        mesh_wireframe.scale.set( 300, 300, 300 );
+
+
+        scene.add( mesh_wireframe );
+    }
+
+
+    material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
+
+    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+    mesh_solid.position.set( 0, 0, 0 );
+    mesh_solid.scale.set( 300, 300, 300 );
+    scene.add( mesh_solid );
+
+
+    var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
+    mesh2_tiny_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
+    mesh2_tiny_box_wireframe	.position.set( 0, 0, 0 );
+    scene.add( mesh2_tiny_box_wireframe	 );
+
+    var dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(100, 100, 50);
+    scene.add(dirLight);
+
+
+    if(VERBOSE){
+        console.log("RENDERER");
+    }
+    var render_canvas = document.getElementById( 'my_canvas' );
+    console.log(render_canvas);
+    renderer = new THREE.WebGLRenderer( { antialias: true, canvas: render_canvas } );
+
+    renderer.setSize( WIDTH, HEIGHT );
+
+    document.body.appendChild( renderer.domElement );
+
+
+    function doKeyDownListener(event) {
+        if ( event.keyCode == 17 ) {
+
+            call_multiple_times(newPolygonizer, update_mc);
+        }
+        else
+            console.log(event.keyCode);
+    }
+    window.addEventListener( "keydown", doKeyDownListener, false );  // keydown  keypress
+
+    var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+    cameraControls.target.set( 0, 0, 0 );
+    cameraControls.addEventListener( 'change', function () {;} );
+
+}
+
+function update_mc(newPolygonizer, delta_t){
+
+
+    var UPDATE_SAME_GEOM_OBJECT = false;
+    var EVEN_REUSE_MESH_OBJECT = false;
+    if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
+        console.error("Wrong condition.");
+
+    var p1 = [mesh_solid.position, mesh_solid.rotation];
+    if(SHOW_WIREFRAME){
+        var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
+    }
+
+    var reused_last_geom = mesh_solid.geometry;
+
+    if(!EVEN_REUSE_MESH_OBJECT){
+        scene.remove(mesh_solid);
+        if(SHOW_WIREFRAME){
+            scene.remove(mesh_wireframe);
+        }
+    }
+    if(!UPDATE_SAME_GEOM_OBJECT){
+        mesh_solid.geometry.dispose();
+
+    }
+
+
+    if(!EVEN_REUSE_MESH_OBJECT){
+        mesh_solid = null;
+        mesh_wireframe = null;
+    }
+
+    if(delta_t === undefined)
+        delta_t = 0.2;
+
+    global_time += delta_t;
+
+    var geometry = null;
+    if(UPDATE_SAME_GEOM_OBJECT) {
+        geometry = reused_last_geom;
+        update_reused_geometry(newPolygonizer, global_time, geometry);
+    }
+    else {
+        if(CALL_VERSION==1){
+            geometry = make_geometry_oldold(global_time);
+        }
+        else{
+
+            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
+        }
+    };
+
+
+    if(!EVEN_REUSE_MESH_OBJECT){
+        if(SHOW_WIREFRAME){
+            mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+
+            mesh_wireframe.scale.set( 300, 300, 300 );
+
+            mesh_wireframe.position.copy(p2[0]);
+            mesh_wireframe.rotation.copy(p2[1]);
+            scene.add( mesh_wireframe );
+        }
+
+
+        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+
+        mesh_solid.scale.set( 300, 300, 300 );
+        mesh_solid.position.copy(p1[0]);
+        mesh_solid.rotation.copy(p1[1]);
+        scene.add( mesh_solid );
+    }
+}
+
+function generateTexture() {
+    var canvas = document.createElement( 'canvas' );
+
+    canvas.width = 256;
+    canvas.height = 256;
+    var context = canvas.getContext( '2d' );
+    var image = context.getImageData( 0, 0, 256, 256 );
+    var x = 0, y = 0;
+    for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
+        x = j % 256;
+        y = x == 0 ? y + 1 : y;
+        image.data[ i ] = 255;
+        image.data[ i + 1 ] = 255;
+        image.data[ i + 2 ] = 255;
+        image.data[ i + 3 ] = Math.floor( x ^ y );
+    }
+    context.putImageData( image, 0, 0 );
+    return canvas;
+}
+
+function look_nice(scene){
+    var materials = [];
+    // Grid
+    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } ),
+        geometry = new THREE.Geometry(),
+        floor = -75, step = 25;
+    for ( var i = 0; i <= 40; i ++ ) {
+        geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+        geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+    }
+    var grid_lines = new THREE.LineSegments( geometry, line_material );
+    scene.add( grid_lines );
+
+    // Materials
+    var texture = new THREE.Texture( generateTexture() );
+    texture.needsUpdate = true;
+    materials.push( new THREE.MeshLambertMaterial( { map: texture, transparent: true } ) );
+    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.FlatShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.FlatShading } ) );
+    materials.push( new THREE.MeshNormalMaterial( ) );
+    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
+
+    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
+    materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading,
+
+    } ));
+    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
+    materials.push( new THREE.MeshDepthMaterial() );
+    materials.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000, shading: THREE.SmoothShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, shading: THREE.SmoothShading, opacity: 0.9, transparent: true } ) );
+    materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
+    return materials;
+}
+
+
+var time_queue = [];
+var time_queue__last_timeout = 0;
+function report_time(time_msec, callback){
+    time_queue.push(time_msec);
+    if(time_queue__last_timeout){
+        clearTimeout(time_queue__last_timeout);
+        time_queue__last_timeout = 0;
+    }
+    time_queue__last_timeout = setTimeout(function(){
+        console.log("Time: (msec)");
+        console.log(time_queue);
+        if(callback)
+            callback();
+        time_queue__last_timeout =0;
+    }, 1000);
+}
+function animate() {
+
+    requestAnimationFrame( animate );
+
+
+    var SPEED = 3. / 100;
+    if(mesh_wireframe){
+        mesh_wireframe.rotation.x += 0.01*SPEED;
+        mesh_wireframe.rotation.y += 0.02*SPEED;
+        mesh_solid.rotation.x += 0.01*SPEED;
+        mesh_solid.rotation.y += 0.02*SPEED;
+    }
+
+    mesh2_tiny_box_wireframe	.rotation.z += 0.01*SPEED;
+    mesh2_tiny_box_wireframe	.rotation.y += 0.02*SPEED;
+
+    renderer.render( scene, camera );
+
+}
+
+var scene, camera, renderer;
+var geometry;
+
+window.setTimeout(function()
+{
+    var newPolygonizer = init_polygonizer();
+    init_scene(newPolygonizer);
+    animate();
+}, 3000);
+
+</script>
+
+<script type="text/javascript">
+if(0){
+//worker example
+if (window.Worker) {
+    var myWorker = new Worker("wwexample1.js");
+    myWorker.postMessage({a:3, b:6});
+    myWorker.postMessage({a:8, b:9});
+    myWorker.onmessage = function(e) {
+        console.log('I received this from worker');
+        //console.log(e);
+        console.log(e.data);
+
+        /*
+    bubbles    : false
+    cancelBubble    : false
+    cancelable    : false
+    currentTarget    : Worker
+    data    : Object
+    defaultPrevented    : false
+    eventPhase    : 0
+    isTrusted    : true
+    isTrusted    : true
+    lastEventId    : ""
+    origin    : ""
+    path    : Array[0]
+    ports    : Array[0]
+    returnValue    : true
+    source    : null
+    srcElement    : Worker
+    target    : Worker
+    timeStamp    : 1555.6200000000001
+    type    : "message"
+
+        */
+
+    }
+}
+else{
+    console.warning("Your browser does not support WebWorkers. See http://stackoverflow.com/questions/4739916/what-browsers-currently-support-web-workers ");
+}
+}
+</script>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+var ggraph = 0;
+function show_hist(data_array){
+    if(ggraph==0){
+        add_graph_div();
+        google.charts.load("current", {packages:["corechart"]});
+    }
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable(data_array);
+        var options = {
+            title: 'Time ( Milliseconds )',
+            legend: { position: 'none' },
+            colors: ['#e7711c'],
+            histogram: {
+                bucketSize: 1,
+
+            },
+
+            hAxis: {
+
+              ticks: (Array.from(Array(30*1.).keys())).map(function(x){return x/1.;}, Number),
+            },
+
+        };
+
+        var div_element = document.getElementById('chart_div');
+        console.log(div_element);
+        var chart = new google.visualization.Histogram(div_element);
+        chart.draw(data, options);
+    }
+    ggraph++;
+}
+
+var global_histogram_accumulator = [];
+function hist_delayed() {
+    var a = time_queue;
+
+    if(global_histogram_accumulator.length==0){
+        global_histogram_accumulator.push(["Time"]);
+    }
+    var UPPER_BOUND = 12;
+    for(var i=0;i<a.length;i++){
+        if(a[i]<=UPPER_BOUND)
+            global_histogram_accumulator.push([a[i]*1.]); //The precision of the timing is 1 msec :-(
+    }
+    show_hist(global_histogram_accumulator);
+}
+
+function hist(){
+}
+
+function add_graph_div(){
+
+}
+
+</script>
