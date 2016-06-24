@@ -194,6 +194,7 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
             faces = copy_Uint32Array(faces, prealloc_size);
             verts = copy_Float32Array(verts, prealloc_size);
             */
+            console.log("Aloocating separate space for verts,faces.");
             faces = copy_Uint32Array_preallocated(faces, 30000*3);
             verts = copy_Float32Array_preallocated(verts, 30000*3);
         }
@@ -207,9 +208,12 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
                 console.error(j);
         //my_assert(this.index.array === faces);
 
-        //if(re_allocate){
-        var normals = copy_Float32Array_preallocated(verts, 30000*3);
-        var colors = copy_Float32Array_preallocated(verts, 30000*3);
+        if(re_allocate){
+            console.log("Aloocating separate space for norms, colors.");
+            var normals = copy_Float32Array_preallocated(verts, 30000*3);
+            var colors = copy_Float32Array_preallocated(verts, 30000*3);
+        }
+
         this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
         this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
 
@@ -217,7 +221,7 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
         var mesh_core = make_geometry_core(verts, faces);
         //var mesh_core = make_geometry_core_slower(verts, faces);
 
-        if(1){
+        if(0){
             var materialIndex = 0;
             this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
         }

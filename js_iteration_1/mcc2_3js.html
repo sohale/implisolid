@@ -430,10 +430,10 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     return geom;
 }
 
-function my_assert(cond, text){if(!cond)console.error("ASSERT FAILED: "); if(text) console.log(text);}
+function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
 //unload
-function update_reused_geometry(newPolygonizer, subjective_time, geom) {
+function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
     var startTime = new Date();
 
     //console.log(newPolygonizer.needsFinish);
@@ -488,15 +488,48 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
         geometry.index.array[ i ] = faces[i];
     }
     */
-    geometry.attributes.position.array.set(verts);
-    geometry.index.array.set(faces);
+    /*
+        var geometryAttributes = geometry.attributes;
+        var geometryAttribute = geometryAttributes[ name ];
+        geometryAttribute instanceof THREE.InterleavedBufferAttribute
+        if ( geometryAttribute instanceof THREE.InterleavedBufferAttribute ) {
+
+        var data = geometryAttribute.data;
+        if ( data instanceof THREE.InstancedInterleavedBuffer ) {
+    */
+    if(0){
+        name = 'position';
+        var geometryAttributes = geometry.attributes;
+        var geometryAttribute = geometryAttributes[ name ];
+        var a_IL = geometryAttribute instanceof THREE.InterleavedBufferAttribute
+        if(a_IL){
+            var data = geometryAttribute.data;
+            var i_IL = data instanceof THREE.InstancedInterleavedBuffer;
+            console.log( a_IL + " " + i_IL );
+        }
+        else{
+            var instanced = geometryAttribute instanceof THREE.InstancedBufferAttribute;
+            console.log( a_IL + " not interleaved " + instanced );  //false, false
+        }
+    }
+    if(1){
+        // *************************************
+        // * The following code works only when we use a single instance of the geometry, i.e. used in one Mesh.
+        // * It will not work well if the same BufferGeometry is used in more than one Mesh
+        // * So the object will look fine if we disable the wireframe mesh.
+        // *************************************
+        geometry.attributes.position.array.set(verts);
+        geometry.index.array.set(faces);
+    }
 
     geometry.setDrawRange( 0, nf3 );
-    geometry.clearGroups();
-    geometry.addGroup( 0, faces.length, 0 );
+    /*geometry.clearGroups();
+    geometry.addGroup( 0, nf3, 0 );
+    */
 
     geometry.attributes.position.needsUpdate = true;
     geometry.index.needsUpdate = true;
+
     //geometry.index.array[i] === faces[i]
 
 
@@ -505,10 +538,16 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     //geometry.computeFaceNormals();
     //geometry.computeBoundingSphere();
 
+    if(0){
     for(var j=0;j<faces.length;j++)
-        if(geometry.index.array[j] !== faces[j])
-            console.error(j);
-
+        if(!(geometry.index.array[j] === faces[j])){
+            console.error(j);break;
+        }
+    for(var j=0;j<verts.length;j++){
+        if(!(geometry.attributes.position.array[j] === verts[j]))
+            console.error(j);break;
+    }
+    }
     var endTime = new Date();
     var timeDiff = endTime - startTime;
     //console.log(nv3 + " , " + nf3);
@@ -523,7 +562,9 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
 var mesh_solid;
 var mesh2_tiny_box_wireframe;
 var materials_list, material_f;
-var material_wireframe, mesh_wireframe = null;
+var material_wireframe;
+var mesh_wireframe = null;
+//var last_geometry = null;
 const CHOSEN_MATERIAL_INDEX = 7; //3;
     //1: grayscale boring phong.
     //2: faceted. (good for debug / shape study)
@@ -536,7 +577,9 @@ const CHOSEN_MATERIAL_INDEX = 7; //3;
     //10: changing peach
     //11: changing cyan
 var chosen_matrial;
-const SHOW_WIREFRAME = true;
+
+const SHOW_WIREFRAME = false;
+const SHOW_SOLID = true;
 
 function init_scene(newPolygonizer) {
 
@@ -563,6 +606,7 @@ function init_scene(newPolygonizer) {
     global_time += delta_t;
 
 
+    var geometry = null;
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
     if(CALL_VERSION==1){
         geometry = make_geometry_oldold(global_time);
@@ -571,6 +615,7 @@ function init_scene(newPolygonizer) {
         geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
         //geometry = make_geometry_old1(newPolygonizer, global_time, null);
     }
+    //last_geometry = geometry;
 
     if(SHOW_WIREFRAME){
 
@@ -590,12 +635,14 @@ function init_scene(newPolygonizer) {
 
     material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
 
-    //mesh_solid = new THREE.Mesh( geometry, material_f );
-    //nice ones: 2, 3,  (checked until 4)
-    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-    mesh_solid.position.set( 0, 0, 0 );
-    mesh_solid.scale.set( 300, 300, 300 );
-    scene.add( mesh_solid );
+    if(SHOW_SOLID){
+        //mesh_solid = new THREE.Mesh( geometry, material_f );
+        //nice ones: 2, 3,  (checked until 4)
+        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        mesh_solid.position.set( 0, 0, 0 );
+        mesh_solid.scale.set( 300, 300, 300 );
+        scene.add( mesh_solid );
+    }
 
 
     var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
@@ -655,32 +702,51 @@ function update_mc(newPolygonizer, delta_t){
     //  (true, false)  // Keeps geometry object instance
     //  (true, true)   // Keeps mesh instance (as well as geometry)
 
-    var UPDATE_SAME_GEOM_OBJECT = false;  //Will not even call the constructor
-    var EVEN_REUSE_MESH_OBJECT = false;
+    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = true;
     if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
         console.error("Wrong condition.");
 
-    var p1 = [mesh_solid.position, mesh_solid.rotation];
+    if(SHOW_SOLID){
+        var p1 = [mesh_solid.position, mesh_solid.rotation];
+    }
     if(SHOW_WIREFRAME){
         var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
     }
 
-    var reused_last_geom = mesh_solid.geometry;
+    // g   i.e.  actual_current_active_geom
+    var g = null;
+    if(SHOW_SOLID){
+        g = mesh_solid.geometry;
+    }
+    if(SHOW_WIREFRAME){
+        g = mesh_wireframe.geometry;
+    }
+    my_assert(g, "SHOW_SOLID  and  SHOW_WIREFRAME cannot be both false.");
+
 
     if(!EVEN_REUSE_MESH_OBJECT){
-        scene.remove(mesh_solid);
+        if(SHOW_SOLID){
+            scene.remove(mesh_solid);
+        }
         if(SHOW_WIREFRAME){
             scene.remove(mesh_wireframe);
         }
     }
 
+    var reused_last_geom = g;
+
     //Not sure about the condision
     if(!UPDATE_SAME_GEOM_OBJECT){
-        mesh_solid.geometry.dispose();
+        if(SHOW_SOLID){
+            g.dispose();
+            g = null;
+            // reused_last_geom is not null and will remain. It is not recommended to use reused_last_geom.
+        }
         //mesh_wireframe.geometry.dispose(); // Don't do it twice!
     }
 
-    // var reused_last_geom = mesh_solid.geometry;
+    // var reused_last_geom = g;
     if(!EVEN_REUSE_MESH_OBJECT){
         mesh_solid = null;
         mesh_wireframe = null;
@@ -693,7 +759,7 @@ function update_mc(newPolygonizer, delta_t){
 
     var geometry = null;
     if(UPDATE_SAME_GEOM_OBJECT) {
-        geometry = reused_last_geom;
+        geometry = g;
         update_reused_geometry(newPolygonizer, global_time, geometry);
     }
     else {
@@ -742,13 +808,14 @@ function update_mc(newPolygonizer, delta_t){
 
         mesh_solid = new THREE.Mesh( geometry, material1 );
         */
-
-        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-        //   //mesh_solid.position.set( 0, 0, 0 );
-        mesh_solid.scale.set( 300, 300, 300 );
-        mesh_solid.position.copy(p1[0]);
-        mesh_solid.rotation.copy(p1[1]);
-        scene.add( mesh_solid );
+        if(SHOW_SOLID){
+            mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+            //   //mesh_solid.position.set( 0, 0, 0 );
+            mesh_solid.scale.set( 300, 300, 300 );
+            mesh_solid.position.copy(p1[0]);
+            mesh_solid.rotation.copy(p1[1]);
+            scene.add( mesh_solid );
+        }
     }
 }
 
@@ -779,16 +846,16 @@ function generateTexture() {
 function look_nice(scene){
     var materials = [];
     // Grid
-    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } ),
-        geometry = new THREE.Geometry(),
-        floor = -75, step = 25;
+    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } );
+    var _geometry = new THREE.Geometry();
+    var floor = -75, step = 25;
     for ( var i = 0; i <= 40; i ++ ) {
-        geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
-        geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
-        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
-        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+        _geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+        _geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+        _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+        _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
     }
-    var grid_lines = new THREE.LineSegments( geometry, line_material );
+    var grid_lines = new THREE.LineSegments( _geometry, line_material );
     scene.add( grid_lines );
 
     // Materials
@@ -840,6 +907,8 @@ function animate() {
     if(mesh_wireframe){
         mesh_wireframe.rotation.x += 0.01*SPEED;
         mesh_wireframe.rotation.y += 0.02*SPEED;
+    }
+    if(mesh_solid){
         mesh_solid.rotation.x += 0.01*SPEED;
         mesh_solid.rotation.y += 0.02*SPEED;
     }
@@ -858,7 +927,7 @@ function animate() {
 }
 
 var scene, camera, renderer;
-var geometry;
+//var geometry;
 
 //var newPolygonizer; //no longer global. Hopefully does not affect the performance.
 window.setTimeout(
