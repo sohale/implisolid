@@ -1,4 +1,5 @@
-
+#include "../js_iteration_2/unit_sphere.hpp"
+#include "../js_iteration_2/primitives.cpp"
 #include <iostream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -49,19 +50,31 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 }
 
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized){
-  bool normalise = true;
-  if (object_name == "sphere"){
-    gradient_sphere(centroids,centroid_normals_normalized);
-  }
-  else if (object_name == "modified_sphere"){
-    gradient_modified_sphere(centroids,centroid_normals_normalized);
-  }
-  else if (object_name == "glass"){
-    gradient_glass(centroids,centroid_normals_normalized);
-  }
-  else{
-    cout << "error" << endl;
-  }
+
+//*********  old version  with hardcoded functions for each object*************//
+
+  // bool normalise = true;
+  // if (object_name == "sphere"){
+  //   gradient_sphere(centroids,centroid_normals_normalized);
+  // }
+  // else if (object_name == "modified_sphere"){
+  //   gradient_modified_sphere(centroids,centroid_normals_normalized);
+  // }
+  // else if (object_name == "glass"){
+  //   gradient_glass(centroids,centroid_normals_normalized);
+  // }
+  // else{
+  //   cout << "error" << endl;
+  // }
+
+//********* new version : each shape is an object of a class that implments implicite_function.hpp and has two methods : eval_implicit and eval_gradient*******//
+
+if (object_name == "sphere"){
+  unit_sphere sphere(2.0);
+  sphere.eval_gradient(centroids,centroid_normals_normalized);
+}
+
+//*********check the code above for correctness ****************//
   if(normalise){
     for(int centroid = 0; centroid < centroid_normals_normalized.shape()[0]; centroid++){
       REAL norm = sqrt(pow(centroid_normals_normalized[centroid][0],2)+pow(centroid_normals_normalized[centroid][1],2)+pow(centroid_normals_normalized[centroid][2],2));
