@@ -160,13 +160,18 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
             return new Uint16Array(src);
         }
 
-        function copy_Float32Array_preallocated(src, prealloc_size)  {
+        function copy_Float32Array_preallocated(src, prealloc_size, randomize)  {
             checktype(src, Float32Array);
             var TYPE_SIZE = 4;
             var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
             var dst = new ArrayBuffer(len_bytes);
             var r = new Float32Array(dst);
             r.set(new Float32Array(src));
+            if(randomize){
+                for(var i=src.byteLength/TYPE_SIZE;i<r.length;i++){
+                    r[i] = (Math.random()-0.5);
+                }
+            }
             return r;
         }
         function copy_Uint32Array_preallocated(src, prealloc_size)  {
@@ -204,18 +209,22 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
         this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
         this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
         for(var j=0;j<faces.length;j++)
-            if(this.index.array[j] !== faces[j])
-                console.error(j);
+            if(this.index.array[j] !== faces[j]){
+                console.error(j);break;
+            }
         //my_assert(this.index.array === faces);
 
         if(re_allocate){
             console.log("Aloocating separate space for norms, colors.");
-            var normals = copy_Float32Array_preallocated(verts, 30000*3);
-            var colors = copy_Float32Array_preallocated(verts, 30000*3);
+            var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
+            var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
+            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
+
         }
 
         this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
         this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
+        //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
     }else{
         var mesh_core = make_geometry_core(verts, faces);

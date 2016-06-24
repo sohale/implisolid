@@ -561,7 +561,7 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
 // global variables for meshes that are accessed and updated in the render loop, etc.
 var mesh_solid;
 var mesh2_tiny_box_wireframe;
-var materials_list, material_f;
+var materials_list; //, material_f;
 var material_wireframe;
 var mesh_wireframe = null;
 //var last_geometry = null;
@@ -618,22 +618,16 @@ function init_scene(newPolygonizer) {
     //last_geometry = geometry;
 
     if(SHOW_WIREFRAME){
-
         mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
         mesh_wireframe.position.set( 0, 0, 0 );
-        //mesh_wireframe.scale.set( 10*10, 10*10, 10*10 );
         mesh_wireframe.scale.set( 300, 300, 300 );
-
-        //mesh_wireframe.position.z = +0;
-        //mesh_wireframe.rotation.y = -Math.PI * .5;
-
         scene.add( mesh_wireframe );
     }
 
     //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
 
 
-    material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
+    //material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
 
     if(SHOW_SOLID){
         //mesh_solid = new THREE.Mesh( geometry, material_f );
@@ -792,7 +786,6 @@ function update_mc(newPolygonizer, delta_t){
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_WIREFRAME){
             mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-            //mesh_wireframe.position.set( 0, 0, 0 );
             mesh_wireframe.scale.set( 300, 300, 300 );
             //copy so that we dont lose the rotation, position of the meshes.
             mesh_wireframe.position.copy(p2[0]);
