@@ -15,7 +15,7 @@ const bool REPORT_STATS = false;
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
 typedef float REAL;
 
-typedef  boost::multi_array<REAL, 1>  array1d;
+typedef boost::multi_array<REAL, 1>  array1d;
 
 typedef boost::array<array1d::index, 1>  array_shape_t;
 
@@ -35,7 +35,7 @@ array_shape_t make_shape_1d(int size) {
 }
 
 
-REAL lerp(REAL a, REAL b, REAL t ) {
+REAL linear_interpolation(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
 }
 
@@ -189,20 +189,6 @@ void MarchingCubes::init( dim_t resolution ) {
         assert(this->size3 < 10000000);
         assert(this->size3 > 0);
 
-        if(ENABLE_NORMALS){
-
-            array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
-
-            this->normal_cache = array1d( normals_shape );
-
-            std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );
-        }
-
-        if(false){
-            this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
-            if(ENABLE_NORMALS)
-                this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
-        }
 
 
         this->queue_counter = 0;
@@ -215,9 +201,7 @@ void MarchingCubes::init( dim_t resolution ) {
         auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
 
         this->positionQueue = array1d(shape_maxCount_x_3);
-        if(ENABLE_NORMALS){
-            this->normalQueue   = array1d(shape_maxCount_x_3);
-        }
+
         auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
         this->e3Queue = array1d_e3(shape_maxCount_x_1);
 
@@ -281,13 +265,6 @@ inline void MarchingCubes:: VIntX(
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
-    if(ENABLE_NORMALS){
-
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q + 3 ], mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q + 4 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q + 5 ], mu );
-    }
-
     index3_t e3x = ijk*3;
 
     e3out[offset/3] = e3x;
@@ -306,14 +283,6 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
     pout[ offset + 1 ] = y + mu * this->delta;
     pout[ offset + 2 ] = z;
 
-    if(ENABLE_NORMALS){
-        index_t q2 = q + this->yd * 3;
-
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
-    }
-
     index3_t e3x = ijk*3+1;
 
     e3out[offset/3] = e3x;
@@ -331,23 +300,12 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z + mu * this->delta;
 
-    if(ENABLE_NORMALS){
-        index_t q2 = q + this->zd * 3;
-
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
-    }
-
     index3_t e3x = ijk*3+2;
     e3out[offset/3] = e3x;
 }
 
 inline void MarchingCubes::compNorm( index_t q ) {
-        if(!ENABLE_NORMALS){
-            std::cout << "Error in the normals";
-            return;
-        }
+
         index_t q3 = q * 3;
 
         if ( this->normal_cache[ q3 ] == 0.0 ) {
@@ -417,37 +375,21 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     // top of the cube
 
     if ( bits & 1 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qx );
-        }
         this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1,  ijk_0, this->e3list_buffer);
 
     }
 
     if ( bits & 2 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qx );
-            this->compNorm( qxy );
-        }
         this->VIntY( qx * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3,  ijk_x, this->e3list_buffer);
 
     }
 
     if ( bits & 4 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qy );
-            this->compNorm( qxy );
-        }
         this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3,  ijk_y , this->e3list_buffer);
 
     }
 
     if ( bits & 8 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qy );
-        }
         this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2,  ijk_0, this->e3list_buffer);
 
     }
@@ -455,37 +397,21 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     // bottom of the cube
 
     if ( bits & 16 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qz );
-            this->compNorm( qxz );
-        }
         this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5,  ijk_z, this->e3list_buffer);
 
     }
 
     if ( bits & 32 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qxz );
-            this->compNorm( qxyz );
-        }
         this->VIntY( qxz * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7,  ijk_xz, this->e3list_buffer );
 
     }
 
     if ( bits & 64 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qyz );
-            this->compNorm( qxyz );
-        }
         this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7,  ijk_yz, this->e3list_buffer );
 
     }
 
     if ( bits & 128 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qz );
-            this->compNorm( qyz );
-        }
         this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6,  ijk_z, this->e3list_buffer );
 
     }
@@ -493,37 +419,21 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     // vertical lines of the cube
 
     if ( bits & 256 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qz );
-        }
         this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4,  ijk_0, this->e3list_buffer);
 
     }
 
     if ( bits & 512 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qx );
-            this->compNorm( qxz );
-        }
         this->VIntZ( qx * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5,  ijk_x, this->e3list_buffer );
 
     }
 
     if ( bits & 1024 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qxy );
-            this->compNorm( qxyz );
-        }
         this->VIntZ( qxy * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7,  ijk_xy, this->e3list_buffer);
 
     }
 
     if ( bits & 2048 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qy );
-            this->compNorm( qyz );
-        }
         this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6,  ijk_y, this->e3list_buffer );
 
     }
@@ -582,21 +492,6 @@ void MarchingCubes::posnormtriv(
     this->e3Queue[ c_div_3 + 1 ] = e3__e3list[ o2/3 ];
     this->e3Queue[ c_div_3 + 2 ] = e3__e3list[ o3/3 ];
 
-
-    if(ENABLE_NORMALS){
-        // normals
-        this->normalQueue[ c ]     = norm__nlist[ o1 ];
-        this->normalQueue[ c + 1 ] = norm__nlist[ o1 + 1 ];
-        this->normalQueue[ c + 2 ] = norm__nlist[ o1 + 2 ];
-
-        this->normalQueue[ c + 3 ] = norm__nlist[ o2 ];
-        this->normalQueue[ c + 4 ] = norm__nlist[ o2 + 1 ];
-        this->normalQueue[ c + 5 ] = norm__nlist[ o2 + 2 ];
-
-        this->normalQueue[ c + 6 ] = norm__nlist[ o3 ];
-        this->normalQueue[ c + 7 ] = norm__nlist[ o3 + 1 ];
-        this->normalQueue[ c + 8 ] = norm__nlist[ o3 + 2 ];
-    }
     // uvs
 
     if ( this->enableUvs ) {
@@ -832,9 +727,6 @@ void MarchingCubes::reset()
 {
     // wipe the normal cache
     for (int i = 0; i < this->size3; i++ ) {
-        if(ENABLE_NORMALS){
-            this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
-        }
         this->field[ i ] = 0.0;
     }
 }
@@ -1207,12 +1099,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         y = this->positionQueue[ b ];
         z = this->positionQueue[ c ];
 
-        if(!VERTS_FROM_MAP){
-            verts3.push_back(x);
-            verts3.push_back(y);
-            verts3.push_back(z);
-        }
-
         if(VERTS_FROM_MAP)
         {
 
@@ -1246,19 +1132,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
         }
 
-        if(ENABLE_NORMALS){
-            x = this->normalQueue[ a ];
-            y = this->normalQueue[ b ];
-            z = this->normalQueue[ c ];
-
-            REAL nd = sqrt((x*x)+(y*y)+(z*z));
-            if(fabs(nd)<0.000001)
-                nd = 0.0001;
-            normals.push_back( (REAL)(x / nd) );
-            normals.push_back( (REAL)(y / nd) );
-            normals.push_back( (REAL)(z / nd) );
-        }
-
 
     }
 
@@ -1270,19 +1143,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         int a = ( normals_start + face_i ) * 3;
         int b = a + 1;
         int c = a + 2;
-
-        if(ENABLE_NORMALS){
-
-            REAL na = normals[ a ];
-            REAL nb = normals[ b ];
-            REAL nc = normals[ c ];
-        }
-
-        if(!VERTS_FROM_MAP){
-            faces3.push_back(a);
-            faces3.push_back(b);
-            faces3.push_back(c);
-        }
 
     }
 
