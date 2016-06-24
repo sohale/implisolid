@@ -26,7 +26,13 @@ typedef boost::multi_array<index3_t, 1>   array1d_e3;
 typedef std::map<index3_t,int>  e3map_t;
 
 
-struct callback_t { void call (void*) const { } callback_t(){} };
+struct callback_t {
+  void call (void*) const {
+  }
+  callback_t(){
+
+  }
+};
 
 
 array_shape_t make_shape_1d(int size) {
@@ -66,12 +72,10 @@ class MarchingCubes{
     int queue_counter = 0;
 
     bool hasPositions = false;
-    bool hasNormals = false;
     bool hasColors = false;
     bool hasUvs = false;
 
     array1d positionQueue;  // size: MaxCount x 3
-    array1d normalQueue;
     array1d_e3 e3Queue;
 
     array1d *colorQueue = 0;
@@ -145,7 +149,6 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
         e3list_buffer(array1d_e3(  make_shape_1d(temp_buffer_size)   )),
 
         positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 + EXCESS))),
-        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 * (ENABLE_NORMALS?1:0) + EXCESS))),
         e3Queue(array1d_e3(make_shape_1d(MarchingCubes::queueSize )))
 
 {
@@ -194,7 +197,6 @@ void MarchingCubes::init( dim_t resolution ) {
         this->queue_counter = 0;
 
         this->hasPositions = false;
-        this->hasNormals = false;
         this->hasColors = false;
         this->hasUvs = false;
 
@@ -527,7 +529,6 @@ void MarchingCubes::posnormtriv(
 
     if ( this->queue_counter >= this->queueSize - 3 ) {  //why equal?
         this->hasPositions = true;
-        this->hasNormals = ENABLE_NORMALS;
         if ( this->enableUvs ) {
             this->hasUvs = true;
         }
@@ -548,7 +549,6 @@ void MarchingCubes::begin_queue() {
     this->queue_counter = 0;
 
     this->hasPositions = false;
-    this->hasNormals = false;
     this->hasUvs = false;
     this->hasColors = false;
 }
@@ -562,7 +562,6 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
     std::fill(this->positionQueue.begin() + (this->queue_counter * 3), this->positionQueue.end(), 0.0 );
 
     this->hasPositions = true;
-    this->hasNormals = ENABLE_NORMALS;
 
     if ( this->enableUvs ) {
         this->hasUvs = true;
