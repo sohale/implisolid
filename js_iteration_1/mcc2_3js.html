@@ -2,9 +2,7 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<!-- Memory profiler code by "jj":
-from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4
--->
+
 
 <body>
 <canvas id="my_canvas"></canvas>
@@ -434,6 +432,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
 function my_assert(cond, text){if(!cond)console.error("ASSERT FAILED: "); if(text) console.log(text);}
 
+//unload
 function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     var startTime = new Date();
 
@@ -493,11 +492,14 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     geometry.index.array.set(faces);
 
     geometry.setDrawRange( 0, nf3 );
+    geometry.clearGroups();
+    geometry.addGroup( 0, faces.length, 0 );
+
     geometry.attributes.position.needsUpdate = true;
     geometry.index.needsUpdate = true;
     //geometry.index.array[i] === faces[i]
-    geometry.clearGroups();
-    geometry.addGroup( 0, faces.length, 0 );
+
+
     //geometry.setBou
 
     //geometry.computeFaceNormals();
@@ -653,8 +655,8 @@ function update_mc(newPolygonizer, delta_t){
     //  (true, false)  // Keeps geometry object instance
     //  (true, true)   // Keeps mesh instance (as well as geometry)
 
-    var UPDATE_SAME_GEOM_OBJECT = false;  //Will not even call the constructor
-    var EVEN_REUSE_MESH_OBJECT = false;
+    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = true;
     if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
         console.error("Wrong condition.");
 
@@ -701,7 +703,10 @@ function update_mc(newPolygonizer, delta_t){
         else{
             //reused_last_geom = null;
             //geometry = make_geometry_new2(newPolygonizer, global_time, reused_last_geom, false);
-            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
+
+            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+
+            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
         }
     };
     /*
@@ -1001,6 +1006,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     };
 </script>
 
+<!-- Memory profiler code by "jj" from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4 -->
 <script type="text/javascript" src="./lib/memoryprofiler.js"></script>
 <script>
         //function letmeknow(){console.log("Loading memory profiler");}
