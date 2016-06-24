@@ -171,6 +171,8 @@ public:
     void addPlaneX( REAL strength, REAL subtract );
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
+    void seal_exterior(const REAL exterior_value = -1.);
+
 //field
     void reset(); //???? Nobody calls this.
 
@@ -980,7 +982,74 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     }
 }
 
+void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
+    //const REAL exterior_value = -1.;
+
+    int x, y, z;
+    int cxy;
+
+    // cache attribute lookups
+    int yd = this->yd;
+    int size = this->size;
+    int zd = this->zd;
+    array1d& field = this->field;
+    //REAL dist = size * sqrt(strength / (REAL)subtract);
+
+    for ( x = 0; x < size; x++ ) {
+        for ( y = 0; y < size; y++ ) {
+            cxy = x + y * yd;
+            /*
+            {
+            int z = 0;      field[ zd * z + cxy ] = exterior_value;
+            }{
+            int z = size-1; field[ zd * z + cxy ] = exterior_value;
+            }
+            bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1);
+            if(border){
+                for ( z = 0; z < size; z++ ) {
+                    field[ zd * z + cxy ] = exterior_value;
+                }
+            }
+            */
+            for ( z = 0; z < size; z++ ) {
+                bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1) || (z == 0) || (z == size-1);
+                if(border){
+                    field[ zd * z + cxy ] = exterior_value;
+                }
+                if (z == 4 && x == 2)
+                    field[ zd * z + cxy ] = +2.;
+            }
+        }
+    }
+}
+/*{
+    const REAL val = -1.;
+
+    int x, y, z;
+    int cxy;
+
+    // cache attribute lookups
+    int yd = this->yd;
+    int size = this->size;
+    int zd = this->zd;
+    array1d& field = this->field;
+    REAL dist = size * sqrt(strength / (REAL)subtract);
+
+    if ( dist > size ) dist = size; //????
+    for ( x = 0; x < dist; x++ ) {
+        for ( y = 0; y < size; y++ ) {
+            cxy = x + y * yd;
+            for ( z = 0; z < size; z++ ) {
+                bool border = false;
+                if(x==0) border = true;
+                if(x==0) border = true;
+                field[ zd * z + cxy ] = val;
+            }
+        }
+    }
+}
+*/
 void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL yy;
@@ -1741,7 +1810,8 @@ void build_vf(
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         mc.addBall(ballx, bally, ballz, strength, subtract);
-      }
+    }
+    mc.seal_exterior();
 
     /*
     int numblobs = 4;
@@ -1784,6 +1854,7 @@ public:
     void addPlaneX( REAL strength, REAL subtract ) {};
     void addPlaneZ( REAL strength, REAL subtract ) {};
     void addPlaneY( REAL strength, REAL subtract ) {};
+    void seal_exterior(const REAL exterior_value = -1.) {};
 //field
     void reset() {};
 
@@ -1826,7 +1897,8 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         mc.addBall(ballx, bally, ballz, strength, subtract);
-      }
+    }
+    mc.seal_exterior();
 
     /*
     int numblobs = 4;
@@ -1949,7 +2021,9 @@ void build_geometry(int resolution, REAL time){
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
-      }
+    }
+    _state.mc->seal_exterior();
+
 /*
     int numblobs = 4;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
