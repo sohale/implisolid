@@ -655,8 +655,8 @@ function update_mc(newPolygonizer, delta_t){
     //  (true, false)  // Keeps geometry object instance
     //  (true, true)   // Keeps mesh instance (as well as geometry)
 
-    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
-    var EVEN_REUSE_MESH_OBJECT = true;
+    var UPDATE_SAME_GEOM_OBJECT = false;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = false;
     if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
         console.error("Wrong condition.");
 
