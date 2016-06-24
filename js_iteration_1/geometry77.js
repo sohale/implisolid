@@ -119,24 +119,8 @@ function make_geometry_core_slower( verts, faces) {
     };
 }
 
-/** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
-var
-MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
 
-    THREE.BufferGeometry.call( this );
-    this.type = 'MyBufferGeometry77';
-
-    this.parameters = { };
-
-    const faster = true;
-    if(faster){
-
-        if(1){
-            var materialIndex = 0;
-            this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
-            //console.log("ok2");
-        }
-        function checktype(src, _type){
+       function checktype(src, _type){
             //if(typeof src !== type_name)
             if(!(src instanceof _type))
              {
@@ -168,7 +152,7 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
             var r = new Float32Array(dst);
             r.set(new Float32Array(src));
             if(randomize){
-                for(var i=src.byteLength/TYPE_SIZE;i<r.length;i++){
+                for(var i=0*src.byteLength/TYPE_SIZE;i<r.length;i++){
                     r[i] = (Math.random()-0.5);
                 }
             }
@@ -193,57 +177,176 @@ MyBufferGeometry77 = function ( verts, faces,  re_allocate) {
             return r;
         }
 
-        if(re_allocate){
-            //Float32Array, Uint32Array
-            /*
-            faces = copy_Uint32Array(faces, prealloc_size);
-            verts = copy_Float32Array(verts, prealloc_size);
-            */
-            console.log("Aloocating separate space for verts,faces.");
-            faces = copy_Uint32Array_preallocated(faces, 30000*3);
-            verts = copy_Float32Array_preallocated(verts, 30000*3);
-        }
-        //WRONG! WHEN   re_allocate is false
+/** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
+function MyBufferGeometry77( verts, faces,  re_allocate) {
 
-        // build geometry
-        this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
-        this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
-        for(var j=0;j<faces.length;j++)
-            if(this.index.array[j] !== faces[j]){
-                console.error(j);break;
+    THREE.BufferGeometry.call( this );
+    this.type = 'MyBufferGeometry77';
+
+    this.parameters = { };
+
+    this.initbg = function(){
+        const faster = true;
+        if(faster){
+
+            if(1){
+                var materialIndex = 0;
+                this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
+                //console.log("ok2");
             }
-        //my_assert(this.index.array === faces);
 
-        if(re_allocate){
-            console.log("Aloocating separate space for norms, colors.");
-            var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
-            var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
-            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
+            if(re_allocate){
+                //Float32Array, Uint32Array
+                /*
+                faces = copy_Uint32Array(faces, prealloc_size);
+                verts = copy_Float32Array(verts, prealloc_size);
+                */
+                console.log("Aloocating separate space for verts,faces.");
+                faces = copy_Uint32Array_preallocated(faces, 30000*3);
+                verts = copy_Float32Array_preallocated(verts, 30000*3);
+            }
+            //WRONG! WHEN   re_allocate is false
 
-        }
+            // build geometry
+            this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
+            this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
+            for(var j=0;j<faces.length;j++)
+                if(this.index.array[j] !== faces[j]){
+                    console.error(j);break;
+                }
+            //my_assert(this.index.array === faces);
 
-        this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
-        this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
-        //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
+            if(re_allocate){
+                console.log("Aloocating separate space for norms, colors.");
+                var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
+                var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
+                //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
 
-    }else{
-        var mesh_core = make_geometry_core(verts, faces);
-        //var mesh_core = make_geometry_core_slower(verts, faces);
+            }
 
-        if(0){
-            var materialIndex = 0;
-            this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
-        }
+            this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
+            this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
+            //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
-        // build geometry
-        this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
-        this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
-        if(mesh_core.normals) {
-            this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
-            this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+        }else{
+            var mesh_core = make_geometry_core(verts, faces);
+            //var mesh_core = make_geometry_core_slower(verts, faces);
+
+            if(0){
+                var materialIndex = 0;
+                this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
+            }
+
+            // build geometry
+            this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
+            this.addAttribute( 'position', new THREE.BufferAttribute( mesh_core.vertices, 3 ) );
+            if(mesh_core.normals) {
+                this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
+                this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
+            }
         }
     }
 
+    // ThreeJS does not use prototype-based OOP.
+
+    this.update_geometry = function(newPolygonizer) {
+        var geometry = this;
+        var nverts = newPolygonizer.get_v_size();
+        var nfaces = newPolygonizer.get_f_size();
+        var verts_address = newPolygonizer.get_v_ptr();
+        var faces_address = newPolygonizer.get_f_ptr();
+        var verts = Module.HEAPF32.subarray(
+            verts_address/_FLOAT_SIZE,
+            verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(
+            faces_address/_INT_SIZE,
+            faces_address/_INT_SIZE + 3*nfaces);
+
+        //var g_nverts = geometry.attributes.position.count/3;  // Displayed size
+        //check allocated space
+        var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
+        var g_nfaces = geometry.index.array.length/3;
+
+        //console.log(nverts); console.log(g_nverts);
+        //console.log(nfaces); console.log(g_nfaces);
+
+        //Bug revealed by commenting the following! Changing the geometry broke the C++ code !
+        var nv3 = Math.min(nverts, g_nverts) * 3;
+        var nf3 = Math.min(nfaces, g_nfaces) * 3;
+        //console.log(nv3/3. +" === "+ verts.length/3.)
+        my_assert(nv3 === verts.length);
+        my_assert(nf3 === faces.length);
+        /*
+        for(var i=0;i<nv3;i++){
+            geometry.attributes.position.array[i] = verts[i];  //or use copy
+        }
+        for(var i=0;i<nf3;i++){
+            geometry.index.array[ i ] = faces[i];
+        }
+        */
+        /*
+            var geometryAttributes = geometry.attributes;
+            var geometryAttribute = geometryAttributes[ name ];
+            geometryAttribute instanceof THREE.InterleavedBufferAttribute
+            if ( geometryAttribute instanceof THREE.InterleavedBufferAttribute ) {
+
+            var data = geometryAttribute.data;
+            if ( data instanceof THREE.InstancedInterleavedBuffer ) {
+        */
+        if(0){
+            name = 'position';
+            var geometryAttributes = geometry.attributes;
+            var geometryAttribute = geometryAttributes[ name ];
+            var a_IL = geometryAttribute instanceof THREE.InterleavedBufferAttribute
+            if(a_IL){
+                var data = geometryAttribute.data;
+                var i_IL = data instanceof THREE.InstancedInterleavedBuffer;
+                console.log( a_IL + " " + i_IL );
+            }
+            else{
+                var instanced = geometryAttribute instanceof THREE.InstancedBufferAttribute;
+                console.log( a_IL + " not interleaved " + instanced );  //false, false
+            }
+        }
+        if(1){
+            // *************************************
+            // * The following code works only when we use a single instance of the geometry, i.e. used in one Mesh.
+            // * It will not work well if the same BufferGeometry is used in more than one Mesh
+            // * So the object will look fine if we disable the wireframe mesh.
+            // *************************************
+            geometry.attributes.position.array.set(verts);
+            geometry.index.array.set(faces);
+        }
+
+        geometry.setDrawRange( 0, nf3 );
+        /*geometry.clearGroups();
+        geometry.addGroup( 0, nf3, 0 );
+        */
+
+        geometry.attributes.position.needsUpdate = true;
+        geometry.index.needsUpdate = true;
+
+        //geometry.index.array[i] === faces[i]
+
+
+        //geometry.setBou
+
+        //geometry.computeFaceNormals();
+        //geometry.computeBoundingSphere();
+
+        if(0){
+        for(var j=0;j<faces.length;j++)
+            if(!(geometry.index.array[j] === faces[j])){
+                console.error(j);break;
+            }
+        for(var j=0;j<verts.length;j++){
+            if(!(geometry.attributes.position.array[j] === verts[j]))
+                console.error(j);break;
+        }
+        }
+    };
+
+    this.initbg()
 };
 
 MyBufferGeometry77.prototype = Object.create( THREE.BufferGeometry.prototype );
@@ -276,6 +379,7 @@ function WGeometry77(verts, faces) {
 
 WGeometry77.prototype = Object.create( THREE.Geometry.prototype );
 WGeometry77.prototype.constructor = WGeometry77;
+
 
 /* The following code will not work, but is in progress.
 WGeometry77.prototype.update = function(verts, faces) {
