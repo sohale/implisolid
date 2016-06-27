@@ -11,6 +11,8 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
+using namespace std;
+
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
 
@@ -95,7 +97,7 @@ void finish_queue( const callback_t& renderCallback );
 public:
     index_t size, size2, size3;
     array1d field;
-    
+
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
     ~MarchingCubes();
 
@@ -1288,14 +1290,17 @@ void build_geometry(int resolution, REAL time){
 
     for (int z = min_z; z < max_z; z++ ) {
         for (int y = min_y; y < max_y; y++ ) {
+
             for (int x = min_x; x < max_x; x++ ) {
-                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = x/_state.mc->size;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = y/_state.mc->size;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = z/_state.mc->size;
+                cout << "Patate" << endl;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = (REAL)x/(REAL)_state.mc->size;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = (REAL)y/(REAL)_state.mc->size;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = (REAL)z/(REAL)_state.mc->size;
             }
         }
     }
 
+    cout << "Ligne 1301!" << endl;
     unit_sphere sphere(2.0);
     sphere.eval_implicit(grid, implicit_function);
 
@@ -1306,7 +1311,7 @@ void build_geometry(int resolution, REAL time){
             }
         }
     }
-
+    cout << "Ligne 1312!" << endl;
     _state.mc->seal_exterior();
 
     const callback_t renderCallback;
