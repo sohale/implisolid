@@ -1194,39 +1194,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
 }
 
 
-void build_vf(
-
-    ){
-
-    dim_t resolution = 28;
-    bool enableUvs = true;
-    bool enableColors = true;
-
-
-    MarchingCubes mc(resolution, enableUvs, enableColors);
-
-
-    int numblobs = 4;
-    REAL time = 0.1 ;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77;
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
-    }
-    mc.seal_exterior();
-
-    const callback_t renderCallback;
-    mc.render_geometry(renderCallback);
-
-    if(VERBOSE)
-        std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
-
-}
-
-
 class MarchingCubesMock {
 
 public:
@@ -1301,7 +1268,7 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc -> isolation = 80.0/4;
 
-    int numblobs = 4;
+    int numblobs = 10;
 
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL D = 1;
@@ -1351,7 +1318,6 @@ void get_v(REAL* v_out, int vcount){
     for(std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ){
         for(int di=0; di<3; di++){
             v_out[ctr] = *( it + di );
-
             ctr++;
         }
     }
