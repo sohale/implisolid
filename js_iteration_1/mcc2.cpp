@@ -171,7 +171,7 @@ public:
     void addPlaneX( REAL strength, REAL subtract );
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
-    void seal_exterior(const REAL exterior_value = -1.);
+    void seal_exterior(const REAL exterior_value = -100.);
 
 //field
     void reset(); //???? Nobody calls this.
@@ -1013,15 +1013,28 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
             }
             */
             for ( z = 0; z < size; z++ ) {
-                bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1) || (z == 0) || (z == size-1);
+                //bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1) || (z == 0) || (z == size-1);
+                bool border = (x == 1) || (x == size-1-1) || (y == 1) || (y == size-1-1) || (z == 1) || (z == size-1-1);
                 if(border){
                     field[ zd * z + cxy ] = exterior_value;
                 }
-                if (z == 4 && x == 2)
-                    field[ zd * z + cxy ] = +2.;
+                //if (z == 4 && x == 2)
+                //    field[ zd * z + cxy ] = +2.;
             }
         }
     }
+    /*
+    std::cout << "seal_exterior "
+        << field[0]  << ","
+        << field[yd]  << ","
+        << field[yd+zd]  << ";"
+        << field[zd+yd+1]  << ","
+        << field[zd+yd+2]  << ","
+        << field[zd+yd+3]  << ","
+        << field[zd+yd+4]  << ","
+        << field[ zd * 4 + 2 + (y=3) * yd ]
+        << std::endl;
+    */
 }
 /*{
     const REAL val = -1.;
@@ -1854,7 +1867,7 @@ public:
     void addPlaneX( REAL strength, REAL subtract ) {};
     void addPlaneZ( REAL strength, REAL subtract ) {};
     void addPlaneY( REAL strength, REAL subtract ) {};
-    void seal_exterior(const REAL exterior_value = -1.) {};
+    void seal_exterior(const REAL exterior_value) {};
 //field
     void reset() {};
 
