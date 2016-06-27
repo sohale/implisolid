@@ -1275,12 +1275,12 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 80.0/4;
       // before we had some amazing meatballs! merde a celui qui le lira!
 
-    int min_z = - _state.mc->size2;
-    int max_z = _state.mc->size2;
-    int min_x = - _state.mc->size;
+    int min_x = 0;
     int max_x = _state.mc->size;
-    int min_y = - _state.mc->size;
+    int min_y = 0;
     int max_y = _state.mc->size;
+    int min_z = 0;
+    int max_z = _state.mc->size;
 
     boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
     boost::multi_array<REAL, 2> grid(grid_shape);
@@ -1290,9 +1290,7 @@ void build_geometry(int resolution, REAL time){
 
     for (int z = min_z; z < max_z; z++ ) {
         for (int y = min_y; y < max_y; y++ ) {
-
             for (int x = min_x; x < max_x; x++ ) {
-                cout << "Patate" << endl;
                 grid[x + y*_state.mc->size + z*_state.mc->size2][0] = (REAL)x/(REAL)_state.mc->size;
                 grid[x + y*_state.mc->size + z*_state.mc->size2][1] = (REAL)y/(REAL)_state.mc->size;
                 grid[x + y*_state.mc->size + z*_state.mc->size2][2] = (REAL)z/(REAL)_state.mc->size;
