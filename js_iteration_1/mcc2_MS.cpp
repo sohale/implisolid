@@ -97,7 +97,7 @@ public:
 
     REAL isolation;
 
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
+    void flush_geometry_queue(std::ostream& cout, int& marching_cube_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -1099,7 +1099,7 @@ typedef struct {
 } result_state;
 
 
-void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
+void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_start,
 
   std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
@@ -1150,7 +1150,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
             assert(verts3.size()/3 == next_unique_vect_counter);
 
             faces3.push_back(overall_vert_index);
-            int old_overall_vert_index = vert_i + normals_start*3;
+            int old_overall_vert_index = vert_i + marching_cube_start*3;
         }
 
 
@@ -1162,7 +1162,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
     for ( int face_i = 0; face_i < nfaces; face_i++ ) {
 
-        int a = ( normals_start + face_i ) * 3;
+        int a = ( marching_cube_start + face_i ) * 3;
         int b = a + 1;
         int c = a + 2;
 
@@ -1175,7 +1175,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
     }
 
-    normals_start += nfaces;
+    marching_cube_start += nfaces;
     this->queue_counter = 0;
 
     if(REPORT_STATS){
@@ -1233,7 +1233,7 @@ public:
     MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
     ~MarchingCubesMock() {};
 
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
+    void flush_geometry_queue(std::ostream& cout, int& marching_cube_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};

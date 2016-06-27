@@ -2,25 +2,24 @@
 <head>
 <meta charset="utf-8"/>
 </head>
-<script type="text/javascript" src="./lib/memoryprofiler.js"></script>
-<script>
 
-        Module={preRun:[
-            letmeknow=function (){console.log("Loading memory profiler");},
-            memoryprofiler_add_hooks
-        ]};
 
-</script>
 <body>
 <canvas id="my_canvas"></canvas>
 
-<script type="text/javascript" src="mcc2_MS.cpp.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
+<!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
 
+<!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
+-->
+<!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
+-->
+<!--script type="text/javascript" src="./ww_geometry77.js"></script-->
 <script type="text/javascript" src="./geometry77.js"></script>
 
 <script type="text/javascript" src="./controls/OrbitControls.js"></script>
 
+<!--<body>-->
 Based on MCC1
 
 <br>
@@ -28,15 +27,20 @@ Based on MCC1
 <script>
     'use strict';
 
+    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needsFinish
+    // Exported
 
-    var produce_object;
     var main;
 
-
+    //var newProducer;
     function init_polygonizer()
     {
+        //too late for pre-run
+        //Module.preRun.push(letmeknow,memoryprofiler_add_hooks, letmeknow = function (){console.log("ok");});
+        //Module={preRun:[letmeknow, memoryprofiler_add_hooks]};
 
         main = Module.cwrap('main', 'number', []);
+
 
         var newProducer={};
         newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
@@ -50,50 +54,183 @@ Based on MCC1
 
         newProducer.init = function(){ newProducer.needsFinish = false; }
         newProducer.finish_with = function (){
+            //after the last round.
             if(!newPolygonizer.needsFinish)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
-
+            //todo: try-catch
+            //d(1);
             newPolygonizer.finish_geometry();
             newPolygonizer.needsFinish = false;
         }
 
         newProducer.init();
 
-
+        //console.log("ok");
         return newProducer;
     }
 
 </script>
 <script>
     'use strict';
+    //'use asm';
 
-    var CALL_VERSION = 2;
+    //'use strict';
+
+    //Version 1 has flaws: _free()s before returning the verts.
+    var CALL_VERSION = 2; //1 or 2
     const VERBOSE = false;
 
     var WIREFRAME = false;
 
-    const _FLOAT_SIZE = 4;
-    const _INT_SIZE = 4;
 
+    //const DBLFLOAT_SIZE = 8;
+    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    const _INT_SIZE = 4;
+    //int:4, float: 4, long: 4
 
     var global_time = 0;
 
-var call_multiple_times = function() {
+    /* old style. This leaves memory footprints (memory leak) */
+    function do_vf_old(subjective_time)
+    {
 
+        //var max_verts = 40000;  // *2
+        //var max_faces = 15000;  //*5
+
+        var max_verts = 16000;  // *2
+        var max_faces = 13000;  //*5
+        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
+        var nv_address = Module._malloc(_INT_SIZE*1);
+        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
+        var nf_address = Module._malloc(_INT_SIZE*1);
+        //todo: how to make sure enough space is allocated.
+
+
+        /* ************************* */
+        /*   Call C++                */
+//        produce_object(verts_address, nv_address, faces_address, nf_address, subjective_time);
+        /* ************************* */
+
+        //Module.HEAPF64 is a Float64Array
+        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
+        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+        //what if there is not enough memory?
+
+        //         var result_faces = new Float32Array(dataHeap.buffer, dataHeap.byteOffset, data.length);
+        //verts_address is byteOffset?
+
+        //second attemtps: (still has problems)
+        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
+
+        //Thisrd solution:
+        //http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html
+
+        var h_len = (Module.HEAPF32.length);
+        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
+        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
+        if(h_len <= v_end || h_len <= f_end)
+            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
+        else
+            console.info("Heap size OK.");
+
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
+
+        //console.log("subarray");
+        //console.log(verts.subarray(verts.length-100, verts.length));
+
+        // ****************************
+        // The actual leak was here !
+        // ****************************
+        //freeing resources
+        //also see http://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
+        Module._free(verts_address);
+        Module._free(nv_address);
+        Module._free(faces_address);
+        Module._free(nf_address);
+
+        //BUG! Accessed (returned) after "_Free"ing.
+        // FIXME: FREED before actually copying
+
+        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
+        //console.log(result_verts.subarray(0, 3*2));
+
+        if(VERBOSE){
+            console.log("nverts : "+ nverts);
+            console.log("nfaces : "+ nfaces);
+        }
+
+        return [verts, faces];
+        //return [result_verts, faces];
+    }
+
+//    //third way:
+//    function     vf(){
+//            //function _produce_object($verts,$nv,$faces,$nf,$time){}
+//
+//  // $verts = $verts|0;
+//  // $nv = $nv|0;
+//  // $faces = $faces|0;
+//  // $nf = $nf|0;
+//  // $time = +$time;
+//  //$254 = $verts..
+//  //HEAPF32[$254>>2] = $251;
+//  //
+//    }
+function make_geometry_oldold(subjective_time, re_allocate_buffers)
+{
+
+    var startTime = new Date();
+    //new Date().getTime()
+
+    vf = do_vf_old(subjective_time);
+    v = vf[0];
+    f = vf[1];
+
+
+    //This is not used
+    //return new MyGeometry(v, f);
+    var geom = new MyBufferGeometry77(v, f, re_allocate_buffers);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    //console.log("TIME: "+timeDiff+ " msec.");
+    report_time(timeDiff);
+
+    return geom;
+
+    //This is not used
+}
+
+
+
+'use strict';
+
+/**  Asynchronously does a series of calls to the function  update_mc(). */
+var call_multiple_times = function() {
+    // private:
     var last_active = 0;
     var intervals_counter = 0;
 
     function _call_multiple_times(newPolygonizer, update_mc) {
-
+        /** Asynchronously does a series of calls to the function  update_mc().
+        Previous name: update_mc_mul tiple() */
         var BURST_COUNT = 50;
-        var INTERVAL_MSEC = 8-1;
-        var already_busy_doing_it=0;
+        var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
+            // Works well on too small values (Semaphore).
+            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
+        //var mc_icounter=0;
+        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
         var burst_counter = 0;
 
+        //already_busy_doing_it level1: right now.
+        //already_busy_doing_it: interval (level 2)
 
         intervals_counter++;
-        if(intervals_counter>1)
+        if(intervals_counter>1) //dont start if there is already one running
         {
             intervals_counter--;
             return;
@@ -101,16 +238,24 @@ var call_multiple_times = function() {
         last_active = setInterval (
             function()
             {
-
+                /*
+                var ls="";
+                for (var lft=0;lft<100;lft++){
+                    ls+=" ";
+                }
+                console.log(ls.slice(1));
+                console.log("1msec");
+                return;
+                */
                 if(!last_active)
                     console.error("!last_active");
 
-                burst_counter++;
+                burst_counter++; // mc_icounter
 
                 if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
                 {
 
-                    if(already_busy_doing_it<1)
+                    if(already_busy_doing_it<1) //removable
                     {
                         already_busy_doing_it++;
 
@@ -127,11 +272,11 @@ var call_multiple_times = function() {
                 }
                 else
                 {
-
+                    // The interval has finished its job. Time to go.
                     if(!last_active)
                         console.error("!last_active");
-                    clearInterval(last_active);
-                    intervals_counter--;
+                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
+                    intervals_counter--; // Allow next one in future
                     burst_counter = 0;
                     last_active = 0;
                 }
@@ -142,16 +287,111 @@ var call_multiple_times = function() {
     return _call_multiple_times;
 }();
 
-function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
-{
+/*
+// MyLiveUpdatableGeometry
+LiveGeometry = function () {
+    //material_wireframe = ...;
+    THREE.THREE.ImmediateRenderObject.call( this, material_wireframe );
+    this.setVF = function(verts, faces){
+    }
+};
+LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
+LiveGeometry.prototype.constructor = LiveGeometry;
+*/
 
+
+// Keep this method, although it is not used.
+function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+{
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {
+
+    //console.log(newPolygonizer);
+    //d("2   G..");
+    newPolygonizer.build_geometry( 28, subjective_time);
+
+    var nverts = newPolygonizer.get_v_size();
+    var nfaces = newPolygonizer.get_f_size();
+    if(VERBOSE){
+        console.log(nverts);
+    }
+
+    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
+    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
+
+    newPolygonizer.get_v(verts_address, nverts);
+    newPolygonizer.get_f(faces_address, nfaces);
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    //console.log(verts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    /*
+    if(!reusable_geometry){
+        //var geom = new MyGeometry(verts, faces);
+        //var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
+
+        //best so far:
+        var geom = new WGeometry77(verts, faces);
+
+        //var geom = UpdatableGeometry77(verts, faces);
+    }else{
+        geom = reusable_geometry;
+        reusable_geometry.update(verts, faces);
+    }
+    */
+
+    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
+
+    // Now you can free the resources.
+
+    Module._free(verts_address);
+    Module._free(faces_address);
+
+    //d(1);
+    newPolygonizer.finish_geometry();
+    newPolygonizer.needsFinish = false;
+
+    if(VERBOSE){
+        console.log("nverts : "+ nverts);
+        console.log("nfaces : "+ nfaces);
+    }
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    //console.log("TIME: "+timeDiff);
+    report_time(timeDiff);
+
+    return geom;
+}
+
+/*
+Three ways:
+1-  make_geometry_oldold()
+2-  make_geometry_old1()
+3-  make_geometry_new2()
+*/
+
+function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+{
+    // reusable_geometry is not used;
+    var startTime = new Date();
+
+    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+        //console.log("newPolygonizer.needsFinish " + newPolygonizer.needsFinish);
+        //d(1);
         newPolygonizer.finish_geometry();
         newPolygonizer.needsFinish = false;
     }
+    else{
+        //console.error("Should not get here");
+        //newPolygonizer.finish_geometry();
+        //newPolygonizer.needsFinish = false;
+    }
+    //newPolygonizer.finish_geometry();
 
+    //d("2   G");
+    //28*2 --> 27 sec    28->3.75--7 msec?
     newPolygonizer.build_geometry( 28, subjective_time);
     newPolygonizer.needsFinish = true;
 
@@ -163,10 +403,15 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     var verts_address = newPolygonizer.get_v_ptr();
     var faces_address = newPolygonizer.get_f_ptr();
+    //no need to free anymore!
 
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
+    //verts[2] -= 0.1;
+    //verts[2 + nverts*3-3] += 0.3;
+
+    //var geom = new WGeometry77(verts, faces);
     var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
 
     if(VERBOSE){
@@ -176,19 +421,22 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
-
+    //console.log("Time: "+timeDiff+ " msec.");
 
     report_time(timeDiff, function(){hist();});
 
     return geom;
 }
 
-function my_assert(cond, text){if(!cond)console.error("ASSERT FAILED: "); if(text) console.log(text);}
+function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
-function update_reused_geometry(newPolygonizer, subjective_time, geom) {
+//unload
+function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {
+    //console.log(newPolygonizer.needsFinish);
+    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+        //d(1);
         newPolygonizer.finish_geometry();
         newPolygonizer.needsFinish = false;
     }
@@ -196,6 +444,7 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     if(newPolygonizer.needsFinish)
         console.error("not deallocated.");
     try{
+        //d("2   G.");
         newPolygonizer.build_geometry( 28, subjective_time);
         newPolygonizer.needsFinish = true;
     }catch(err){
@@ -204,106 +453,104 @@ function update_reused_geometry(newPolygonizer, subjective_time, geom) {
     }finally {
     }
 
-    var nverts = newPolygonizer.get_v_size();
-    var nfaces = newPolygonizer.get_f_size();
-    var verts_address = newPolygonizer.get_v_ptr();
-    var faces_address = newPolygonizer.get_f_ptr();
-    var verts = Module.HEAPF32.subarray(
-        verts_address/_FLOAT_SIZE,
-        verts_address/_FLOAT_SIZE + 3*nverts);
-    var faces = Module.HEAPU32.subarray(
-        faces_address/_INT_SIZE,
-        faces_address/_INT_SIZE + 3*nfaces);
-
-    var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
-    var g_nfaces = geometry.index.array.length/3;
-
-
-    var nv3 = Math.min(nverts, g_nverts) * 3;
-    var nf3 = Math.min(nfaces, g_nfaces) * 3;
-
-    my_assert(nv3 === verts.length);
-    my_assert(nf3 === faces.length);
-
-    geometry.attributes.position.array.set(verts);
-    geometry.index.array.set(faces);
-
-    geometry.setDrawRange( 0, nf3 );
-    geometry.attributes.position.needsUpdate = true;
-    geometry.index.needsUpdate = true;
-
-    geometry.clearGroups();
-    geometry.addGroup( 0, faces.length, 0 );
-
-
-    for(var j=0;j<faces.length;j++)
-        if(geometry.index.array[j] !== faces[j])
-            console.error(j);
+    geometry. update_geometry (newPolygonizer);
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
+    //console.log(nv3 + " , " + nf3);
+    //console.log("Time: "+timeDiff+ " msec.");
 
     report_time(timeDiff);
 }
 
 'use strict';
 
+// global variables for meshes that are accessed and updated in the render loop, etc.
 var mesh_solid;
 var mesh2_tiny_box_wireframe;
-var materials_list, material_f;
-var material_wireframe, mesh_wireframe = null;
+var materials_list; //, material_f;
+var material_wireframe;
+var mesh_wireframe = null;
+//var last_geometry = null;
 const CHOSEN_MATERIAL_INDEX = 7; //3;
+    //1: grayscale boring phong.
+    //2: faceted. (good for debug / shape study)
+    //3: colorful
+    //4: semi opaque (good for debug / shape study)
+    //6: striped
+    //7: rainbow
+    //8 is wireframe
+    //9: plain white?
+    //10: changing peach
+    //11: changing cyan
 var chosen_matrial;
-const SHOW_WIREFRAME = true;
+
+const SHOW_WIREFRAME = false;
+const SHOW_SOLID = true;
 
 function init_scene(newPolygonizer) {
 
     scene = new THREE.Scene();
 
-
+    //var WIDTH = 300, HEIGHT = 300;
     var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
     camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
     camera.position.z = 1000;
 
     materials_list = look_nice(scene);
     chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
-
+    //chosen_matrial = new THREE.MeshBasicMaterial( {
+    //    color: 0xaaffff, wireframe: false, opacity:0.5,  transparent: true,
+    //    side:THREE.DoubleSide } );
+    //THREE.FrontSide or THREE.BackSide or  THREE.DoubleSide.
 
     material_wireframe = new THREE.MeshBasicMaterial( {
         color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true,} );
 
+    //if(delta_t === undefined)
     var delta_t = 0.2;
-
+    // Subjective time!
     global_time += delta_t;
 
-    geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
 
-
+    var geometry = null;
+    //geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    if(CALL_VERSION==1){
+        geometry = make_geometry_oldold(global_time);
+    }
+    else{
+        geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+        //geometry = make_geometry_old1(newPolygonizer, global_time, null);
+    }
+    //last_geometry = geometry;
 
     if(SHOW_WIREFRAME){
-
         mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
         mesh_wireframe.position.set( 0, 0, 0 );
-
         mesh_wireframe.scale.set( 300, 300, 300 );
-
-
         scene.add( mesh_wireframe );
     }
 
+    //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
 
-    material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
 
-    mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-    mesh_solid.position.set( 0, 0, 0 );
-    mesh_solid.scale.set( 300, 300, 300 );
-    scene.add( mesh_solid );
+    //material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
+
+    if(SHOW_SOLID){
+        //mesh_solid = new THREE.Mesh( geometry, material_f );
+        //nice ones: 2, 3,  (checked until 4)
+        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        mesh_solid.position.set( 0, 0, 0 );
+        mesh_solid.scale.set( 300, 300, 300 );
+        scene.add( mesh_solid );
+    }
 
 
     var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
     mesh2_tiny_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
     mesh2_tiny_box_wireframe	.position.set( 0, 0, 0 );
     scene.add( mesh2_tiny_box_wireframe	 );
+    //mesh2_tiny_box_wireframe	.scale.set( 10, 10, 10 );
 
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
@@ -316,15 +563,23 @@ function init_scene(newPolygonizer) {
     var render_canvas = document.getElementById( 'my_canvas' );
     console.log(render_canvas);
     renderer = new THREE.WebGLRenderer( { antialias: true, canvas: render_canvas } );
-
+    //renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setSize( WIDTH, HEIGHT );
 
     document.body.appendChild( renderer.domElement );
 
 
+    /*
+      function call_multiple_times() {
+            var mc_icounter=0;
+            setInterval(function(){ if(mc_icounter<10) update_mc(newPolygonizer, 0.2/10.*5); mc_icounter++; }, 30);
+        }
+    */
+
+
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
-
+            //update_mc(newPolygonizer);
             call_multiple_times(newPolygonizer, update_mc);
         }
         else
@@ -332,6 +587,9 @@ function init_scene(newPolygonizer) {
     }
     window.addEventListener( "keydown", doKeyDownListener, false );  // keydown  keypress
 
+
+    // CONTROLS
+    //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
     var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
     cameraControls.target.set( 0, 0, 0 );
     cameraControls.addEventListener( 'change', function () {;} );
@@ -340,31 +598,56 @@ function init_scene(newPolygonizer) {
 
 function update_mc(newPolygonizer, delta_t){
 
+    //Three modes of speed here for (UPDATE_SAME_GEOM_OBJECT, EVEN_REUSE_MESH_OBJECT):
+    //  (false, false) // Creates a new Geometry object at each loop iteration.
+    //  (true, false)  // Keeps geometry object instance
+    //  (true, true)   // Keeps mesh instance (as well as geometry)
 
-    var UPDATE_SAME_GEOM_OBJECT = false;
-    var EVEN_REUSE_MESH_OBJECT = false;
+    var UPDATE_SAME_GEOM_OBJECT = true;  //Will not even call the constructor
+    var EVEN_REUSE_MESH_OBJECT = true;
     if( EVEN_REUSE_MESH_OBJECT && ! UPDATE_SAME_GEOM_OBJECT)
         console.error("Wrong condition.");
 
-    var p1 = [mesh_solid.position, mesh_solid.rotation];
+    if(SHOW_SOLID){
+        var p1 = [mesh_solid.position, mesh_solid.rotation];
+    }
     if(SHOW_WIREFRAME){
         var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
     }
 
-    var reused_last_geom = mesh_solid.geometry;
+    // g   i.e.  actual_current_active_geom
+    var g = null;
+    if(SHOW_SOLID){
+        g = mesh_solid.geometry;
+    }
+    if(SHOW_WIREFRAME){
+        g = mesh_wireframe.geometry;
+    }
+    my_assert(g, "SHOW_SOLID  and  SHOW_WIREFRAME cannot be both false.");
+
 
     if(!EVEN_REUSE_MESH_OBJECT){
-        scene.remove(mesh_solid);
+        if(SHOW_SOLID){
+            scene.remove(mesh_solid);
+        }
         if(SHOW_WIREFRAME){
             scene.remove(mesh_wireframe);
         }
     }
-    if(!UPDATE_SAME_GEOM_OBJECT){
-        mesh_solid.geometry.dispose();
 
+    var reused_last_geom = g;
+
+    //Not sure about the condision
+    if(!UPDATE_SAME_GEOM_OBJECT){
+        if(SHOW_SOLID){
+            g.dispose();
+            g = null;
+            // reused_last_geom is not null and will remain. It is not recommended to use reused_last_geom.
+        }
+        //mesh_wireframe.geometry.dispose(); // Don't do it twice!
     }
 
-
+    // var reused_last_geom = g;
     if(!EVEN_REUSE_MESH_OBJECT){
         mesh_solid = null;
         mesh_wireframe = null;
@@ -372,43 +655,77 @@ function update_mc(newPolygonizer, delta_t){
 
     if(delta_t === undefined)
         delta_t = 0.2;
-
+    // Subjective time!
     global_time += delta_t;
 
     var geometry = null;
     if(UPDATE_SAME_GEOM_OBJECT) {
-        geometry = reused_last_geom;
+        geometry = g;
         update_reused_geometry(newPolygonizer, global_time, geometry);
     }
     else {
-    geometry = make_geometry_new2(newPolygonizer, global_time, null, false);
-    };
+        if(CALL_VERSION==1){
+            geometry = make_geometry_oldold(global_time);
+        }
+        else{
+            //reused_last_geom = null;
+            //geometry = make_geometry_new2(newPolygonizer, global_time, reused_last_geom, false);
 
+            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+
+            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+        }
+    };
+    /*
+    "";
+    for(var i=0;i<10*3;i++){
+        //geometry.attributes.position.setXYZ( i, x, y, z );
+        geometry.attributes.position.array[i] += 0.0002 * (i% 2);
+        //geometry.index.array[ i ] += (i % 2)*40 ;
+        var nverts = geometry.attributes.position.count/3;
+        geometry.index.array[ i ] = (geometry.index.array[ i ] % (nverts));
+    }
+    //geometry.attributes.position.needsUpdate = true;
+    //geometry.index.needsUpdate = true;
+    "";
+    */
 
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_WIREFRAME){
             mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-
             mesh_wireframe.scale.set( 300, 300, 300 );
-
+            //copy so that we dont lose the rotation, position of the meshes.
             mesh_wireframe.position.copy(p2[0]);
             mesh_wireframe.rotation.copy(p2[1]);
             scene.add( mesh_wireframe );
         }
 
 
-        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        /*var material1 = new THREE.MeshPhongMaterial( {
+                            color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
+                            side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+                        } );
 
-        mesh_solid.scale.set( 300, 300, 300 );
-        mesh_solid.position.copy(p1[0]);
-        mesh_solid.rotation.copy(p1[1]);
-        scene.add( mesh_solid );
+        mesh_solid = new THREE.Mesh( geometry, material1 );
+        */
+        if(SHOW_SOLID){
+            mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+            //   //mesh_solid.position.set( 0, 0, 0 );
+            mesh_solid.scale.set( 300, 300, 300 );
+            mesh_solid.position.copy(p1[0]);
+            mesh_solid.rotation.copy(p1[1]);
+            scene.add( mesh_solid );
+        }
     }
 }
 
+/**
+    Stuff to make things look pretty.
+    Taken from http://threejs.org/examples/#webgl_materials
+*/
 function generateTexture() {
     var canvas = document.createElement( 'canvas' );
-
+    //var canvas = document.getElementById( 'my_canvas' );
     canvas.width = 256;
     canvas.height = 256;
     var context = canvas.getContext( '2d' );
@@ -429,16 +746,16 @@ function generateTexture() {
 function look_nice(scene){
     var materials = [];
     // Grid
-    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } ),
-        geometry = new THREE.Geometry(),
-        floor = -75, step = 25;
+    var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } );
+    var _geometry = new THREE.Geometry();
+    var floor = -75, step = 25;
     for ( var i = 0; i <= 40; i ++ ) {
-        geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
-        geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
-        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
-        geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+        _geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+        _geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+        _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+        _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
     }
-    var grid_lines = new THREE.LineSegments( geometry, line_material );
+    var grid_lines = new THREE.LineSegments( _geometry, line_material );
     scene.add( grid_lines );
 
     // Materials
@@ -449,11 +766,11 @@ function look_nice(scene){
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.FlatShading } ) );
     materials.push( new THREE.MeshNormalMaterial( ) );
     materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
-
+    //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
     materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
     materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading,
-
+        //opacity:0.5,  transparent: true, side:THREE.DoubleSide
     } ));
     materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
     materials.push( new THREE.MeshDepthMaterial() );
@@ -477,6 +794,7 @@ function report_time(time_msec, callback){
         console.log(time_queue);
         if(callback)
             callback();
+        time_queue = [];
         time_queue__last_timeout =0;
     }, 1000);
 }
@@ -484,11 +802,13 @@ function animate() {
 
     requestAnimationFrame( animate );
 
-
+    //Updating the meshes
     var SPEED = 3. / 100;
     if(mesh_wireframe){
         mesh_wireframe.rotation.x += 0.01*SPEED;
         mesh_wireframe.rotation.y += 0.02*SPEED;
+    }
+    if(mesh_solid){
         mesh_solid.rotation.x += 0.01*SPEED;
         mesh_solid.rotation.y += 0.02*SPEED;
     }
@@ -496,22 +816,31 @@ function animate() {
     mesh2_tiny_box_wireframe	.rotation.z += 0.01*SPEED;
     mesh2_tiny_box_wireframe	.rotation.y += 0.02*SPEED;
 
+    //Updating the matrials
+
+    //material update callback
+    //materials_list[ materials_list.length - 2 ].emissive.setHSL( 0.54, 1, 0.35 * ( 0.5 + 0.5 * Math.sin( 35 * global_time / 20. ) ) );
+    //materials_list[ materials_list.length - 3 ].emissive.setHSL( 0.04, 1, 0.35 * ( 0.5 + 0.5 * Math.cos( 35 * global_time / 20.) ) );
+
     renderer.render( scene, camera );
 
 }
 
 var scene, camera, renderer;
-var geometry;
+//var geometry;
 
-window.setTimeout(function()
-{
-    var newPolygonizer = init_polygonizer();
-    init_scene(newPolygonizer);
-    animate();
-}, 3000);
+//var newPolygonizer; //no longer global. Hopefully does not affect the performance.
+window.setTimeout(
+    // function() {
+    //     var newPolygonizer = init_polygonizer();
+    //     init_scene(newPolygonizer);
+    //     animate();
+    // },
+3000);
 
 </script>
 
+<!--script type="text/javascript" src="wwexample1.js"></script-->
 <script type="text/javascript">
 if(0){
 //worker example
@@ -523,6 +852,30 @@ if (window.Worker) {
         console.log('I received this from worker');
         //console.log(e);
         console.log(e.data);
+
+        /*
+    bubbles    : false
+    cancelBubble    : false
+    cancelable    : false
+    currentTarget    : Worker
+    data    : Object
+    defaultPrevented    : false
+    eventPhase    : 0
+    isTrusted    : true
+    isTrusted    : true
+    lastEventId    : ""
+    origin    : ""
+    path    : Array[0]
+    ports    : Array[0]
+    returnValue    : true
+    source    : null
+    srcElement    : Worker
+    target    : Worker
+    timeStamp    : 1555.6200000000001
+    type    : "message"
+
+        */
+
     }
 }
 else{
@@ -531,7 +884,9 @@ else{
 }
 </script>
 
+<!-- Graph -->
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
 
 <script>
 var ggraph = 0;
@@ -549,16 +904,21 @@ function show_hist(data_array){
             colors: ['#e7711c'],
             histogram: {
                 bucketSize: 1,
-
+                //maxNumBuckets: 200,
+                //minValue: -1,
+                //maxValue: 200
             },
-
+            //chartArea: { width: 401 },
             hAxis: {
-
+              //ticks: [-1, 0,1,2,3,4,5,6,7,8,9,10,12,14,20,30,40,50,60,80,100,120,140,160,180,200],
+              //ticks: [ -1, 0,1,2,3,4,5,6,7,8,9,10,11,12 ],
+              //Array.from(Array(10).keys())
+              //[...Array(10).keys()]
               ticks: (Array.from(Array(30*1.).keys())).map(function(x){return x/1.;}, Number),
             },
-
+            //vAxis: { scaleType: 'mirrorLog' }
         };
-
+        //see https://developers.google.com/chart/interactive/docs/gallery/histogram#controlling-buckets
         var div_element = document.getElementById('chart_div');
         console.log(div_element);
         var chart = new google.visualization.Histogram(div_element);
@@ -570,23 +930,60 @@ function show_hist(data_array){
 var global_histogram_accumulator = [];
 function hist_delayed() {
     var a = time_queue;
-
+    //var q = [];
     if(global_histogram_accumulator.length==0){
         global_histogram_accumulator.push(["Time"]);
     }
     var UPPER_BOUND = 12;
     for(var i=0;i<a.length;i++){
         if(a[i]<=UPPER_BOUND)
-            global_histogram_accumulator.push([a[i]*1.]); //The precision of the timing is 1 msec :-(
+            global_histogram_accumulator.push([a[i]*1.]); //The precision of the timing is 1 msec :(
     }
     show_hist(global_histogram_accumulator);
 }
 
 function hist(){
+    //hist_delayed();
 }
 
+//setTimeout(function()}{
 function add_graph_div(){
-
+    //<div id="chart_div" style="width: 900px; height: 500px;"></div>
+    //var elemDiv = document.createElement('div');
+    //document.body.appendChild(elemDiv);
+    //not nice:
+    //document.body.innerHTML += "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
 }
 
 </script>
+
+<!--
+To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed();
+-->
+<!--
+<div id="chart_div" style="width: 900px; height: 500px;">
+</div>
+-->
+
+<script>
+    // The code that runs immediately after finishing loading of the Emscripten-generated js.
+    function set_off() {
+        console.log("ready.");
+        var newPolygonizer = init_polygonizer();
+        init_scene(newPolygonizer);
+        animate();
+    };
+</script>
+
+<!-- Memory profiler code by "jj" from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4 -->
+<script type="text/javascript" src="./lib/memoryprofiler.js"></script>
+<script>
+
+        Module={preRun:[
+            letmeknow=function (){console.log("Loading memory profiler");},
+            memoryprofiler_add_hooks
+        ],
+        onRuntimeInitialized: set_off,
+    };
+</script>
+<script type="text/javascript" src="mcc2.cpp.js"></script>
