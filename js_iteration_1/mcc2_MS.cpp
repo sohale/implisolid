@@ -8,11 +8,6 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
-extern "C" {
-    void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
-    int main();
-}
-
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
 
@@ -41,7 +36,6 @@ REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
 }
 
-#define ENABLE_NORMALS false
 
 class MarchingCubes{
     bool enableUvs, enableColors;
@@ -53,7 +47,6 @@ class MarchingCubes{
     REAL delta;
 
     array1d field;
-    array1d normal_cache;
 
     static const dim_t queueSize = 4096;
 
@@ -74,7 +67,6 @@ class MarchingCubes{
     bool hasUvs = false;
 
     array1d positionQueue;
-    array1d normalQueue;
     array1d_e3 e3Queue;
 
     array1d *colorQueue = 0;
@@ -101,12 +93,11 @@ void finish_queue( const callback_t& renderCallback );
 
 public:
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
-    ~MarchingCubes(); //why does this have to be public: ?
+    ~MarchingCubes();
 
     REAL isolation;
 
-    //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -119,7 +110,7 @@ public:
     void seal_exterior(const REAL exterior_value = -1.);
 
 //field
-    void reset(); //???? Nobody calls this.
+    void reset();
 
 //geometry/threejs interface side.
     void render_geometry(const callback_t& renderCallback );
@@ -127,7 +118,6 @@ public:
 
 // output. filled using sow()
     int resultqueue_faces_start = 0;
-    std::vector<REAL> result_normals;
 
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
@@ -135,26 +125,19 @@ public:
     int next_unique_vect_counter = 0;
 };
 
-//static dim_t MarchingCubes::queueSize = ...;
 
 int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
-        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 *(ENABLE_NORMALS?1:0) }) )),
-
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
-        nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3 * (ENABLE_NORMALS?1:0) } ) )),
         e3list_buffer(array1d_e3(  make_shape_1d(temp_buffer_size)   )),
 
         positionQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 + EXCESS))),
-        normalQueue(array1d(make_shape_1d(MarchingCubes::queueSize * 3 * (ENABLE_NORMALS?1:0) + EXCESS))),
         e3Queue(array1d_e3(make_shape_1d(MarchingCubes::queueSize )))
 
 {
-
-    //THREE.ImmediateRenderObject.call( this, material );
 
     this->enableUvs = enableUvs;
     this->enableColors = enableColors;
@@ -164,20 +147,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
     this->init( resolution );
 
-/*
-    //preallocate
-    int expected_vertices = 10;
-    int expected_faces = 10;
-    this->result_normals.reserve(expected_faces*3 *(ENABLE_NORMALS?1:0));
-    this->result_verts.reserve(expected_vertices*3);
-    this->result_faces.reserve(expected_faces*3);
-    //what about normals?
-    //Unfortunately, you cannot reserve elements for a C++ STL map.
-    //this->result_e3map.reserve(expected_faces*3 ); //should be less than one third of expercted_verts
-*/
 }
-
-
 
 
 void MarchingCubes::init( dim_t resolution ) {
@@ -186,11 +156,7 @@ void MarchingCubes::init( dim_t resolution ) {
 
         this->resolution = resolution;
 
-        // parameters
-
         this->isolation = 80.0;
-
-        // size of field, 32 is pushing it in Javascript :)
 
         this->size = resolution;
         this->size2 = this->size * this->size;
@@ -206,106 +172,46 @@ void MarchingCubes::init( dim_t resolution ) {
 
         array_shape_t size = {(int)this->size3};
         this->field = array1d(size);
-        // this->field = new Float32Array( this->size3 );
-        // this->field = boost::array<REAL, 1>(this->size3); //does not work
-        // this->field = std::array<REAL, this->size3>();
-        // need a guarantee:
 
-        // todo: get available heap.
-        // todo: handle memory exception.
         assert(this->size3 < 10000000);
         assert(this->size3 > 0);
 
 
-/**
- *  COMMENTED OUT
- *
-        // auto field_shape = make_shape_1d((int)this->size3);
-        // //array_shape_t  field_shape = {{ (int)this->size3, }};
-        //
-        //
-        // std::cout << "trouble begins" << std::endl;
-        // std::cout << (int)this->size3 << std::endl;
-        //
-        // //this->field = array1d( field_shape );
-        // this->field = array1d( field_shape );
-        // //this->field = array1d( field_shape );
-*/
-
-        if(ENABLE_NORMALS){
-            // this->normal_cache = new Float32Array( this->size3 * 3 );
-            array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
-            // array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
-            this->normal_cache = array1d( normals_shape );
-
-            // std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
-            // std::fill from #include <algorithm>
-            std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );
-        }
-        //todo: fill up other arrays with zero.
-
-        // temp buffers used in polygonize_cube
-
-        // this->vlist_buffer = new Float32Array( 12 * 3 );
-        // this->nlist_buffer = new Float32Array( 12 * 3 );
-        // auto twelve3 = make_shape_1d( temp_buffer_size * 3 );
-
-        // array_shape_t twelve3 = {{ 12 * 3, }};
-
         if(false){
             this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
-            if(ENABLE_NORMALS)
-                this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
         }
-
-        // this::queueSize = 4096; // TODO: find the fastest size for this buffer
 
         this->queue_counter = 0;
 
         this->hasPositions = false;
-        this->hasNormals = false;
         this->hasColors = false;
         this->hasUvs = false;
 
-        // this->positionQueue = new Float32Array( this->queueSize * 3 );
-        // this->normalQueue   = new Float32Array( this->queueSize * 3 );
-
 
         auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
-        // array_shape_t shape_maxCount_x_3 = {{ this->queueSize * 3, }};
         this->positionQueue = array1d(shape_maxCount_x_3);
-        if(ENABLE_NORMALS){
-            this->normalQueue   = array1d(shape_maxCount_x_3);
-        }
         auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
         this->e3Queue = array1d_e3(shape_maxCount_x_1);
 
-
         auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
-        // array_shape_t  shape_maxCount_x_2 = {{ this->queueSize * 2, }};
-
-
-        // can throw  std::bad_alloc
 
         if ( this->enableUvs ) {
-            // this->uvQueue = new Float32Array( this->queueSize * 2 );
-            this->uvQueue = 0; //for deconstructor, to see if this exited by an exception.
+
+            this->uvQueue = 0;
             this->uvQueue = new array1d(shape_maxCount_x_2);
-            // assert(this->uvQueue != null);
+
         }
-        // else
-        //    this->uvQueue = NULL;
+
 
         if ( this->enableColors ) {
             this->colorQueue = 0;
             this->colorQueue = new array1d(shape_maxCount_x_3);
-            // new Float32Array( this->queueSize * 3 );
+
         }
-        // else
-        //    this->colorQueue = NULL;
+
 }
 
-MarchingCubes::~MarchingCubes() //deconstructor
+MarchingCubes::~MarchingCubes()
 {
     if(VERBOSE)
         std::cout << "Destructor: ~MarchingCubes" << std::endl;
@@ -315,7 +221,6 @@ MarchingCubes::~MarchingCubes() //deconstructor
         if(this->uvQueue){
             delete this->uvQueue;
             this->uvQueue = 0;
-            //std::cout << "delete this->uvQueue" << std::endl;
         }
     }
     if ( this->enableColors )
@@ -324,18 +229,18 @@ MarchingCubes::~MarchingCubes() //deconstructor
         {
             delete this->colorQueue;
             this->colorQueue = 0;
-            //std::cout << "delete this->colorQueue" << std::endl;
+
         }
     }
 }
 
 void MarchingCubes::kill()
-//opposite of init()
+
 {
     ;
 }
 
-//index_t ijk, short_t dir
+
 
 inline void MarchingCubes:: VIntX(
     index_t q, array1d &pout, array1d &nout,
@@ -346,127 +251,60 @@ inline void MarchingCubes:: VIntX(
     REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
-    //std::cout << "VIntXX" << std::endl;
-
-    // pout is vlist_buffer
-    // nout is nlist_buffer
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
-    const array1d& normal_cache = this->normal_cache;
 
     pout[ offset ]     = x + mu * this->delta;
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
-    //e1 = ijk;
-    //eout[ eoffset ] = e1;
-    //eout[ eoffset + 1 ] = e2;
 
-    if(ENABLE_NORMALS){
-        //todo: check the type of q
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q + 3 ], mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q + 4 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q + 5 ], mu );
-    }
-
-    //std::cout << "here2-a" << std::endl;
-
-    //offsetdiv3
     index3_t e3x = ijk*3;
-    //std::cout << "here2-b" << std::endl;
 
-    //very short
-    //int offset333 = offset/3;
-    //e3out[offset333] = e3x;
     e3out[offset/3] = e3x;
-    //std::cout << "here2-c" << std::endl;
 
 }
 
 inline void fp(){
     std::cout << "it";
 }
-//(void*()) fpp = fp;
+
 void (*fpp)() = fp;
 
 inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
-    //(*fpp)();
-
-    //std::cout << "VIntYY" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
-    const array1d& normal_cache = this->normal_cache;
 
     pout[ offset ]     = x;
     pout[ offset + 1 ] = y + mu * this->delta;
     pout[ offset + 2 ] = z;
 
-    if(ENABLE_NORMALS){
-        index_t q2 = q + this->yd * 3;
-
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
-    }
-
-    //std::cout << "here2-a" << std::endl;
-
     index3_t e3x = ijk*3+1;
-    //std::cout << "here2-b" << std::endl;
-
-    //std::cout << "e3out.size()" << e3out.size() << std::endl;
 
     e3out[offset/3] = e3x;
-    //std::cout << "here2-c" << std::endl;
+
 }
 
 inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
 
-    //std::cout << "VIntZZ" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
-    const array1d& normal_cache = this->normal_cache;
+
 
     pout[ offset ]     = x;
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z + mu * this->delta;
 
-    if(ENABLE_NORMALS){
-        index_t q2 = q + this->zd * 3;
-
-        nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
-        nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
-        nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
-    }
-
     index3_t e3x = ijk*3+2;
     e3out[offset/3] = e3x;
 }
 
-inline void MarchingCubes::compNorm( index_t q ) {
-        if(!ENABLE_NORMALS){
-            std::cout << "This should not hapepn.";
-            return;
-        }
-        index_t q3 = q * 3;
-        //What if the x happens to be 0.0 ?
-        if ( this->normal_cache[ q3 ] == 0.0 ) {
-            this->normal_cache[ q3 ] = this->field[ q - 1 ]            - this->field[ q + 1 ];
-            this->normal_cache[ q3 + 1 ] = this->field[ q - this->yd ] - this->field[ q + this->yd ];
-            this->normal_cache[ q3 + 2 ] = this->field[ q - this->zd ] - this->field[ q + this->zd ];
-        }
-}
-
-
-
 
 // Returns total number of triangles. Fills triangles.
-// (this is where most of time is spent - it's inner work of O(n3) loop )
-
 
 inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
     /** Polygonise a single cube in the grid. */
@@ -516,52 +354,31 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
-    //std::cout  << cubeindex << " ";
-
     REAL d = this->delta,
         fx2 = fx + d,
         fy2 = fy + d,
         fz2 = fz + d;
 
-    //TODO: PUT A VLAUE HERE
     index_t ijk = q;
-
-    //std::cout << "here1" << std::endl;
 
     // top of the cube
 
     if ( bits & 1 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qx );
-        }
         this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1,  ijk_0, this->e3list_buffer);
 
     }
 
     if ( bits & 2 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qx );
-            this->compNorm( qxy );
-        }
         this->VIntY( qx * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3,  ijk_x, this->e3list_buffer);
 
     }
 
     if ( bits & 4 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qy );
-            this->compNorm( qxy );
-        }
         this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3,  ijk_y , this->e3list_buffer);
 
     }
 
     if ( bits & 8 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qy );
-        }
         this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2,  ijk_0, this->e3list_buffer);
 
     }
@@ -569,37 +386,21 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     // bottom of the cube
 
     if ( bits & 16 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qz );
-            this->compNorm( qxz );
-        }
         this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5,  ijk_z, this->e3list_buffer);
 
     }
 
     if ( bits & 32 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qxz );
-            this->compNorm( qxyz );
-        }
         this->VIntY( qxz * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7,  ijk_xz, this->e3list_buffer );
 
     }
 
     if ( bits & 64 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qyz );
-            this->compNorm( qxyz );
-        }
         this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7,  ijk_yz, this->e3list_buffer );
 
     }
 
     if ( bits & 128 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qz );
-            this->compNorm( qyz );
-        }
         this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6,  ijk_z, this->e3list_buffer );
 
     }
@@ -607,46 +408,27 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     // vertical lines of the cube
 
     if ( bits & 256 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( q );
-            this->compNorm( qz );
-        }
         this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4,  ijk_0, this->e3list_buffer);
 
     }
 
     if ( bits & 512 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qx );
-            this->compNorm( qxz );
-        }
         this->VIntZ( qx * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5,  ijk_x, this->e3list_buffer );
 
     }
 
     if ( bits & 1024 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qxy );
-            this->compNorm( qxyz );
-        }
         this->VIntZ( qxy * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7,  ijk_xy, this->e3list_buffer);
 
     }
 
     if ( bits & 2048 ) {
-        if(ENABLE_NORMALS){
-            this->compNorm( qy );
-            this->compNorm( qyz );
-        }
         this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6,  ijk_y, this->e3list_buffer );
 
     }
 
-    cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
+    cubeindex <<= 4;
 
-    //std::cout << "here3" << std::endl;
-
-    //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
 
     // here is where triangles are created
@@ -663,7 +445,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             3 * MarchingCubes::mc_triangles_table[ o2 ],
             3 * MarchingCubes::mc_triangles_table[ o3 ],
             renderCallback );
-        //renderCallback consumes them
 
         i += 3;
         numtris++;
@@ -681,17 +462,13 @@ void MarchingCubes::posnormtriv(
     array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list,
     int o1, int o2, int o3,
     const callback_t& renderCallback ) {
-    /** Moves data: _list[] into _Queue[] */
 
     int c = this->queue_counter * 3;
 
     // positions
-
     this->positionQueue[ c ]     = pos__vlist[ o1 ];
     this->positionQueue[ c + 1 ] = pos__vlist[ o1 + 1 ];
     this->positionQueue[ c + 2 ] = pos__vlist[ o1 + 2 ];
-
-    //DEBUG_PA001(this->positionQueue , c);
 
     this->positionQueue[ c + 3 ] = pos__vlist[ o2 ];
     this->positionQueue[ c + 4 ] = pos__vlist[ o2 + 1 ];
@@ -701,31 +478,11 @@ void MarchingCubes::posnormtriv(
     this->positionQueue[ c + 7 ] = pos__vlist[ o3 + 1 ];
     this->positionQueue[ c + 8 ] = pos__vlist[ o3 + 2 ];
 
-
-    int c_div_3 = this->queue_counter; //c/3;
+    int c_div_3 = this->queue_counter;
     this->e3Queue[ c_div_3 ]     = e3__e3list[ o1/3 ];
     this->e3Queue[ c_div_3 + 1 ] = e3__e3list[ o2/3 ];
-    this->e3Queue[ c_div_3 + 2 ] = e3__e3list[ o3/3 ];  //(c + 3)/3
+    this->e3Queue[ c_div_3 + 2 ] = e3__e3list[ o3/3 ];
 
-
-    //DEBUG_PA001(pos__vlist, o3);
-    //std::cout << "[" << o3 << "] ";
-
-    if(ENABLE_NORMALS){
-        // normals
-
-        this->normalQueue[ c ]     = norm__nlist[ o1 ];
-        this->normalQueue[ c + 1 ] = norm__nlist[ o1 + 1 ];
-        this->normalQueue[ c + 2 ] = norm__nlist[ o1 + 2 ];
-
-        this->normalQueue[ c + 3 ] = norm__nlist[ o2 ];
-        this->normalQueue[ c + 4 ] = norm__nlist[ o2 + 1 ];
-        this->normalQueue[ c + 5 ] = norm__nlist[ o2 + 2 ];
-
-        this->normalQueue[ c + 6 ] = norm__nlist[ o3 ];
-        this->normalQueue[ c + 7 ] = norm__nlist[ o3 + 1 ];
-        this->normalQueue[ c + 8 ] = norm__nlist[ o3 + 2 ];
-    }
     // uvs
 
     if ( this->enableUvs ) {
@@ -759,9 +516,8 @@ void MarchingCubes::posnormtriv(
 
     this->queue_counter += 3;
 
-    if ( this->queue_counter >= this->queueSize - 3 ) {  //why equal?
+    if ( this->queue_counter >= this->queueSize - 3 ) {
         this->hasPositions = true;
-        this->hasNormals = ENABLE_NORMALS;
         if ( this->enableUvs ) {
             this->hasUvs = true;
         }
@@ -773,28 +529,10 @@ void MarchingCubes::posnormtriv(
     }
 }
 
-/*
-static int resultqueue_faces_start = 0;  // static
-static std::vector<REAL> result_normals(4100*3);  // static
 
-static std::vector<REAL> result_verts;  // static
-static std::vector<int> result_faces; // static
-*/
-
-// Takes the vales from the queue:
 void MarchingCubes::sow() {
-    /*
-    typedef array1d::iterator  b_it;
-    for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-        std::cout << *b << " ";
-    std::cout << std::endl;
-    */
-    //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
 
-
-    //this->flush_geometry_queue(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
-
-    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
+    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
 }
 
 void MarchingCubes::begin_queue() {
@@ -802,27 +540,18 @@ void MarchingCubes::begin_queue() {
     this->queue_counter = 0;
 
     this->hasPositions = false;
-    this->hasNormals = false;
     this->hasUvs = false;
     this->hasColors = false;
 }
 
 //
 void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
-    /** Finish with the queue. Prepares to sow by the callback. */
 
-    // queue_counter := number of prepared (?)
     if ( this->queue_counter == 0 ) return;
 
-    //for ( int i = this->queue_counter * 3; i < this->positionQueue.length; i++ ) {
-    //    this->positionQueue[ i ] = 0.0;
-    //}
-
-    // Is this really necessary??
     std::fill(this->positionQueue.begin() + (this->queue_counter * 3), this->positionQueue.end(), 0.0 );
 
     this->hasPositions = true;
-    this->hasNormals = ENABLE_NORMALS;
 
     if ( this->enableUvs ) {
         this->hasUvs = true;
@@ -832,27 +561,20 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
         this->hasColors = true;
     }
 
-    //std::fill(this->e3Queue.begin() + (this->queue_counter), this->e3Queue.end(), 0 );
-
     renderCallback.call(this);
     sow();
 }
 
 
-// todo: separate the following into the `field` [part of the] class.
 
 /////////////////////////////////////
 // Metaballs
 /////////////////////////////////////
 
-// Adds a reciprocal ball (nice and blobby) that, to be fast, fades to zero after
-// a fixed distance, determined by strength and subtract.
 
 void MarchingCubes::addBall(
         REAL ballx, REAL bally, REAL ballz,
         REAL strength, REAL subtract) {
-    // Solves this equation:
-    // 1.0 / (0.000001 + radius^2) * strength - subtract = 0
     REAL radius = this->size * sqrt(strength / subtract);
 
     REAL
@@ -868,12 +590,8 @@ void MarchingCubes::addBall(
     int max_x = floor( xs + radius ); if ( max_x > this->size - 1 ) max_x = this->size - 1;
 
 
-    // Don't polygonize_cube in the outer layer because normals aren't
-    // well-defined there.
-
-    // var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
     int x, y, z;
-    REAL fx, fy, fz, fz2, fy2, val;  //Does doing like this make it faster?
+    REAL fx, fy, fz, fz2, fy2, val;
     int y_offset, z_offset;
 
     for ( z = min_z; z < max_z; z++ ) {
@@ -929,8 +647,6 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
 
 void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
-    //const REAL exterior_value = -1.;
-
     int x, y, z;
     int cxy;
 
@@ -939,24 +655,10 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     int size = this->size;
     int zd = this->zd;
     array1d& field = this->field;
-    //REAL dist = size * sqrt(strength / (REAL)subtract);
 
     for ( x = 0; x < size; x++ ) {
         for ( y = 0; y < size; y++ ) {
             cxy = x + y * yd;
-            /*
-            {
-            int z = 0;      field[ zd * z + cxy ] = exterior_value;
-            }{
-            int z = size-1; field[ zd * z + cxy ] = exterior_value;
-            }
-            bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1);
-            if(border){
-                for ( z = 0; z < size; z++ ) {
-                    field[ zd * z + cxy ] = exterior_value;
-                }
-            }
-            */
             for ( z = 0; z < size; z++ ) {
                 bool border = (x == 0) || (x == size-1) || (y == 0) || (y == size-1) || (z == 0) || (z == size-1);
                 if(border){
@@ -968,33 +670,7 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
         }
     }
 }
-/*{
-    const REAL val = -1.;
 
-    int x, y, z;
-    int cxy;
-
-    // cache attribute lookups
-    int yd = this->yd;
-    int size = this->size;
-    int zd = this->zd;
-    array1d& field = this->field;
-    REAL dist = size * sqrt(strength / (REAL)subtract);
-
-    if ( dist > size ) dist = size; //????
-    for ( x = 0; x < dist; x++ ) {
-        for ( y = 0; y < size; y++ ) {
-            cxy = x + y * yd;
-            for ( z = 0; z < size; z++ ) {
-                bool border = false;
-                if(x==0) border = true;
-                if(x==0) border = true;
-                field[ zd * z + cxy ] = val;
-            }
-        }
-    }
-}
-*/
 void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL yy;
@@ -1058,61 +734,35 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 
 
 
-
 /////////////////////////////////////
 // Updates
 /////////////////////////////////////
 
 void MarchingCubes::reset()
 {
-    // wipe the normal cache
+
     for (int i = 0; i < this->size3; i++ ) {
-        if(ENABLE_NORMALS){
-            this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
-        }
         this->field[ i ] = 0.0;
     }
 }
 
 
 void MarchingCubes::reset_result() {
-    //std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter
-
-    /*
-    this->next_unique_vect_counter = 0;
-    this->result_faces = std::vector<int>();
-    this->result_verts = std::vector<REAL>();
-    this->result_normals = std::vector<REAL>();
-    this->result_e3map = e3map_t();
-    */
 
     this->next_unique_vect_counter = 0;
-    //this->result_faces = std::vector<int>();
-    //this->result_verts = std::vector<REAL>();
-    //this->result_normals = std::vector<REAL>();
-    //this->result_e3map = e3map_t();
 
     //preallocate
     int expected_vertices = 10;
     int expected_faces = 10;
-    this->result_normals.reserve(expected_faces*3 *(ENABLE_NORMALS?1:0));
     this->result_verts.reserve(expected_vertices*3);
     this->result_faces.reserve(expected_faces*3);
-    //what about normals?
-    //Unfortunately, you cannot reserve elements for a C++ STL map.
-    //this->result_e3map.reserve(expected_faces*3 ); //should be less than one third of expercted_verts
 
-
-    //This does not belong here: this->resultqueue_faces_start
 
 }
 
-// Renderes a geometry.
 void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     this->reset_result();  //receiver of the queue
     this->begin_queue();
-
-    // Triangulate. Yeah, this is slow.
 
     int smin2 = this->size - 2;
 
@@ -1133,153 +783,16 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
 
-                /*
-                only prints zeros
-                std::cout << "************************" << std::endl;
-                typedef array1d::iterator  b_it;
-                for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-                    std::cout << *b << " ";
-                std::cout << std::endl;
-                */
-
             }
         }
     }
     this->finish_queue(renderCallback);
 }
 
-
-/*
-void flush_geometry_queue() {
-
-    var i, x, y, z, vertex, normal,
-        face, a, b, c, na, nb, nc, nfaces;
-
-
-    for ( i = 0; i < object.queue_counter; i++ ) {
-
-        a = i * 3;
-        b = a + 1;
-        c = a + 2;
-
-        x = object.positionQueue[ a ];
-        y = object.positionQueue[ b ];
-        z = object.positionQueue[ c ];
-        vertex = new THREE.Vector3( x, y, z );
-
-        x = object.normalQueue[ a ];
-        y = object.normalQueue[ b ];
-        z = object.normalQueue[ c ];
-        normal = new THREE.Vector3( x, y, z );
-        normal.normalize();
-
-        geo.vertices.push( vertex );
-        normals.push( normal );
-
-    }
-
-    nfaces = object.queue_counter / 3;
-
-    for ( face_i = 0; face_i < nfaces; face_i++ ) {
-
-        a = ( normals_start + face_i ) * 3;
-        b = a + 1;
-        c = a + 2;
-
-        na = normals[ a ];
-        nb = normals[ b ];
-        nc = normals[ c ];
-
-        face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
-
-        geo.faces.push( face );
-
-    }
-
-    normals_start += nfaces;
-    object.queue_counter = 0;
-}
-*/
-/*
-
-var geo_callback = function( object ) {
-
-    var i, x, y, z, vertex, normal,
-        face, a, b, c, na, nb, nc, nfaces;
-
-
-    for ( i = 0; i < object.queue_counter; i++ ) {
-
-        a = i * 3;
-        b = a + 1;
-        c = a + 2;
-
-        x = object.positionQueue[ a ];
-        y = object.positionQueue[ b ];
-        z = object.positionQueue[ c ];
-        vertex = new THREE.Vector3( x, y, z );
-
-        x = object.normalQueue[ a ];
-        y = object.normalQueue[ b ];
-        z = object.normalQueue[ c ];
-        normal = new THREE.Vector3( x, y, z );
-        normal.normalize();
-
-        geo.vertices.push( vertex );
-        normals.push( normal );
-
-    }
-
-    nfaces = object.queue_counter / 3;
-
-    for ( i = 0; i < nfaces; i++ ) {
-
-        a = ( normals_start + i ) * 3;
-        b = a + 1;
-        c = a + 2;
-
-        na = normals[ a ];
-        nb = normals[ b ];
-        nc = normals[ c ];
-
-        face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
-
-        geo.faces.push( face );
-
-    }
-
-    normals_start += nfaces;
-    object.queue_counter = 0;
-
-};
-
-//this->generateGeometry = function() {...}
-Geometry generateGeometry = function()
-{
-    var normals_start = 0, geo = new THREE.Geometry();
-    var normals = [];
-    this->render_geometry( geo_callback );
-    // console.log( "generated " + geo.faces.length + " triangles" );
-    return geo;
-};
-*/
-
-
-/*
-THREE.MarchingCubes.prototype = Object.create( THREE.ImmediateRenderObject.prototype );
-THREE.MarchingCubes.prototype.constructor = THREE.MarchingCubes;
-*/
-
 /////////////////////////////////////
 // Marching cubes lookup tables
 /////////////////////////////////////
 
-// These tables are straight from Paul Bourke's page:
-// http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
-// who in turn got them from Cory Gene Bloyd.
-
-// Maps (8bit -> 12 bit) all possible 2**8 configurations (cases of grid-node signs) into a set of edges (12 edges in total).
-// former name: edgeTable.
 const int MarchingCubes::mc_edge_lookup_table[256] = {
     0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
     0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -1315,9 +828,6 @@ const int MarchingCubes::mc_edge_lookup_table[256] = {
     0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
 };
 
-
-// Contains 5*3+1 elements: 5 triples, plus a trailing -1
-// former name: triTable
 const int MarchingCubes::mc_triangles_table[256*16] = {
                                           -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,
  0, 8, 3,                                            -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,
@@ -1582,26 +1092,18 @@ const bool VERTS_FROM_MAP = true;
 
 
 typedef struct {
-    std::vector<REAL> &normals;
     std::vector<REAL> &verts3;
     std::vector<int> &faces3;
     e3map_t &e3map;
     int& next_unique_vect_counter;
 } result_state;
 
-//void flush_geometry_queue(MarchingCubes& object) {
 
 void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
-    //outputs:
-    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
+
+  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
-    //todo: receive a facces and verts vector.
-    /** consumes the queue. (sow)*/
-    //changes the queue. => should be inside the queue's "territory".
 
-    //MarchingCubes& this-> = *this;
-
-    //todo: refactor: vert_i -> local_vert_i,  global_vert_i = local_vert_i + normals_start*3;  ; local === within/in Queue
     for ( int vert_i = 0; vert_i < this->queue_counter; vert_i++ ) {
 
         int a = vert_i * 3;
@@ -1612,8 +1114,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         x = this->positionQueue[ a ];
         y = this->positionQueue[ b ];
         z = this->positionQueue[ c ];
-        //vertex = new THREE.Vector3( x, y, z );
-        //cout << "(" << x << " " << y << " " << z << ")    ";
         if(!VERTS_FROM_MAP){
             verts3.push_back(x);
             verts3.push_back(y);
@@ -1622,9 +1122,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
         if(VERTS_FROM_MAP)
         {
-
-            //index3_t  e3_code = this->e3Queue[vert_i];
-            //index3_t  e3_code = this->e3Queue[vert_i + normals_start*3];
             index3_t  e3_code = this->e3Queue[vert_i];
             std::pair<e3map_t::iterator, bool> e = e3map.emplace(e3_code, next_unique_vect_counter);
             const bool& novel = e.second;
@@ -1638,9 +1135,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
             if(novel)
                 next_unique_vect_counter++;
-
-            //struct {} next_unique_vect_counter;
-            // Dont use next_unique_vect_counter below this point.
 
             if(novel){
                 verts3.push_back(x);
@@ -1656,29 +1150,9 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
             assert(verts3.size()/3 == next_unique_vect_counter);
 
             faces3.push_back(overall_vert_index);
-            int old_overall_vert_index = vert_i + normals_start*3;  // // old index was this. not used now.
+            int old_overall_vert_index = vert_i + normals_start*3;
         }
 
-        //e3map_counter ++;
-        //e3map.push_back(e3_code);
-        //verts_e3
-
-        if(ENABLE_NORMALS){
-            x = this->normalQueue[ a ];
-            y = this->normalQueue[ b ];
-            z = this->normalQueue[ c ];
-            //normal = new THREE.Vector3( x, y, z ); normal.normalize();
-            //cout << x << " " << y << " " << z << endl;
-
-            //geo.vertices.push( vertex );
-            //normals.push( normal );
-            REAL nd = sqrt((x*x)+(y*y)+(z*z));
-            if(fabs(nd)<0.000001)
-                nd = 0.0001;
-            normals.push_back( (REAL)(x / nd) );
-            normals.push_back( (REAL)(y / nd) );
-            normals.push_back( (REAL)(z / nd) );
-        }
 
 
     }
@@ -1692,30 +1166,18 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
         int b = a + 1;
         int c = a + 2;
 
-        if(ENABLE_NORMALS){
-            // Why does it store them in normals and reads them back?
-            REAL na = normals[ a ];
-            REAL nb = normals[ b ];
-            REAL nc = normals[ c ];
-        }
-
-        //face = new THREE.Face3( a, b, c, [ na, nb, nc ] );
-        //geo.faces.push( face );
 
         if(!VERTS_FROM_MAP){
             faces3.push_back(a);
             faces3.push_back(b);
             faces3.push_back(c);
         }
-        //faces3.push_back(na);
-        //faces3.push_back(nb);
-        //faces3.push_back(nc);
+
     }
 
     normals_start += nfaces;
     this->queue_counter = 0;
 
-    // Why not directly write back an array into the "index" and other geometry arrays? (i.e. doing part of the making of geometry on C++ side)
     if(REPORT_STATS){
     std::cout << "flush_geometry_queue(): " ;
     int mapctr = 0;
@@ -1733,12 +1195,10 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
 
 void build_vf(
-    //std::vector<REAL>& verts3,
-    //std::vector<int>& faces3
-    ){
-    // Includes allocations.
 
-    dim_t resolution = 28;  // 28;
+    ){
+
+    dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
 
@@ -1750,7 +1210,7 @@ void build_vf(
     REAL time = 0.1 ;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77;
         REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
@@ -1758,25 +1218,12 @@ void build_vf(
     }
     mc.seal_exterior();
 
-    /*
-    int numblobs = 4;
-    REAL subtract = (REAL)12.;
-    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
-    */
-    //MarchingCubes& object = mc;
-    //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
-
-    //mc.flush_geometry_queue(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
-
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
 
     if(VERBOSE)
         std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
-    //verts3.resize(0);
-    //faces3.resize(0);
 }
 
 
@@ -1784,10 +1231,9 @@ class MarchingCubesMock {
 
 public:
     MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
-    ~MarchingCubesMock() {}; //why does this have to be public: ?
+    ~MarchingCubesMock() {};
 
-    //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
@@ -1809,101 +1255,11 @@ public:
 
 // output. filled using sow()
     int resultqueue_faces_start = 0;
-    std::vector<REAL> result_normals;
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
 };
 
 
-//Not used
-void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
-    //not used
-
-    dim_t resolution = 28;  // 28;
-    bool enableUvs = true;
-    bool enableColors = true;
-
-    if(VERBOSE)
-        std::cout << "Leak-free (old version)" << std::endl;
-
-
-    MarchingCubes mc(resolution, enableUvs, enableColors);
-    //MarchingCubes* mc0 = new MarchingCubes(resolution, enableUvs, enableColors);
-    //MarchingCubes &mc = *mc0;
-    //MarchingCubesMock mc(resolution, enableUvs, enableColors);
-
-    int numblobs = 4;
-    //REAL time = 0.1 ;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL D = 1;
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D; // dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
-    }
-    mc.seal_exterior();
-
-    /*
-    int numblobs = 4;
-    REAL subtract = (REAL)12.;
-    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
-
-    mc.addBall(0, 0, 0.5, strength, subtract);
-    */
-
-    //todo: init-receiver side
-
-    const callback_t renderCallback;
-    mc.render_geometry(renderCallback);
-
-    std::cout << "map2" << std::endl;
-
-    //mc.result_faces.resize(100);
-
-    if(VERBOSE)
-        std::cout << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
-
-    *nv = mc.result_verts.size()/3;
-    *nf = mc.result_faces.size()/3;
-
-    // Vertices
-    int ctr = 0;
-    for(std::vector<REAL>::iterator it=mc.result_verts.begin(); it < mc.result_verts.end(); it+=3 ){
-        for(int di=0; di<3; di++){
-            verts[ctr] = *( it + di );
-            ctr++;
-        }
-      }
-
-    // Faces
-    ctr = 0;
-    for(std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ){
-        for(int di=0; di<3; di++){
-            faces[ctr] = *( it + di );
-            ctr++;
-        }
-      }
-
-
-}
-
-
-/*
-#include <emscripten/bind.h>
-using namespace emscripten;
-EMSCRIPTEN_BINDINGS(my_module) {
-    //produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time);
-    function("produce_object_bind", &produce_object);
-}
-*/
-//#include "mcc1-glue.cpp"
-
-
-/*void produce_v(){
-}*/
 
 extern "C" {
     void build_geometry(int resolution, REAL time);
@@ -1914,10 +1270,6 @@ extern "C" {
     void finish_geometry();
     void* get_f_ptr();
     void* get_v_ptr();
-    //also: queue, etc.
-    //bad: one instance only.
-    //    Solution 1:  MarchingCubes* build_geometry();
-    //    Solution 2: ids (for workers! ; a statically determined number of them (slots/workers/buckets).).
 };
 
 
@@ -1928,8 +1280,6 @@ typedef struct {
 
 state_t _state;
 
-//_state.active = false;
-//_state.mc = 0;
 
 void check_state() {
     if(!_state.active) std::cout << "Error: not active.";
@@ -1943,25 +1293,20 @@ void build_geometry(int resolution, REAL time){
 
     check_state_null();
 
-    //dim_t resolution = 28;
+
     bool enableUvs = true;
     bool enableColors = true;
 
-    //std::cout << "Leak-free : new" << std::endl;
-
-    //MarchingCubes mc(resolution, enableUvs, enableColors);
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
-    //std::cout << "constructor called. " << _state.mc << std::endl;
-
 
     _state.mc -> isolation = 80.0/4;
 
     int numblobs = 4;
-    //REAL time = 0.1 ;
+
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL D = 1;
         REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D; // dip into the floor
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;
         REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
@@ -1969,24 +1314,8 @@ void build_geometry(int resolution, REAL time){
     }
     _state.mc->seal_exterior();
 
-/*
-    int numblobs = 4;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        _state.mc->addBall(ballx, bally, ballz, strength, subtract);
-    }
-*/
-    //std::cout << "balls added." << std::endl;
-
     const callback_t renderCallback;
     _state.mc->render_geometry(renderCallback);
-    //std::cout << "MC executed" << std::endl;
-
-    //std::cout << "map4" << std::endl;
 
     if(REPORT_STATS){
     int mapctr = 0;
@@ -1994,16 +1323,9 @@ void build_geometry(int resolution, REAL time){
         if(0)
             std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
-    }
-    /*
-    std::cout << "build_geometry(): ";
-    std::cout << " e3Map: " << mapctr;
-    std::cout << " Faces: " << _state.mc->result_faces.size()/3;
-    std::cout << " Verts: " << _state.mc->result_verts.size()/3;
-    std::cout << std::endl;
-    */
-    }
+      }
 
+    }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
@@ -2012,7 +1334,6 @@ void build_geometry(int resolution, REAL time){
     _state.active = true;
 
     check_state();
-    //std::cout << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
 }
 int get_f_size() {
     check_state();
@@ -2024,39 +1345,35 @@ int get_v_size(){
 }
 void get_v(REAL* v_out, int vcount){
     check_state();
-    //int nf = get_f_size();
+
     // Vertices
     int ctr = 0;
     for(std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ){
         for(int di=0; di<3; di++){
             v_out[ctr] = *( it + di );
-            //if(ctr<3*3*3)
-            //    std::cout << v_out[ctr] << " ";
+
             ctr++;
         }
     }
-    //std::cout << std::endl;
-    //assert nf*3 == ctr;
+
     if(vcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
 }
 
 void get_f(int* f_out, int fcount){
     check_state();
-    //int nf = get_f_size();
+
     int ctr = 0;
     for(std::vector<int>::iterator it=_state.mc->result_faces.begin(); it < _state.mc->result_faces.end(); it+=3 ){
         for(int di=0; di<3; di++){
             f_out[ctr] = *( it + di );
-            //if(ctr<3*3*3)
-            //    std::cout << f_out[ctr] << " ";
+
             ctr++;
         }
     }
     if(fcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
-    //std::cout << std::endl;
+
 };
 
-/* Data is already there, so why copy it? Also, keep it until next round. */
 void* get_v_ptr(){
     check_state();
     return (void*)(_state.mc->result_verts.data());
@@ -2068,27 +1385,16 @@ void* get_f_ptr(){
 }
 
 
-//int get_v_size(){};
-//int get_f_size(){};
-//void get_f(int*){};
-//void get_v(REAL*){};
-//void* get_f_ptr();
-//void* get_v_ptr();
-//void finish_geometry();
-
-// Can cause an exception (but not when null).
 void finish_geometry() {
     check_state();
     if(_state.mc == 0){
         std::cout << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
     if(!_state.active){
-        //std::cout << "Cannot finish_geometry() while still active." << std::endl;
+
     }
     else{
-        //std::cout << "_state.active " << _state.active << "  _state.mc " << _state.mc << std::endl;
     }
-    //Dos not cause an exception if null. But it causes exception.
     delete _state.mc;
     _state.active = false;
     _state.mc = 0;
@@ -2098,55 +1404,7 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
-    /*
-    timer t;
-    t.stop();
-    // MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
-    dim_t resolution = 28;  // 28;
-    bool enableUvs = true;
-    bool enableColors = true;
-    MarchingCubes mc(resolution, enableUvs, enableColors);
-    t.stop();
 
-    int numblobs = 4;
-    REAL subtract = (REAL)12.;
-    REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
-
-    const callback_t renderCallback;
-    mc.render_geometry(renderCallback);
-    t.stop();
-
-
-    std::vector<REAL> verts3;
-    std::vector<int> faces3;
-    MarchingCubes& object = mc;
-
-    //int normals_start = 0;
-    mc.flush_geometry_queue(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
-
-    t.stop();
-
-    cout << resolution << endl;
-
-    cout << endl;
-
-
-    cout << "verts, faces: ";
-    cout << mc.result_verts.size();
-    cout << " ";
-    cout << mc.result_faces.size();
-    cout << endl;
-
-    t.stop();
-
-    //build_vf( verts3, faces3 );  // 21.3 msec using O3
-    build_vf(  );  // 26 msec.
-
-
-    t.stop();
-*/
     std::cout << "main();" << std::endl;
     return 0;
 }
