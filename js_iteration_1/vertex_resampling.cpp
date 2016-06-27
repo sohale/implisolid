@@ -1,4 +1,4 @@
-#include "../js_iteration_2/unit_sphere.hpp"
+//#include "../js_iteration_2/unit_sphere.hpp"
 #include "../js_iteration_2/primitives.cpp"
 #include <iostream>
 #include "boost/multi_array.hpp"

@@ -64,5 +64,4 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
     return x*x + y*y + z*z;
 }
 
-#include "unit_sphere.hpp"
-
+#include "unit_sphere.cpp"

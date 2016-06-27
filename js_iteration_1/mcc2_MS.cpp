@@ -4,6 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "../js_iteration_2/primitives.cpp"
+//#include "../js_iteration_2/basic_data_structures.hpp"
+//#include "../js_iteration_2/unit_sphere.hpp"
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -26,10 +29,10 @@ typedef std::map<index3_t,int>  e3map_t;
 
 struct callback_t { void call (void*) const { } callback_t(){} };
 
-array_shape_t make_shape_1d(int size) {
-    array_shape_t shape = {{ size, }};
-    return shape;
-}
+// array_shape_t make_shape_1d(int size) {
+//     array_shape_t shape = {{ size, }};
+//     return shape;
+// }
 
 
 REAL lerp(REAL a, REAL b, REAL t ) {
@@ -40,13 +43,11 @@ REAL lerp(REAL a, REAL b, REAL t ) {
 class MarchingCubes{
     bool enableUvs, enableColors;
     dim_t resolution;
-    index_t size, size2, size3;
+
     index_t  yd, zd;
     index_t  yd_global, zd_global;
     REAL halfsize;
     REAL delta;
-
-    array1d field;
 
     static const dim_t queueSize = 4096;
 
@@ -92,6 +93,9 @@ void finish_queue( const callback_t& renderCallback );
 
 
 public:
+    index_t size, size2, size3;
+    array1d field;
+    
     MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
     ~MarchingCubes();
 
@@ -1269,12 +1273,12 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 80.0/4;
       // before we had some amazing meatballs! merde a celui qui le lira!
 
-    int min_z = - this->size2;
-    int max_z = this->size2;
-    int min_x = - this->size;
-    int max_x = this->size;
-    int min_y = - this->size;
-    int max_y = this->size;
+    int min_z = - _state.mc->size2;
+    int max_z = _state.mc->size2;
+    int min_x = - _state.mc->size;
+    int max_x = _state.mc->size;
+    int min_y = - _state.mc->size;
+    int max_y = _state.mc->size;
 
     boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
     boost::multi_array<REAL, 2> grid(grid_shape);
@@ -1282,23 +1286,27 @@ void build_geometry(int resolution, REAL time){
     boost::array<int, 1> implicit_function_shape = {{ resolution*resolution*resolution }};
     boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
 
-    for ( z = min_z; z < max_z; z++ ) {
-
-        z_offset = this->size2 * z,
-
-        for ( y = min_y; y < max_y; y++ ) {
-
-            y_offset = z_offset + this->size * y;
-
-            for ( x = min_x; x < max_x; x++ ) {
-                this->field[ y_offset + x ];
-                grid[x + y*this->size + z*this->size2][0] = x/this->size;
-                grid[x + y*this->size + z*this->size2][1] = y/this->size;
-                grid[x + y*this->size + z*this->size2][2] = z/this->size;
-
+    for (int z = min_z; z < max_z; z++ ) {
+        for (int y = min_y; y < max_y; y++ ) {
+            for (int x = min_x; x < max_x; x++ ) {
+                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = x/_state.mc->size;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = y/_state.mc->size;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = z/_state.mc->size;
             }
         }
     }
+
+    unit_sphere sphere(2.0);
+    sphere.eval_implicit(grid, implicit_function);
+
+    for (int z = min_z; z < max_z; z++ ) {
+        for (int y = min_y; y < max_y; y++ ) {
+            for (int x = min_x; x < max_x; x++ ) {
+              _state.mc->field[x + y*_state.mc->size + z*_state.mc->size2] = implicit_function[x + y*_state.mc->size + z*_state.mc->size2];
+            }
+        }
+    }
+
     _state.mc->seal_exterior();
 
     const callback_t renderCallback;

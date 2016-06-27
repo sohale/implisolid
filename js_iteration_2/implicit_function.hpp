@@ -1,14 +1,14 @@
 class implicit_function {
 
 public:
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) = 0;
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) = 0;
+    void eval_implicit(const vectorized_vect& x, vectorized_scalar* output){};
+    void eval_gradient(const vectorized_vect& x, vectorized_vect* output){};
 
 protected:
-    virtual bool integrity_invariant() = 0;
+     bool integrity_invariant(){};
 
 public:
-    virtual ~implicit_function() { };  // ?
+    ~implicit_function() { };  // ?
 };
 
 //trait:
