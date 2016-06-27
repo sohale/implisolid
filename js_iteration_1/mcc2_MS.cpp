@@ -1267,17 +1267,37 @@ void build_geometry(int resolution, REAL time){
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 80.0/4;
+      // before we had some amazing meatballs! merde a celui qui le lira!
 
-    int numblobs = 10;
+    int min_z = - this->size2;
+    int max_z = this->size2;
+    int min_x = - this->size;
+    int max_x = this->size;
+    int min_y = - this->size;
+    int max_y = this->size;
 
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL D = 1;
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   ;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        _state.mc->addBall(ballx, bally, ballz, strength, subtract);
+    boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
+    boost::multi_array<REAL, 2> grid(grid_shape);
+
+    boost::array<int, 1> implicit_function_shape = {{ resolution*resolution*resolution }};
+    boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
+
+    for ( z = min_z; z < max_z; z++ ) {
+
+        z_offset = this->size2 * z,
+
+        for ( y = min_y; y < max_y; y++ ) {
+
+            y_offset = z_offset + this->size * y;
+
+            for ( x = min_x; x < max_x; x++ ) {
+                this->field[ y_offset + x ];
+                grid[x + y*this->size + z*this->size2][0] = x/this->size;
+                grid[x + y*this->size + z*this->size2][1] = y/this->size;
+                grid[x + y*this->size + z*this->size2][2] = z/this->size;
+
+            }
+        }
     }
     _state.mc->seal_exterior();
 
