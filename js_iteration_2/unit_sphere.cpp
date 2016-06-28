@@ -23,7 +23,7 @@ public:
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
             //f_output[output_ctr] = (*x)[0];
-            (f_output)[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] );
+            (f_output)[output_ctr] = r2/(0.00001 + norm_squared((*i)[0], (*i)[1], (*i)[2] ))-2.;
         }
     }
     void eval_gradient(const vectorized_vect& x, vectorized_vect& output){

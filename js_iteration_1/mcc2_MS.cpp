@@ -1291,12 +1291,13 @@ void build_geometry(int resolution, REAL time){
     for (int z = min_z; z < max_z; z++ ) {
         for (int y = min_y; y < max_y; y++ ) {
             for (int x = min_x; x < max_x; x++ ) {
-                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = (REAL)x/(REAL)_state.mc->size;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = (REAL)y/(REAL)_state.mc->size;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = (REAL)z/(REAL)_state.mc->size;
-                if (x==0){
-                  if (y==0){
-                cout <<   grid[x + y*_state.mc->size + z*_state.mc->size2][2] << endl;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = 2.*(REAL)x/(REAL)_state.mc->size -1.;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = 2.*(REAL)y/(REAL)_state.mc->size -1.;
+                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = 2.*(REAL)z/(REAL)_state.mc->size -1.;
+                if (x>0.95){
+                  if (z> 0.95){
+              //  cout <<   grid[x + y*_state.mc->size + z*_state.mc->size2][1] << endl;
+
                   }
                 }
             }
@@ -1304,13 +1305,13 @@ void build_geometry(int resolution, REAL time){
     }
 
     cout << "Ligne 1301!" << endl;
-    unit_sphere sphere(1.5);
+    unit_sphere sphere(4.);
     sphere.eval_implicit(grid, implicit_function);
 
     for (int z = min_z; z < max_z; z++ ) {
         for (int y = min_y; y < max_y; y++ ) {
             for (int x = min_x; x < max_x; x++ ) {
-              _state.mc->field[x + y*_state.mc->size + z*_state.mc->size2] = x+y+z;
+              _state.mc->field[x + y*_state.mc->size + z*_state.mc->size2] = implicit_function[x + y*_state.mc->size + z*_state.mc->size2];
           //      cout << implicit_function[x + y*_state.mc->size + z*_state.mc->size2] << endl;
 
             }
