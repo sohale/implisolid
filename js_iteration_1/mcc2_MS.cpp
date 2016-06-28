@@ -113,7 +113,7 @@ public:
     void addPlaneX( REAL strength, REAL subtract );
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
-    void seal_exterior(const REAL exterior_value = -1.);
+    void seal_exterior(const REAL exterior_value = -100.);
 
 //field
     void reset();
@@ -670,8 +670,6 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
                 if(border){
                     field[ zd * z + cxy ] = exterior_value;
                 }
-                if (z == 4 && x == 2)
-                    field[ zd * z + cxy ] = +2.;
             }
         }
     }
