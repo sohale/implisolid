@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include "../js_iteration_2/primitives.cpp"
+#include "vertex_resampling.cpp"
 //#include "../js_iteration_2/basic_data_structures.hpp"
 //#include "../js_iteration_2/unit_sphere.hpp"
 
@@ -1327,6 +1328,42 @@ void build_geometry(int resolution, REAL time){
 
     }
 
+
+    boost::array<int, 2> verts_shape = {{ (int)_state.mc->result_verts.size()/3 , 3 }};
+    boost::multi_array<REAL, 2> verts(verts_shape);
+
+    boost::array<int, 2> faces_shape = {{ (int)_state.mc->result_faces.size()/3 , 3 }};
+    boost::multi_array<int, 2> faces(faces_shape);
+
+    boost::multi_array<REAL, 2> centroids (faces_shape);
+    boost::multi_array<REAL, 2> new_verts (verts_shape);
+
+    int output_verts=0;
+    auto i = _state.mc->result_verts.begin();
+    auto e = _state.mc->result_verts.end();
+    for(; i!=e; i++, output_verts++){
+      verts[output_verts][0] = (*i);
+      i++;
+      verts[output_verts][1] = (*i);
+      i++;
+      verts[output_verts][2] = (*i);
+    }
+
+
+    int output_faces=0;
+    auto i_f = _state.mc->result_faces.begin();
+    auto e_f = _state.mc->result_faces.end();
+    for(; i_f!=e_f; i_f++, output_faces++){
+      faces[output_faces][0] = (*i_f);
+      i_f++;
+      faces[output_faces][1] = (*i_f);
+      i_f++;
+      faces[output_faces][2] = (*i_f);
+    }
+
+    for (int j=0; j<10; j++){
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+    }
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
         std::cout << _state.mc << std::endl;

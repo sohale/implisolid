@@ -1,5 +1,5 @@
 //#include "../js_iteration_2/unit_sphere.hpp"
-#include "../js_iteration_2/primitives.cpp"
+//#include "../js_iteration_2/primitives.cpp"
 #include <iostream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -8,13 +8,12 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "timer.hpp"
 #include <tuple>
 
 using namespace std;
 
 #define ASSERTS 1
-#define VERBOSE  1
+//#define VERBOSE  1
 typedef float REAL;
 typedef struct {
    REAL x, y, z;
@@ -69,13 +68,12 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
 
 //********* new version : each shape is an object of a class that implments implicite_function.hpp and has two methods : eval_implicit and eval_gradient*******//
 
-if (object_name == "sphere"){
-  unit_sphere sphere(2.0);
-  sphere.eval_gradient(centroids,centroid_normals_normalized);
-}
+unit_sphere sphere(2.0);
+sphere.eval_gradient(centroids,centroid_normals_normalized);
+
 
 //*********check the code above for correctness ****************//
-  if(normalise){
+  if(1){
     for(int centroid = 0; centroid < centroid_normals_normalized.shape()[0]; centroid++){
       REAL norm = sqrt(pow(centroid_normals_normalized[centroid][0],2)+pow(centroid_normals_normalized[centroid][1],2)+pow(centroid_normals_normalized[centroid][2],2));
       for(int coordinate = 0; coordinate < 3; coordinate++){
