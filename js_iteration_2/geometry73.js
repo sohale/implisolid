@@ -12,19 +12,26 @@ function __check_TypedArray_type(src, _type){
     }
 }
 
-// See  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
-
-function copy_Float32Array_preallocated(src, prealloc_size, randomize)  {
+/**
+* @param {Number | String} initial_value: if "random" then randomize color else if it's a number color set to this value
+*/
+function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
     __check_TypedArray_type(src, Float32Array);
     var TYPE_SIZE = 4;
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     var r = new Float32Array(dst);
     r.set(new Float32Array(src));
-    if(randomize){
+    if(initial_value === "random"){
         for(var i=0*src.byteLength/TYPE_SIZE;i<r.length;i++){
             r[i] = (Math.random()-0.5);
         }
+    }else if (Number(initial_value) === initial_value){
+        console.log("color number :" + initial_value + " " + len_bytes);
+        for(var i=0*src.byteLength/TYPE_SIZE;i<r.length;i++){
+            r[i] = initial_value;
+        }
+
     }
     return r;
 }
@@ -50,7 +57,7 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
     this.allocate_buffers = function(){
 
         if(pre_allocate){
-            console.log("Aloocating separate space for verts,faces.");
+            console.log("Allocating separate space for verts,faces.");
             faces = copy_Uint32Array_preallocated(faces, 30000*3);
             verts = copy_Float32Array_preallocated(verts, 30000*3);
         }
@@ -68,14 +75,15 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
         //my_assert(this.index.array === faces);
 
         if(pre_allocate){
-            console.log("Aloocating separate space for norms, colors.");
-            var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
-            var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
-            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
+            console.log("Allocating separate space for norms, colors.");
+            var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, "random");
+            //var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, "random");
+            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, "random");
+            normals.set(verts);
         }
 
         this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
-        this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
+        //this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) ); color is overidden
         //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
         //var materialIndex = 0;
