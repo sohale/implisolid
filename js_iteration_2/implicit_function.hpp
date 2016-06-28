@@ -5,10 +5,10 @@ public:
     void eval_gradient(const vectorized_vect& x, vectorized_vect* output){};
 
 protected:
-     bool integrity_invariant(){};
+     bool integrity_invariant(){return true;};
 
 public:
-    ~implicit_function() { };  // ?
+    ~implicit_function() {};  // ?
 };
 
 //trait:
