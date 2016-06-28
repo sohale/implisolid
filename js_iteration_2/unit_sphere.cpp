@@ -23,7 +23,8 @@ public:
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
             //f_output[output_ctr] = (*x)[0];
-            (f_output)[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] );
+            (f_output)[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] )*exp(-pow((*i)[2],2));
+
         }
     }
     void eval_gradient(const vectorized_vect& x, vectorized_vect& output){
@@ -35,7 +36,7 @@ public:
         for(; i<e; i++, output_ctr++){
             (output)[output_ctr][0] = -2. * (*i)[0];
             (output)[output_ctr][1] = -2. * (*i)[1];
-            (output)[output_ctr][2] = -2. * (*i)[2];
+            (output)[output_ctr][2] = -(*i)[2]*2.0*exp(-pow((*i)[2],2)) + (pow((*i)[0],2) + pow((*i)[1],2) + pow((*i)[2],2))*2*(*i)[2]*exp(-pow((*i)[2],2));
         }
     }
     bool integrity_invariant(){

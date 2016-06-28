@@ -1,5 +1,6 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
+#include <math.h>
 //#include "boost/assert.hpp"
 
 
@@ -51,5 +52,3 @@ inline bool assert_3x(const array2d& x){
     assert(x.shape()[1] == output.shape()[0]);
 }
 */
-
-

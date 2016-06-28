@@ -43,7 +43,7 @@ fi
 if [ $OPTIM -eq 2 ]
 then
     echo "** old **"
-    ~/Downloads/emsdk_portable/emscripten/master/em++ \
+    ~/Desktop/emsdk_portable/emscripten/master/em++ \
             -I $BOOST_FOLDER   \
             -s TOTAL_MEMORY=33554432    \
             -s EXPORTED_FUNCTIONS="[ '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr']" \

@@ -653,7 +653,7 @@ void MarchingCubes::create_shape(){
       }
 
 
-      unit_sphere sphere(0.6);
+      unit_sphere sphere(0.55);
       sphere.eval_implicit(grid, implicit_function);
 
       for (int z = min_z; z < max_z; z++ ) {
