@@ -1272,7 +1272,7 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
-    _state.mc -> isolation = 80.0/4;
+    _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
 
     int min_x = 0;
@@ -1294,18 +1294,14 @@ void build_geometry(int resolution, REAL time){
                 grid[x + y*_state.mc->size + z*_state.mc->size2][0] = 2.*(REAL)x/(REAL)_state.mc->size -1.;
                 grid[x + y*_state.mc->size + z*_state.mc->size2][1] = 2.*(REAL)y/(REAL)_state.mc->size -1.;
                 grid[x + y*_state.mc->size + z*_state.mc->size2][2] = 2.*(REAL)z/(REAL)_state.mc->size -1.;
-                if (x>0.95){
-                  if (z> 0.95){
-              //  cout <<   grid[x + y*_state.mc->size + z*_state.mc->size2][1] << endl;
 
-                  }
-                }
+
             }
         }
     }
 
     cout << "Ligne 1301!" << endl;
-    unit_sphere sphere(4.);
+    unit_sphere sphere(0.6);
     sphere.eval_implicit(grid, implicit_function);
 
     for (int z = min_z; z < max_z; z++ ) {
