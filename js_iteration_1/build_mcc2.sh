@@ -16,7 +16,7 @@ then
         -s DEMANGLE_SUPPORT=1 \
          -s ASSERTIONS=1 \
         -pedantic -std=c++14 \
-        mcc2.cpp -o mcc2.cpp.js
+        mcc2.cpp -o mcc2.compiled.js
 
 fi
 
@@ -25,7 +25,7 @@ if [ $OPTIM -eq 1 ]
 then
     echo "** optimised version **"
 
-    ~/emsdk_portable/emscripten/master/em++ \
+    em++ \
             -I $BOOST_FOLDER   \
             -O3   \
             -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -35,7 +35,7 @@ then
             -s TOTAL_MEMORY=30100100    \
             -pedantic -std=c++14  \
         mcc2.cpp  \
-            -o  mcc2.cpp.js
+            -o  mcc2.compiled.js
 fi
 
 # copy the path for em++

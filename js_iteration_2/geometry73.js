@@ -57,10 +57,12 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
         assert(pre_allocate);  // Will be wrong if pre_allocate is false
 
         // build geometry
+
+        this.addAttribute( 'index', new THREE.BufferAttribute( faces, 3 ) );
         this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
-        this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
+        //this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
         for(var j=0;j<faces.length;j++)
-            if(this.index.array[j] !== faces[j]){
+            if(this.attributes.index.array[j] !== faces[j]){
                 console.error(j);break;
             }
         //my_assert(this.index.array === faces);
@@ -76,8 +78,8 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
         this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
         //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
-        var materialIndex = 0;
-        this.addGroup( 0, faces.length*1-10, materialIndex );
+        //var materialIndex = 0;
+        //this.addGroup( 0, faces.length*1-10, materialIndex );
     }
 
     // ThreeJS does not use prototype-based OOP.

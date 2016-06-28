@@ -33,6 +33,8 @@ var ImplicitService = function(){
     init(this);
     this.make_geometry = function (params) {
         var startTime = new Date();
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
 
         if(this.needsFinish) {
             this.finish_geometry();
@@ -60,7 +62,6 @@ var ImplicitService = function(){
 
         return geom;
     };
-
     this.getLiveGeometry = function(){
         var geom = this.make_geometry( {subjective_time: 0.0} );
         return geom;
@@ -72,7 +73,7 @@ var IMPLICIT = null;
 function _on_cpp_loaded() {
     console.log("C++ ready.");
     //IMPLISOLID.
-    IMPLICIT = IMPLICITService();
+    IMPLICIT = new ImplicitService();
 };
 
 
