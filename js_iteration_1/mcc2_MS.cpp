@@ -1299,7 +1299,7 @@ void build_geometry(int resolution, REAL time){
         }
     }
 
-    cout << "Ligne 1301!" << endl;
+
     unit_sphere sphere(0.6);
     sphere.eval_implicit(grid, implicit_function);
 
@@ -1312,7 +1312,7 @@ void build_geometry(int resolution, REAL time){
             }
         }
     }
-    cout << "Ligne 1312!" << endl;
+
     _state.mc->seal_exterior();
 
     const callback_t renderCallback;
@@ -1361,9 +1361,15 @@ void build_geometry(int resolution, REAL time){
       faces[output_faces][2] = (*i_f);
     }
 
-    for (int j=0; j<10; j++){
     process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+
+    for (int i=0; i<verts.shape()[0]; i++){
+      _state.mc->result_verts[i*3+0] = new_verts[i][0];
+      _state.mc->result_verts[i*3+1] = new_verts[i][1];
+      _state.mc->result_verts[i*3+2] = new_verts[i][2];
+
     }
+
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
         std::cout << _state.mc << std::endl;
