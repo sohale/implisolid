@@ -115,6 +115,8 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
+    void create_shape();
+    void vertex_resampling();
 
 //field
     void reset();
@@ -621,6 +623,92 @@ void MarchingCubes::addBall(
             }
         }
     }
+}
+
+void MarchingCubes::create_shape(){
+
+      int min_x = 0;
+      int max_x = this->size;
+      int min_y = 0;
+      int max_y = this->size;
+      int min_z = 0;
+      int max_z = this->size;
+
+      boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
+      boost::multi_array<REAL, 2> grid(grid_shape);
+
+      boost::array<int, 1> implicit_function_shape = {{ resolution*resolution*resolution }};
+      boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
+
+      for (int z = min_z; z < max_z; z++ ) {
+          for (int y = min_y; y < max_y; y++ ) {
+              for (int x = min_x; x < max_x; x++ ) {
+                  grid[x + y*this->size + z*this->size2][0] = 2.*(REAL)x/(REAL)this->size -1.;
+                  grid[x + y*this->size + z*this->size2][1] = 2.*(REAL)y/(REAL)this->size -1.;
+                  grid[x + y*this->size + z*this->size2][2] = 2.*(REAL)z/(REAL)this->size -1.;
+
+
+              }
+          }
+      }
+
+
+      unit_sphere sphere(0.6);
+      sphere.eval_implicit(grid, implicit_function);
+
+      for (int z = min_z; z < max_z; z++ ) {
+          for (int y = min_y; y < max_y; y++ ) {
+              for (int x = min_x; x < max_x; x++ ) {
+                this->field[x + y*this->size + z*this->size2] = implicit_function[x + y*this->size + z*this->size2];
+            //      cout << implicit_function[x + y*this->size + z*this->size2] << endl;
+
+              }
+          }
+      }
+}
+
+void MarchingCubes::vertex_resampling(){
+
+      boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
+      boost::multi_array<REAL, 2> verts(verts_shape);
+
+      boost::array<int, 2> faces_shape = {{ (int)this->result_faces.size()/3 , 3 }};
+      boost::multi_array<int, 2> faces(faces_shape);
+
+      boost::multi_array<REAL, 2> centroids (faces_shape);
+      boost::multi_array<REAL, 2> new_verts (verts_shape);
+
+      int output_verts=0;
+      auto i = this->result_verts.begin();
+      auto e = this->result_verts.end();
+      for(; i!=e; i++, output_verts++){
+        verts[output_verts][0] = (*i);
+        i++;
+        verts[output_verts][1] = (*i);
+        i++;
+        verts[output_verts][2] = (*i);
+      }
+
+
+      int output_faces=0;
+      auto i_f = this->result_faces.begin();
+      auto e_f = this->result_faces.end();
+      for(; i_f!=e_f; i_f++, output_faces++){
+        faces[output_faces][0] = (*i_f);
+        i_f++;
+        faces[output_faces][1] = (*i_f);
+        i_f++;
+        faces[output_faces][2] = (*i_f);
+      }
+
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+
+      for (int i=0; i<verts.shape()[0]; i++){
+        this->result_verts[i*3+0] = new_verts[i][0];
+        this->result_verts[i*3+1] = new_verts[i][1];
+        this->result_verts[i*3+2] = new_verts[i][2];
+
+      }
 }
 
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
@@ -1274,44 +1362,7 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
 
-    int min_x = 0;
-    int max_x = _state.mc->size;
-    int min_y = 0;
-    int max_y = _state.mc->size;
-    int min_z = 0;
-    int max_z = _state.mc->size;
-
-    boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
-    boost::multi_array<REAL, 2> grid(grid_shape);
-
-    boost::array<int, 1> implicit_function_shape = {{ resolution*resolution*resolution }};
-    boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
-
-    for (int z = min_z; z < max_z; z++ ) {
-        for (int y = min_y; y < max_y; y++ ) {
-            for (int x = min_x; x < max_x; x++ ) {
-                grid[x + y*_state.mc->size + z*_state.mc->size2][0] = 2.*(REAL)x/(REAL)_state.mc->size -1.;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][1] = 2.*(REAL)y/(REAL)_state.mc->size -1.;
-                grid[x + y*_state.mc->size + z*_state.mc->size2][2] = 2.*(REAL)z/(REAL)_state.mc->size -1.;
-
-
-            }
-        }
-    }
-
-
-    unit_sphere sphere(0.6);
-    sphere.eval_implicit(grid, implicit_function);
-
-    for (int z = min_z; z < max_z; z++ ) {
-        for (int y = min_y; y < max_y; y++ ) {
-            for (int x = min_x; x < max_x; x++ ) {
-              _state.mc->field[x + y*_state.mc->size + z*_state.mc->size2] = implicit_function[x + y*_state.mc->size + z*_state.mc->size2];
-          //      cout << implicit_function[x + y*_state.mc->size + z*_state.mc->size2] << endl;
-
-            }
-        }
-    }
+    _state.mc->create_shape();
 
     _state.mc->seal_exterior();
 
@@ -1325,50 +1376,9 @@ void build_geometry(int resolution, REAL time){
             std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
       }
-
     }
 
-
-    boost::array<int, 2> verts_shape = {{ (int)_state.mc->result_verts.size()/3 , 3 }};
-    boost::multi_array<REAL, 2> verts(verts_shape);
-
-    boost::array<int, 2> faces_shape = {{ (int)_state.mc->result_faces.size()/3 , 3 }};
-    boost::multi_array<int, 2> faces(faces_shape);
-
-    boost::multi_array<REAL, 2> centroids (faces_shape);
-    boost::multi_array<REAL, 2> new_verts (verts_shape);
-
-    int output_verts=0;
-    auto i = _state.mc->result_verts.begin();
-    auto e = _state.mc->result_verts.end();
-    for(; i!=e; i++, output_verts++){
-      verts[output_verts][0] = (*i);
-      i++;
-      verts[output_verts][1] = (*i);
-      i++;
-      verts[output_verts][2] = (*i);
-    }
-
-
-    int output_faces=0;
-    auto i_f = _state.mc->result_faces.begin();
-    auto e_f = _state.mc->result_faces.end();
-    for(; i_f!=e_f; i_f++, output_faces++){
-      faces[output_faces][0] = (*i_f);
-      i_f++;
-      faces[output_faces][1] = (*i_f);
-      i_f++;
-      faces[output_faces][2] = (*i_f);
-    }
-
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
-
-    for (int i=0; i<verts.shape()[0]; i++){
-      _state.mc->result_verts[i*3+0] = new_verts[i][0];
-      _state.mc->result_verts[i*3+1] = new_verts[i][1];
-      _state.mc->result_verts[i*3+2] = new_verts[i][2];
-
-    }
+    _state.mc->vertex_resampling();
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
