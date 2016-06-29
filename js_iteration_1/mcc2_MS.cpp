@@ -17,7 +17,7 @@ using namespace std;
 
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
-bool writing_test_file = true;
+bool writing_test_file = false;
 
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
 typedef float REAL;
@@ -111,7 +111,7 @@ public:
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
     void create_shape(string name, REAL real_size);
-    void vertex_resampling();
+    void vertex_resampling(string name);
 
 //field
     void reset();
@@ -622,6 +622,7 @@ void MarchingCubes::create_shape(string name, REAL real_size){
       bool resize = false;
       if(!resize)
         real_size=1.0;
+
       int min_x = 0;
       int max_x = this->size;
       int min_y = 0;
@@ -677,7 +678,7 @@ void MarchingCubes::create_shape(string name, REAL real_size){
       }
 }
 
-void MarchingCubes::vertex_resampling(){
+void MarchingCubes::vertex_resampling(string name){
 
       boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
       boost::multi_array<REAL, 2> verts(verts_shape);
@@ -711,6 +712,7 @@ void MarchingCubes::vertex_resampling(){
         faces[output_faces][2] = (*i_f);
       }
 
+
       if (writing_test_file){
 
       ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
@@ -726,10 +728,7 @@ void MarchingCubes::vertex_resampling(){
       }
       f_out << endl;
 
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
-
-      if (writing_test_file){
-
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name);
 
       for (int i=0; i<verts.shape()[0]; i++){
         this->result_verts[i*3+0] = new_verts[i][0];
@@ -768,12 +767,20 @@ void MarchingCubes::vertex_resampling(){
           f_out <<  "\n";
       }
       f_out.close();
-    }
+      }
 
     else {
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name);
+
+    for (int i=0; i<verts.shape()[0]; i++){
+      this->result_verts[i*3+0] = new_verts[i][0];
+      this->result_verts[i*3+1] = new_verts[i][1];
+      this->result_verts[i*3+2] = new_verts[i][2];
+
     }
-  }
+
+   }
+
 }
 
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
@@ -1421,12 +1428,13 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
+    string name = "egg";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
       REAL real_size = 10;
-    _state.mc->create_shape("double_mushroom",real_size);
+    _state.mc->create_shape(name, real_size);
 
     _state.mc->seal_exterior();
 
@@ -1442,7 +1450,7 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
-    _state.mc->vertex_resampling();
+    _state.mc->vertex_resampling(name);
 
     // ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
     //
@@ -1532,38 +1540,39 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
-  if (writing_test_file){
-
-  int resolution = 28;
-  REAL time = 0.2;
-  check_state_null();
-  bool enableUvs = true;
-  bool enableColors = true;
-
-  _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
-
-  _state.mc -> isolation = 0.0;
-    // before we had some amazing meatballs! merde a celui qui le lira!
-    REAL real_size= 10;
-  _state.mc->create_shape("sphere",real_size);
-
-  _state.mc->seal_exterior();
-
-  const callback_t renderCallback;
-  _state.mc->render_geometry(renderCallback);
-
-  if(REPORT_STATS){
-  int mapctr = 0;
-  for (auto& kv_pair: _state.mc->result_e3map){
-      if(0)
-          std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
-      mapctr++;
-    }
-  }
-
-    _state.mc->vertex_resampling();
-
-   }
+  // if (writing_test_file){
+  //
+  // int resolution = 28;
+  // REAL time = 0.2;
+  // check_state_null();
+  // bool enableUvs = true;
+  // bool enableColors = true;
+  //
+  // _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+  //
+  // _state.mc -> isolation = 0.0;
+  //   // before we had some amazing meatballs! merde a celui qui le lira!
+  //   REAL real_size= 10;
+  // string name = "sphere";
+  // _state.mc->create_shape(name,real_size);
+  //
+  // _state.mc->seal_exterior();
+  //
+  // const callback_t renderCallback;
+  // _state.mc->render_geometry(renderCallback);
+  //
+  // if(REPORT_STATS){
+  // int mapctr = 0;
+  // for (auto& kv_pair: _state.mc->result_e3map){
+  //     if(0)
+  //         std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+  //     mapctr++;
+  //   }
+  // }
+  //
+  //   _state.mc->vertex_resampling(name);
+  //
+  //  }
     std::cout << "main();" << std::endl;
 
     return 0;

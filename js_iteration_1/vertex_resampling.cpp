@@ -49,7 +49,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   }
 }
 
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized){
+void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, string name){
 
 //*********  old version  with hardcoded functions for each object*************//
 
@@ -69,8 +69,27 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
 
 //********* new version : each shape is an object of a class that implments implicite_function.hpp and has two methods : eval_implicit and eval_gradient*******//
 
-unit_sphere sphere(2.0);
-sphere.eval_gradient(centroids,centroid_normals_normalized);
+if (name == "double_mushroom"){
+    double_mushroom gradou(3.3);
+    gradou.eval_gradient(centroids, centroid_normals_normalized);
+}
+else if (name == "egg"){
+    egg gradou(0.55);
+    gradou.eval_gradient(centroids, centroid_normals_normalized);
+}
+else if (name == "sphere"){
+    unit_sphere gradou(0.80);
+    gradou.eval_gradient(centroids, centroid_normals_normalized);
+}
+else {
+  cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+  unit_sphere gradou(1.);
+  gradou.eval_gradient(centroids, centroid_normals_normalized);
+}
+
+cout << name << endl;
+cout << centroids[4][0] << endl;
+cout << centroid_normals_normalized[4][0] << endl;
 
 
 //*********check the code above for correctness ****************//
@@ -257,7 +276,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
   }
 }
 
-void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids){
+void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, string name){
 
   int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
@@ -275,7 +294,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
   boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
 
-  compute_centroid_gradient(centroids, centroid_normals_normalized);
+  compute_centroid_gradient(centroids, centroid_normals_normalized, name);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 
