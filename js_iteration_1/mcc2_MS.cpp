@@ -152,22 +152,20 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->enableColors = enableColors;
 
     if(VERBOSE)
-        std::cout << resolution << " init"<< std::endl;
+        std::cout << this->size << " init"<< std::endl;
 
     this->init( this->size );
 
 }
 
 
-void MarchingCubes::init( dim_t resolution ) {
+void MarchingCubes::init( dim_t size ) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
-        this->resolution = resolution;
-
         this->isolation = 80.0;
 
-        this->size = resolution;
+        this->size = size;
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
         this->halfsize = ((REAL)this->size) / 2.0;
