@@ -89,18 +89,19 @@ else {
 
 cout << name << endl;
 cout << centroids[4][0] << endl;
-cout << centroid_normals_normalized[4][0] << endl;
+
 
 
 //*********check the code above for correctness ****************//
   if(1){
     for(int centroid = 0; centroid < centroid_normals_normalized.shape()[0]; centroid++){
-      REAL norm = sqrt(pow(centroid_normals_normalized[centroid][0],2)+pow(centroid_normals_normalized[centroid][1],2)+pow(centroid_normals_normalized[centroid][2],2));
+      REAL norm = sqrt(pow(centroids[centroid][0],2)+pow(centroids[centroid][1],2)+pow(centroids[centroid][2],2));
       for(int coordinate = 0; coordinate < 3; coordinate++){
-        centroid_normals_normalized[centroid][coordinate]=centroid_normals_normalized[centroid][coordinate]/norm;
+        centroid_normals_normalized[centroid][coordinate]=centroids[centroid][coordinate]/norm;
       }
     }
   }
+  cout << centroid_normals_normalized[4][0] << endl;
 
 }
 
