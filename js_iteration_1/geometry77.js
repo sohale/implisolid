@@ -190,8 +190,8 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
         if(faster){
 
             if(1){
-                var materialIndex = 0;
-                this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
+                //var materialIndex = 0;
+                //this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
                 //console.log("ok2");
             }
 
@@ -228,14 +228,13 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
             this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
             //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
+            var materialIndex = 0;
+            this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
+
         }else{
             var mesh_core = make_geometry_core(verts, faces);
             //var mesh_core = make_geometry_core_slower(verts, faces);
 
-            if(0){
-                var materialIndex = 0;
-                this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
-            }
 
             // build geometry
             this.setIndex( new THREE.BufferAttribute( mesh_core.indices, 3 ) );
@@ -244,6 +243,12 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
                 this.addAttribute( 'normal', new THREE.BufferAttribute( mesh_core.normals, 3 ) );
                 this.addAttribute( 'uv', new THREE.BufferAttribute( mesh_core.uvs, 2 ) );
             }
+
+            if(0){
+                var materialIndex = 0;
+                this.addGroup( 0, mesh_core.indices.length, materialIndex ); //not sure about *3 . Why??
+            }
+
         }
     }
 
