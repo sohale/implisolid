@@ -115,7 +115,7 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
-    void create_shape();
+    void create_shape(string name);
     void vertex_resampling();
 
 //field
@@ -625,7 +625,7 @@ void MarchingCubes::addBall(
     }
 }
 
-void MarchingCubes::create_shape(){
+void MarchingCubes::create_shape(string name){
 
       int min_x = 0;
       int max_x = this->size;
@@ -651,10 +651,25 @@ void MarchingCubes::create_shape(){
               }
           }
       }
+      if (name == "double_mushroom"){
+          double_mushroom object(3.3);
+          object.eval_implicit(grid, implicit_function);
+      }
+      else if (name == "egg"){
+          egg object(0.55);
+          object.eval_implicit(grid, implicit_function);
+      }
+      else if (name == "sphere"){
+          unit_sphere object(0.55);
+          object.eval_implicit(grid, implicit_function);
+      }
+      else {
+        cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+        unit_sphere object(0.55);
+        object.eval_implicit(grid, implicit_function);
+      }
 
-      double_mushroom sphere(3.3);
-    //  unit_sphere sphere(0.55);
-      sphere.eval_implicit(grid, implicit_function);
+
 
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
@@ -1362,7 +1377,7 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
 
-    _state.mc->create_shape();
+    _state.mc->create_shape("double_mushroom");
 
     _state.mc->seal_exterior();
 
@@ -1378,7 +1393,7 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
-  //  _state.mc->vertex_resampling();
+    _state.mc->vertex_resampling();
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
