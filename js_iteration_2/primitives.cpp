@@ -65,3 +65,4 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 }
 
 #include "unit_sphere.cpp"
+#include "double_mushroom.cpp"

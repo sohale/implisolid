@@ -652,8 +652,8 @@ void MarchingCubes::create_shape(){
           }
       }
 
-
-      unit_sphere sphere(0.55);
+      double_mushroom sphere(3.3);
+    //  unit_sphere sphere(0.55);
       sphere.eval_implicit(grid, implicit_function);
 
       for (int z = min_z; z < max_z; z++ ) {
@@ -1378,7 +1378,7 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
-    _state.mc->vertex_resampling();
+  //  _state.mc->vertex_resampling();
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
