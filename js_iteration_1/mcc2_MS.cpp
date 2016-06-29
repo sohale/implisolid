@@ -154,7 +154,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     if(VERBOSE)
         std::cout << resolution << " init"<< std::endl;
 
-    this->init( resolution );
+    this->init( this->size );
 
 }
 
@@ -634,10 +634,10 @@ void MarchingCubes::create_shape(string name){
       int min_z = 0;
       int max_z = this->size;
 
-      boost::array<int, 2> grid_shape = {{ resolution*resolution*resolution , 3 }};
+      boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
 
-      boost::array<int, 1> implicit_function_shape = {{ resolution*resolution*resolution }};
+      boost::array<int, 1> implicit_function_shape = {{ this->size*this->size*this->size }};
       boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
 
       for (int z = min_z; z < max_z; z++ ) {
