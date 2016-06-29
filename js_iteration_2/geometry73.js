@@ -72,7 +72,7 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
             if(this.attributes.index.array[j] !== faces[j]){
                 console.error(j);break;
             }
-        //my_assert(this.index.array === faces);
+        //assert(this.attributes.index.array === faces);
 
         if(pre_allocate){
             console.log("Allocating separate space for norms, colors.");
@@ -93,6 +93,10 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
     // ThreeJS does not use prototype-based OOP.
 
     this.update_geometry = function(implicit_service) {
+
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+
         var geometry = this;
         var nverts = implicit_service.get_v_size();
         var nfaces = implicit_service.get_f_size();
@@ -106,12 +110,12 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
             faces_address/_INT_SIZE + 3*nfaces);
 
         var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
-        var g_nfaces = geometry.index.array.length/3;
+        var g_nfaces = geometry.attributes.index.array.length/3;
 
         var nv3 = Math.min(nverts, g_nverts) * 3;
         var nf3 = Math.min(nfaces, g_nfaces) * 3;
-        my_assert(nv3 === verts.length);
-        my_assert(nf3 === faces.length);
+        assert(nv3 === verts.length);
+        assert(nf3 === faces.length);
 
         // *************************************
         // * The following code works only when we use a single instance of the geometry, i.e. used in one Mesh.
@@ -119,16 +123,36 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
         // * So the object will look fine if we disable the wireframe mesh.
         // *************************************
         geometry.attributes.position.array.set(verts);
-        geometry.index.array.set(faces);
+        geometry.attributes.index.array.set(faces);
 
 
-        geometry.setDrawRange( 0, nf3 );
+        //geometry.setDrawRange( 0, nf3 );
+        //geometry.attributes.index.length = nf3;
+        var gl_chunkSize=21845;
+
+        var ii = 0;
+        geometry.offsets.push({start:ii, index: ii , count: Math.min(nf3 - ii, gl_chunkSize*3)});
         /*geometry.clearGroups();
         geometry.addGroup( 0, nf3, 0 );
         */
 
+        //geometry.computeBoundingSphere();
+
         geometry.attributes.position.needsUpdate = true;
-        geometry.index.needsUpdate = true;
+        geometry.attributes.index.needsUpdate = true;
+
+        /*
+        g =currentMeshes[0].geometry
+
+        IMPLICIT.finish_geometry();
+        IMPLICIT.build_geometry(28,0.9);
+        g.update_geometry(IMPLICIT)
+
+
+        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28,i*0.1); g.update_geometry(IMPLICIT);}
+
+        */
+
     };
 
     this.allocate_buffers()
