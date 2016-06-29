@@ -41,7 +41,7 @@ public:
             (output)[output_ctr][2] = r2 * (*i)[2];
             if((*i)[2]<0.8 && (*i)[2]>0.78 && pow((*i)[0],2)+pow((*i)[1],2)<0.9) {(output)[output_ctr][0] = 0;
                         (output)[output_ctr][1] = 0;
-                        (output)[output_ctr][2] = 1;}
+                        (output)[output_ctr][2] = -1;}
             if((*i)[2]>0.80) {(output)[output_ctr][0] = 0;
                         (output)[output_ctr][1] = 0;
                         (output)[output_ctr][2] = -1;}
@@ -50,7 +50,7 @@ public:
                         (output)[output_ctr][2] = 1;}
             if((*i)[2]<-0.80) {(output)[output_ctr][0] = 0;
                         (output)[output_ctr][1] = 0;
-                        (output)[output_ctr][2] = -1;}
+                        (output)[output_ctr][2] = 1;}
         }
     }
     bool integrity_invariant(){
