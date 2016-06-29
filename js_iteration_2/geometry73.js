@@ -47,10 +47,10 @@ function copy_Uint32Array_preallocated(src, prealloc_size)  {
 
 
 /** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
-function LiveBufferGeometry73( verts, faces,  pre_allocate) {
+function LiveBufferGeometry71( verts, faces,  pre_allocate) {
 
     THREE.BufferGeometry.call( this );
-    this.type = 'LiveBufferGeometry73';
+    this.type = 'LiveBufferGeometry71';
 
     this.parameters = { };
 
@@ -158,6 +158,6 @@ function LiveBufferGeometry73( verts, faces,  pre_allocate) {
     this.allocate_buffers()
 };
 
-LiveBufferGeometry73.prototype = Object.create( THREE.BufferGeometry.prototype );
-LiveBufferGeometry73.prototype.constructor = LiveBufferGeometry73;
+LiveBufferGeometry71.prototype = Object.create( THREE.BufferGeometry.prototype );
+LiveBufferGeometry71.prototype.constructor = LiveBufferGeometry71;
 

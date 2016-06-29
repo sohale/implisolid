@@ -53,7 +53,7 @@ var ImplicitService = function(){
         var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
         var allocate_buffers = true;
-        var geom = new LiveBufferGeometry73(verts, faces, allocate_buffers);
+        var geom = new LiveBufferGeometry71(verts, faces, allocate_buffers);
 
         var endTime = new Date();
         var timeDiff = endTime - startTime;
