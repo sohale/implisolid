@@ -110,7 +110,7 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
-    void create_shape(string name);
+    void create_shape(string name, REAL real_size);
     void vertex_resampling();
 
 //field
@@ -618,8 +618,10 @@ void MarchingCubes::addBall(
     }
 }
 
-void MarchingCubes::create_shape(string name){
-
+void MarchingCubes::create_shape(string name, REAL real_size){
+      bool resize = false;
+      if(!resize)
+        real_size=1.0;
       int min_x = 0;
       int max_x = this->size;
       int min_y = 0;
@@ -636,9 +638,9 @@ void MarchingCubes::create_shape(string name){
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = 2.*(REAL)x/(REAL)this->size -1.;
-                  grid[x + y*this->size + z*this->size2][1] = 2.*(REAL)y/(REAL)this->size -1.;
-                  grid[x + y*this->size + z*this->size2][2] = 2.*(REAL)z/(REAL)this->size -1.;
+                  grid[x + y*this->size + z*this->size2][0] = real_size*2.*(REAL)x/(REAL)this->size -1.*real_size;
+                  grid[x + y*this->size + z*this->size2][1] = real_size*2.*(REAL)y/(REAL)this->size -1.*real_size;
+                  grid[x + y*this->size + z*this->size2][2] = real_size*2.*(REAL)z/(REAL)this->size -1.*real_size;
 
 
               }
@@ -653,12 +655,12 @@ void MarchingCubes::create_shape(string name){
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "sphere"){
-          unit_sphere object(0.80);
+          unit_sphere object(0.80*real_size);
           object.eval_implicit(grid, implicit_function);
       }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-        unit_sphere object(1.);
+        unit_sphere object(1.*real_size);
         object.eval_implicit(grid, implicit_function);
       }
 
@@ -1423,8 +1425,8 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
-
-    _state.mc->create_shape("double_mushroom");
+      REAL real_size = 10;
+    _state.mc->create_shape("double_mushroom",real_size);
 
     _state.mc->seal_exterior();
 
@@ -1542,8 +1544,8 @@ int main() {
 
   _state.mc -> isolation = 0.0;
     // before we had some amazing meatballs! merde a celui qui le lira!
-
-  _state.mc->create_shape("sphere");
+    REAL real_size= 10;
+  _state.mc->create_shape("sphere",real_size);
 
   _state.mc->seal_exterior();
 
