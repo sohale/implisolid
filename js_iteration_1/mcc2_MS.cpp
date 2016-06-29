@@ -17,7 +17,7 @@ using namespace std;
 
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
-bool writing_test_file = false;
+bool writing_test_file = true;
 
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
 typedef float REAL;
@@ -653,12 +653,12 @@ void MarchingCubes::create_shape(string name){
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "sphere"){
-          unit_sphere object(0.55);
+          unit_sphere object(0.80);
           object.eval_implicit(grid, implicit_function);
       }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-        unit_sphere object(0.55);
+        unit_sphere object(1.);
         object.eval_implicit(grid, implicit_function);
       }
 
@@ -711,18 +711,18 @@ void MarchingCubes::vertex_resampling(){
 
       if (writing_test_file){
 
-
       ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
 
       f_out << "0ld vertex :" << endl;
       for (int i=0; i< this->result_verts.size()/3.; i++){
           f_out << this->result_verts[3*i];
+          f_out << " ";
           f_out << this->result_verts[3*i+1];
+          f_out << " ";
           f_out << this->result_verts[3*i+2];
           f_out <<  "\n";
       }
       f_out << endl;
-      }
 
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
 
@@ -739,7 +739,9 @@ void MarchingCubes::vertex_resampling(){
       f_out << "n3w vertex :" << endl;
       for (int i=0; i< this->result_verts.size()/3.; i++){
           f_out << this->result_verts[3*i];
+          f_out << " ";
           f_out << this->result_verts[3*i+1];
+          f_out << " ";
           f_out << this->result_verts[3*i+2];
           f_out <<  "\n";
       }
@@ -757,12 +759,19 @@ void MarchingCubes::vertex_resampling(){
       f_out << "centroids:" << endl;
       for (int i=0; i< centroids.shape()[0]; i++){
           f_out << centroids[i][0];
+          f_out << " ";
           f_out << centroids[i][1];
+          f_out << " ";
           f_out << centroids[i][2];
           f_out <<  "\n";
       }
       f_out.close();
     }
+
+    else {
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+    }
+  }
 }
 
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
@@ -1534,7 +1543,7 @@ int main() {
   _state.mc -> isolation = 0.0;
     // before we had some amazing meatballs! merde a celui qui le lira!
 
-  _state.mc->create_shape("double_mushroom");
+  _state.mc->create_shape("sphere");
 
   _state.mc->seal_exterior();
 
@@ -1551,7 +1560,7 @@ int main() {
   }
 
     _state.mc->vertex_resampling();
-    
+
    }
     std::cout << "main();" << std::endl;
 
