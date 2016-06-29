@@ -92,7 +92,7 @@ REAL lerp(REAL a, REAL b, REAL t ) {
 */
 class MarchingCubes{
     bool enableUvs, enableColors;
-    dim_t resolution;
+    //dim_t resolution;
     index_t size, size2, size3; //todo: non-equal grid sizes
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
@@ -239,7 +239,7 @@ void MarchingCubes::init( dim_t resolution ) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
-        this->resolution = resolution;
+        //this->resolution = resolution;
 
         // parameters
 
@@ -2148,7 +2148,7 @@ void* get_f_ptr(){
 void finish_geometry() {
     check_state();
     if(_state.mc == 0){
-        std::cout << "Error: finish_geometry() before producing the shape()" << std::endl;
+        std::cerr << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
     if(!_state.active){
         //std::cout << "Cannot finish_geometry() while still active." << std::endl;

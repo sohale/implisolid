@@ -201,7 +201,7 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
                 faces = copy_Uint32Array(faces, prealloc_size);
                 verts = copy_Float32Array(verts, prealloc_size);
                 */
-                console.log("Aloocating separate space for verts,faces.");
+                console.log("Allocating separate space for verts,faces.");
                 faces = copy_Uint32Array_preallocated(faces, 30000*3);
                 verts = copy_Float32Array_preallocated(verts, 30000*3);
             }
@@ -217,7 +217,7 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
             //my_assert(this.index.array === faces);
 
             if(re_allocate){
-                console.log("Aloocating separate space for norms, colors.");
+                console.log("Allocating separate space for norms, colors.");
                 var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
                 var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
                 //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
