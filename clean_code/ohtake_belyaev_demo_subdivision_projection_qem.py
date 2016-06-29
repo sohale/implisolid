@@ -1640,7 +1640,7 @@ def demo_combination_plus_qem():
     NUMBER_OF_ITERATION_GLOBAL = 2
 
     from example_objects import make_example_vectorized
-    object_name = "cube_with_cylinders"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
+    object_name = "sphere_example"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
@@ -1668,20 +1668,48 @@ def demo_combination_plus_qem():
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
-    print("MC calculated."); sys.stdout.flush()
+    print("MC calculated.")
+    sys.stdout.flush()
+
+    # creating a file where we are going to collect some data to make some test and comparison with
+    # the cpp code
 
     # **********************
     # ******* n-loop *******
     # **********************
     for i in range(NUMBER_OF_ITERATION_GLOBAL):
 
-        # **********************
+        # *********************
         # * vertex relaxation *
-        # **********************
+        # *********************
         for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
+
+            old_vertex = vertex
             vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
+            writing_test_file = False
+            if (writing_test_file):
+                f_out = open("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo.txt", "w")
+                f_out.write("0ld vertex :" + '\n')
+                for i in range(old_vertex.shape[0]):
+                    f_out.write(str(old_vertex[i, :]) + '\n')
+                f_out.write('\n' + "n3w vertex :" + '\n')
+                for i in range(vertex.shape[0]):
+                    f_out.write(str(vertex[i, :]) + '\n')
+                f_out.write("faces :" + '\n')
+                for i in range(faces.shape[0]):
+                    f_out.write(str(faces[i, :]) + '\n')
+                # f_out.write("faces_of_faces :" + '\n')
+                # for i in range(process2_vertex_resampling_relaxation.faces_of_faces.shape[0]):
+                #     f_out.write(str(process2_vertex_resampling_relaxation.faces_of_faces[i, :]) + '\n')
+                f_out.write("centroids :" + '\n')
+                for i in range(centroids.shape[0]):
+                    f_out.write(str(centroids[i, :]) + '\n')
+                f_out.close()
+                exit()
+
             assert not np.any(np.isnan(vertex.ravel()))  # fails
-            print("vertex relaxation applied.");sys.stdout.flush()
+            print("vertex relaxation applied.")
+            sys.stdout.flush()
 
         # ************************
         # ** projection and qem **
@@ -1702,9 +1730,8 @@ def demo_combination_plus_qem():
 
         vertex_before_qem = vertex
 
-
         # ************************
-        # **  subdivision **
+        # *****  subdivision *****
         # ************************
         pre_subdiv_vf = (new_vertex_qem, faces)
     #    total_subdivided_facets = []
@@ -1724,7 +1751,6 @@ def demo_combination_plus_qem():
                   mayavi_wireframe=[False, use_wireframe, True, ], opacity=[0.2, 1, 0.3], gradients_at=None, gradients_from_iobj=None,
                   minmax=(RANGE_MIN,RANGE_MAX))
 
-
     # ***************************
     # ******* And finally *******
     # ***************************
@@ -1732,7 +1758,8 @@ def demo_combination_plus_qem():
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
         assert not np.any(np.isnan(vertex.ravel()))  # fails
-        print("vertex relaxation applied.");sys.stdout.flush()
+        print("vertex relaxation applied.")
+        sys.stdout.flush()
 
     # ************************
     # ** projection and qem **

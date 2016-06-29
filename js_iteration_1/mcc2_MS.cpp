@@ -6,6 +6,7 @@
 #include <map>
 #include "../js_iteration_2/primitives.cpp"
 #include "vertex_resampling.cpp"
+#include <fstream>
 //#include "../js_iteration_2/basic_data_structures.hpp"
 //#include "../js_iteration_2/unit_sphere.hpp"
 
@@ -16,7 +17,7 @@ using namespace std;
 
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
-
+bool writing_test_file = false;
 
 typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
 typedef float REAL;
@@ -31,12 +32,6 @@ typedef std::map<index3_t,int>  e3map_t;
 
 
 struct callback_t { void call (void*) const { } callback_t(){} };
-
-// array_shape_t make_shape_1d(int size) {
-//     array_shape_t shape = {{ size, }};
-//     return shape;
-// }
-
 
 REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
@@ -152,20 +147,20 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->enableColors = enableColors;
 
     if(VERBOSE)
-        std::cout << this->size << " init"<< std::endl;
+        std::cout << resolution << " init"<< std::endl;
 
-    this->init( this->size );
+    this->init( resolution );
 
 }
 
 
-void MarchingCubes::init( dim_t size ) {
+void MarchingCubes::init( dim_t resolution ) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
         this->isolation = 80.0;
 
-        this->size = size;
+        this->size = resolution;
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
         this->halfsize = ((REAL)this->size) / 2.0;
@@ -714,7 +709,25 @@ void MarchingCubes::vertex_resampling(){
         faces[output_faces][2] = (*i_f);
       }
 
+      if (writing_test_file){
+
+
+      ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+
+      f_out << "0ld vertex :" << endl;
+      for (int i=0; i< this->result_verts.size()/3.; i++){
+          f_out << this->result_verts[3*i];
+          f_out << this->result_verts[3*i+1];
+          f_out << this->result_verts[3*i+2];
+          f_out <<  "\n";
+      }
+      f_out << endl;
+      }
+
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids);
+
+      if (writing_test_file){
+
 
       for (int i=0; i<verts.shape()[0]; i++){
         this->result_verts[i*3+0] = new_verts[i][0];
@@ -722,6 +735,34 @@ void MarchingCubes::vertex_resampling(){
         this->result_verts[i*3+2] = new_verts[i][2];
 
       }
+
+      f_out << "n3w vertex :" << endl;
+      for (int i=0; i< this->result_verts.size()/3.; i++){
+          f_out << this->result_verts[3*i];
+          f_out << this->result_verts[3*i+1];
+          f_out << this->result_verts[3*i+2];
+          f_out <<  "\n";
+      }
+
+      f_out << "faces :" << endl;
+      for (int i=0; i< this->result_faces.size()/3.; i++){
+          f_out << this->result_faces[3*i];
+          f_out << " ";
+          f_out << this->result_faces[3*i+1];
+          f_out << " ";
+          f_out << this->result_faces[3*i+2];
+          f_out <<  "\n";
+      }
+
+      f_out << "centroids:" << endl;
+      for (int i=0; i< centroids.shape()[0]; i++){
+          f_out << centroids[i][0];
+          f_out << centroids[i][1];
+          f_out << centroids[i][2];
+          f_out <<  "\n";
+      }
+      f_out.close();
+    }
 }
 
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
@@ -1333,7 +1374,6 @@ public:
 };
 
 
-
 extern "C" {
     void build_geometry(int resolution, REAL time);
     int get_v_size();
@@ -1392,6 +1432,18 @@ void build_geometry(int resolution, REAL time){
     }
 
     _state.mc->vertex_resampling();
+
+    // ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+    //
+    // f_out << "0ld vertex :" << endl;
+    // for (int i=0; i< _state.mc->result_verts.size(); i++){
+    //     f_out << to_string(_state.mc->result_verts[3*i]);
+    //     f_out << _state.mc->result_verts[3*i+1];
+    //     f_out << _state.mc->result_verts[3*i+2];
+    //     f_out <<  "\n";
+    // }
+    //
+    // f_out.close();
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
@@ -1469,7 +1521,39 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
+  if (writing_test_file){
 
+  int resolution = 28;
+  REAL time = 0.2;
+  check_state_null();
+  bool enableUvs = true;
+  bool enableColors = true;
+
+  _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+
+  _state.mc -> isolation = 0.0;
+    // before we had some amazing meatballs! merde a celui qui le lira!
+
+  _state.mc->create_shape("double_mushroom");
+
+  _state.mc->seal_exterior();
+
+  const callback_t renderCallback;
+  _state.mc->render_geometry(renderCallback);
+
+  if(REPORT_STATS){
+  int mapctr = 0;
+  for (auto& kv_pair: _state.mc->result_e3map){
+      if(0)
+          std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+      mapctr++;
+    }
+  }
+
+    _state.mc->vertex_resampling();
+    
+   }
     std::cout << "main();" << std::endl;
+
     return 0;
 }

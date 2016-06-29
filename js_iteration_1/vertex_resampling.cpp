@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <fstream>
 
 using namespace std;
 
@@ -284,6 +285,30 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
    centroids, centroid_normals_normalized);
+
+  //  ofstream f_out ("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+  //  f_out << "0ld vertex :\n";
+  //  for (int i=0; i< verts.shape()[0]; i++){
+  //      f_out << to_string(verts[i][0]);
+  //      f_out << verts[i][1];
+  //      f_out << verts[i][2];
+  //      f_out <<  "\n";
+  //  }
+
+  //  f_out.write('\n' + "n3w vertex :" + '\n')
+  //  for i in range(vertex.shape[0]):
+  //      f_out.write(str(vertex[i, :]) + '\n')
+  //  f_out.write("faces :" + '\n')
+  //  for i in range(faces.shape[0]):
+  //      f_out.write(str(faces[i, :]) + '\n')
+  //  # f_out.write("faces_of_faces :" + '\n')
+  //  # for i in range(process2_vertex_resampling_relaxation.faces_of_faces.shape[0]):
+  //  #     f_out.write(str(process2_vertex_resampling_relaxation.faces_of_faces[i, :]) + '\n')
+  //  f_out.write("centroids :" + '\n')
+  //  for i in range(centroids.shape[0]):
+  //      f_out.write(str(centroids[i, :]) + '\n')
+
+  // f_out.close();
 
 
 }
