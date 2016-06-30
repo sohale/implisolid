@@ -10,11 +10,19 @@ python_data = open("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/dat
 cpp_data = open("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt", "r")
 file_test = open("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_analysis_summary.txt", "w")
 
+# ************************
+# ******** Python ********
+# ************************
 
 old_vertex_p = np.zeros((2400, 3))
 new_vertex_p = np.zeros((2400, 3))
 faces_p = np.zeros((4796, 3))
 centroids_p = np.zeros((4796, 3))
+norm_old_vertex_p = np.zeros(2400)
+norm_new_vertex_p = np.zeros(2400)
+num_neig_vertex_p = np.zeros(2400)
+
+# creating the arrays
 
 i = 0
 for line_p in python_data:
@@ -55,10 +63,44 @@ for line_p in python_data:
                 centroids_p[i-9602, k] = float(vertex[j])
                 k += 1
 
+
+# *************************
+# ********  test1  ********
+# *************************
+
+norm_old_vertex_p = np.linalg.norm(old_vertex_p, axis=1)
+norm_new_vertex_p = np.linalg.norm(new_vertex_p, axis=1)
+
+mean_norm_old_vertex_p = np.mean(norm_old_vertex_p)
+mean_norm_new_vertex_p = np.mean(norm_new_vertex_p)
+
+d_m_ir_o_p = abs(mean_norm_old_vertex_p - 1.)
+d_m_ir_n_p = abs(mean_norm_new_vertex_p - 1.)
+
+# *************************
+# ********  test2  ********
+# *************************
+
+for j in range(faces_p.shape[0]):
+    num_neig_vertex_p[faces_p[j, 0]] += 1
+    num_neig_vertex_p[faces_p[j, 1]] += 1
+    num_neig_vertex_p[faces_p[j, 2]] += 1
+
+mean_num_neig_v_p = np.mean(num_neig_vertex_p)
+
+# *************************
+# *********  C++  *********
+# *************************
+
 old_vertex_cpp = np.zeros((2406, 3))
 new_vertex_cpp = np.zeros((2406, 3))
 faces_cpp = np.zeros((4808, 3))
 centroids_cpp = np.zeros((4808, 3))
+norm_old_vertex_cpp = np.zeros(2406)
+norm_new_vertex_cpp = np.zeros(2406)
+num_neig_vertex_cpp = np.zeros(2406)
+
+# creating the arrays
 
 i = 0
 for line_cpp in cpp_data:
@@ -92,6 +134,42 @@ for line_cpp in cpp_data:
             if vertex[j] != " " and vertex[j] != "":
                 centroids_cpp[i-9626, k] = float(vertex[j])
                 k += 1
+
+# *************************
+# ********  test1  ********
+# *************************
+
+norm_old_vertex_cpp = np.linalg.norm(old_vertex_cpp, axis=1)
+norm_new_vertex_cpp = np.linalg.norm(new_vertex_cpp, axis=1)
+
+mean_norm_old_vertex_cpp = np.mean(norm_old_vertex_cpp)
+mean_norm_new_vertex_cpp = np.mean(norm_new_vertex_cpp)
+
+d_m_ir_o_cpp = abs(mean_norm_old_vertex_cpp - 0.8)/0.8
+d_m_ir_n_cpp = abs(mean_norm_new_vertex_cpp - 0.8)/0.8
+
+
+# *************************
+# ********  test2  ********
+# *************************
+
+for j in range(faces_cpp.shape[0]):
+    num_neig_vertex_cpp[faces_cpp[j, 0]] += 1
+    num_neig_vertex_cpp[faces_cpp[j, 1]] += 1
+    num_neig_vertex_cpp[faces_cpp[j, 2]] += 1
+
+mean_num_neig_v_cpp = np.mean(num_neig_vertex_cpp)
+
+# writing into the file
+
+file_test.write("Mean distance between the computed points and the ideal point of the sphere for the old vertex in python: " + str(d_m_ir_o_p) + "\n")
+file_test.write("Mean distance between the computed points and the ideal point of the sphere for the old vertex in cpp:    " + str(d_m_ir_o_cpp) + "\n")
+file_test.write("\n")
+file_test.write("Mean distance between the computed points and the ideal point of the sphere for the new vertex in python: " + str(d_m_ir_n_p) + "\n")
+file_test.write("Mean distance between the computed points and the ideal point of the sphere for the new vertex in cpp:    " + str(d_m_ir_n_cpp) + "\n")
+file_test.write("\n")
+file_test.write("Mean number of neighbours of vertex in python: " + str(mean_num_neig_v_p) + "\n")
+file_test.write("Mean number of neighbours of vertex in cpp:    " + str(mean_num_neig_v_cpp) + "\n")
 
 
 python_data.close()
