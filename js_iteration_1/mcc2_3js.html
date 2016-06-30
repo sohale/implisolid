@@ -3,6 +3,15 @@
 <meta charset="utf-8"/>
 </head>
 
+<style>
+.stat-panel{
+    position:fixed;
+    top:0px;
+    right:0px;
+    width:100px;
+    /* z-index:1000; */
+}
+</style>
 
 <body>
 <canvas id="my_canvas"></canvas>
@@ -962,10 +971,10 @@ function add_graph_div(){
 <!--
 To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed();
 -->
-<!--
-<div id="chart_div" style="width: 900px; height: 500px;">
+
+<div id="chart_div" class="stat-panel" no_style="width: 900px; height: 500px;">
 </div>
--->
+
 
 <script>
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
@@ -988,4 +997,4 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         onRuntimeInitialized: set_off,
     };
 </script>
-<script type="text/javascript" src="mcc2.cpp.js"></script>
+<script type="text/javascript" src="mcc2.compiled.js"></script>
