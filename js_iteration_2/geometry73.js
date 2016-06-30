@@ -55,39 +55,59 @@ function LiveBufferGeometry71( verts, faces,  pre_allocate) {
     this.parameters = { };
 
     this.allocate_buffers = function(){
-
+        const PADSIZE = 3000*0;
+        var padded_faces, padded_verts;
         if(pre_allocate){
             console.log("Allocating separate space for verts,faces.");
-            faces = copy_Uint32Array_preallocated(faces, 30000*3);
-            verts = copy_Float32Array_preallocated(verts, 30000*3);
+            padded_faces = copy_Uint32Array_preallocated(faces, PADSIZE*3);
+            padded_verts = copy_Float32Array_preallocated(verts, PADSIZE*3);
+        }
+        else
+        {
+            // Warning: not cloned
+            //padded_faces = faces;
+            //padded_verts = verts;
+            console.error("padded_faces = ?");
         }
         assert(pre_allocate);  // Will be wrong if pre_allocate is false
 
         // build geometry
 
-        this.addAttribute( 'index', new THREE.BufferAttribute( faces, 3 ) );
-        this.addAttribute( 'position', new THREE.BufferAttribute( verts, 3 ) );
-        //this.setIndex( new THREE.BufferAttribute( faces, 3 ) ); //new Uint32Array(faces) ??
+        this.addAttribute( 'index', new THREE.BufferAttribute( padded_faces, 3 ) );
+        this.addAttribute( 'position', new THREE.BufferAttribute( padded_verts, 3 ) );
+        //this.setIndex( new THREE.BufferAttribute( padded_faces, 3 ) ); //new Uint32Array(padded_faces) ??
         for(var j=0;j<faces.length;j++)
             if(this.attributes.index.array[j] !== faces[j]){
                 console.error(j);break;
             }
-        //assert(this.attributes.index.array === faces);
+        //assert(this.attributes.index.array === padded_faces);
 
+        var padded_normals;
         if(pre_allocate){
             console.log("Allocating separate space for norms, colors.");
-            var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, "random");
-            //var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, "random");
-            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, "random");
-            normals.set(verts);
+            padded_normals = copy_Float32Array_preallocated(verts, PADSIZE*3, "random");
+            //var padded_colors = copy_Float32Array_preallocated(verts, PADSIZE*3, "random");
+            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), PADSIZE*3 * 0, "random");
+            padded_normals.set(padded_verts);
+        }
+        else{
+            console.error("padded_normals = ?");
         }
 
-        this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
-        //this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) ); color is overidden
+        this.addAttribute( 'normal', new THREE.BufferAttribute( padded_normals, 3, true ) );
+        //this.addAttribute( 'color', new THREE.BufferAttribute( padded_colors, 3, true ) ); color is overidden
         //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
         //var materialIndex = 0;
         //this.addGroup( 0, faces.length*1-10, materialIndex );
+
+        var nf3 = faces.length;
+        var gl_chunkSize=21845;
+
+        var ii = 0;
+        this.offsets.push({start:ii, index: ii , count: Math.min(nf3 - ii, gl_chunkSize*3)});
+        this.attributes
+
     }
 
     // ThreeJS does not use prototype-based OOP.
