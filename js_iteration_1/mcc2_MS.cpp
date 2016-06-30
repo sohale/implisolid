@@ -727,7 +727,6 @@ void MarchingCubes::vertex_resampling(string name){
           f_out <<  "\n";
       }
       f_out << endl;
-
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name);
 
       for (int i=0; i<verts.shape()[0]; i++){
@@ -1450,7 +1449,9 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
+    for (int i=0; i<3; i++){
     _state.mc->vertex_resampling(name);
+    }
 
     // ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
     //

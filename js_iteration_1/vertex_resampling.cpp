@@ -237,7 +237,7 @@ REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized)
   return kij;
 }
 
-REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c=2.0){
+REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c=2000.0){
   REAL ki = 0;
   for (int j_faces=0; j_faces<3; j_faces ++){
     ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
@@ -250,12 +250,12 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized){
   int nfaces = centroids.shape()[0];
-  float c=2.0;
+  float c=2000.0;
   boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
   for (int i_faces=0; i_faces<nfaces; i_faces++){
-    REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2.0);
+    REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2000.0);
     wi_total_array[i_faces] = w;
   }
   for (int i=0; i< new_verts.shape()[0]; i++){
@@ -266,6 +266,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     for (int j=0; j< umbrella_faces.size(); j++){
       sum_w += wi_total_array[umbrella_faces[j]];
     }
+
     for (int j=0; j< umbrella_faces.size(); j++){
       w.push_back(wi_total_array[umbrella_faces[j]]/sum_w);
     }
@@ -273,6 +274,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     REAL new_verts_y = 0;
     REAL new_verts_z = 0;
     for (int j=0; j< umbrella_faces.size(); j++){
+      cout << w[j] << endl;
       new_verts_x += w[j]*centroids[umbrella_faces[j]][0];
       new_verts_y += w[j]*centroids[umbrella_faces[j]][1];
       new_verts_z += w[j]*centroids[umbrella_faces[j]][2];
