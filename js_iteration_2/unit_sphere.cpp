@@ -33,10 +33,10 @@ public:
         int output_ctr=0;
         auto i = x.begin();
         auto e = x.end();
-        for(; i<e; i++, output_ctr++){
+        for(; i!=e; i++, output_ctr++){
             (output)[output_ctr][0] = -2. * (*i)[0];
             (output)[output_ctr][1] = -2. * (*i)[1];
-            (output)[output_ctr][2] = -2. * (*i)[1];
+            (output)[output_ctr][2] = -2. * (*i)[2];
         }
     }
     bool integrity_invariant(){
