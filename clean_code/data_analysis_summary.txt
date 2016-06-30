@@ -1,0 +1,17 @@
+Mean distance between the computed points and the ideal point of the sphere for the old vertex in python: 0.000655995280335
+Mean distance between the computed points and the ideal point of the sphere for the old vertex in cpp:    0.000640274669028
+
+Mean distance between the computed points and the ideal point of the sphere for the new vertex in python: 0.00316693743604
+Mean distance between the computed points and the ideal point of the sphere for the new vertex in cpp:    0.00312990614688
+
+Mean number of neighbours of vertex in python: 5.995
+Mean number of neighbours of vertex in cpp:    5.99501246883
+
+Mean distance between the computed points and the ideal point of the sphere for the centroids in python: 0.00205822339052
+Mean distance between the computed points and the ideal point of the sphere for the centroids in cpp:    0.00204993663028
+
+Mean edge length for the old vertex in python: 0.0849056749902
+Mean edge length for the old vertex in cpp:    0.084612825424
+
+Mean edge length for the new vertex in python: 0.0801389977967
+Mean edge length for the new vertex in cpp:    0.0798321316946
