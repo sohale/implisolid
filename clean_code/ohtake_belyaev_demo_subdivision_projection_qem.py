@@ -1643,7 +1643,8 @@ def demo_combination_plus_qem():
     object_name = "sphere_example"  # "sphere_example" #or "rcube_vec" work well #"ell_example1"#"cube_with_cylinders"#"ell_example1"  " #"rdice_vec" #"cube_example"
     iobj = make_example_vectorized(object_name)
 
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.09)
+    # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.0887) this stepsize is the one we use to compare the result with the c++ code( same resolution)
+    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     if object_name == "cube_with_cylinders" or object_name == "twist_object" or object_name == "french_fries" or object_name == "rdice_vec" or object_name == "cyl4" or object_name == "rods" or object_name == "bowl_15_holes":
         VERTEX_RELAXATION_ITERATIONS_COUNT = 1
 
