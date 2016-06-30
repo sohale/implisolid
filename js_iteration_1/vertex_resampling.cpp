@@ -51,24 +51,6 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, string name){
 
-//*********  old version  with hardcoded functions for each object*************//
-
-  // bool normalise = true;
-  // if (object_name == "sphere"){
-  //   gradient_sphere(centroids,centroid_normals_normalized);
-  // }
-  // else if (object_name == "modified_sphere"){
-  //   gradient_modified_sphere(centroids,centroid_normals_normalized);
-  // }
-  // else if (object_name == "glass"){
-  //   gradient_glass(centroids,centroid_normals_normalized);
-  // }
-  // else{
-  //   cout << "error" << endl;
-  // }
-
-//********* new version : each shape is an object of a class that implments implicite_function.hpp and has two methods : eval_implicit and eval_gradient*******//
-
 if (name == "double_mushroom"){
     double_mushroom gradou(3.3);
     gradou.eval_gradient(centroids, centroid_normals_normalized);
@@ -87,28 +69,16 @@ else {
   gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 
-cout << name << endl;
-cout << centroids[4][0] << endl;
-cout << centroid_normals_normalized[1000][0] << endl;
-cout << centroid_normals_normalized[1000][1] << endl;
-cout << centroid_normals_normalized[1000][2] << endl;
-
-//*********check the code above for correctness ****************//
   if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
       REAL norm = sqrt(pow(centroid_normals_normalized[i][0],2)+pow(centroid_normals_normalized[i][1],2)+pow(centroid_normals_normalized[i][2],2));
       for(int j = 0; j < 3; j++){
         centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
       }
-    if (i==1000){
-      cout << norm << endl;
-    }
+
     }
   }
 
-  cout << centroid_normals_normalized[1000][0] << endl;
-cout << centroid_normals_normalized[1000][1] << endl;
-cout << centroid_normals_normalized[1000][2] << endl;
 }
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
@@ -125,10 +95,6 @@ vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& fac
     }
   }
 
-  //for(int i=0; i<neighbour_faces_of_vertex.size(); i++){
-    //cout << neighbour_faces_of_vertex[i][0] << endl;
-    //cout << neighbour_faces_of_vertex[i][1] << endl;
-  //}
   return neighbour_faces_of_vertex;
 }
 
@@ -146,7 +112,6 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   for (int fi=0; fi<nfaces; fi++){
     for (int vj=0; vj<3; vj++){
       assert(fi<nfaces);
-      //cout << "let's check this edge yes yes" << endl;
       bool new_edge = false;
       int v2j = (vj+1)%3;
       int e1 = faces[fi][vj];
@@ -184,25 +149,26 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
       }
     }
   }
-  cout << "edge lookup over" << endl;
 
 }
 
 void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& faces_of_faces){
   for(int face = 0; face < edges_of_faces.shape()[0]; face++){
-  for(int edge = 0; edge < 3; edge++){
-    if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
-      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][0];
-    else{
-      assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
-      faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
-  }}
+    for(int edge = 0; edge < 3; edge++){
+      if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
+        faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][0];
+      else{
+        assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
+        faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
+    }
+  }
   for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
     for(int faces = 0; faces<3; faces++){
       assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
           face==faces_of_faces[faces_of_faces[face][faces]][1] ||
           face==faces_of_faces[faces_of_faces[face][faces]][2]);
-}}
+    }
+  }
 }
 
 REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized){
@@ -274,7 +240,6 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     REAL new_verts_y = 0;
     REAL new_verts_z = 0;
     for (int j=0; j< umbrella_faces.size(); j++){
-      cout << w[j] << endl;
       new_verts_x += w[j]*centroids[umbrella_faces[j]][0];
       new_verts_y += w[j]*centroids[umbrella_faces[j]][1];
       new_verts_z += w[j]*centroids[umbrella_faces[j]][2];
@@ -313,30 +278,4 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
    centroids, centroid_normals_normalized);
-
-  //  ofstream f_out ("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
-  //  f_out << "0ld vertex :\n";
-  //  for (int i=0; i< verts.shape()[0]; i++){
-  //      f_out << to_string(verts[i][0]);
-  //      f_out << verts[i][1];
-  //      f_out << verts[i][2];
-  //      f_out <<  "\n";
-  //  }
-
-  //  f_out.write('\n' + "n3w vertex :" + '\n')
-  //  for i in range(vertex.shape[0]):
-  //      f_out.write(str(vertex[i, :]) + '\n')
-  //  f_out.write("faces :" + '\n')
-  //  for i in range(faces.shape[0]):
-  //      f_out.write(str(faces[i, :]) + '\n')
-  //  # f_out.write("faces_of_faces :" + '\n')
-  //  # for i in range(process2_vertex_resampling_relaxation.faces_of_faces.shape[0]):
-  //  #     f_out.write(str(process2_vertex_resampling_relaxation.faces_of_faces[i, :]) + '\n')
-  //  f_out.write("centroids :" + '\n')
-  //  for i in range(centroids.shape[0]):
-  //      f_out.write(str(centroids[i, :]) + '\n')
-
-  // f_out.close();
-
-
 }

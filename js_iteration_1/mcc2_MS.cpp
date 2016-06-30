@@ -7,9 +7,6 @@
 #include "../js_iteration_2/primitives.cpp"
 #include "vertex_resampling.cpp"
 #include <fstream>
-//#include "../js_iteration_2/basic_data_structures.hpp"
-//#include "../js_iteration_2/unit_sphere.hpp"
-
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
@@ -155,61 +152,61 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
 
 void MarchingCubes::init( dim_t resolution ) {
-        // May throw  std::bad_alloc. See #include <new>
-        // init() is only called by the constructor
+    // May throw  std::bad_alloc. See #include <new>
+    // init() is only called by the constructor
 
-        this->isolation = 80.0;
+    this->isolation = 80.0;
 
-        this->size = resolution;
-        this->size2 = this->size * this->size;
-        this->size3 = this->size2 * this->size;
-        this->halfsize = ((REAL)this->size) / 2.0;
+    this->size = resolution;
+    this->size2 = this->size * this->size;
+    this->size3 = this->size2 * this->size;
+    this->halfsize = ((REAL)this->size) / 2.0;
 
-        // deltas
-        this->delta = 2.0 / (REAL)this->size;
-        this->yd = this->size;
-        this->zd = this->size2;
-        this->yd_global = this->size;
-        this->zd_global = this->size2;
+    // deltas
+    this->delta = 2.0 / (REAL)this->size;
+    this->yd = this->size;
+    this->zd = this->size2;
+    this->yd_global = this->size;
+    this->zd_global = this->size2;
 
-        array_shape_t size = {(int)this->size3};
-        this->field = array1d(size);
+    array_shape_t size = {(int)this->size3};
+    this->field = array1d(size);
 
-        assert(this->size3 < 10000000);
-        assert(this->size3 > 0);
-
-
-        if(false){
-            this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
-        }
-
-        this->queue_counter = 0;
-
-        this->hasPositions = false;
-        this->hasColors = false;
-        this->hasUvs = false;
+    assert(this->size3 < 10000000);
+    assert(this->size3 > 0);
 
 
-        auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
-        this->positionQueue = array1d(shape_maxCount_x_3);
-        auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
-        this->e3Queue = array1d_e3(shape_maxCount_x_1);
+    if(false){
+        this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
+    }
 
-        auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
+    this->queue_counter = 0;
 
-        if ( this->enableUvs ) {
-
-            this->uvQueue = 0;
-            this->uvQueue = new array1d(shape_maxCount_x_2);
-
-        }
+    this->hasPositions = false;
+    this->hasColors = false;
+    this->hasUvs = false;
 
 
-        if ( this->enableColors ) {
-            this->colorQueue = 0;
-            this->colorQueue = new array1d(shape_maxCount_x_3);
+    auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
+    this->positionQueue = array1d(shape_maxCount_x_3);
+    auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
+    this->e3Queue = array1d_e3(shape_maxCount_x_1);
 
-        }
+    auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
+
+    if ( this->enableUvs ) {
+
+        this->uvQueue = 0;
+        this->uvQueue = new array1d(shape_maxCount_x_2);
+
+    }
+
+
+    if ( this->enableColors ) {
+        this->colorQueue = 0;
+        this->colorQueue = new array1d(shape_maxCount_x_3);
+
+    }
 
 }
 
@@ -236,12 +233,7 @@ MarchingCubes::~MarchingCubes()
     }
 }
 
-void MarchingCubes::kill()
-
-{
-    ;
-}
-
+void MarchingCubes::kill() {  ;}
 
 
 inline void MarchingCubes:: VIntX(
@@ -290,12 +282,8 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
 }
 
 inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
-    index_t ijk, array1d_e3& e3out )
-{
-
-
+    index_t ijk, array1d_e3& e3out ){
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
-
 
     pout[ offset ]     = x;
     pout[ offset + 1 ] = y;
@@ -322,12 +310,12 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     index3_t ijk_0 = q;
     index3_t
-             ijk_x = ijk_0 + 1 ,
-             ijk_y = ijk_0 + this->yd_global ,
-             ijk_z = ijk_0 + this->zd_global ,
-             ijk_xy = ijk_0 + 1 + this->yd_global ,
-             ijk_yz = ijk_0 + this->yd_global + this->zd_global ,
-             ijk_xz = ijk_0 + 1 + this->zd_global ;
+        ijk_x = ijk_0 + 1 ,
+        ijk_y = ijk_0 + this->yd_global ,
+        ijk_z = ijk_0 + this->zd_global ,
+        ijk_xy = ijk_0 + 1 + this->yd_global ,
+        ijk_yz = ijk_0 + this->yd_global + this->zd_global ,
+        ijk_xz = ijk_0 + 1 + this->zd_global ;
 
     unsigned int cubeindex = 0;
 
@@ -367,66 +355,54 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     if ( bits & 1 ) {
         this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1,  ijk_0, this->e3list_buffer);
-
     }
 
     if ( bits & 2 ) {
         this->VIntY( qx * 3, this->vlist_buffer, this->nlist_buffer, 3, isol, fx2, fy, fz, field1, field3,  ijk_x, this->e3list_buffer);
-
     }
 
     if ( bits & 4 ) {
         this->VIntX( qy * 3, this->vlist_buffer, this->nlist_buffer, 6, isol, fx, fy2, fz, field2, field3,  ijk_y , this->e3list_buffer);
-
     }
 
     if ( bits & 8 ) {
         this->VIntY( q * 3, this->vlist_buffer, this->nlist_buffer, 9, isol, fx, fy, fz, field0, field2,  ijk_0, this->e3list_buffer);
-
     }
 
     // bottom of the cube
 
     if ( bits & 16 ) {
         this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5,  ijk_z, this->e3list_buffer);
-
     }
 
     if ( bits & 32 ) {
         this->VIntY( qxz * 3,  this->vlist_buffer, this->nlist_buffer, 15, isol, fx2, fy, fz2, field5, field7,  ijk_xz, this->e3list_buffer );
-
     }
 
     if ( bits & 64 ) {
         this->VIntX( qyz * 3, this->vlist_buffer, this->nlist_buffer, 18, isol, fx, fy2, fz2, field6, field7,  ijk_yz, this->e3list_buffer );
-
     }
 
     if ( bits & 128 ) {
         this->VIntY( qz * 3,  this->vlist_buffer, this->nlist_buffer, 21, isol, fx, fy, fz2, field4, field6,  ijk_z, this->e3list_buffer );
-
     }
 
     // vertical lines of the cube
 
     if ( bits & 256 ) {
         this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4,  ijk_0, this->e3list_buffer);
-
     }
 
     if ( bits & 512 ) {
         this->VIntZ( qx * 3,  this->vlist_buffer, this->nlist_buffer, 27, isol, fx2, fy,  fz, field1, field5,  ijk_x, this->e3list_buffer );
-
     }
 
     if ( bits & 1024 ) {
         this->VIntZ( qxy * 3, this->vlist_buffer, this->nlist_buffer, 30, isol, fx2, fy2, fz, field3, field7,  ijk_xy, this->e3list_buffer);
-
     }
 
     if ( bits & 2048 ) {
         this->VIntZ( qy * 3, this->vlist_buffer, this->nlist_buffer, 33, isol, fx,  fy2, fz, field2, field6,  ijk_y, this->e3list_buffer );
-
     }
 
     cubeindex <<= 4;
@@ -546,7 +522,6 @@ void MarchingCubes::begin_queue() {
     this->hasColors = false;
 }
 
-//
 void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
 
     if ( this->queue_counter == 0 ) return;
@@ -566,8 +541,6 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
     renderCallback.call(this);
     sow();
 }
-
-
 
 /////////////////////////////////////
 // Metaballs
@@ -619,6 +592,7 @@ void MarchingCubes::addBall(
 }
 
 void MarchingCubes::create_shape(string name, REAL real_size){
+      //resize can be used on the sphere to make it bigger
       bool resize = false;
       if(!resize)
         real_size=1.0;
@@ -671,8 +645,6 @@ void MarchingCubes::create_shape(string name, REAL real_size){
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
                 this->field[x + y*this->size + z*this->size2] = implicit_function[x + y*this->size + z*this->size2];
-            //      cout << implicit_function[x + y*this->size + z*this->size2] << endl;
-
               }
           }
       }
@@ -895,8 +867,6 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
         }
     }
 }
-
-
 
 /////////////////////////////////////
 // Updates
@@ -1267,7 +1237,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
 
   std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
-
     for ( int vert_i = 0; vert_i < this->queue_counter; vert_i++ ) {
 
         int a = vert_i * 3;
@@ -1357,40 +1326,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
     }
 }
 
-
-class MarchingCubesMock {
-
-public:
-    MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
-    ~MarchingCubesMock() {};
-
-    void flush_geometry_queue(std::ostream& cout, int& marching_cube_start, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
-        {};
-
-    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
-
-    REAL isolation;
-
-//shape:
-    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract ) {};
-    void addPlaneX( REAL strength, REAL subtract ) {};
-    void addPlaneZ( REAL strength, REAL subtract ) {};
-    void addPlaneY( REAL strength, REAL subtract ) {};
-    void seal_exterior(const REAL exterior_value = -1.) {};
-//field
-    void reset() {};
-
-//geometry/threejs interface side.
-    void render_geometry(const callback_t& renderCallback ) {};
-    void sow() {};
-
-// output. filled using sow()
-    int resultqueue_faces_start = 0;
-    std::vector<REAL> result_verts;
-    std::vector<int> result_faces;
-};
-
-
 extern "C" {
     void build_geometry(int resolution, REAL time);
     int get_v_size();
@@ -1452,18 +1387,6 @@ void build_geometry(int resolution, REAL time){
     for (int i=0; i<3; i++){
     _state.mc->vertex_resampling(name);
     }
-
-    // ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
-    //
-    // f_out << "0ld vertex :" << endl;
-    // for (int i=0; i< _state.mc->result_verts.size(); i++){
-    //     f_out << to_string(_state.mc->result_verts[3*i]);
-    //     f_out << _state.mc->result_verts[3*i+1];
-    //     f_out << _state.mc->result_verts[3*i+2];
-    //     f_out <<  "\n";
-    // }
-    //
-    // f_out.close();
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
@@ -1541,6 +1464,8 @@ void finish_geometry() {
 #include "timer.hpp"
 
 int main() {
+  //***** This part was used to creat test files *****//
+
   // if (writing_test_file){
   //
   // int resolution = 28;
