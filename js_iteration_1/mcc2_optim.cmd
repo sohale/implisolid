@@ -14,7 +14,7 @@ em++ ^
  ^
         -pedantic -std=c++14  ^
     mcc2.cpp  ^
-        -o  mcc2.cpp.js
+        -o  mcc2.compiled.js
 
 @rem ******* DISABLED OPTIONS: **********
 @rem         -s ASSERTIONS=1   ^
