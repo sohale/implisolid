@@ -71,6 +71,10 @@ else if (name == "super_bowl"){
     super_bowl gradou(f_argument); //0.5
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
+else if (name == "scone"){
+    scone gradou(f_argument); //0.5
+    gradou.eval_gradient(centroids, centroid_normals_normalized);
+}
 else {
   cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
   unit_sphere gradou(f_argument); //1.

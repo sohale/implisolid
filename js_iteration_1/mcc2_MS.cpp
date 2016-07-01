@@ -641,6 +641,10 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
           super_bowl object(f_argument); //0.5
           object.eval_implicit(grid, implicit_function);
       }
+      else if (name == "scone"){
+          scone object(f_argument); //0.5
+          object.eval_implicit(grid, implicit_function);
+      }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
         unit_sphere object(f_argument*real_size); //1.*real_size
@@ -1370,13 +1374,14 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "super_bowl";
+    string name = "scone";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
       REAL real_size = 10;
-      REAL f_argument = 0.5;
+      REAL f_argument = 3.;
+
     _state.mc->create_shape(name, real_size, f_argument);
 
     _state.mc->seal_exterior();
