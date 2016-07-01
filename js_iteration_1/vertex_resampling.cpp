@@ -72,11 +72,11 @@ else if (name == "super_bowl"){
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 else if (name == "scone"){
-    scone gradou(f_argument); //0.5
+    scone gradou(f_argument); //3.
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 else if (name == "scylinder"){
-    scylinder gradou(f_argument); //0.5
+    scylinder gradou(f_argument); //0.7
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 else {

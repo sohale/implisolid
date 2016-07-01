@@ -642,11 +642,11 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "scone"){
-          scone object(f_argument); //0.5
+          scone object(f_argument); //3.
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "scylinder"){
-          scylinder object(f_argument); //0.5
+          scylinder object(f_argument); //0.7
           object.eval_implicit(grid, implicit_function);
       }
       else {
@@ -1384,7 +1384,7 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
       REAL real_size = 10;
-      REAL f_argument = 3.;
+      REAL f_argument = 0.7;
 
     _state.mc->create_shape(name, real_size, f_argument);
 

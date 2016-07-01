@@ -22,7 +22,7 @@ public:
         auto i = x.begin();
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
-          (f_output)[output_ctr] = -(*i)[0]*(*i)[0]*r2 - (*i)[1]*(*i)[1]*r2 + 1;
+          (f_output)[output_ctr] = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] + r2;
           if((*i)[2]>=0.8 || (*i)[2]<=-0.8 ){
             (f_output)[output_ctr] = -1.;
           }
@@ -40,8 +40,8 @@ public:
 
           if((*i)[2]>=0.78 || (*i)[2]<=-0.78){
 
-            (output)[output_ctr][0] = -2. * (*i)[0]*r2;
-            (output)[output_ctr][1] = -2. * (*i)[1]*r2;
+            (output)[output_ctr][0] = -2. * (*i)[0];
+            (output)[output_ctr][1] = -2. * (*i)[1];
             (output)[output_ctr][2] = 0.;
 
           }
