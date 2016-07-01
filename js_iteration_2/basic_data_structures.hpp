@@ -1,8 +1,13 @@
+#ifndef IMPLICIT_BASIC_DATASTRUCTURES_HPP
+#define IMPLICIT_BASIC_DATASTRUCTURES_HPP
+
+
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include <math.h>
 //#include "boost/assert.hpp"
 
+//namespace implicit {
 
 typedef unsigned short int dim_t;
 typedef float REAL;
@@ -19,7 +24,7 @@ typedef array1d::index  vertex_t;
  *  -----------------------------
  *  The type vectorized_scalar is a container for floats that has one dimension
  *  so it can be thought of as a vector.This data structure aims to be a container
- *  for the evaluated implicit function values. 
+ *  for the evaluated implicit function values.
  */
 
 typedef boost::multi_array<REAL, 1>  vectorized_scalar;
@@ -46,3 +51,6 @@ inline array_shape_t make_shape_1d(array1d::index size) {
 
 
 typedef boost::multi_array<REAL, 2>  array2d;
+
+//}
+#endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP

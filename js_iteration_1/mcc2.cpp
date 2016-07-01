@@ -70,15 +70,6 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 }
 */
 
-array_shape_t make_shape_1d(int size) {
-    // Make a shape to be used in array initialisation
-    // fixme: the type of size
-
-    // ASSERT(size>=0);
-    array_shape_t shape = {{ size, }};
-    return shape;
-}
-
 #include "mcc2_marching_cubes.hpp"
 
 
@@ -290,6 +281,9 @@ void check_state_null() {
         std::cout << "Error: should not be active.";
 }
 
+//#include "../js_iteration_2/unit_sphere.hpp"
+#include "../js_iteration_2/primitives.cpp"
+
 void build_geometry(int resolution, REAL time){
 
     check_state_null();
@@ -304,9 +298,15 @@ void build_geometry(int resolution, REAL time){
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
     //std::cout << "constructor called. " << _state.mc << std::endl;
 
+    _state.mc -> isolation = 80.0/4*0;
 
-    _state.mc -> isolation = 80.0/4;
+    unit_sphere object(0.33 * time/10.+0.3);
+    //_state.mc -> prepare_grid(1.0);
+    //object.eval_implicit(grid, implicit_values);
+    _state.mc -> eval_shape(object, 1.0);
+    _state.mc->seal_exterior();
 
+    /*
     int numblobs = 4;
     //REAL time = 0.1 ;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
@@ -318,7 +318,9 @@ void build_geometry(int resolution, REAL time){
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
     }
+    _state.mc->subtract_dc(80.0/4);
     _state.mc->seal_exterior();
+    */
 
 /*
     int numblobs = 4;
