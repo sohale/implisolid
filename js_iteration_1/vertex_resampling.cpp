@@ -64,7 +64,7 @@ else if (name == "sphere"){
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 else if (name == "cube"){
-    cube gradou(0.5);
+    cube gradou(1.);
     gradou.eval_gradient(centroids, centroid_normals_normalized);
 }
 else {

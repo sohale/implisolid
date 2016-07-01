@@ -38,23 +38,23 @@ public:
         auto i = x.begin();
         auto e = x.end();
         for(; i!=e; i++, output_ctr++){
-            if ((*i)[0]<=r/2. - 0.2 && (*i)[0]>= -r/2. + 0.2) {
-                  (output)[output_ctr][0] = -1.;
+            if ((*i)[0]<=r/2. - 0.05 && (*i)[0]>= -r/2. + 0.05) {
+                  (output)[output_ctr][0] = +1.* (*i)[0];
             }
             else{
-                (output)[output_ctr][0] = 0.;
+                (output)[output_ctr][0] = -1. * (*i)[0];
             }
-            if ((*i)[1]<=r/2. - 0.2 && (*i)[1]>= -r/2. + 0.2){
-                  (output)[output_ctr][1] = -1.;
-            }
-            else{
-                (output)[output_ctr][1] = 0.;
-            }
-            if ((*i)[2]<=r/2. - 0.2 && (*i)[2]>= -r/2. + 0.2){
-                  (output)[output_ctr][2] = -1.;
+            if ((*i)[1]<=r/2. - 0.05 && (*i)[1]>= -r/2. + 0.05){
+                  (output)[output_ctr][1] = +1.*(*i)[1];
             }
             else{
-                (output)[output_ctr][2] = 0.;
+                (output)[output_ctr][1] = -1.*(*i)[1];
+            }
+            if ((*i)[2]<=r/2. - 0.05 && (*i)[2]>= -r/2. + 0.05){
+                  (output)[output_ctr][2] = +1.*(*i)[2];
+            }
+            else{
+                (output)[output_ctr][2] = -1.*(*i)[2];
             }
 
         }

@@ -1388,9 +1388,9 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
-    // for (int i=0; i<3; i++){
-    // _state.mc->vertex_resampling(name);
-    // }
+    for (int i=0; i<3; i++){
+    _state.mc->vertex_resampling(name);
+    }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
