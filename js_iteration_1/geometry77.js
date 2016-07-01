@@ -162,7 +162,7 @@ function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
         }
     }else if (Number(initial_value) === initial_value){
         console.log("color number :" + initial_value + " " + len_bytes);
-        for(var i=0*src.byteLength/TYPE_SIZE;i<r.length;i++){
+        for(var i=(0*src.byteLength/TYPE_SIZE);i<r.length;i++){
             r[i] = initial_value;
         }
 
@@ -229,18 +229,19 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
 
             if(re_allocate){
                 console.log("Allocating separate space for norms, colors.");
-                var normals = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
-                var colors = copy_Float32Array_preallocated(verts, 30000*3/10000, true);
+                var normals = copy_Float32Array_preallocated(verts, 30000*3, true);
+                var colors = copy_Float32Array_preallocated(verts, 30000*3, true);
                 //var uvs = copy_Float32Array_preallocated(new Float32Array([]), 30000*3 * 0, true);
 
             }
 
             this.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3, true ) );
+            //Todo:  color and uvs are not used in rendering. Remove them for now. But normal is important.
             this.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
             //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
-            var materialIndex = 0;
-            this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
+            //var materialIndex = 0;
+            //this.addGroup( 0, faces.length*1-10, materialIndex ); //not sure about *3 . Why??
 
         }else{
             var mesh_core = make_geometry_core(verts, faces);
@@ -332,6 +333,8 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
             // *************************************
             geometry.attributes.position.array.set(verts);
             geometry.index.array.set(faces);
+            //geometry.attributes.color.array.set(verts);
+            geometry.attributes.normal.array.set(verts);
         }
 
         geometry.setDrawRange( 0, nf3 );
@@ -340,6 +343,8 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
         */
 
         geometry.attributes.position.needsUpdate = true;
+        //geometry.attributes.color.needsUpdate = true;
+        geometry.attributes.normal.needsUpdate = true;
         geometry.index.needsUpdate = true;
 
         //geometry.index.array[i] === faces[i]
