@@ -273,12 +273,19 @@ state_t _state;
 //_state.active = false;
 //_state.mc = 0;
 
-void check_state() {
-    if(!_state.active) std::cout << "Error: not active.";
+bool check_state() {
+    if(!_state.active){
+        std::cout << "Error: There are no allocated geometry resources to deallocate.";
+        return false;
+    }
+    return true;
 }
-void check_state_null() {
-    if(_state.active)
-        std::cout << "Error: should not be active.";
+bool check_state_null() {
+    if(_state.active){
+        std::cout << "Error: There are non-deallocated geometry resources. Call finit_geometry() first. Not doing anything.";
+        return false;
+    }
+    return true;
 }
 
 //#include "../js_iteration_2/unit_sphere.hpp"
@@ -286,7 +293,8 @@ void check_state_null() {
 
 void build_geometry(int resolution, REAL time){
 
-    check_state_null();
+    if(!check_state_null())
+        return;
 
     //dim_t resolution = 28;
     bool enableUvs = true;
@@ -368,15 +376,17 @@ void build_geometry(int resolution, REAL time){
     //std::cout << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
 }
 int get_f_size() {
-    check_state();
+    if(!check_state()) return -1;
     return _state.mc->result_faces.size()/3;
 }
 int get_v_size(){
-    check_state();
+    if(!check_state()) return -1;
     return _state.mc->result_verts.size()/3;
 }
 void get_v(REAL* v_out, int vcount){
-    check_state();
+    if(!check_state())
+        return;
+
     //int nf = get_f_size();
     // Vertices
     int ctr = 0;
@@ -394,7 +404,8 @@ void get_v(REAL* v_out, int vcount){
 }
 
 void get_f(int* f_out, int fcount){
-    check_state();
+    if(!check_state())
+        return;
     //int nf = get_f_size();
     int ctr = 0;
     for(std::vector<int>::iterator it=_state.mc->result_faces.begin(); it < _state.mc->result_faces.end(); it+=3 ){
@@ -411,12 +422,14 @@ void get_f(int* f_out, int fcount){
 
 /* Data is already there, so why copy it? Also, keep it until next round. */
 void* get_v_ptr(){
-    check_state();
+    if(!check_state())
+        return NULL;
     return (void*)(_state.mc->result_verts.data());
 }
 
 void* get_f_ptr(){
-    check_state();
+    if(!check_state())
+        return NULL;
     return (void*)(_state.mc->result_faces.data());
 }
 
@@ -431,7 +444,8 @@ void* get_f_ptr(){
 
 // Can cause an exception (but not when null).
 void finish_geometry() {
-    check_state();
+    if(!check_state())
+        return ;
     if(_state.mc == 0){
         std::cerr << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
