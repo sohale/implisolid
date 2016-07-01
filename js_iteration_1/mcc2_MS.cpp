@@ -128,8 +128,8 @@ public:
 
 
 int EXCESS = 0;
-MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false )
-    :   //constructor's initialisation list: pre-constructor code
+MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false ):
+        //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
@@ -152,7 +152,6 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
 
 
 void MarchingCubes::init( dim_t resolution ) {
-    // May throw  std::bad_alloc. See #include <new>
     // init() is only called by the constructor
 
     this->isolation = 80.0;
@@ -186,7 +185,6 @@ void MarchingCubes::init( dim_t resolution ) {
     this->hasColors = false;
     this->hasUvs = false;
 
-
     auto shape_maxCount_x_3 = make_shape_1d(MarchingCubes::queueSize * 3);
     this->positionQueue = array1d(shape_maxCount_x_3);
     auto shape_maxCount_x_1 = make_shape_1d(MarchingCubes::queueSize * 1);
@@ -195,7 +193,6 @@ void MarchingCubes::init( dim_t resolution ) {
     auto shape_maxCount_x_2 = make_shape_1d(MarchingCubes::queueSize * 2);
 
     if ( this->enableUvs ) {
-
         this->uvQueue = 0;
         this->uvQueue = new array1d(shape_maxCount_x_2);
 
@@ -228,7 +225,6 @@ MarchingCubes::~MarchingCubes()
         {
             delete this->colorQueue;
             this->colorQueue = 0;
-
         }
     }
 }
@@ -252,18 +248,12 @@ inline void MarchingCubes:: VIntX(
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
-
     index3_t e3x = ijk*3;
 
     e3out[offset/3] = e3x;
 
 }
 
-inline void fp(){
-    std::cout << "it";
-}
-
-void (*fpp)() = fp;
 
 inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
@@ -295,7 +285,6 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
 
 
 // Returns total number of triangles. Fills triangles.
-
 inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
     /** Polygonise a single cube in the grid. */
 
@@ -340,7 +329,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
 
     // if cube is entirely in/out of the surface - bail, nothing to draw
-
     int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
@@ -352,7 +340,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     index_t ijk = q;
 
     // top of the cube
-
     if ( bits & 1 ) {
         this->VIntX( q * 3, this->vlist_buffer, this->nlist_buffer, 0, isol, fx, fy, fz, field0, field1,  ijk_0, this->e3list_buffer);
     }
@@ -370,7 +357,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     }
 
     // bottom of the cube
-
     if ( bits & 16 ) {
         this->VIntX( qz * 3, this->vlist_buffer, this->nlist_buffer, 12, isol, fx, fy, fz2, field4, field5,  ijk_z, this->e3list_buffer);
     }
@@ -388,7 +374,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     }
 
     // vertical lines of the cube
-
     if ( bits & 256 ) {
         this->VIntZ( q * 3, this->vlist_buffer, this->nlist_buffer, 24, isol, fx, fy, fz, field0, field4,  ijk_0, this->e3list_buffer);
     }
@@ -410,7 +395,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     int o1, o2, o3, numtris = 0, i = 0;
 
     // here is where triangles are created
-
     while ( mc_triangles_table[ cubeindex + i ] != - 1 ) {
         o1 = cubeindex + i;
         o2 = o1 + 1;
@@ -462,7 +446,6 @@ void MarchingCubes::posnormtriv(
     this->e3Queue[ c_div_3 + 2 ] = e3__e3list[ o3/3 ];
 
     // uvs
-
     if ( this->enableUvs ) {
         int d = this->queue_counter * 2;
 
@@ -477,7 +460,6 @@ void MarchingCubes::posnormtriv(
     }
 
     // colors
-
     if ( this->enableColors ) {
         (*this->colorQueue)[ c ]     = pos__vlist[ o1 ];
         (*this->colorQueue)[ c + 1 ] = pos__vlist[ o1 + 1 ];
@@ -655,8 +637,6 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
         object.eval_implicit(grid, implicit_function);
       }
 
-
-
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
@@ -688,7 +668,6 @@ void MarchingCubes::vertex_resampling(string name, REAL f_argument){
         verts[output_verts][2] = (*i);
       }
 
-
       int output_faces=0;
       auto i_f = this->result_faces.begin();
       auto e_f = this->result_faces.end();
@@ -715,6 +694,7 @@ void MarchingCubes::vertex_resampling(string name, REAL f_argument){
           f_out <<  "\n";
       }
       f_out << endl;
+
       process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name, f_argument);
 
       for (int i=0; i<verts.shape()[0]; i++){
@@ -1250,7 +1230,6 @@ typedef struct {
 
 
 void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_start,
-
   std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
     for ( int vert_i = 0; vert_i < this->queue_counter; vert_i++ ) {
@@ -1302,8 +1281,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
             int old_overall_vert_index = vert_i + marching_cube_start*3;
         }
 
-
-
     }
 
 
@@ -1321,7 +1298,6 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
             faces3.push_back(b);
             faces3.push_back(c);
         }
-
     }
 
     marching_cube_start += nfaces;
