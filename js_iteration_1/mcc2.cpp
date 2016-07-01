@@ -300,7 +300,7 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc -> isolation = 80.0/4*0;
 
-    mp5_implicit :: unit_sphere object(0.33 * time/10.+0.3);
+    mp5_implicit :: unit_sphere object(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
     //_state.mc -> prepare_grid(1.0);
     //object.eval_implicit(grid, implicit_values);
     _state.mc -> eval_shape(object, 1.0);
@@ -322,7 +322,7 @@ void build_geometry(int resolution, REAL time){
     _state.mc->seal_exterior();
     */
 
-/*
+
     int numblobs = 4;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
@@ -332,7 +332,7 @@ void build_geometry(int resolution, REAL time){
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
     }
-*/
+
     //std::cout << "balls added." << std::endl;
 
     const callback_t renderCallback;

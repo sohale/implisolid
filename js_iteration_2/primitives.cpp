@@ -1,5 +1,4 @@
-#ifndef IMPLICIT_PRIMITIVES_HPP
-#define IMPLICIT_PRIMITIVES_HPP
+#pragma once
 
 #include "basic_data_structures.hpp"
 
@@ -67,8 +66,9 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 }
 
 #include "unit_sphere.hpp"
+#include "unit_sphere.hpp"
 
-/*
+
 #include "unit_sphere.cpp"
 #include "double_mushroom.cpp"
 #include "egg.cpp"
@@ -76,7 +76,4 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "super_bowl.cpp"
 #include "scone.cpp"
 #include "scylinder.cpp"
-*/
 
-
-#endif  // IMPLICIT_PRIMITIVES_HPP

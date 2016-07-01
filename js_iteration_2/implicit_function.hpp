@@ -1,5 +1,4 @@
-#ifndef IMPLICIT_FUNCTION_HPP
-#define IMPLICIT_FUNCTION_HPP
+#pragma once
 
 #include "basic_data_structures.hpp"
 
@@ -19,4 +18,3 @@ public:
 //trait:
 //SignedDistanceImplicitPointwise, PrimitiveBase
 
-#endif // IMPLICIT_FUNCTION_HPP

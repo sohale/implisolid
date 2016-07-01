@@ -1,5 +1,4 @@
-#ifndef IMPLICIT_UNIT_SPHERE_HPP
-#define IMPLICIT_UNIT_SPHERE_HPP
+#pragma once
 
 namespace mp5_implicit {
 class unit_sphere : public implicit_function {
@@ -49,4 +48,3 @@ public:
 
 }  // namespace
 
-#endif  // IMPLICIT_UNIT_SPHERE_HPP
