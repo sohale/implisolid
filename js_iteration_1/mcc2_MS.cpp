@@ -633,6 +633,10 @@ void MarchingCubes::create_shape(string name, REAL real_size){
           unit_sphere object(0.80*real_size);
           object.eval_implicit(grid, implicit_function);
       }
+      else if (name == "cube"){
+          cube object(1.);
+          object.eval_implicit(grid, implicit_function);
+      }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
         unit_sphere object(1.*real_size);
@@ -1362,7 +1366,7 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "double_mushroom";
+    string name = "cube";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -1384,9 +1388,9 @@ void build_geometry(int resolution, REAL time){
       }
     }
 
-    for (int i=0; i<3; i++){
-    _state.mc->vertex_resampling(name);
-    }
+    // for (int i=0; i<3; i++){
+    // _state.mc->vertex_resampling(name);
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
