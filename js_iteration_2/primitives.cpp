@@ -1,3 +1,5 @@
+#ifndef IMPLICIT_PRIMITIVES_HPP
+#define IMPLICIT_PRIMITIVES_HPP
 
 #include "basic_data_structures.hpp"
 
@@ -75,3 +77,6 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "scone.cpp"
 #include "scylinder.cpp"
 */
+
+
+#endif  // IMPLICIT_PRIMITIVES_HPP

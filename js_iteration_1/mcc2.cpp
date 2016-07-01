@@ -300,7 +300,7 @@ void build_geometry(int resolution, REAL time){
 
     _state.mc -> isolation = 80.0/4*0;
 
-    unit_sphere object(0.33 * time/10.+0.3);
+    mp5_implicit :: unit_sphere object(0.33 * time/10.+0.3);
     //_state.mc -> prepare_grid(1.0);
     //object.eval_implicit(grid, implicit_values);
     _state.mc -> eval_shape(object, 1.0);

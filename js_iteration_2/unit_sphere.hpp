@@ -1,3 +1,7 @@
+#ifndef IMPLICIT_UNIT_SPHERE_HPP
+#define IMPLICIT_UNIT_SPHERE_HPP
+
+namespace mp5_implicit {
 class unit_sphere : public implicit_function {
 
 protected:
@@ -42,3 +46,7 @@ public:
         return true;
     }
 };
+
+}  // namespace
+
+#endif  // IMPLICIT_UNIT_SPHERE_HPP
