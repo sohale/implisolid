@@ -107,8 +107,8 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
-    void create_shape(string name, REAL real_size);
-    void vertex_resampling(string name);
+    void create_shape(string name, REAL real_size, REAL f_argument);
+    void vertex_resampling(string name, REAL f_argument);
 
 //field
     void reset();
@@ -591,7 +591,7 @@ void MarchingCubes::addBall(
     }
 }
 
-void MarchingCubes::create_shape(string name, REAL real_size){
+void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
       //resize can be used on the sphere to make it bigger
       bool resize = false;
       if(!resize)
@@ -622,28 +622,28 @@ void MarchingCubes::create_shape(string name, REAL real_size){
           }
       }
       if (name == "double_mushroom"){
-          double_mushroom object(3.3);
+          double_mushroom object(f_argument); //3.3
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "egg"){
-          egg object(0.55);
+          egg object(f_argument); // 0.55
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "sphere"){
-          unit_sphere object(0.80*real_size);
+          unit_sphere object(f_argument*real_size); //0.8*real_size
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "cube"){
-          cube object(1.);
+          cube object(f_argument); //1.
           object.eval_implicit(grid, implicit_function);
       }
       else if (name == "super_bowl"){
-          super_bowl object(0.5);
+          super_bowl object(f_argument); //0.5
           object.eval_implicit(grid, implicit_function);
       }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-        unit_sphere object(1.*real_size);
+        unit_sphere object(f_argument*real_size); //1.*real_size
         object.eval_implicit(grid, implicit_function);
       }
 
@@ -658,7 +658,7 @@ void MarchingCubes::create_shape(string name, REAL real_size){
       }
 }
 
-void MarchingCubes::vertex_resampling(string name){
+void MarchingCubes::vertex_resampling(string name, REAL f_argument){
 
       boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
       boost::multi_array<REAL, 2> verts(verts_shape);
@@ -707,7 +707,7 @@ void MarchingCubes::vertex_resampling(string name){
           f_out <<  "\n";
       }
       f_out << endl;
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name);
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name, f_argument);
 
       for (int i=0; i<verts.shape()[0]; i++){
         this->result_verts[i*3+0] = new_verts[i][0];
@@ -749,7 +749,7 @@ void MarchingCubes::vertex_resampling(string name){
       }
 
     else {
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name);
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, name, f_argument);
 
     for (int i=0; i<verts.shape()[0]; i++){
       this->result_verts[i*3+0] = new_verts[i][0];
@@ -1376,7 +1376,8 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
       REAL real_size = 10;
-    _state.mc->create_shape(name, real_size);
+      REAL f_argument = 0.5;
+    _state.mc->create_shape(name, real_size, f_argument);
 
     _state.mc->seal_exterior();
 
@@ -1393,7 +1394,7 @@ void build_geometry(int resolution, REAL time){
     }
 
     for (int i=0; i<3; i++){
-    _state.mc->vertex_resampling(name);
+    _state.mc->vertex_resampling(name, f_argument);
     }
 
     if(VERBOSE){
@@ -1488,7 +1489,7 @@ int main() {
   //   // before we had some amazing meatballs! merde a celui qui le lira!
   //   REAL real_size= 10;
   // string name = "sphere";
-  // _state.mc->create_shape(name,real_size);
+  // _state.mc->create_shape(name,real_size,f_argument);
   //
   // _state.mc->seal_exterior();
   //
@@ -1504,7 +1505,7 @@ int main() {
   //   }
   // }
   //
-  //   _state.mc->vertex_resampling(name);
+  //   _state.mc->vertex_resampling(name, f_argument);
   //
   //  }
     std::cout << "main();" << std::endl;
