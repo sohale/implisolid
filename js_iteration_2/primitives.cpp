@@ -70,3 +70,4 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "cube.cpp"
 #include "super_bowl.cpp"
 #include "scone.cpp"
+#include "scylinder.cpp"
