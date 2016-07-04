@@ -69,16 +69,53 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "super_bowl";
+    string name = "scone";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
-      // before we had some amazing meatballs! merde a celui qui le lira!
+      // before we had some amazing meatballs! merde a celui qui le lira !
       REAL real_size = 10;
       // f_argument is made to always be between 0. and 1.
       REAL f_argument = 0.5;
 
-    _state.mc->create_shape(name, real_size, f_argument);
+    implicit_function * object;
+
+    if (name == "double_mushroom"){
+      double_mushroom mushroom(f_argument+3.); //3.3
+      object = &mushroom;
+    }
+    else if (name == "egg"){
+      egg segg(f_argument);
+      object = &segg; // super egg !
+    }
+    else if (name == "sphere"){
+      unit_sphere sphere(f_argument);
+      object = &sphere;
+    }
+    else if (name == "cube"){
+      cube cube(f_argument);
+      object = &cube;
+    }
+    else if (name == "super_bowl"){
+      super_bowl super_bowl(f_argument); //0.5
+      object = &super_bowl;
+    }
+    else if (name == "scone"){
+      scone scone(f_argument +2.5);
+      object = &scone;
+    }
+    else if (name == "scylinder"){
+      scylinder scylinder(f_argument); //0.7
+      object = &scylinder;
+    }
+    else {
+      cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+      unit_sphere sphere(f_argument);
+      object = &sphere;
+     }
+
+
+    _state.mc->create_shape(object, real_size, f_argument);
 
     _state.mc->seal_exterior();
 
@@ -95,7 +132,7 @@ void build_geometry(int resolution, REAL time){
     }
 
     for (int i=0; i<3; i++){
-    _state.mc->vertex_resampling(name, f_argument);
+    _state.mc->vertex_resampling(object, f_argument);
     }
 
     if(VERBOSE){
