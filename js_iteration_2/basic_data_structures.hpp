@@ -1,3 +1,11 @@
+/** File: basic_data_structures.hpp
+ *  -------------------------------
+ * This file contains data structures and functions that are repeatedly used,
+ * so they should be all in a common place, with their documentation and usage
+ * messages.
+ */
+
+
 #ifndef IMPLICIT_BASIC_DATASTRUCTURES_HPP
 #define IMPLICIT_BASIC_DATASTRUCTURES_HPP
 
@@ -12,9 +20,12 @@
 
 /*
 ================================================================
-=                       Useful Data Structures                 =
+=                     Useful Data Structures                   =
 ================================================================
 */
+
+
+
 
 typedef unsigned short int dim_t;
 typedef float REAL;
@@ -30,8 +41,8 @@ typedef array1d::index  vertex_t;
  *  Data type: vectorized_scalar
  *  -----------------------------
  *  The type vectorized_scalar is a container for floats that has one dimension
- *  so it can be thought of as a vector.This data structure aims to be a container
- *  for the evaluated implicit function values.
+ *  or else, a vector.
+ *
  */
 
 typedef boost::multi_array<REAL, 1>  vectorized_scalar;
@@ -44,6 +55,7 @@ typedef boost::multi_array<REAL, 1>  vectorized_scalar;
  * It aims to be a container for 3d coordinates, so a variable of this type
  * will be a N x 3 array.
  */
+
 typedef boost::multi_array<REAL, 2>  vectorized_vect;
 
 
@@ -70,7 +82,8 @@ typedef boost::multi_array<REAL, 2>  array2d;
  * Function: make_empty_x
  * Usage: boost::multi_array<REAL, 2> x = make_empty_x(100)
  * --------------------------------------------------------
- * Creates an array with dimensions N x 3. The argument is of type real.
+ * Creates an empty array with dimensions N x 3, whose elements are of floating
+ * point numbers(REAL).
  *
  */
 
@@ -83,5 +96,4 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     return values;
 }
 
-//}
 #endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP

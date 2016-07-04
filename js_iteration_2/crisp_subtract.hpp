@@ -7,11 +7,12 @@
  * File: crisp_subtract.cpp
  * ------------------------
  * Defines the class CrispSubtract which implements the csg subtraction
- * operation between two implicit functions.
+ * operation between two implicit functions in accordance to the formula:
+ * 	f(x) = min(f1(x), -f2(x)).f1 and f2 are implicit functions whose substraction
+ * 	we want to compute.
  *
  * Implementation notes:
- *
- * As a first step we need to hardcode 2 implicit functions.
+ *----------------------
  */
 
 class CrispSubtract: public implicit_function {
@@ -29,7 +30,8 @@ public:
      */
 
     CrispSubtract(const implicit_function & a_, const implicit_function & b_)
-    : a(a_),b(b_)
+    : a(a_),b(b_)  // <-- member initialization list
+                   // http://stackoverflow.com/questions/7665021/c-member-initialization-list
     {
         // of what type is a and b fa
     }
@@ -52,11 +54,13 @@ public:
             (*f_output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (f1[output_ctr]): -f2[output_ctr];
         }
     }
-    void eval_gradient(const vectorized_vect& x, vectorized_scalar* output){
+    // void eval_gradient(const vectorized_vect& x, vectorized_scalar* output){
+    //     int output_ctr = 0;
+    //     auto i = x.begin();
+    //     auto e = x.end();
+    // }
 
-    }
-
-    ~CrispSubtract();   // will this compile with no warning? 
+    ~CrispSubtract();   // will this compile with no warning?
 
 private:
     const implicit_function &a, &b;  // reference a and b, this should be considered again.
