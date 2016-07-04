@@ -55,20 +55,25 @@ function copy_Uint16Array_preallocated(src, prealloc_size)  {
 }
 
 /** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
-function LiveBufferGeometry71( verts, faces,  pre_allocate, faces_capacity, verts_capacity) {
+function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, verts_capacity_) {
 
     THREE.BufferGeometry.call( this );
     this.type = 'LiveBufferGeometry71';
 
     this.parameters = { };
 
-    if(faces_capacity === undefined) faces_capacity = 9000*0;
-    if(verts_capacity === undefined) verts_capacity = 8000*0;
-    //_expect(faces_capacity);
-    //_expect(verts_capacity);
-    console.log("verts : "+ verts_capacity + " faces : "+ faces_capacity);
+    if(faces_capacity_ === undefined) faces_capacity_ = 9000*0;
+    if(verts_capacity_ === undefined) verts_capacity_ = 8000*0;
 
-    this.allocate_buffers = function(){
+    const GROWTH_FACTOR = 1.5;
+    const GROWTH_ADDITIONAL = 1;
+
+    //_expect(faces_capacity_);
+    //_expect(verts_capacity_);
+    //console.log("verts : "+ verts_capacity_ + " faces : "+ faces_capacity_);
+
+    this.allocate_buffers = function(verts, faces,  pre_allocate, faces_capacity, verts_capacity) {
+        console.log("verts : "+ verts_capacity + " faces : "+ faces_capacity);
         var padded_faces, padded_verts;
         if(pre_allocate){
             console.log("Allocating separate space for verts,faces.");
@@ -213,6 +218,7 @@ function LiveBufferGeometry71( verts, faces,  pre_allocate, faces_capacity, vert
             */
         }else{
             geometry.attributes.position.array.set(verts);
+            geometry.attributes.normal.array.set(verts);
         }
 
         var availableFacesSize = geometry.attributes.index.array.length;
@@ -224,10 +230,20 @@ function LiveBufferGeometry71( verts, faces,  pre_allocate, faces_capacity, vert
         }
 
         if(grow_needed){
-            console.log("increasing capacity");
+            console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
+            var faces_capacity = Math.max(availableFacesSize/3, faces_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL;
+            var verts_capacity = Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL;
 
-            return new LiveBufferGeometry71( verts, faces,  true, Math.max(availableFacesSize/3, faces.length/3) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
+            this.allocate_buffers(verts, faces,  true, faces_capacity, verts_capacity);
+            //var new_geometry= new LiveBufferGeometry71( verts, faces,  true, Math.max(availableFacesSize/3, faces.length/3) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.index.needsUpdate = true;
+            geometry.attributes.normal.needsUpdate = true;
+        
+            return false;//new_geometry;
+
         }
         var copied_faces = Math.min(faces.length, availableFacesSize);
 
@@ -293,7 +309,7 @@ function LiveBufferGeometry71( verts, faces,  pre_allocate, faces_capacity, vert
 
     };
 
-    this.allocate_buffers()
+    this.allocate_buffers(verts_, faces_,  pre_allocate_, faces_capacity_, verts_capacity_);
 };
 
 LiveBufferGeometry71.prototype = Object.create( THREE.BufferGeometry.prototype );
@@ -302,7 +318,7 @@ LiveBufferGeometry71.prototype.constructor = LiveBufferGeometry71;
 
 
 
-function test_update(t){
+function test_update1(t){
     var g = currentMeshes[0].geometry;
 
     IMPLICIT.finish_geometry();
@@ -311,12 +327,23 @@ function test_update(t){
     var new_geometry = IMPLICIT.build_geometry(28, t);
     IMPLICIT.needsFinish = true;
 
+    if(new_geometry){
+        currentMeshes[0].geometry = new_geometry;
+        g = new_geometry;
+    }
+    g.update_geometry(IMPLICIT);
+ 
+}
+
+
+function test_update2(t){
+    var g = currentMeshes[0].geometry;
+
+    var new_geometry = g.update_geometry(IMPLICIT);
     if(new_geometry)
         currentMeshes[0].geometry = new_geometry
-    
-    g.update_geometry(IMPLICIT);
 }
 
 /*
-var t=0;var iid=setInterval(function(){test_update(t+=0.02);},6);
+var t=0;test_update1(t);var iid=setInterval(function(){test_update2(t+=0.02);},6);
 */
