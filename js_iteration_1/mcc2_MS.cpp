@@ -11,6 +11,7 @@
 #include "boost/array.hpp"
 
 using namespace std;
+using namespace mp5_implicit;
 
 const bool VERBOSE = false;
 const bool REPORT_STATS = false;
@@ -603,40 +604,46 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
               }
           }
       }
-      if (name == "double_mushroom"){
-          double_mushroom object(f_argument); //3.3
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "egg"){
-          egg object(f_argument); // 0.55
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "sphere"){
-          unit_sphere object(f_argument*real_size); //0.8*real_size
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "cube"){
-          cube object(f_argument); //1.
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "super_bowl"){
-          super_bowl object(f_argument); //0.5
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "scone"){
-          scone object(f_argument); //3.
-          object.eval_implicit(grid, implicit_function);
-      }
-      else if (name == "scylinder"){
-          scylinder object(f_argument); //0.7
-          object.eval_implicit(grid, implicit_function);
-      }
-      else {
-        cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-        unit_sphere object(f_argument*real_size); //1.*real_size
-        object.eval_implicit(grid, implicit_function);
-      }
+      // if (name == "double_mushroom"){
+      //     double_mushroom object(f_argument); //3.3
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "egg"){
+      //     egg object(f_argument); // 0.55
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "sphere"){
+      //     unit_sphere object(f_argument*real_size); //0.8*real_size
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "cube"){
+      //     cube object(f_argument); //1.
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "super_bowl"){
+      //     super_bowl object(f_argument); //0.5
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "scone"){
+      //     scone object(f_argument); //3.
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else if (name == "scylinder"){
+      //     scylinder object(f_argument); //0.7
+      //     object.eval_implicit(grid, implicit_function);
+      // }
+      // else {
+      //   cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+      //   unit_sphere object(f_argument*real_size); //1.*real_size
+      //   object.eval_implicit(grid, implicit_function);
+      // }
 
+      if (name == "sphere"){
+
+
+      unit_sphere object(f_argument*real_size); //1.*real_size
+        object.eval_implicit(grid, &implicit_function);
+      }
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
@@ -1354,7 +1361,7 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "scylinder";
+    string name = "sphere";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
