@@ -50,44 +50,40 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, string name, REAL f_argument){
 
-// if (name == "double_mushroom"){
-//     double_mushroom gradou(f_argument); //3.3
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "egg"){
-//     egg gradou(f_argument); //0.55
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "sphere"){
-//     unit_sphere gradou(f_argument); //0.8
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "cube"){
-//     cube gradou(f_argument); //1.
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "super_bowl"){
-//     super_bowl gradou(f_argument); //0.5
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "scone"){
-//     scone gradou(f_argument); //3.
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else if (name == "scylinder"){
-//     scylinder gradou(f_argument); //0.7
-//     gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-// else {
-//   cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-//   unit_sphere gradou(f_argument); //1.
-//   gradou.eval_gradient(centroids, centroid_normals_normalized);
-// }
-
-if (name == "sphere"){
+if (name == "double_mushroom"){
+    double_mushroom gradou(f_argument); //3.3
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else if (name == "egg"){
+    egg gradou(f_argument); //0.55
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else if (name == "sphere"){
     unit_sphere gradou(f_argument); //0.8
     gradou.eval_gradient(centroids, &centroid_normals_normalized);
 }
+else if (name == "cube"){
+    cube gradou(f_argument); //1.
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else if (name == "super_bowl"){
+    super_bowl gradou(f_argument); //0.5
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else if (name == "scone"){
+    scone gradou(f_argument); //3.
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else if (name == "scylinder"){
+    scylinder gradou(f_argument); //0.7
+    gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+else {
+  cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+  unit_sphere gradou(f_argument); //1.
+  gradou.eval_gradient(centroids, &centroid_normals_normalized);
+}
+
 
   if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
