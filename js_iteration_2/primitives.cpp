@@ -66,14 +66,11 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 }
 
 #include "unit_sphere.hpp"
-#include "unit_sphere.hpp"
-
-
-#include "unit_sphere.cpp"
-#include "double_mushroom.cpp"
-#include "egg.cpp"
-#include "cube.cpp"
-#include "super_bowl.cpp"
-#include "scone.cpp"
-#include "scylinder.cpp"
-
+//
+// #include "unit_sphere.cpp"
+// #include "double_mushroom.cpp"
+// #include "egg.cpp"
+// #include "cube.cpp"
+// #include "super_bowl.cpp"
+// #include "scone.cpp"
+// #include "scylinder.cpp"
