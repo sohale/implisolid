@@ -605,7 +605,7 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
           }
       }
       if (name == "double_mushroom"){
-          double_mushroom object(f_argument); //3.3
+          double_mushroom object(f_argument+3.); //3.3
           object.eval_implicit(grid, &implicit_function);
       }
       else if (name == "egg"){
@@ -625,7 +625,7 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
           object.eval_implicit(grid, &implicit_function);
       }
       else if (name == "scone"){
-          scone object(f_argument); //3.
+          scone object(f_argument+2.5); //3.
           object.eval_implicit(grid, &implicit_function);
       }
       else if (name == "scylinder"){
@@ -1361,6 +1361,7 @@ void build_geometry(int resolution, REAL time){
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira!
       REAL real_size = 10;
+      // f_argument is made to always be between 0. and 1.
       REAL f_argument = 0.5;
 
     _state.mc->create_shape(name, real_size, f_argument);
