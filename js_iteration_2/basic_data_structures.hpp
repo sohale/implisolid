@@ -9,6 +9,13 @@
 
 //namespace implicit {
 
+
+/*
+================================================================
+=                       Useful Data Structures                 =
+================================================================
+*/
+
 typedef unsigned short int dim_t;
 typedef float REAL;
 
@@ -51,6 +58,30 @@ inline array_shape_t make_shape_1d(array1d::index size) {
 
 
 typedef boost::multi_array<REAL, 2>  array2d;
+
+
+/*
+================================================================
+=                       Useful Functions                       =
+================================================================
+*/
+
+/**
+ * Function: make_empty_x
+ * Usage: boost::multi_array<REAL, 2> x = make_empty_x(100)
+ * --------------------------------------------------------
+ * Creates an array with dimensions N x 3. The argument is of type real.
+ *
+ */
+
+boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
+    auto sf = make_shape_1d(nsize);
+    //vectorized_scalar  f = vectorized_scalar(sf);
+
+    boost::array<int, 2> values_shape = {{ nsize, 3 }};
+    boost::multi_array<REAL, 2> values (values_shape);
+    return values;
+}
 
 //}
 #endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP
