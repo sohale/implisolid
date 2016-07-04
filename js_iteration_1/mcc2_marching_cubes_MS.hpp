@@ -562,8 +562,8 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
       boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
 
-      boost::array<int, 1> implicit_function_shape = {{ this->size*this->size*this->size }};
-      boost::multi_array<REAL, 1> implicit_function(implicit_function_shape);
+      boost::array<int, 1> implicit_value_shape = {{ this->size*this->size*this->size }};
+      boost::multi_array<REAL, 1> implicits_values(implicit_values_shape);
 
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
@@ -576,44 +576,50 @@ void MarchingCubes::create_shape(string name, REAL real_size, REAL f_argument){
               }
           }
       }
+
+      // unit_sphere sphere(f_argument);
+      // implicit_function * obj = &sphere;
+      // obj->eval_implicit(grid, &implicit_values);
+
       if (name == "double_mushroom"){
           double_mushroom object(f_argument+3.); //3.3
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "egg"){
           egg object(f_argument); // 0.55
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "sphere"){
           unit_sphere object(f_argument*real_size); //0.8*real_size
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "cube"){
           cube object(f_argument); //1.
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "super_bowl"){
           super_bowl object(f_argument); //0.5
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "scone"){
           scone object(f_argument+2.5); //3.
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else if (name == "scylinder"){
           scylinder object(f_argument); //0.7
-          object.eval_implicit(grid, &implicit_function);
+          object.eval_implicit(grid, &implicit_values);
       }
       else {
         cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
         unit_sphere object(f_argument*real_size); //1.*real_size
-        object.eval_implicit(grid, &implicit_function);
+        object.eval_implicit(grid, &implicit_values);
       }
+
 
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                this->field[x + y*this->size + z*this->size2] = implicit_function[x + y*this->size + z*this->size2];
+                this->field[x + y*this->size + z*this->size2] = implicit_values[x + y*this->size + z*this->size2];
               }
           }
       }
