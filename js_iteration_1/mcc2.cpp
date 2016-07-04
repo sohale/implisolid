@@ -312,7 +312,6 @@ void build_geometry(int resolution, REAL time){
     //_state.mc -> prepare_grid(1.0);
     //object.eval_implicit(grid, implicit_values);
     _state.mc -> eval_shape(object, 1.0);
-    _state.mc->seal_exterior();
 
     /*
     int numblobs = 4;
@@ -340,6 +339,8 @@ void build_geometry(int resolution, REAL time){
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
     }
+
+    _state.mc->seal_exterior();
 
     //std::cout << "balls added." << std::endl;
 
