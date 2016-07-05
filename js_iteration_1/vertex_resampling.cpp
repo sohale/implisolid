@@ -48,43 +48,6 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   }
 }
 
-// def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
-// """ returns vectors of either length 1 or zero. """
-// N = v.shape[0]
-// assert not issubclass(v.dtype.type, np.integer)
-// assert not np.any(np.isnan(v))
-// assert not np.any(np.isinf(v))
-// norms = np.sqrt(np.sum(v * v, axis=1, keepdims=True))
-// denominator = np.tile(norms, (1, 3))
-// if zero_normal == "leave_zero_norms":
-//     zeros_i = np.abs(norms.ravel()) < 0.00000001
-//     non_zero_i = np.logical_not(zeros_i)
-//     if not np.any(zeros_i):
-//         c = 1.0 / denominator
-//     else:
-//         c = np.ones(denominator.shape)
-//         c[non_zero_i, :] = 1.0 / denominator[non_zero_i, :]
-// else:
-//     pass
-// assert not np.any(np.isnan(c))
-// assert not np.any(np.isinf(c))
-// r = v * c
-// assert r.shape[0] == N
-// df = np.sum(r * r, axis=1)
-// e1a = np.all(np.abs(df[non_zero_i]-1.0) < 0.00000000001)
-// e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
-//
-// if not (e1a and e0a):
-//     print("r:", r)
-//     print("v:", v)
-//     print("c:", v)
-//     print("denom: ", denominator)
-//     print(norms)
-//     print(denominator)
-//     print(np.sum(r*r, axis=1))
-//
-// assert e1a and e0a
-// return r
 
 //add assert coming from the normalize_vector3_vectorized
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
@@ -94,13 +57,15 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
   if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
       REAL norm = sqrt(pow(centroid_normals_normalized[i][0],2)+pow(centroid_normals_normalized[i][1],2)+pow(centroid_normals_normalized[i][2],2));
+      assert(norm!=0.);
       for(int j = 0; j < 3; j++){
         centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
+        assert(centroid_normals_normalized[i][j] <= 1.);
+        assert(centroid_normals_normalized[i][j] >= -1.);
       }
 
     }
   }
-
 }
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
@@ -239,7 +204,7 @@ void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neigh
 verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   int nfaces = centroids.shape()[0];
 //  c=2000.0;
-  boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }}; //look to see if { is enoug}
+  boost::array<int, 2> wi_total_array_shape = {nfaces, 1 }; //look to see if { is enoug}
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
   for (int i_faces=0; i_faces<nfaces; i_faces++){
@@ -278,9 +243,9 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
-  boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
-  boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
-  boost::array<int, 2> faces_of_faces_shape = {{ nfaces, 3 }};
+  boost::array<int, 2> edges_of_faces_shape = { nfaces, 3 };
+  boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
+  boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
@@ -288,7 +253,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   compute_centroids(faces, verts, centroids);
 
-  boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
+  boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
   boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
 
   compute_centroid_gradient(centroids, centroid_normals_normalized, object);

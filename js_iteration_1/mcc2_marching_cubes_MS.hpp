@@ -104,7 +104,7 @@ int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false ):
         //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
-        field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
+        field(array1d( array_shape_t ({ resolution*resolution*resolution }) )),
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         e3list_buffer(array1d_e3(  make_shape_1d(temp_buffer_size)   )),
 
@@ -590,10 +590,10 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
 // move in separate file
 void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument,  float c){
 
-      boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
+      boost::array<int, 2> verts_shape = { (int)this->result_verts.size()/3 , 3 };
       boost::multi_array<REAL, 2> verts(verts_shape);
 
-      boost::array<int, 2> faces_shape = {{ (int)this->result_faces.size()/3 , 3 }};
+      boost::array<int, 2> faces_shape = { (int)this->result_faces.size()/3 , 3 };
       boost::multi_array<int, 2> faces(faces_shape);
 
       boost::multi_array<REAL, 2> centroids (faces_shape);
