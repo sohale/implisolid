@@ -80,8 +80,7 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
-    void create_shape(implicit_function* object, REAL real_size, REAL f_argument);
-    void vertex_resampling(implicit_function* object, REAL f_argument);
+    void create_shape(implicit_function* object, REAL grid_real_size);
 
 //field
     void reset();
@@ -104,7 +103,7 @@ int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false ):
         //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
-        field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
+        field(array1d( array_shape_t ({ resolution*resolution*resolution }) )),
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         e3list_buffer(array1d_e3(  make_shape_1d(temp_buffer_size)   )),
 
@@ -546,11 +545,11 @@ void MarchingCubes::addBall(
     }
 }
 
-void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL f_argument){
+void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size){
       //resize can be used on the sphere to make it bigger
       bool resize = false;
       if(!resize)
-        real_size=1.0;
+        grid_real_size=1.0;
 
       int min_x = 0;
       int max_x = this->size;
@@ -568,9 +567,9 @@ void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = real_size*2.*(REAL)x/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][1] = real_size*2.*(REAL)y/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][2] = real_size*2.*(REAL)z/(REAL)this->size -1.*real_size;
+                  grid[x + y*this->size + z*this->size2][0] = grid_real_size*2.*(REAL)x/(REAL)this->size -1.*grid_real_size;
+                  grid[x + y*this->size + z*this->size2][1] = grid_real_size*2.*(REAL)y/(REAL)this->size -1.*grid_real_size;
+                  grid[x + y*this->size + z*this->size2][2] = grid_real_size*2.*(REAL)z/(REAL)this->size -1.*grid_real_size;
 
 
               }
@@ -588,109 +587,6 @@ void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL
       }
 }
 
-void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument){
-
-      boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
-      boost::multi_array<REAL, 2> verts(verts_shape);
-
-      boost::array<int, 2> faces_shape = {{ (int)this->result_faces.size()/3 , 3 }};
-      boost::multi_array<int, 2> faces(faces_shape);
-
-      boost::multi_array<REAL, 2> centroids (faces_shape);
-      boost::multi_array<REAL, 2> new_verts (verts_shape);
-
-      int output_verts=0;
-      auto i = this->result_verts.begin();
-      auto e = this->result_verts.end();
-      for(; i!=e; i++, output_verts++){
-        verts[output_verts][0] = (*i);
-        i++;
-        verts[output_verts][1] = (*i);
-        i++;
-        verts[output_verts][2] = (*i);
-      }
-
-      int output_faces=0;
-      auto i_f = this->result_faces.begin();
-      auto e_f = this->result_faces.end();
-      for(; i_f!=e_f; i_f++, output_faces++){
-        faces[output_faces][0] = (*i_f);
-        i_f++;
-        faces[output_faces][1] = (*i_f);
-        i_f++;
-        faces[output_faces][2] = (*i_f);
-      }
-
-
-      if (writing_test_file){
-
-      ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
-
-      f_out << "0ld vertex :" << endl;
-      for (int i=0; i< this->result_verts.size()/3.; i++){
-          f_out << this->result_verts[3*i];
-          f_out << " ";
-          f_out << this->result_verts[3*i+1];
-          f_out << " ";
-          f_out << this->result_verts[3*i+2];
-          f_out <<  "\n";
-      }
-      f_out << endl;
-
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument);
-
-      for (int i=0; i<verts.shape()[0]; i++){
-        this->result_verts[i*3+0] = new_verts[i][0];
-        this->result_verts[i*3+1] = new_verts[i][1];
-        this->result_verts[i*3+2] = new_verts[i][2];
-
-      }
-
-      f_out << "n3w vertex :" << endl;
-      for (int i=0; i< this->result_verts.size()/3.; i++){
-          f_out << this->result_verts[3*i];
-          f_out << " ";
-          f_out << this->result_verts[3*i+1];
-          f_out << " ";
-          f_out << this->result_verts[3*i+2];
-          f_out <<  "\n";
-      }
-
-      f_out << "faces :" << endl;
-      for (int i=0; i< this->result_faces.size()/3.; i++){
-          f_out << this->result_faces[3*i];
-          f_out << " ";
-          f_out << this->result_faces[3*i+1];
-          f_out << " ";
-          f_out << this->result_faces[3*i+2];
-          f_out <<  "\n";
-      }
-
-      f_out << "centroids:" << endl;
-      for (int i=0; i< centroids.shape()[0]; i++){
-          f_out << centroids[i][0];
-          f_out << " ";
-          f_out << centroids[i][1];
-          f_out << " ";
-          f_out << centroids[i][2];
-          f_out <<  "\n";
-      }
-      f_out.close();
-      }
-
-    else {
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument);
-
-    for (int i=0; i<verts.shape()[0]; i++){
-      this->result_verts[i*3+0] = new_verts[i][0];
-      this->result_verts[i*3+1] = new_verts[i][1];
-      this->result_verts[i*3+2] = new_verts[i][2];
-
-    }
-
-   }
-
-}
 
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     int x, y, z;

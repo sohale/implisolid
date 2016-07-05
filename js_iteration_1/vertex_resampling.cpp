@@ -48,20 +48,24 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   }
 }
 
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou, REAL f_argument){
+
+//add assert coming from the normalize_vector3_vectorized
+void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
 
   if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
       REAL norm = sqrt(pow(centroid_normals_normalized[i][0],2)+pow(centroid_normals_normalized[i][1],2)+pow(centroid_normals_normalized[i][2],2));
+      assert(norm!=0.);
       for(int j = 0; j < 3; j++){
         centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
+        assert(centroid_normals_normalized[i][j] <= 1.);
+        assert(centroid_normals_normalized[i][j] >= -1.);
       }
 
     }
   }
-
 }
 
 vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
@@ -186,7 +190,7 @@ REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized)
   return kij;
 }
 
-REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c=2000.0){
+REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   REAL ki = 0;
   for (int j_faces=0; j_faces<3; j_faces ++){
     ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
@@ -197,14 +201,14 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 }
 
 void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
-verts_t& centroids, verts_t& centroid_normals_normalized){
+verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   int nfaces = centroids.shape()[0];
-  float c=2000.0;
-  boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};
+//  c=2000.0;
+  boost::array<int, 2> wi_total_array_shape = {nfaces, 1 }; //look to see if { is enoug}
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
   for (int i_faces=0; i_faces<nfaces; i_faces++){
-    REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c=2000.0);
+    REAL w = wi(i_faces, faces_of_faces, centroids, centroid_normals_normalized, c);
     wi_total_array[i_faces] = w;
   }
   for (int i=0; i< new_verts.shape()[0]; i++){
@@ -217,7 +221,8 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     }
 
     for (int j=0; j< umbrella_faces.size(); j++){
-      w.push_back(wi_total_array[umbrella_faces[j]]/sum_w);
+       w.push_back(wi_total_array[umbrella_faces[j]]/sum_w); //push_back is slow
+      // w[j]= wi_total_array[umbrella_faces[j]]/sum_w;
     }
     REAL new_verts_x = 0;
     REAL new_verts_y = 0;
@@ -233,14 +238,14 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
   }
 }
 
-void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument){
+void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
 
   int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
-  boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
-  boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
-  boost::array<int, 2> faces_of_faces_shape = {{ nfaces, 3 }};
+  boost::array<int, 2> edges_of_faces_shape = { nfaces, 3 };
+  boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
+  boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
 
   boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
   boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
@@ -248,10 +253,10 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   compute_centroids(faces, verts, centroids);
 
-  boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
+  boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
   boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
 
-  compute_centroid_gradient(centroids, centroid_normals_normalized, object, f_argument);
+  compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 
@@ -260,5 +265,5 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
 
   vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
-   centroids, centroid_normals_normalized);
+   centroids, centroid_normals_normalized, c);
 }
