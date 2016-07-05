@@ -52,6 +52,109 @@ typedef struct {
 
 state_t _state;
 
+void vertex_resampling(implicit_function* object, REAL f_argument,  float c, MarchingCubes& mc){
+
+      boost::array<int, 2> verts_shape = { (int)mc.result_verts.size()/3 , 3 };
+      boost::multi_array<REAL, 2> verts(verts_shape);
+
+      boost::array<int, 2> faces_shape = { (int)mc.result_faces.size()/3 , 3 };
+      boost::multi_array<int, 2> faces(faces_shape);
+
+      boost::multi_array<REAL, 2> centroids (faces_shape);
+      boost::multi_array<REAL, 2> new_verts (verts_shape);
+
+      int output_verts=0;
+      auto i = mc.result_verts.begin();
+      auto e = mc.result_verts.end();
+      for(; i!=e; i++, output_verts++){
+        verts[output_verts][0] = (*i);
+        i++;
+        verts[output_verts][1] = (*i);
+        i++;
+        verts[output_verts][2] = (*i);
+      }
+
+      int output_faces=0;
+      auto i_f = mc.result_faces.begin();
+      auto e_f = mc.result_faces.end();
+      for(; i_f!=e_f; i_f++, output_faces++){
+        faces[output_faces][0] = (*i_f);
+        i_f++;
+        faces[output_faces][1] = (*i_f);
+        i_f++;
+        faces[output_faces][2] = (*i_f);
+      }
+
+
+      if (writing_test_file){
+
+      ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+
+      f_out << "0ld vertex :" << endl;
+      for (int i=0; i< mc.result_verts.size()/3.; i++){
+          f_out << mc.result_verts[3*i];
+          f_out << " ";
+          f_out << mc.result_verts[3*i+1];
+          f_out << " ";
+          f_out << mc.result_verts[3*i+2];
+          f_out <<  "\n";
+      }
+      f_out << endl;
+
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+
+      for (int i=0; i<verts.shape()[0]; i++){
+        mc.result_verts[i*3+0] = new_verts[i][0];
+        mc.result_verts[i*3+1] = new_verts[i][1];
+        mc.result_verts[i*3+2] = new_verts[i][2];
+
+      }
+
+      f_out << "n3w vertex :" << endl;
+      for (int i=0; i< mc.result_verts.size()/3.; i++){
+          f_out << mc.result_verts[3*i];
+          f_out << " ";
+          f_out << mc.result_verts[3*i+1];
+          f_out << " ";
+          f_out << mc.result_verts[3*i+2];
+          f_out <<  "\n";
+      }
+
+      f_out << "faces :" << endl;
+      for (int i=0; i< mc.result_faces.size()/3.; i++){
+          f_out << mc.result_faces[3*i];
+          f_out << " ";
+          f_out << mc.result_faces[3*i+1];
+          f_out << " ";
+          f_out << mc.result_faces[3*i+2];
+          f_out <<  "\n";
+      }
+
+      f_out << "centroids:" << endl;
+      for (int i=0; i< centroids.shape()[0]; i++){
+          f_out << centroids[i][0];
+          f_out << " ";
+          f_out << centroids[i][1];
+          f_out << " ";
+          f_out << centroids[i][2];
+          f_out <<  "\n";
+      }
+      f_out.close();
+      }
+
+    else {
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+
+    for (int i=0; i<verts.shape()[0]; i++){
+      mc.result_verts[i*3+0] = new_verts[i][0];
+      mc.result_verts[i*3+1] = new_verts[i][1];
+      mc.result_verts[i*3+2] = new_verts[i][2];
+
+    }
+
+   }
+
+}
 
 void check_state() {
     if(!_state.active) std::cout << "Error: not active.";
@@ -130,9 +233,10 @@ void build_geometry(int resolution, REAL time){
         mapctr++;
       }
     }
+
     float c=2000.;
     for (int i=0; i<3; i++){
-    _state.mc->vertex_resampling(object, f_argument, c);
+     vertex_resampling(object, f_argument, c, *(_state.mc));
     }
 
     if(VERBOSE){
