@@ -1,10 +1,28 @@
-# Compile tests using GoogleTest, with emscripten.
+# File: build_tests.sh
+# Desc: Compile tests using GoogleTest, with emscripten.
 # ------------------------------------------------
+# This files accepts a file as input, let it be input_file.cpp and will compile
+# it with emscripten to produce a JavaScript file with the name input_file.cpp.js .
+#
+#
+# Parameters:
+#
 # GTEST_ROOT:  root folder of your local googletest repo
+#
 # OPTIM:       switches between developemnt and optimized compilation #TODO optimized
+
+
+if [ $# -eq 0 ]; then
+    echo "Usage: bash build_tests.sh input_file.cpp."
+    echo "You should provide an input file"
+    exit 1
+fi
 
 OPTIM=0
 GTEST_ROOT=~/googletest
+file=$1 # get the filename here
+
+
 
 # check if the variable EM_PREPARE is set to 1, which means that we can compile.
 if [[ -n $EM_PREPARE ]]
@@ -21,9 +39,9 @@ then
     em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
-            test_crisp_subtract.cpp \
+            "$1" \
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
-            test_crisp_subtract.js \
+            "$1".js \
 
 fi
 
