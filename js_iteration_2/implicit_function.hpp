@@ -9,10 +9,10 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const = 0;
 
 protected:
-     bool integrity_invariant() const {return true;};
+    virtual bool integrity_invariant() const {return true;};
 
 public:
-    ~implicit_function() {};  // ?
+    virtual ~implicit_function() {};  // ?
 };
 
 //trait:
