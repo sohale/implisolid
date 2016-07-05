@@ -8,6 +8,7 @@ protected:
 
 public:
     unit_sphere(REAL r){
+        //std::cout << "ctor sphere" << std::endl;
         this->r = r;
     }
 

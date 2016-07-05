@@ -10,6 +10,7 @@ protected:
 public:
     super_bowl(REAL r){
         this->r = r;
+        std::cout << "in supper_bowll constructor : " << r << std::endl;
         //works with r>3********
     }
 

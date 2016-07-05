@@ -18,6 +18,7 @@ function __check_TypedArray_type(src, _type){
 function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
     __check_TypedArray_type(src, Float32Array);
     var TYPE_SIZE = 4;
+    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     var r = new Float32Array(dst);
@@ -38,8 +39,10 @@ function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
 function copy_Uint32Array_preallocated(src, prealloc_size)  {
     __check_TypedArray_type(src, Uint32Array);
     var TYPE_SIZE = 4;
+    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
+    console.log("dst[0] : " + dst[0]);
     var r = new Uint32Array(dst);
     r.set(new Uint32Array(src));
     return r;
@@ -47,6 +50,7 @@ function copy_Uint32Array_preallocated(src, prealloc_size)  {
 function copy_Uint16Array_preallocated(src, prealloc_size)  {
     __check_TypedArray_type(src, Uint16Array);
     var TYPE_SIZE = 2;
+    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);;
     var dst = new ArrayBuffer(len_bytes);
     var r = new Uint16Array(dst);
@@ -73,6 +77,12 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
     //console.log("verts : "+ verts_capacity_ + " faces : "+ faces_capacity_);
 
     this.allocate_buffers = function(verts, faces,  pre_allocate, faces_capacity, verts_capacity) {
+        if(faces.length == 0){
+            console.log("emptyimplicit");
+            var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+
         console.log("verts : "+ verts_capacity + " faces : "+ faces_capacity);
         var padded_faces, padded_verts;
         if(pre_allocate){
@@ -155,14 +165,22 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         var geometry = this;
         var nverts = implicit_service.get_v_size();
         var nfaces = implicit_service.get_f_size();
-        var verts_address = implicit_service.get_v_ptr();
-        var faces_address = implicit_service.get_f_ptr();
-        var verts = Module.HEAPF32.subarray(
-            verts_address/_FLOAT_SIZE,
-            verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(
-            faces_address/_INT_SIZE,
-            faces_address/_INT_SIZE + 3*nfaces);
+
+        if(nfaces > 0){
+            var verts_address = implicit_service.get_v_ptr();
+            var faces_address = implicit_service.get_f_ptr();
+            var verts = Module.HEAPF32.subarray(
+                verts_address/_FLOAT_SIZE,
+                verts_address/_FLOAT_SIZE + 3*nverts);
+            var faces = Module.HEAPU32.subarray(
+                faces_address/_INT_SIZE,
+                faces_address/_INT_SIZE + 3*nfaces);
+        }
+        else{
+            console.log("emptyimplicit");
+            var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
 
         var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.
         var g_nfaces = geometry.attributes.index.array.length/3;
@@ -232,8 +250,8 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         if(grow_needed){
             console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
-            var faces_capacity = Math.max(availableFacesSize/3, faces_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL;
-            var verts_capacity = Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL;
+            var faces_capacity = Math.floor(Math.max(availableFacesSize/3, faces_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
+            var verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
 
             this.allocate_buffers(verts, faces,  true, faces_capacity, verts_capacity);
             //var new_geometry= new LiveBufferGeometry71( verts, faces,  true, Math.max(availableFacesSize/3, faces.length/3) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
@@ -295,11 +313,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         g =currentMeshes[0].geometry
 
         IMPLICIT.finish_geometry();
-        IMPLICIT.build_geometry(28,0.9);
+        IMPLICIT.build_geometry(28,"sphere",0.9);
         g.update_geometry(IMPLICIT)
 
 
-        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28,i*0.1); g.update_geometry(IMPLICIT);}
+        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
 
         */
         return false;
@@ -324,7 +342,7 @@ function test_update1(t){
     IMPLICIT.finish_geometry();
     IMPLICIT.needsFinish = false;
 
-    var new_geometry = IMPLICIT.build_geometry(28, t);
+    var new_geometry = IMPLICIT.build_geometry(28, "sphere", t);
     IMPLICIT.needsFinish = true;
 
     if(new_geometry){

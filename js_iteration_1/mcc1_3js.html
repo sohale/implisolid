@@ -48,7 +48,7 @@ Based on MCC1
         produce_object = Module.cwrap('produce_object', null, ['number', 'number', 'number', 'number', 'number']);
 
         newProducer={};
-        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'number']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
         newProducer.get_v = Module.cwrap('get_v', null, ['number']);
@@ -381,7 +381,7 @@ function make_geometry_new(delta_t)
     global_time += delta_t;
 
 
-    newProducer.build_geometry( 28, global_time);
+    newProducer.build_geometry( 28, "sphere", global_time);
 
     var nverts = newProducer.get_v_size();
     var nfaces = newProducer.get_f_size();

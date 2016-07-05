@@ -5,7 +5,7 @@ function init(service) {
     'use strict';
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
-    service.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+    service.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'number']);
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
     service.get_f_size = Module.cwrap('get_f_size', 'number', []);
     service.get_v = Module.cwrap('get_v', null, ['number']);
@@ -40,7 +40,7 @@ var ImplicitService = function(){
             this.finish_geometry();
             this.needsFinish = false;
         }
-        this.build_geometry( 28, params["subjective_time"]);
+        this.build_geometry( 28, params["implicit_obj_name"], params["subjective_time"]);
         this.needsFinish = true;
 
         var nverts = this.get_v_size();
@@ -63,7 +63,7 @@ var ImplicitService = function(){
         return geom;
     };
     this.getLiveGeometry = function(){
-        var geom = this.make_geometry( {subjective_time: 0.0} );
+        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "sphere"} );
         return geom;
     }
 
