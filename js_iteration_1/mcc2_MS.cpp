@@ -314,9 +314,9 @@ void finish_geometry() {
 
 #include "timer.hpp"
 
-int main() {
+//int main() {
   //***** This part was used to creat test files *****//
-
+  //
   // if (writing_test_file){
   //
   // int resolution = 28;
@@ -338,19 +338,10 @@ int main() {
   // const callback_t renderCallback;
   // _state.mc->render_geometry(renderCallback);
   //
-  // if(REPORT_STATS){
-  // int mapctr = 0;
-  // for (auto& kv_pair: _state.mc->result_e3map){
-  //     if(0)
-  //         std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
-  //     mapctr++;
-  //   }
-  // }
-  //
   //   _state.mc->vertex_resampling(name, f_argument);
   //
   //  }
-    std::cout << "main();" << std::endl;
+  //   std::cout << "main();" << std::endl;
 
-    return 0;
-}
+//    return 0;
+//}

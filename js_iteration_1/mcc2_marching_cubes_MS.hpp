@@ -558,10 +558,10 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
       int min_z = 0;
       int max_z = this->size;
 
-      boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
+      boost::array<int, 2> grid_shape = { this->size*this->size*this->size , 3 };
       boost::multi_array<REAL, 2> grid(grid_shape);
 
-      boost::array<int, 1> implicit_values_shape = {{ this->size*this->size*this->size }};
+      boost::array<int, 1> implicit_values_shape = { this->size*this->size*this->size };
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
       for (int z = min_z; z < max_z; z++ ) {
