@@ -69,12 +69,12 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "scone";
+    string name = "egg";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira !
-      REAL real_size = 10;
+      REAL grid_real_size = 10;
       // f_argument is made to always be between 0. and 1.
       REAL f_argument = 0.5;
 
@@ -115,7 +115,7 @@ void build_geometry(int resolution, REAL time){
      }
 
 
-    _state.mc->create_shape(object, real_size, f_argument);
+    _state.mc->create_shape(object, grid_real_size);
 
     _state.mc->seal_exterior();
 
@@ -225,9 +225,9 @@ int main() {
   //
   // _state.mc -> isolation = 0.0;
   //   // before we had some amazing meatballs! merde a celui qui le lira!
-  //   REAL real_size= 10;
+  //   REAL grid_real_size= 10;
   // string name = "sphere";
-  // _state.mc->create_shape(name,real_size,f_argument);
+  // _state.mc->create_shape(name,grid_real_size,f_argument);
   //
   // _state.mc->seal_exterior();
   //

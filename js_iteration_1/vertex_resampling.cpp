@@ -47,8 +47,8 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
     }
   }
 }
-
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou, REAL f_argument){
+//add assert coming from the normalize_vector3_vectorized
+void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
 
@@ -199,8 +199,8 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized){
   int nfaces = centroids.shape()[0];
-  float c=2000.0;
-  boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};
+  float c=2000.0; //make an input
+  boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }}; //look to see if { is enoug}
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
   for (int i_faces=0; i_faces<nfaces; i_faces++){
@@ -217,7 +217,8 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
     }
 
     for (int j=0; j< umbrella_faces.size(); j++){
-      w.push_back(wi_total_array[umbrella_faces[j]]/sum_w);
+       w.push_back(wi_total_array[umbrella_faces[j]]/sum_w); //push_back is slow
+      // w[j]= wi_total_array[umbrella_faces[j]]/sum_w;
     }
     REAL new_verts_x = 0;
     REAL new_verts_y = 0;
@@ -236,7 +237,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized){
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument){
 
   int nfaces = faces.shape()[0];
-  assert(nfaces % 2 == 0);
+  assert(nfaces % 2 == 0); //add inside make_edge_lookup
   int num_edges = nfaces*3./2.;
   boost::array<int, 2> edges_of_faces_shape = {{ nfaces, 3 }};
   boost::array<int, 2> faces_of_edges_shape = {{ num_edges, 2 }};
@@ -251,7 +252,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   boost::array<int, 2> centroid_normals_normalized_shape = {{ nfaces, 3 }};
   boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
 
-  compute_centroid_gradient(centroids, centroid_normals_normalized, object, f_argument);
+  compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 

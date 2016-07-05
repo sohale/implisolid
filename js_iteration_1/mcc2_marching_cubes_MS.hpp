@@ -80,7 +80,7 @@ public:
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
-    void create_shape(implicit_function* object, REAL real_size, REAL f_argument);
+    void create_shape(implicit_function* object, REAL grid_real_size);
     void vertex_resampling(implicit_function* object, REAL f_argument);
 
 //field
@@ -546,11 +546,11 @@ void MarchingCubes::addBall(
     }
 }
 
-void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL f_argument){
+void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size){
       //resize can be used on the sphere to make it bigger
       bool resize = false;
       if(!resize)
-        real_size=1.0;
+        grid_real_size=1.0;
 
       int min_x = 0;
       int max_x = this->size;
@@ -568,9 +568,9 @@ void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = real_size*2.*(REAL)x/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][1] = real_size*2.*(REAL)y/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][2] = real_size*2.*(REAL)z/(REAL)this->size -1.*real_size;
+                  grid[x + y*this->size + z*this->size2][0] = grid_real_size*2.*(REAL)x/(REAL)this->size -1.*grid_real_size;
+                  grid[x + y*this->size + z*this->size2][1] = grid_real_size*2.*(REAL)y/(REAL)this->size -1.*grid_real_size;
+                  grid[x + y*this->size + z*this->size2][2] = grid_real_size*2.*(REAL)z/(REAL)this->size -1.*grid_real_size;
 
 
               }
@@ -587,7 +587,7 @@ void MarchingCubes::create_shape(implicit_function* object, REAL real_size, REAL
           }
       }
 }
-
+// move in separate file
 void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument){
 
       boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
