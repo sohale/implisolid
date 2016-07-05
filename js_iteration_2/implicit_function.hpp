@@ -1,7 +1,12 @@
 #pragma once
 
 #include "basic_data_structures.hpp"
-
+/**
+ * Class: implicit_function
+ * ----------------------------------------
+ * The base class which objects inherit from.
+ *
+ */
 class implicit_function {
 
 public:
@@ -12,8 +17,5 @@ protected:
     virtual bool integrity_invariant() const {return true;};
 
 public:
-    virtual ~implicit_function() {};  // ?
+    virtual ~implicit_function() {};
 };
-
-//trait:
-//SignedDistanceImplicitPointwise, PrimitiveBase
