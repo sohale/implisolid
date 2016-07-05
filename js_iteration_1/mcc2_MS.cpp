@@ -130,9 +130,9 @@ void build_geometry(int resolution, REAL time){
         mapctr++;
       }
     }
-
+    float c=2000.;
     for (int i=0; i<3; i++){
-    _state.mc->vertex_resampling(object, f_argument);
+    _state.mc->vertex_resampling(object, f_argument, c);
     }
 
     if(VERBOSE){

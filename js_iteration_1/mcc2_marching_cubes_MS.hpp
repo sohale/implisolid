@@ -81,7 +81,7 @@ public:
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
     void create_shape(implicit_function* object, REAL grid_real_size);
-    void vertex_resampling(implicit_function* object, REAL f_argument);
+    void vertex_resampling(implicit_function* object, REAL f_argument, float c);
 
 //field
     void reset();
@@ -588,7 +588,7 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
       }
 }
 // move in separate file
-void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument){
+void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument,  float c){
 
       boost::array<int, 2> verts_shape = {{ (int)this->result_verts.size()/3 , 3 }};
       boost::multi_array<REAL, 2> verts(verts_shape);
@@ -637,7 +637,7 @@ void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument
       }
       f_out << endl;
 
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument);
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
 
       for (int i=0; i<verts.shape()[0]; i++){
         this->result_verts[i*3+0] = new_verts[i][0];
@@ -679,7 +679,7 @@ void MarchingCubes::vertex_resampling(implicit_function* object, REAL f_argument
       }
 
     else {
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument);
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument,  c);
 
     for (int i=0; i<verts.shape()[0]; i++){
       this->result_verts[i*3+0] = new_verts[i][0];
