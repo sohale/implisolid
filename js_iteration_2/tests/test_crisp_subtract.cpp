@@ -53,11 +53,6 @@ TEST(CrispSubtractTests, TwoSpheres) {
     EXPECT_GT( f[2], +ROOT_TOLERANCE );
 }
 
-void linspace(REAL x_start, REAL x_end, int num_steps){
-
-}
-
-
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     std::cout << "Good bye." << std::endl;
