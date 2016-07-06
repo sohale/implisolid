@@ -96,4 +96,26 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     return values;
 }
 
+
+
+/*
+================================================================
+=           Configuration Parameters                           =
+================================================================
+*/
+
+
+/**
+ * Configuration parameters
+ * --------------------------
+ * Contains global configuration options for tolerances, epsilon and other
+ * parameters
+ *
+ * See: implicit_config.py
+ */
+
+const REAL ROOT_TOLERANCE = 0.001;  //
+const REAL MEAN_PRINTABLE_LENGTH = 0.01;  //
+
+
 #endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP

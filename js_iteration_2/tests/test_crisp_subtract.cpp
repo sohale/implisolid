@@ -10,6 +10,7 @@
 #include "../crisp_subtract.hpp"
 #include "../unit_sphere.hpp"
 #include "gtest/gtest.h"
+
 // #include "../timer.hpp"
 
 TEST(CrispSubtractTests, TwoSpheres) {
@@ -20,10 +21,15 @@ TEST(CrispSubtractTests, TwoSpheres) {
 
     vectorized_vect x = make_empty_x(nsize);
 
-    // 1st point , the origin.
+    // 1st point, the origin.
     x[0][0] = 0.0;
     x[0][1] = 0.0;
     x[0][2] = 0.0;
+
+    // // 2nd point,
+    // x[0][0] = 0.0;
+    // x[0][1] = 0.0;
+    // x[0][2] = 0.0;
 
     mp5_implicit::unit_sphere s1(2.0);
     mp5_implicit::unit_sphere s2(1.3);
@@ -31,8 +37,8 @@ TEST(CrispSubtractTests, TwoSpheres) {
     CrispSubtract crs = CrispSubtract(s1,s2);
     crs.eval_implicit(x, &f);
     // see the output for the first point
-    std::cout << f[0] << std::endl;
-    }
+    EXPECT_LT( f[0], -ROOT_TOLERANCE );
+}
 
 void linspace(REAL x_start, REAL x_end, int num_steps){
 
