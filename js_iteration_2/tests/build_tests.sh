@@ -20,8 +20,10 @@ fi
 
 OPTIM=0
 GTEST_ROOT=~/googletest
-file=$1 # get the filename here
+fullfilename=$1 # get first argument as input file
 
+extension="${fullfilename##*.}" # seperate extension and filename
+filename="${fullfilename%.*}"   # this is needed for the output file name
 
 
 # check if the variable EM_PREPARE is set to 1, which means that we can compile.
@@ -41,7 +43,9 @@ then
             -pedantic -std=c++14 \
             "$1" \
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
-            "$1".js \
+            "$filename".compiled.js \
+            && node "$filename".compiled.js \
+
 
 fi
 
