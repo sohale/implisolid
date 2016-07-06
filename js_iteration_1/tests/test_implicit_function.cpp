@@ -15,46 +15,51 @@ using namespace mp5_implicit;
 
 int main(){
 
+bool enableUvs = true;
+bool enableColors = true;
+int resolution = 28;
+
+_state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 REAL grid_real_size = 10;
 // f_argument is made to always be between 0. and 1.
 REAL f_argument = 0.5;
 
-string name = "double_mushroom";
+string name = "sphere";
 implicit_function * object;
-
-if (name == "double_mushroom"){
-double_mushroom mushroom(f_argument+3.); //3.3
-object = &mushroom;
-}
-else if (name == "egg"){
-egg segg(f_argument);
-object = &segg; // super egg !
-}
-else if (name == "sphere"){
+//
+// if (name == "double_mushroom"){
+// double_mushroom mushroom(f_argument+3.); //3.3
+// object = &mushroom;
+// }
+// else if (name == "egg"){
+// egg segg(f_argument);
+// object = &segg; // super egg !
+// }
+// else if (name == "sphere"){
 unit_sphere sphere(f_argument);
 object = &sphere;
-}
-else if (name == "cube"){
-cube cube(f_argument);
-object = &cube;
-}
-else if (name == "super_bowl"){
-super_bowl super_bowl(f_argument); //0.5
-object = &super_bowl;
-}
-else if (name == "scone"){
-scone scone(f_argument +2.5);
-object = &scone;
-}
-else if (name == "scylinder"){
-scylinder scylinder(f_argument); //0.7
-object = &scylinder;
-}
-else {
-cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
-unit_sphere sphere(f_argument);
-object = &sphere;
-}
+// }
+// else if (name == "cube"){
+// cube cube(f_argument);
+// object = &cube;
+// }
+// else if (name == "super_bowl"){
+// super_bowl super_bowl(f_argument); //0.5
+// object = &super_bowl;
+// }
+// else if (name == "scone"){
+// scone scone(f_argument +2.5);
+// object = &scone;
+// }
+// else if (name == "scylinder"){
+// scylinder scylinder(f_argument); //0.7
+// object = &scylinder;
+// }
+// else {
+// cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
+// unit_sphere sphere(f_argument);
+// object = &sphere;
+// }
 
 
 boost::array<int, 2> grid_shape = { 5*5*5 , 3 };
