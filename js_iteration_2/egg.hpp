@@ -12,7 +12,7 @@ public:
         this->r = r;
     }
 
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
+    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output, REAL grid_real_size) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
@@ -27,7 +27,7 @@ public:
 
         }
     }
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
+    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output, REAL grid_real_size) const {
 
 
         int output_ctr=0;

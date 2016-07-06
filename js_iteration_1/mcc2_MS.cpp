@@ -52,7 +52,7 @@ typedef struct {
 
 state_t _state;
 
-void vertex_resampling(implicit_function* object, REAL f_argument,  float c, MarchingCubes& mc){
+void vertex_resampling(implicit_function* object, REAL f_argument,  float c, MarchingCubes& mc, REAL grid_real_size){
 
       boost::array<int, 2> verts_shape = { (int)mc.result_verts.size()/3 , 3 };
       boost::multi_array<REAL, 2> verts(verts_shape);
@@ -101,7 +101,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
       f_out << endl;
 
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c, grid_real_size);
 
       for (int i=0; i<verts.shape()[0]; i++){
         mc.result_verts[i*3+0] = new_verts[i][0];
@@ -143,7 +143,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
 
     else {
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c, grid_real_size);
 
     for (int i=0; i<verts.shape()[0]; i++){
       mc.result_verts[i*3+0] = new_verts[i][0];
@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "egg";
+    string name = "sphere";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -236,7 +236,7 @@ void build_geometry(int resolution, REAL time){
 
     float c=2000.;
     for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
+     vertex_resampling(object, f_argument, c, *(_state.mc), grid_real_size);
     }
 
     if(VERBOSE){
