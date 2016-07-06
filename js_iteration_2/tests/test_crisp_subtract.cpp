@@ -30,12 +30,12 @@ TEST(CrispSubtractTests, TwoSpheres) {
 
     CrispSubtract crs = CrispSubtract(s1,s2);
 
-    // 1st point x1**2 + y1**2 + z1**2 = 0, inside both spheres, should output - 
+    // 1st point x1**2 + y1**2 + z1**2 = 0, inside both spheres, should output -
     x[0][0] = 0.0;
     x[0][1] = 0.0;
     x[0][2] = 0.0;
 
-    // 2nd point +x2**2 + y2**2 + z2**2 = 6 , outside both spheres, should output -
+    // 2nd point x2**2 + y2**2 + z2**2 = 6 , outside both spheres, should output -
     x[1][0] = 1.0;
     x[1][1] = 1.0;
     x[1][2] = 2.0;
