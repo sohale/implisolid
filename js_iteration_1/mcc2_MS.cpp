@@ -314,7 +314,7 @@ void finish_geometry() {
 
 #include "timer.hpp"
 
-//int main() {
+int main() {
   //***** This part was used to creat test files *****//
   //
   // if (writing_test_file){
@@ -343,5 +343,5 @@ void finish_geometry() {
   //  }
   //   std::cout << "main();" << std::endl;
 
-//    return 0;
-//}
+    return 0;
+}
