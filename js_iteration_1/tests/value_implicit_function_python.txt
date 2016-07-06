@@ -1,4 +1,4 @@
-Implicit_function in cpp :
+Implicit values :
 -2.75
 -2.11
 -1.79
@@ -124,4 +124,3 @@ Implicit_function in cpp :
 -0.51
 -0.51
 -0.83
-
