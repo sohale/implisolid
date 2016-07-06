@@ -1,8 +1,9 @@
 # File: build_tests.sh
-# Desc: Compile tests using GoogleTest, with emscripten.
+# Desc: Compile and run tests using GoogleTest and Emscripten.
 # ------------------------------------------------
 # This files accepts a file as input, let it be input_file.cpp and will compile
-# it with emscripten to produce a JavaScript file with the name input_file.cpp.js .
+# it with emscripten to produce a JavaScript file with the name input_file.compiled.js
+# and if the compilation is successfull it will also run the tests with node .
 #
 #
 # Parameters:
