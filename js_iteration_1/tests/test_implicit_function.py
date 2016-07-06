@@ -31,8 +31,83 @@ class UnitSphere(ImplicitFunction):
         return grad
 
 
+def make_vector3(x, y, z):
+    xyz = np.array([x, y, z])
+    assert not np.any(np.isnan(xyz))
+    assert not np.any(np.isinf(xyz))
+
+    if issubclass(type(x), np.ndarray):
+        return np.array((float(x[0]), float(y[1]), float(z[1])))
+
+    return np.array((float(x), float(y), float(z)))
+
+
+class UnitCube1(ImplicitFunction):
+    def __init__(self, size=0.5):
+        self.p0 = []
+        self.n0 = []
+
+        def side(x, y, z):
+            p0 = make_vector3(x, y, z)
+            p0 = p0 / 2.0 * size
+            n0 = -make_vector3(x, y, z)
+            n0 = n0
+            self.p0 += [p0]
+            self.n0 += [n0]
+            # print(self.p0[-1])
+
+            def norm2(v):
+                return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
+            assert norm2(self.n0[-1]) - 1. == 0.0
+
+        side(1, 0, 0)
+        side(-1, 0, 0)
+        side(0, 1, 0)
+        side(0, -1, 0)
+        side(0, 0, 1)
+        side(0, 0, -1)
+
+    def implicitFunction(self, p):
+
+        sides = len(self.p0)
+        n = p.shape[0]
+        temp = np.zeros((n, sides))
+        for i in range(sides):
+            p0 = self.p0[i]
+            n0 = self.n0[i]
+            sub = p - np.tile(p0[np.newaxis, :], (n, 1))
+            vi = np.dot(sub, n0)
+            temp[:, i] = vi
+        va = np.amin(temp, axis=1)
+        return va
+
+    def implicitGradient(self, p):
+
+        sides = 6
+        na = np.zeros((sides, 3))
+        n = p.shape[0]
+        temp = np.zeros((n, sides))
+        for i in range(len(self.p0)):
+            p0 = self.p0[i]
+            n0 = self.n0[i]
+            sub = p - np.tile(p0[np.newaxis, :], (n, 1))
+            vi = np.dot(sub, n0)
+
+            temp[:, i] = vi
+
+            na[i, :] = n0
+
+        ia = np.argmin(temp, axis=1)
+
+        assert ia.shape == (n,)
+
+        g = na[ia, :]
+
+        return g
+
+
 def sphere_example(scale=1.):
-    iobj = UnitSphere()
+    iobj = UnitCube1()
 
     return iobj
 

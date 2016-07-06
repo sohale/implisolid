@@ -24,7 +24,7 @@ REAL grid_real_size = 10;
 // f_argument is made to always be between 0. and 1.
 REAL f_argument = 0.5;
 
-string name = "sphere";
+//string name = "sphere";
 implicit_function * object;
 //
 // if (name == "double_mushroom"){
@@ -36,12 +36,12 @@ implicit_function * object;
 // object = &segg; // super egg !
 // }
 // else if (name == "sphere"){
-unit_sphere sphere(f_argument);
-object = &sphere;
+// unit_sphere sphere(f_argument);
+// object = &sphere;
 // }
 // else if (name == "cube"){
-// cube cube(f_argument);
-// object = &cube;
+cube cube(f_argument);
+object = &cube;
 // }
 // else if (name == "super_bowl"){
 // super_bowl super_bowl(f_argument); //0.5
