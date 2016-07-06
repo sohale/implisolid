@@ -52,7 +52,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 //add assert coming from the normalize_vector3_vectorized
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou, REAL grid_real_size){
 
-  gradou->eval_gradient(centroids, &centroid_normals_normalized, grid_real_size);
+  gradou->eval_gradient(centroids, &centroid_normals_normalized);
 
   if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){

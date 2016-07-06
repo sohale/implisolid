@@ -576,7 +576,7 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
           }
       }
 
-      object->eval_implicit(grid, &implicit_values, grid_real_size);
+      object->eval_implicit(grid, &implicit_values);
 
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {

@@ -35,7 +35,7 @@ public:
     {
         // of what type is a and b fa
     }
-    void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output, REAL grid_real_size) const {
+    void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         int output_ctr = 0;
         auto i = x.begin();
         auto e = x.end();
@@ -55,7 +55,7 @@ public:
         }
     }
 
-    void eval_gradient(const vectorized_vect& x, vectorized_vect* output, REAL grid_real_size) const {
+    void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
         int output_ctr = 0;
         auto i = x.begin();
         auto e = x.end();
