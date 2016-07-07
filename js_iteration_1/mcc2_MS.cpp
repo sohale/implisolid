@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "double_mushroom";
+    string name = "scylinder";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -197,11 +197,11 @@ void build_geometry(int resolution, REAL time){
       object = &segg; // super egg !
     }
     else if (name == "sphere"){
-      unit_sphere sphere(f_argument);
+      unit_sphere sphere(f_argument, 0.2, 0.1, 0.3);
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(f_argument);
+      cube cube(1., 1., 1.);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -213,7 +213,7 @@ void build_geometry(int resolution, REAL time){
       object = &scone;
     }
     else if (name == "scylinder"){
-      scylinder scylinder(f_argument); //0.7
+      scylinder scylinder(0.4, 1.6); //0.7
       object = &scylinder;
     }
     else {

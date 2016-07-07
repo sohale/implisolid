@@ -1,15 +1,28 @@
 #pragma once
-
+#include "basic_data_structures.hpp"
 namespace mp5_implicit {
 
 class scylinder : public implicit_function {
 
 protected:
-    REAL r;
+    REAL r; REAL h;
+    REAL x; REAL y; REAL z;
 
 public:
-    scylinder(REAL r){
-        this->r = r;
+    scylinder(REAL radius, REAL height){
+        this->r = radius;
+        this->h = height;
+        this->x = 0.;
+        this->y = 0.;
+        this->z = 0.;
+    }
+
+    scylinder(REAL radius, REAL height, REAL center_x, REAL center_y, REAL center_z){
+        this->r = radius;
+        this->h = height;
+        this->x = center_x;
+        this->y = center_y;
+        this->z = center_z;
     }
 
 
@@ -24,8 +37,8 @@ public:
         auto i = x.begin();
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
-          (*f_output)[output_ctr] = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] + r2;
-          if((*i)[2]>=0.8 || (*i)[2]<=-0.8 ){
+          (*f_output)[output_ctr] = -((*i)[0]-this->x)*((*i)[0]-this->x) - ((*i)[1]-this->y)*((*i)[1]-this->y) + r2;
+          if((*i)[2]-this->z >= this->h/2 || (*i)[2]-this->z <= -this->h/2 ){
             (*f_output)[output_ctr] = -1.;
           }
 
@@ -39,10 +52,10 @@ public:
         const REAL r2 = squared(this->r);
         for(; i!=e; i++, output_ctr++){
 
-          if((*i)[2]>=0.78 || (*i)[2]<=-0.78){
+          if((*i)[2]>=this->h/2 || (*i)[2]<=-this->h/2){
 
-            (*output)[output_ctr][0] = -2. * (*i)[0];
-            (*output)[output_ctr][1] = -2. * (*i)[1];
+            (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x);
+            (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y);
             (*output)[output_ctr][2] = 0.;
 
           }
@@ -55,6 +68,9 @@ public:
         }
     }
     bool integrity_invariant() const {
+      if(this->r < MEAN_PRINTABLE_LENGTH || this->h < MEAN_PRINTABLE_LENGTH)
+        return false;
+      else
         return true;
     }
 };

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "basic_data_structures.hpp"
 namespace mp5_implicit {
 
 class double_mushroom : public implicit_function {
@@ -42,7 +42,7 @@ public:
         const REAL c2 = squared(this->c);
 
         int output_ctr=0;
-
+        bool test = this->integrity_invariant();
         auto i = x.begin();
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
@@ -85,6 +85,9 @@ public:
         }
     }
     bool integrity_invariant() const {
+      if(MEAN_PRINTABLE_LENGTH > this->r || MEAN_PRINTABLE_LENGTH > this->a || MEAN_PRINTABLE_LENGTH  > this->b)
+        return false;
+      else
         return true;
     }
 };

@@ -1,15 +1,28 @@
 #pragma once
+#include "basic_data_structures.hpp"
 
 namespace mp5_implicit {
 class unit_sphere : public implicit_function {
 
 protected:
     REAL r;
+    REAL x; REAL y; REAL z;
 
 public:
-    unit_sphere(REAL r){
+    unit_sphere(REAL radius){
         //std::cout << "ctor sphere" << std::endl;
-        this->r = r;
+        this->r = radius;
+        this->x = 0.;
+        this->y = 0.;
+        this->z = 0.;
+    }
+
+    unit_sphere(REAL radius, REAL center_x, REAL center_y, REAL center_z){
+        //std::cout << "ctor sphere" << std::endl;
+        this->r = radius;
+        this->x = center_x;
+        this->y = center_y;
+        this->z = center_z;
     }
 
 
@@ -24,7 +37,7 @@ public:
         auto i = x.begin();
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
-            (*f_output)[output_ctr] = r2 - norm_squared((*i)[0], (*i)[1], (*i)[2] );
+            (*f_output)[output_ctr] = r2 - norm_squared((*i)[0]-this->x, (*i)[1]-this->y, (*i)[2]-this->z );
         }
     }
 
@@ -40,6 +53,9 @@ public:
         }
     }
     bool integrity_invariant() const {
+      if(this->r < MEAN_PRINTABLE_LENGTH)
+        return false;
+      else
         return true;
     }
 };
