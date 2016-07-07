@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableColors = true;
 
     string name = "scylinder";
-    _state.mc = new MarchingCubes(resolution, REAL size, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira !

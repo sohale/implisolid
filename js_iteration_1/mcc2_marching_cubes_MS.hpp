@@ -47,7 +47,7 @@ class MarchingCubes{
     static const int mc_triangles_table[256*16];
 
  protected:
-    void init(dim_t resolution);
+    void init(dim_t resolution, REAL delta);
 
 inline void VIntX(index_t q, array1d &pout, array1d &nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
 inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
