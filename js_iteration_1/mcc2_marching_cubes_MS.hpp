@@ -64,7 +64,7 @@ public:
     index_t size, size2, size3;
     array1d field;
 
-    MarchingCubes( dim_t resolution, bool enableUvs, bool enableColors );
+    MarchingCubes( dim_t resolution, REAL size, bool enableUvs, bool enableColors );
     ~MarchingCubes();
 
     REAL isolation;
@@ -100,7 +100,7 @@ public:
 
 
 int EXCESS = 0;
-MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enableColors=false ):
+MarchingCubes::MarchingCubes( dim_t resolution, REAL size, bool enableUvs=false, bool enableColors=false ):
         //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({ resolution*resolution*resolution }) )),
@@ -118,12 +118,12 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     if(VERBOSE)
         std::cout << resolution << " init"<< std::endl;
 
-    this->init( resolution );
+    this->init( resolution, size*(2.0 / (REAL)resolution) );
 
 }
 
 
-void MarchingCubes::init( dim_t resolution ) {
+void MarchingCubes::init( dim_t resolution, REAL delta) {
     // init() is only called by the constructor
 
     this->isolation = 80.0;
@@ -134,7 +134,7 @@ void MarchingCubes::init( dim_t resolution ) {
     this->halfsize = ((REAL)this->size) / 2.0;
 
     // deltas
-    this->delta = 2.0 / (REAL)this->size;
+    this->delta = delta;
     this->yd = this->size;
     this->zd = this->size2;
     this->yd_global = this->size;

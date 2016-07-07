@@ -315,11 +315,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         g =currentMeshes[0].geometry
 
         IMPLICIT.finish_geometry();
-        IMPLICIT.build_geometry(28,"sphere",0.9);
+        IMPLICIT.build_geometry(28, 1.0, "sphere",0.9);
         g.update_geometry(IMPLICIT)
 
 
-        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
+        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28, 1.0, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
 
         */
         return false;

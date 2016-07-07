@@ -34,7 +34,7 @@ struct callback_t { void call (void*) const { } callback_t(){} };
 #include "mcc2_marching_cubes_MS.hpp"
 
 extern "C" {
-    void build_geometry(int resolution, REAL time);
+    void build_geometry(int resolution, REAL mc_size, REAL time);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -164,7 +164,7 @@ void check_state_null() {
         std::cout << "Error: should not be active.";
 }
 
-void build_geometry(int resolution, REAL time){
+void build_geometry(int resolution, REAL mc_size, REAL time){
 
     check_state_null();
 
@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL time){
     bool enableColors = true;
 
     string name = "scylinder";
-    _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution, REAL size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
       // before we had some amazing meatballs! merde a celui qui le lira !
@@ -330,7 +330,7 @@ int main() {
   // bool enableUvs = true;
   // bool enableColors = true;
   //
-  // _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+  // _state.mc = new MarchingCubes(resolution, 1.0, enableUvs, enableColors);
   //
   // _state.mc -> isolation = 0.0;
   //   // before we had some amazing meatballs! merde a celui qui le lira!

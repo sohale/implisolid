@@ -19,7 +19,7 @@ bool enableUvs = true;
 bool enableColors = true;
 int resolution = 28;
 
-_state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+_state.mc = new MarchingCubes(resolution, 1.0, enableUvs, enableColors);
 REAL grid_real_size = 10;
 // f_argument is made to always be between 0. and 1.
 REAL f_argument = 0.5;

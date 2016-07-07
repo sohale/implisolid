@@ -32,7 +32,7 @@ Based on MCC1
 
 
         var newProducer={};
-        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number']);
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number', 'string', 'number']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
         newProducer.get_v = Module.cwrap('get_v', null, ['number']);
@@ -151,7 +151,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     }
 
-    newPolygonizer.build_geometry( 28, subjective_time);
+    newPolygonizer.build_geometry( 28, 1.0, subjective_time);
     newPolygonizer.needsFinish = true;
 
     var nverts = newPolygonizer.get_v_size();
@@ -199,7 +199,7 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
         console.error("not deallocated.");
     try{
 
-        newPolygonizer.build_geometry( 28, subjective_time);
+        newPolygonizer.build_geometry( 28, 1.0, subjective_time);
         newPolygonizer.needsFinish = true;
     }catch(err){
         console.error("An error occured dugin MCC C++")

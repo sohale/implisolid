@@ -49,7 +49,7 @@ int main() {
   bool enableUvs = true;
   bool enableColors = true;
 
-  _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+  _state.mc = new MarchingCubes(resolution, 1.0, enableUvs, enableColors);
 
   _state.mc -> isolation = 0.0;
     // before we had some amazing meatballs! merde a celui qui le lira!

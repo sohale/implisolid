@@ -54,7 +54,7 @@ Based on MCC1
         produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
 
         var newProducer={};
-        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'number']);
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number', 'string', 'number']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
         newProducer.get_v = Module.cwrap('get_v', null, ['number']);
@@ -319,7 +319,7 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
 
     //console.log(newPolygonizer);
     //d("2   G..");
-    newPolygonizer.build_geometry( 28, "sphere", subjective_time);
+    newPolygonizer.build_geometry( 28, 1.0, "sphere", subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -403,7 +403,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
-    newPolygonizer.build_geometry( 28, "sphere", subjective_time);
+    newPolygonizer.build_geometry( 28, 1.0, "sphere", subjective_time);
     newPolygonizer.needsFinish = true;
 
     var nverts = newPolygonizer.get_v_size();
@@ -456,7 +456,7 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
         console.error("not deallocated.");
     try{
         //d("2   G.");
-        newPolygonizer.build_geometry( 28, "sphere", subjective_time);
+        newPolygonizer.build_geometry( 28, 1.0, "sphere", subjective_time);
         newPolygonizer.needsFinish = true;
     }catch(err){
         console.error("An error occured dugin MCC C++")

@@ -5,7 +5,7 @@ function init(service) {
     'use strict';
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
-    service.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'number']);
+    service.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number', 'string', 'number']);
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
     service.get_f_size = Module.cwrap('get_f_size', 'number', []);
     service.get_v = Module.cwrap('get_v', null, ['number']);
@@ -40,7 +40,7 @@ var ImplicitService = function(){
             this.finish_geometry();
             this.needsFinish = false;
         }
-        this.build_geometry( 28, params["implicit_obj_name"], params["subjective_time"]);
+        this.build_geometry( 28, params["mc_size"], params["implicit_obj_name"], params["subjective_time"]);
         this.needsFinish = true;
 
         var nverts = this.get_v_size();
@@ -64,7 +64,7 @@ var ImplicitService = function(){
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService 
     this.getLiveGeometry = function(){
-        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "meta_balls"} );
+        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "meta_balls",  mc_size: 1.0} );
         return geom;
     }
 
@@ -96,7 +96,7 @@ function test_update1(t){
     IMPLICIT.finish_geometry();
     IMPLICIT.needsFinish = false;
 
-    var new_geometry = IMPLICIT.build_geometry(28, "meta_balls", t);
+    var new_geometry = IMPLICIT.build_geometry(28, 1., "meta_balls", t);
     IMPLICIT.needsFinish = true;
 
     if(new_geometry){

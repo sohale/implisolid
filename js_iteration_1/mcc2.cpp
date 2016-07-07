@@ -170,7 +170,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
         std::cout << "Leak-free (old version)" << std::endl;
 
 
-    MarchingCubes mc(resolution, enableUvs, enableColors);
+    MarchingCubes mc(resolution, 1.0, enableUvs, enableColors);
     //MarchingCubes* mc0 = new MarchingCubes(resolution, enableUvs, enableColors);
     //MarchingCubes &mc = *mc0;
     //MarchingCubesMock mc(resolution, enableUvs, enableColors);
@@ -249,7 +249,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 }*/
 
 extern "C" {
-    void build_geometry(int resolution, char* obj_name, REAL time);
+    void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -314,7 +314,7 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
         object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
     }
     else if (name == "egg"){
-        object = new mp5_implicit::egg(f_argument);
+        object = new mp5_implicit::egg(f_argument,f_argument,f_argument);
     }
     else if (name == "sphere"){
         object = new mp5_implicit::unit_sphere((sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10);
@@ -326,7 +326,7 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
         object = new mp5_implicit::super_bowl(1.5/(f_argument+3.0));
     }
     else if (name == "scone"){
-        object = new mp5_implicit::scone(f_argument +2.5);
+        object = new mp5_implicit::scone(f_argument +2.5,f_argument +2.5,f_argument +2.5,-0.1);
     }
     else if (name == "scylinder"){
         object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
@@ -339,7 +339,7 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
     }
     return object;
 }
-void build_geometry(int resolution, char* obj_name, REAL time){
+void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time){
 
     if(!check_state_null())
         return;
@@ -351,7 +351,7 @@ void build_geometry(int resolution, char* obj_name, REAL time){
     //std::cout << "Leak-free : new" << std::endl;
 
     //MarchingCubes mc(resolution, enableUvs, enableColors);
-    _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
     //std::cout << "constructor called. " << _state.mc << std::endl;
 
     _state.mc -> isolation = 80.0/4*0;
