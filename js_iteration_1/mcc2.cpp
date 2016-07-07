@@ -340,7 +340,7 @@ void build_geometry(int resolution, char* obj_name, REAL time){
     REAL f_argument = time;
 
     if (name == "double_mushroom"){
-        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), 1/(f_argument+3));
+        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
     }
     else if (name == "egg"){
         object = new mp5_implicit::egg(f_argument);
@@ -352,7 +352,7 @@ void build_geometry(int resolution, char* obj_name, REAL time){
         object = new mp5_implicit::cube(f_argument);
     }
     else if (name == "super_bowl"){// not working
-        object = new mp5_implicit::super_bowl(f_argument+3.0);
+        object = new mp5_implicit::super_bowl(1.5/(f_argument+3.0));
     }
     else if (name == "scone"){
         object = new mp5_implicit::scone(f_argument +2.5);
