@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 5;
+      REAL grid_real_size = 1;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -189,7 +189,7 @@ void build_geometry(int resolution, REAL time){
     implicit_function * object;
 
     if (name == "double_mushroom"){
-      double_mushroom mushroom(3, 1., 1., 1., 0.,0.,1.); //3.3
+      double_mushroom mushroom(1.6, 0.3, 0.3, 2, 0.,0.,0.); //3.3
       object = &mushroom;
     }
     else if (name == "egg"){

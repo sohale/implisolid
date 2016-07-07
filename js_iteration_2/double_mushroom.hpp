@@ -6,29 +6,29 @@ class double_mushroom : public implicit_function {
 
 protected:
     REAL r;
-    REAL a; REAL b; REAL c;
+    REAL a; REAL b; REAL c;// TODO convert to REAL_mm
     REAL x; REAL y; REAL z;
 
 public:
-    double_mushroom(REAL r, REAL a, REAL b, REAL c){
-        this->r = r;
-        this->a = a;
-        this->b = b;
-        this->c = c;
+    double_mushroom(REAL height_mm, REAL center_radius_x_mm, REAL center_radius_y_mm, REAL curvature){
+        this->r = height_mm/2;
+        this->a = center_radius_x_mm;
+        this->b = center_radius_y_mm;
+        this->c = 1/curvature;
         this->x = 0;
         this->y = 0;
         this->z = 0;
         //works with r>3********
     }
 
-    double_mushroom(REAL r, REAL a, REAL b, REAL c, REAL x, REAL y, REAL z){
-        this->r = r;
-        this->a = a;
-        this->b = b;
-        this->c = c;
-        this->x = x;
-        this->y = y;
-        this->z = z;
+    double_mushroom(REAL height_mm, REAL center_radius_x_mm, REAL center_radius_y_mm, REAL curvature, REAL center_x, REAL center_y, REAL center_z){
+        this->r = height_mm/2;
+        this->a = center_radius_x_mm;
+        this->b = center_radius_y_mm;
+        this->c = 1/curvature;
+        this->x = center_x;
+        this->y = center_y;
+        this->z = center_z;
         //works with r>3********
     }
 
