@@ -9,19 +9,19 @@ protected:
     REAL x; REAL y; REAL z;
 
 public:
-    cube(REAL height, REAL width, REAL depth){
-        this->h = height;
-        this->w = width;
-        this->d = depth;
+    cube(REAL size_x, REAL size_y, REAL size_z){
+        this->h = size_z;
+        this->w = size_x;
+        this->d = size_y;
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
     }
 
-    cube(REAL height, REAL width, REAL depth, REAL center_x, REAL center_y, REAL center_z){
-        this->h = height;
-        this->w = width;
-        this->d = depth;
+    cube(REAL size_x, REAL size_y, REAL size_z, REAL center_x, REAL center_y, REAL center_z){
+        this->h = size_z;
+        this->w = size_x;
+        this->d = size_y;
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
@@ -54,22 +54,22 @@ public:
         auto e = x.end();
         for(; i!=e; i++, output_ctr++){
             if ((*i)[0]-this->x < -this->w+0.05) {
-                  (*output)[output_ctr][0] = +1.* (*i)[0];
+                  (*output)[output_ctr][0] = +1.* ((*i)[0]-this->x);
             }
             else if((*i)[0]-this->x > this->w-0.05){
-                (*output)[output_ctr][0] = -1. * (*i)[0];
+                (*output)[output_ctr][0] = -1. * ((*i)[0]-this->x);
             }
             else if ((*i)[1]-this->y < -this->d-0.05){
-                  (*output)[output_ctr][1] = +1.*(*i)[1];
+                  (*output)[output_ctr][1] = +1.*((*i)[1]-this->y);
             }
             else if((*i)[1]-this->y < -this->d+0.05){
-                (*output)[output_ctr][1] = -1.*(*i)[1];
+                (*output)[output_ctr][1] = -1.*((*i)[1]-this->y);
             }
             else if ((*i)[2]-this->z < -this->h-0.05){
-                  (*output)[output_ctr][2] = +1.*(*i)[2];
+                  (*output)[output_ctr][2] = +1.*((*i)[2]-this->z);
             }
             else if((*i)[2]-this->z < -this->h+0.05){
-                (*output)[output_ctr][2] = -1.*(*i)[2];
+                (*output)[output_ctr][2] = -1.*((*i)[2]-this->z);
             }
             else
               (*output)[output_ctr][0]= 1; // arbitrary value to avoid null vectors may need to be changed

@@ -62,9 +62,9 @@ public:
         auto i = x.begin();
         auto e = x.end();
         for(; i<e; i++, output_ctr++){
-            (*output)[output_ctr][0] = -2*(*i)[0]/a2;
-            (*output)[output_ctr][1] = -2*(*i)[1]/b2;
-            (*output)[output_ctr][2] =  2*(*i)[2]/c2;
+            (*output)[output_ctr][0] = -2*((*i)[0]-this->x)/a2;
+            (*output)[output_ctr][1] = -2*((*i)[1]-this->y)/b2;
+            (*output)[output_ctr][2] =  2*((*i)[2]-this->z)/c2;
             // this may be used :  && pow((*i)[0],2)+pow((*i)[1],2)<0.9
             if((*i)[2]-this->z < this->r && (*i)[2]-this->z > this->r-0.05) {
                         (*output)[output_ctr][0] = 0;

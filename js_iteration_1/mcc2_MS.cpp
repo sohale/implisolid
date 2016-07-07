@@ -189,11 +189,11 @@ void build_geometry(int resolution, REAL time){
     implicit_function * object;
 
     if (name == "double_mushroom"){
-      double_mushroom mushroom(1.6, 0.3, 0.3, 2, 0.,0.,0.); //3.3
+      double_mushroom mushroom(1.4, 0.3, 0.3, 2, 0.1,0.1,0.1); //3.3
       object = &mushroom;
     }
     else if (name == "egg"){
-      egg segg(f_argument);
+      egg segg(0.3, 0.4, 0.5, 0.2, 0.1, 0.3);
       object = &segg; // super egg !
     }
     else if (name == "sphere"){
@@ -201,19 +201,19 @@ void build_geometry(int resolution, REAL time){
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(1., 1., 1.);
+      cube cube(1., 1., 1., 0.2, 0.1, 0.3);
       object = &cube;
     }
     else if (name == "super_bowl"){
-      super_bowl super_bowl(f_argument); //0.5
+      super_bowl super_bowl(0.5, 0.2, 0.3, 0.); //0.5
       object = &super_bowl;
     }
     else if (name == "scone"){
-      scone scone(f_argument +2.5);
+      scone scone(0.8, 0.3, 0.3, 2, 0.1, 0.1, -0.1);
       object = &scone;
     }
     else if (name == "scylinder"){
-      scylinder scylinder(0.4, 1.6); //0.7
+      scylinder scylinder(0.4, 1.4, 0.1, 0.1, 0.1); //0.7
       object = &scylinder;
     }
     else {

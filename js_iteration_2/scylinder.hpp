@@ -52,7 +52,7 @@ public:
         const REAL r2 = squared(this->r);
         for(; i!=e; i++, output_ctr++){
 
-          if((*i)[2]>=this->h/2 || (*i)[2]<=-this->h/2){
+          if((*i)[2]-this->z >= this->h/2 || (*i)[2]-this->z <= -this->h/2){
 
             (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x);
             (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y);
