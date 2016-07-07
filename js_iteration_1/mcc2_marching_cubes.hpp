@@ -93,16 +93,16 @@ public:
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
 
 //shape:
-    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract );
+    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale);
     void addPlaneX( REAL strength, REAL subtract );
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
     void seal_exterior(const REAL exterior_value = -100.);
     void subtract_dc(REAL dc_value);
 
-    boost::multi_array<REAL, 2> prepare_grid(REAL real_size);
-    void eval_shape(const implicit_function& object, REAL real_size);
-
+    boost::multi_array<REAL, 2> prepare_grid(REAL mc_grid_real_size);
+    //void eval_shape(const implicit_function& object, REAL mc_grid_real_size);
+    void eval_shape(const implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
 //field
     void reset(); //???? Nobody calls this.
@@ -834,17 +834,18 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
 // Adds a reciprocal ball (nice and blobby) that, to be fast, fades to zero after
 // a fixed distance, determined by strength and subtract.
 
+inline
 void MarchingCubes::addBall(
         REAL ballx, REAL bally, REAL ballz,
-        REAL strength, REAL subtract) {
+        REAL strength, REAL subtract, REAL scale) {
     // Solves this equation:
     // 1.0 / (0.000001 + radius^2) * strength - subtract = 0
     REAL radius = this->size * sqrt(strength / subtract);
 
     REAL
-        zs = ballz * this->size,
-        ys = bally * this->size,
-        xs = ballx * this->size;
+        zs = ballz * this->size / scale,
+        ys = bally * this->size / scale,
+        xs = ballx * this->size / scale;
 
     int min_z = floor( zs - radius ); if ( min_z < 1 ) min_z = 1;
     int max_z = floor( zs + radius ); if ( max_z > this->size - 1 ) max_z = this->size - 1;
@@ -878,7 +879,7 @@ void MarchingCubes::addBall(
 
                 fx = x / (REAL)this->size - ballx;
                 val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
-                if ( val > 0.0 ) this->field[ y_offset + x ] += val;
+                if ( val > 0.0 ) this->field[ y_offset + x ] += val / 100*100;
             }
         }
     }
@@ -1731,7 +1732,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 }
 
 boost::multi_array<REAL, 2>
-MarchingCubes::prepare_grid(REAL real_size) {
+MarchingCubes::prepare_grid(REAL mc_grid_real_size) {
       int min_x = 0;
       int max_x = this->size;
       int min_y = 0;
@@ -1746,57 +1747,24 @@ MarchingCubes::prepare_grid(REAL real_size) {
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = real_size*2.*(REAL)x/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][1] = real_size*2.*(REAL)y/(REAL)this->size -1.*real_size;
-                  grid[x + y*this->size + z*this->size2][2] = real_size*2.*(REAL)z/(REAL)this->size -1.*real_size;
+                  grid[x + y*this->size + z*this->size2][0] = mc_grid_real_size*2.*(REAL)x/(REAL)this->size -1.*mc_grid_real_size;
+                  grid[x + y*this->size + z*this->size2][1] = mc_grid_real_size*2.*(REAL)y/(REAL)this->size -1.*mc_grid_real_size;
+                  grid[x + y*this->size + z*this->size2][2] = mc_grid_real_size*2.*(REAL)z/(REAL)this->size -1.*mc_grid_real_size;
               }
           }
       }
       return grid;
 }
 
-
 //Based on mcc2_MS.cpp
-void MarchingCubes::eval_shape(const implicit_function& object, REAL real_size){
-      //resize can be used on the sphere to make it bigger
-      bool resize = false;
-      if(!resize)
-        real_size=1.0;
+void MarchingCubes::eval_shape(const implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
 
-      auto grid = prepare_grid(real_size);
-      //auto grid = boost::multi_array<REAL, 2>(prepare_grid(real_size));
+
 
       boost::array<int, 1> implicit_values_shape = {{ this->size*this->size*this->size }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
-      /*
-      if (name == "double_mushroom"){
-          double_mushroom object(3.3);
-          object.eval_implicit(grid, implicit_values);
-      }
-      else if (name == "egg"){
-          egg object(0.55);
-          object.eval_implicit(grid, implicit_values);
-      }
-      else if (name == "sphere"){
-          unit_sphere object(0.80*real_size);
-          object.eval_implicit(grid, implicit_values);
-      }
-      else if (name == "cube"){
-          cube object(1.);
-          object.eval_implicit(grid, implicit_values);
-      }
-      else if (name == "super_bowl"){
-          super_bowl object(0.5);
-          object.eval_implicit(grid, implicit_values);
-      }
-      else {
-        cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
-        unit_sphere object(1.*real_size);
-        object.eval_implicit(grid, implicit_values);
-      }
-*/
 
-    object.eval_implicit(grid, &implicit_values);
+      object.eval_implicit(mcgrid_vectorized, &implicit_values);
 
 
       int min_x = 0;

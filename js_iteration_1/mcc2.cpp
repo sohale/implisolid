@@ -77,6 +77,7 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 void build_vf(
     //std::vector<REAL>& verts3,
     //std::vector<int>& faces3
+    REAL scale
     ){
     // Includes allocations.
 
@@ -96,7 +97,7 @@ void build_vf(
         REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
+        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
     }
     mc.seal_exterior();
 
@@ -104,10 +105,10 @@ void build_vf(
     int numblobs = 4;
     REAL subtract = (REAL)12.;
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract, 1);
     */
     //MarchingCubes& object = mc;
-    //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    //mc.addBall(0.5, 0.5, 0.5, strength, subtract, 1);
 
     //mc.flush_geometry_queue(std::cout, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
 
@@ -137,7 +138,7 @@ public:
     REAL isolation;
 
 //shape:
-    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract ) {};
+    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale ) {};
     void addPlaneX( REAL strength, REAL subtract ) {};
     void addPlaneZ( REAL strength, REAL subtract ) {};
     void addPlaneY( REAL strength, REAL subtract ) {};
@@ -158,7 +159,7 @@ public:
 
 
 //Not used
-void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
+void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, REAL scale){
     //not used
 
     dim_t resolution = 28;  // 28;
@@ -183,7 +184,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
         REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
         REAL subtract = 12;
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
+        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
     }
     mc.seal_exterior();
 
@@ -191,9 +192,9 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     int numblobs = 4;
     REAL subtract = (REAL)12.;
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract, scale);
 
-    mc.addBall(0, 0, 0.5, strength, subtract);
+    mc.addBall(0, 0, 0.5, strength, subtract, scale);
     */
 
     //todo: init-receiver side
@@ -289,7 +290,7 @@ bool check_state_null() {
 }
 
 
-void meta_balls(MarchingCubes& mc,REAL time){
+void meta_balls(MarchingCubes& mc, REAL time, REAL scale){
 
     int numblobs = 4;
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
@@ -297,8 +298,8 @@ void meta_balls(MarchingCubes& mc,REAL time){
         REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77; // dip into the floor
         REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
         REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract);
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1) ;
+        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
     }
 
 }
@@ -306,6 +307,38 @@ void meta_balls(MarchingCubes& mc,REAL time){
 #include "../js_iteration_2/primitives.cpp"
 //using namespace mp5_implicit;
 
+
+implicit_function*  object_factory(REAL f_argument, std::string name){
+    implicit_function* object;
+    if (name == "double_mushroom"){
+        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
+    }
+    else if (name == "egg"){
+        object = new mp5_implicit::egg(f_argument);
+    }
+    else if (name == "sphere"){
+        object = new mp5_implicit::unit_sphere((sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10);
+    }
+    else if (name == "cube"){
+        object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+    }
+    else if (name == "super_bowl"){// not working
+        object = new mp5_implicit::super_bowl(1.5/(f_argument+3.0));
+    }
+    else if (name == "scone"){
+        object = new mp5_implicit::scone(f_argument +2.5);
+    }
+    else if (name == "scylinder"){
+        object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
+    }else if(name == "meta_balls"){
+        object = new mp5_implicit::unit_sphere((sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10);
+    }
+    else {
+        std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
+        object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
+    }
+    return object;
+}
 void build_geometry(int resolution, char* obj_name, REAL time){
 
     if(!check_state_null())
@@ -331,45 +364,25 @@ void build_geometry(int resolution, char* obj_name, REAL time){
     */
 
 
-    implicit_function*  object ;
-
 
     std::string name = std::string(obj_name);
     std::cout << "Name : " << name << std::endl;
 
     REAL f_argument = time;
 
-    if (name == "double_mushroom"){
-        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
-    }
-    else if (name == "egg"){
-        object = new mp5_implicit::egg(f_argument);
-    }
-    else if (name == "sphere"){
-        object = new mp5_implicit::unit_sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-    }
-    else if (name == "cube"){
-        object = new mp5_implicit::cube(f_argument);
-    }
-    else if (name == "super_bowl"){// not working
-        object = new mp5_implicit::super_bowl(1.5/(f_argument+3.0));
-    }
-    else if (name == "scone"){
-        object = new mp5_implicit::scone(f_argument +2.5);
-    }
-    else if (name == "scylinder"){
-        object = new mp5_implicit::scylinder(f_argument); //0.7
-    }
-    else {
-        std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
-        object = new mp5_implicit::unit_sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-    }
+    implicit_function* object = object_factory(f_argument, name);
 
-     _state.mc -> eval_shape(*object, 1.0);
+
+    // ****************************
+    // Does thismake things slower ?
+    boost::multi_array<REAL, 2>  mcgrid_vectorized = _state.mc -> prepare_grid(10.0);
+    _state.mc -> eval_shape(*object, mcgrid_vectorized);
 
      delete object;
      object = NULL;
-    //meta_balls(*_state.mc, time);
+     if(name == "meta_balls"){
+         meta_balls(*_state.mc, time, 1.0);
+     }
 
     _state.mc->seal_exterior();
 
@@ -511,7 +524,8 @@ int main() {
     REAL subtract = (REAL)12.;
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
 
-    mc.addBall(0.5, 0.5, 0.5, strength, subtract);
+    REAL scale = 1;
+    mc.addBall(0.5, 0.5, 0.5, strength, subtract, scale);
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
