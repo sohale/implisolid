@@ -7,6 +7,20 @@
  * The base class which objects inherit from.
  *
  */
+
+/*************************************************************
+            Here is how each object is constructed: (please note that some classes name are written using all lowercase)
+
+    -CrispSubtract : takes two implicit_function as input and substract one from the other
+    -cube : Takes a height, wigth and depth and computes the according Cube
+    -double_mushroom : Takes a radius (horizontal size of the shape)  and a a, b and c value, dividing x², y² and z² in the formula for the hyperboloïde
+     (note that those a,b,c must be choosen well for the shape to be closed (see the doc in double_mushroom.hpp))
+    -egg : takes a, b, c dividing x², y² and z² in the formula for an ellipsoid. NOTE This should be changed to a 4 by 4 matrix filled with 9 inputs for total control over the shape
+    -scone : takes a radius (horizontal size of the cone) and a,b,c dividing x²,y² and z² in the cone formula
+    -scylinder : takes radius and height
+    -super_bowl : takes radius NOTE : this shape is more of a first understanding of the crisp substract than a really usefull base shape
+    -unit_sphere: take radius
+ *************************************************************/
 class implicit_function {
 
 public:

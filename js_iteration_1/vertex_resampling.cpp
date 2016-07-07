@@ -50,7 +50,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 
 
 //add assert coming from the normalize_vector3_vectorized
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou, REAL grid_real_size){
+void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
 
@@ -238,7 +238,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   }
 }
 
-void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c, REAL grid_real_size){
+void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
 
   int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
@@ -256,7 +256,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
   boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
 
-  compute_centroid_gradient(centroids, centroid_normals_normalized, object, grid_real_size);
+  compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
   vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 

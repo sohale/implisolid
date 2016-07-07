@@ -547,8 +547,8 @@ void MarchingCubes::addBall(
 
 void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size){
       //resize can be used on the sphere to make it bigger
-      bool resize = false;
-      if(!resize)
+      bool resize_grid = true;
+      if(!resize_grid)
         grid_real_size=1.0;
 
       int min_x = 0;
