@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "sphere";
+    string name = "double_mushroom";
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 1;
+      REAL grid_real_size = 5;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -189,7 +189,7 @@ void build_geometry(int resolution, REAL time){
     implicit_function * object;
 
     if (name == "double_mushroom"){
-      double_mushroom mushroom(f_argument+3.); //3.3
+      double_mushroom mushroom(3, 1., 1., 1., 0.,0.,1.); //3.3
       object = &mushroom;
     }
     else if (name == "egg"){

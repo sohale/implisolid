@@ -11,6 +11,9 @@
 /*************************************************************
             Here is how each object is constructed: (please note that some classes name are written using all lowercase)
 
+            NOTE : Each class takes as their three last arguments values for x for y and for z (REAL) to define the center of the figure.
+                   Those are set to 0 if not defined. For now, you need to either define all three or none (constructor overloading)
+
     -CrispSubtract : takes two implicit_function as input and substract one from the other
     -cube : Takes a height, wigth and depth and computes the according Cube
     -double_mushroom : Takes a radius (horizontal size of the shape)  and a a, b and c value, dividing x², y² and z² in the formula for the hyperboloïde
