@@ -63,7 +63,7 @@ var ImplicitService = function(){
         return geom;
     };
     this.getLiveGeometry = function(){
-        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "sphere"} );
+        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "scone"} );
         return geom;
     }
 
@@ -77,11 +77,44 @@ function _on_cpp_loaded() {
 };
 
 
-/* Put hte following in the HTML
+/* Put the following in the HTML
 <script>
         Module={preRun:[],
         onRuntimeInitialized: _on_cpp_loaded,
     };
 </script>
 <script type="text/javascript" src="mcc2.cpp.js"></script>
+*/
+
+
+
+
+function test_update1(t){
+    var g = currentMeshes[0].geometry;
+
+    IMPLICIT.finish_geometry();
+    IMPLICIT.needsFinish = false;
+
+    var new_geometry = IMPLICIT.build_geometry(28, "scone", t);
+    IMPLICIT.needsFinish = true;
+
+    if(new_geometry){
+        currentMeshes[0].geometry = new_geometry;
+        g = new_geometry;
+    }
+    g.update_geometry(IMPLICIT);
+ 
+}
+
+
+function test_update2(t){
+    var g = currentMeshes[0].geometry;
+
+    var new_geometry = g.update_geometry(IMPLICIT);
+    if(new_geometry)
+        currentMeshes[0].geometry = new_geometry
+}
+
+/*
+var t=0;test_update1(t);var iid=setInterval(function(){test_update2(t+=0.02);},6);
 */

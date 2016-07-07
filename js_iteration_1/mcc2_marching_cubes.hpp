@@ -1764,11 +1764,12 @@ void MarchingCubes::eval_shape(const implicit_function& object, REAL real_size){
         real_size=1.0;
 
       auto grid = prepare_grid(real_size);
+      //auto grid = boost::multi_array<REAL, 2>(prepare_grid(real_size));
 
       boost::array<int, 1> implicit_values_shape = {{ this->size*this->size*this->size }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
-
-      /*if (name == "double_mushroom"){
+      /*
+      if (name == "double_mushroom"){
           double_mushroom object(3.3);
           object.eval_implicit(grid, implicit_values);
       }
@@ -1792,8 +1793,8 @@ void MarchingCubes::eval_shape(const implicit_function& object, REAL real_size){
         cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
         unit_sphere object(1.*real_size);
         object.eval_implicit(grid, implicit_values);
-      }*/
-
+      }
+*/
 
     object.eval_implicit(grid, &implicit_values);
 

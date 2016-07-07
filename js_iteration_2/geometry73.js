@@ -18,7 +18,8 @@ function __check_TypedArray_type(src, _type){
 function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
     __check_TypedArray_type(src, Float32Array);
     var TYPE_SIZE = 4;
-    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
+    if(prealloc_size % 1 !== 0) console.error("prealloc_size must be integer: " + prealloc_size);
+    //if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     var r = new Float32Array(dst);
@@ -39,7 +40,8 @@ function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
 function copy_Uint32Array_preallocated(src, prealloc_size)  {
     __check_TypedArray_type(src, Uint32Array);
     var TYPE_SIZE = 4;
-    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
+    //if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
+    if(prealloc_size % 1 !== 0) console.error("prealloc_size must be integer: " + prealloc_size);
     var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     console.log("dst[0] : " + dst[0]);
@@ -332,36 +334,3 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
 
 LiveBufferGeometry71.prototype = Object.create( THREE.BufferGeometry.prototype );
 LiveBufferGeometry71.prototype.constructor = LiveBufferGeometry71;
-
-
-
-
-function test_update1(t){
-    var g = currentMeshes[0].geometry;
-
-    IMPLICIT.finish_geometry();
-    IMPLICIT.needsFinish = false;
-
-    var new_geometry = IMPLICIT.build_geometry(28, "sphere", t);
-    IMPLICIT.needsFinish = true;
-
-    if(new_geometry){
-        currentMeshes[0].geometry = new_geometry;
-        g = new_geometry;
-    }
-    g.update_geometry(IMPLICIT);
- 
-}
-
-
-function test_update2(t){
-    var g = currentMeshes[0].geometry;
-
-    var new_geometry = g.update_geometry(IMPLICIT);
-    if(new_geometry)
-        currentMeshes[0].geometry = new_geometry
-}
-
-/*
-var t=0;test_update1(t);var iid=setInterval(function(){test_update2(t+=0.02);},6);
-*/

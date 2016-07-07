@@ -323,62 +323,53 @@ void build_geometry(int resolution, char* obj_name, REAL time){
 
     _state.mc -> isolation = 80.0/4*0;
 
+    /*
     mp5_implicit :: unit_sphere   object(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
     // //_state.mc -> prepare_grid(1.0);
     // //object.eval_implicit(grid, implicit_values);
     _state.mc -> eval_shape(object, 1.0);
+    */
 
-/*
-    implicit_function*  object;
+
+    implicit_function*  object ;
 
 
     std::string name = std::string(obj_name);
-    std::cout << name << std::endl;
+    std::cout << "Name : " << name << std::endl;
 
     REAL f_argument = time;
 
     if (name == "double_mushroom"){
-      mp5_implicit::double_mushroom mushroom(f_argument+3.); //3.3
-      object = &mushroom;
+        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), 1/(f_argument+3));
     }
     else if (name == "egg"){
-      mp5_implicit::egg segg(f_argument);
-      object = &segg; // super egg !
+        object = new mp5_implicit::egg(f_argument);
     }
     else if (name == "sphere"){
-            std::cout << "case sphere" << std::endl;
-      mp5_implicit::unit_sphere sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-      object = &sphere;
+        object = new mp5_implicit::unit_sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
     }
     else if (name == "cube"){
-      mp5_implicit::cube cube(f_argument);
-      object = &cube;
+        object = new mp5_implicit::cube(f_argument);
     }
-    else if (name == "super_bowl"){
-       std::cout << "in supper_bowll" << std::endl;
-      mp5_implicit::super_bowl super_bowl(f_argument+3.0); //0.5
-      object = &super_bowl;
-
+    else if (name == "super_bowl"){// not working
+        object = new mp5_implicit::super_bowl(f_argument+3.0);
     }
     else if (name == "scone"){
-      mp5_implicit::scone scone(f_argument +2.5);
-      object = &scone;
+        object = new mp5_implicit::scone(f_argument +2.5);
     }
     else if (name == "scylinder"){
-      mp5_implicit::scylinder scylinder(f_argument); //0.7
-      object = &scylinder;
+        object = new mp5_implicit::scylinder(f_argument); //0.7
     }
     else {
-      std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
-      //unit_sphere sphere(f_argument);
-      mp5_implicit::unit_sphere sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-      object = &sphere;
-     }
+        std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
+        object = new mp5_implicit::unit_sphere(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
+    }
 
      _state.mc -> eval_shape(*object, 1.0);
-*/
 
-    meta_balls(*_state.mc, time);
+     delete object;
+     object = NULL;
+    //meta_balls(*_state.mc, time);
 
     _state.mc->seal_exterior();
 
