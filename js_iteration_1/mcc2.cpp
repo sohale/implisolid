@@ -331,7 +331,9 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
     else if (name == "scylinder"){
         object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
     }else if(name == "meta_balls"){
-        object = new mp5_implicit::unit_sphere((sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10);
+        REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10;
+        std::cout << " META BALLS r : " << r << std::endl;
+        object = new mp5_implicit::unit_sphere(r);
     }
     else {
         std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;

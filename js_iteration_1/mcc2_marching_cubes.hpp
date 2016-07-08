@@ -67,7 +67,7 @@ class MarchingCubes{
     static const int mc_triangles_table[256*16];
 
  protected:
-    void init(dim_t resolution, REAL delta);
+    void init( dim_t resolution, REAL delta1, REAL width);
 
 inline void VIntX(index_t q, array1d &pout, array1d &nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
 inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
@@ -81,7 +81,7 @@ void finish_queue( const callback_t& renderCallback );
 
 
 public:
-    MarchingCubes( dim_t resolution, REAL size, bool enableUvs, bool enableColors );
+    MarchingCubes( dim_t resolution, REAL width, bool enableUvs, bool enableColors );
     ~MarchingCubes(); //why does this have to be public: ?
 
     REAL isolation;
@@ -124,7 +124,7 @@ public:
 //static dim_t MarchingCubes::queueSize = ...;
 
 int EXCESS = 0;
-MarchingCubes::MarchingCubes( dim_t resolution, REAL size, bool enableUvs=false, bool enableColors=false )
+MarchingCubes::MarchingCubes( dim_t resolution, REAL width, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
@@ -148,7 +148,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, REAL size, bool enableUvs=false,
     //if(VERBOSE)
     //    std::cout << resolution << " init"<< std::endl;
 
-    this->init( resolution, (2.0 / (REAL)resolution)*size );
+    this->init( resolution, 987.667, width );
 
 /*
     //preallocate
