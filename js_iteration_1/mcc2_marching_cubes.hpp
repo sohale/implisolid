@@ -166,7 +166,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, REAL size, bool enableUvs=false,
 
 
 
-void MarchingCubes::init( dim_t resolution, REAL delta) {
+void MarchingCubes::init( dim_t resolution, REAL delta1, REAL width) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
@@ -181,7 +181,9 @@ void MarchingCubes::init( dim_t resolution, REAL delta) {
         this->size = resolution;
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
-        this->halfsize = ((REAL)this->size) / 2.0;
+
+        REAL delta = width / (REAL)resolution;  // (2.0 / (REAL)resolution)*size
+        this->halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
 
         // deltas
         this->delta = delta;  // 2.0 / (REAL)this->size;
@@ -1119,16 +1121,16 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     for ( int z = 1; z < smin2; z++ ) {
 
         index_t z_offset = this->size2 * z;
-        REAL fz = ( z - this->halfsize ) / (REAL)this->halfsize; //+ 1
+        REAL fz = ( z - this->halfsize ) * this->delta; //+ 1
 
         for ( int y = 1; y < smin2; y++ ) {
 
             index_t y_offset = z_offset + this->size * y;
-            REAL fy = ( y - this->halfsize ) / (REAL)this->halfsize; //+ 1
+            REAL fy = ( y - this->halfsize ) * this->delta; //+ 1
 
             for ( int x = 1; x < smin2; x++ ) {
 
-                REAL fx = ( x - this->halfsize ) / (REAL)this->halfsize; //+ 1
+                REAL fx = ( x - this->halfsize ) * this->delta; //+ 1
                 index_t q = y_offset + x;
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
