@@ -345,7 +345,7 @@ void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time){
 
     if(!check_state_null())
         return;
-    //std::cout << obj_name << std::endl;
+    std::cout << "New versionnnnnnnnnnnnn" << obj_name << std::endl;
     //dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
