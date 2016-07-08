@@ -96,7 +96,14 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     return values;
 }
 
+namespace mp5_implicit {
 
+
+    struct bounding_box {
+        REAL xmin, xmax, ymin, ymax;
+    };
+
+}
 
 /*
 ================================================================
