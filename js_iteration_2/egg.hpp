@@ -18,7 +18,7 @@ public:
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
-        this->transf_matrix = identity_matrix<REAL>(4);
+        this->transf_matrix = identity_matrix<REAL>(4); // we should create unidimensionnel arrays
         this->inv_transf_matrix = identity_matrix<REAL>(4);
     }
 
@@ -36,13 +36,19 @@ public:
     virtual void rotate(const REAL angle, const vectorized_vect axis) const {
 
     }
-    virtual void move(const vectorized_vect direction) const{}
-    virtual void resize(const REAL ratio) const{}
+    virtual void move(const vectorized_vect direction) const{
+      // transf_matrix(0,3) += direction[0][0];
+      // transf_matrix(1,3) += direction[0][1];
+      // transf_matrix(2,3) += direction[0][2];
+      // InvertMatrix(transf_matrix, inv_transf_matrix);
+
+    }
+    virtual void resize(const REAL ratio) const{
+
+    }
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
-
-
 
         int output_ctr=0;
 

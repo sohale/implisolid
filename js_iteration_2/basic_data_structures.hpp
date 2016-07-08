@@ -133,6 +133,15 @@ bool InvertMatrix(const matrix<T>& input, matrix<T>& inverse)
 
 	return true;
 }
+
+// void Matrix_Vector_Product(const matrix<REAL>& matou, REAL *vectou){
+//   vectou[0] = matou[0][0]*vectou[0] + matou[0][1]*vectou[1] + matou[0][2]*vectou[2] + matou[0][3]*vectou[3];
+//   vectou[1] = matou[1][0]*vectou[0] + matou[1][1]*vectou[1] + matou[1][2]*vectou[2] + matou[1][3]*vectou[3];
+//   vectou[2] = matou[2][0]*vectou[0] + matou[2][1]*vectou[1] + matou[2][2]*vectou[2] + matou[2][3]*vectou[3];
+// // we do not compute vectou[3] because it is not relevant.
+//
+// }
+
 namespace mp5_implicit {
 
     struct bounding_box {
