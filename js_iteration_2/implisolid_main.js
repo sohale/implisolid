@@ -64,7 +64,7 @@ var ImplicitService = function(){
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService 
     this.getLiveGeometry = function(){
-        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "meta_balls",  mc_size: 10.0} );
+        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "meta_balls",  mc_size: 2.0} );
         return geom;
     }
 
@@ -96,7 +96,7 @@ function test_update1(t){
     IMPLICIT.finish_geometry();
     IMPLICIT.needsFinish = false;
 
-    var new_geometry = IMPLICIT.build_geometry(28, 10., "meta_balls", t);
+    var new_geometry = IMPLICIT.build_geometry(28, 2., "meta_balls", t);
     IMPLICIT.needsFinish = true;
 
     if(new_geometry){
