@@ -136,7 +136,7 @@ bool InvertMatrix(const matrix<T>& input, matrix<T>& inverse)
 namespace mp5_implicit {
 
     struct bounding_box {
-        REAL xmin, xmax, ymin, ymax;
+        REAL xmin, xmax, ymin, ymax, zmin, zmax;
     };
 
 }
