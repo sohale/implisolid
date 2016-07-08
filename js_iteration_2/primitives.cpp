@@ -56,6 +56,7 @@ class TwistedObject::ImplicitObject(){
 
 
 #include "implicit_function.hpp"
+#include "transformation.hpp"
 
 inline REAL squared(REAL x){
     return x*x;

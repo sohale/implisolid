@@ -2,11 +2,13 @@
 #include "basic_data_structures.hpp"
 namespace mp5_implicit {
 
-class egg : public implicit_function {
+class egg : public transformable_implicit_function {
 
 protected:
     REAL a; REAL b; REAL c;
     REAL x; REAL y; REAL z;
+    matrix<REAL> transf_matrix;
+    matrix<REAL> inv_transf_matrix;
 
 public:
     egg(REAL radius_x, REAL radius_y, REAL radius_z){
@@ -16,6 +18,8 @@ public:
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
+        this->transf_matrix = identity_matrix<REAL>(4);
+        this->inv_transf_matrix = identity_matrix<REAL>(4);
     }
 
     egg(REAL radius_x, REAL radius_y, REAL radius_z, REAL center_x, REAL center_y, REAL center_z){
@@ -25,8 +29,15 @@ public:
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
+        this->transf_matrix = identity_matrix<REAL>(4);
+        this->inv_transf_matrix = identity_matrix<REAL>(4);
     }
 
+    virtual void rotate(const REAL angle, const vectorized_vect axis) const {
+
+    }
+    virtual void move(const vectorized_vect direction) const{}
+    virtual void resize(const REAL ratio) const{}
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");

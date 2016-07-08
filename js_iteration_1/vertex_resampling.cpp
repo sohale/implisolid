@@ -4,7 +4,7 @@
 #include <math.h>
 #include <cassert>
 #include <map>
-#include <vector>
+// #include <vector>
 #include <string>
 #include <tuple>
 #include <fstream>
@@ -28,8 +28,8 @@ REAL ABS(REAL x){
 
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;
-typedef vector<int> vector_int;
-typedef vector<vector<int>> neighbour;
+typedef std::vector<int> vector_int;
+typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
@@ -68,12 +68,12 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
   }
 }
 
-vector< vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
+std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
   int nt = faces.shape()[0];
   int vt = verts.shape()[0];
-  vector< vector<int>> neighbour_faces_of_vertex;
+  std::vector< std::vector<int>> neighbour_faces_of_vertex;
   for (int fi=0; fi< vt; fi++){
-    neighbour_faces_of_vertex.push_back(vector<int>());
+    neighbour_faces_of_vertex.push_back(std::vector<int>());
   }
   for (int fi=0; fi< nt; fi++){
     for (int vi=0; vi<3; vi++){
@@ -200,7 +200,7 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 
 }
 
-void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
+void vertex_resampling(verts_t& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   int nfaces = centroids.shape()[0];
 //  c=2000.0;
@@ -212,8 +212,8 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
     wi_total_array[i_faces] = w;
   }
   for (int i=0; i< new_verts.shape()[0]; i++){
-    vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
-    vector<REAL> w;
+    std::vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
+    std::vector<REAL> w;
     REAL sum_w = 0;
     // sum_w could be calculated by a function
     for (int j=0; j< umbrella_faces.size(); j++){
@@ -258,7 +258,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
-  vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
+  std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 
