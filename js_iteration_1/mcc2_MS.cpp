@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "egg";
+    string name = "egg_cylinder";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -216,6 +216,13 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       scylinder scylinder(0.4, 1.4, 0.1, 0.1, 0.1); //0.7
       object = &scylinder;
     }
+    else if (name == "egg_cylinder"){
+      egg segg(0.8, 0.7, 0.6);
+      scylinder scylinder(0.3, 1.4);
+      CrispSubtract crispou(segg, scylinder);
+      object = &crispou;
+
+    }
     else {
       cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
       unit_sphere sphere(f_argument);
@@ -239,10 +246,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
-    }
+    // float c=2000.;
+    // for (int i=0; i<3; i++){
+    //  vertex_resampling(object, f_argument, c, *(_state.mc));
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

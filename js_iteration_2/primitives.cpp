@@ -68,6 +68,7 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 
 //#include "unit_sphere.hpp"
 //
+#include "crisp_subtract.hpp"
 #include "unit_sphere.hpp"
 #include "double_mushroom.hpp"
 #include "egg.hpp"
