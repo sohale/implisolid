@@ -114,8 +114,8 @@ bool InvertMatrix(const REAL input_A[], REAL inverse_A[])
 {
 	typedef permutation_matrix<std::size_t> pmatrix;
 
-  matrix<REAL> input;
-  matrix<REAL> inverse;
+  matrix<REAL> input(4,4);
+  matrix<REAL> inverse(4,4);
 
   for(int i=0; i<3; i++){
     for(int j=0; j<4; j++){

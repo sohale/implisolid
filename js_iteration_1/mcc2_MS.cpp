@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "egg";
+    string name = "egg_transform";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 1;
+      REAL grid_real_size = 10;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -221,7 +221,18 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       scylinder scylinder(0.3, 1.4);
       CrispSubtract crispou(segg, scylinder);
       object = &crispou;
+    }
+    else if (name == "egg_transform"){
+      boost::array<int, 2> direction_shape = { 1, 3 };
+      boost::multi_array<REAL, 2> direction(direction_shape);
+      direction[0][0] = 0.2;
+      direction[0][1] = 0.2;
+      direction[0][2] = 0.2;
 
+      egg segg(0.3, 0.4, 0.5);
+      segg.move(direction);
+      segg.resize(12.);
+      object = &segg; // super egg !
     }
     else {
       cout << "Error! You must enter a valid name! So I made a sphere!" << endl;
@@ -246,10 +257,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    // float c=2000.;
-    // for (int i=0; i<3; i++){
-    //  vertex_resampling(object, f_argument, c, *(_state.mc));
-    // }
+    float c=2000.;
+    for (int i=0; i<3; i++){
+     vertex_resampling(object, f_argument, c, *(_state.mc));
+    }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

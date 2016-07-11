@@ -58,14 +58,21 @@ public:
 
     }
     virtual void move(const vectorized_vect direction) const{
-      transf_matrix[3] += direction[0][0];
-      transf_matrix[7] += direction[0][1];
-      transf_matrix[11] += direction[0][2];
-      InvertMatrix(transf_matrix, inv_transf_matrix);
+      this->transf_matrix[3] += direction[0][0];
+      this->transf_matrix[7] += direction[0][1];
+      this->transf_matrix[11] += direction[0][2];
+      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
     virtual void resize(const REAL ratio) const{
-
+      for (int i=0; i<12; i++){
+        if(i==3 || i==7 || i==11){
+        }
+        else{
+        this->transf_matrix[i] *= ratio;
+        }
+      }
+      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
     }
     virtual void eval_implicit(vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
@@ -83,7 +90,6 @@ public:
     }
     virtual void eval_gradient(vectorized_vect& x, vectorized_vect* output) const {
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x);
         const REAL a2 = pow(this->a,2);
         const REAL b2 = pow(this->b,2);
         const REAL c2 = pow(this->c,2);
