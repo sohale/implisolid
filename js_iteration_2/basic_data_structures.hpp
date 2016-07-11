@@ -109,13 +109,32 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
 
  /* Matrix inversion routine.
  Uses lu_factorize and lu_substitute in uBLAS to invert a matrix */
-template<class T>
-bool InvertMatrix(const matrix<T>& input, matrix<T>& inverse)
+
+bool InvertMatrix(const REAL input_A[], REAL inverse_A[])
 {
 	typedef permutation_matrix<std::size_t> pmatrix;
 
+  matrix<REAL> input;
+  matrix<REAL> inverse;
+
+  for(int i=0; i<3; i++){
+    for(int j=0; j<4; j++){
+      input(i,j)= input_A[i*4+j];
+      inverse(i,j)= inverse_A[i*4+j];
+    }
+  }
+
+  input(3,3) = 1.;
+  input(3,0) = 0.;
+  input(3,1) = 0.;
+  input(3,2) = 0.;
+
+  inverse(3,3) = 1.;
+  inverse(3,0) = 0.;
+  inverse(3,1) = 0.;
+  inverse(3,2) = 0.;
 	// create a working copy of the input
-	matrix<T> A(input);
+	matrix<REAL> A(input);
 
 	// create a permutation matrix for the LU-factorization
 	pmatrix pm(A.size1());
@@ -126,21 +145,28 @@ bool InvertMatrix(const matrix<T>& input, matrix<T>& inverse)
 		return false;
 
 	// create identity matrix of "inverse"
-	inverse.assign(identity_matrix<T> (A.size1()));
+	inverse.assign(identity_matrix<REAL> (A.size1()));
 
 	// backsubstitute to get the inverse
 	lu_substitute(A, pm, inverse);
 
+  for(int i=0; i<3; i++){
+    for(int j=0; j<4; j++){
+       inverse_A[i*4+j] = inverse(i,j);
+    }
+  }
+
 	return true;
 }
 
-// void Matrix_Vector_Product(const matrix<REAL>& matou, REAL *vectou){
-//   vectou[0] = matou[0][0]*vectou[0] + matou[0][1]*vectou[1] + matou[0][2]*vectou[2] + matou[0][3]*vectou[3];
-//   vectou[1] = matou[1][0]*vectou[0] + matou[1][1]*vectou[1] + matou[1][2]*vectou[2] + matou[1][3]*vectou[3];
-//   vectou[2] = matou[2][0]*vectou[0] + matou[2][1]*vectou[1] + matou[2][2]*vectou[2] + matou[2][3]*vectou[3];
-// // we do not compute vectou[3] because it is not relevant.
-//
-// }
+void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
+  for (int i=0; i<vectou.shape()[0]; i++){
+    vectou[i][0] = matou[0]*vectou[i][0] + matou[1]*vectou[i][1] + matou[2]*vectou[i][2] + matou[3]*1.;
+    vectou[i][1] = matou[4]*vectou[i][0] + matou[5]*vectou[i][1] + matou[6]*vectou[i][2] + matou[7]*1.;
+    vectou[i][2] = matou[8]*vectou[i][0] + matou[9]*vectou[i][1] + matou[10]*vectou[i][2] + matou[11]*1.;
+  }
+
+}
 
 namespace mp5_implicit {
 

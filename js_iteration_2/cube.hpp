@@ -27,7 +27,7 @@ public:
         this->z = center_z;
     }
 
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output)const {
+    virtual void eval_implicit(vectorized_vect& x, vectorized_scalar* f_output)const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
@@ -46,7 +46,7 @@ public:
 
         }
     }
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
+    virtual void eval_gradient(vectorized_vect& x, vectorized_vect* output) const {
 
 
         int output_ctr=0;
