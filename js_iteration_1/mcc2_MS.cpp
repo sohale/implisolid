@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 10;
+      REAL grid_real_size = 1;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -230,8 +230,9 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       direction[0][2] = 0.2;
 
       egg segg(0.3, 0.4, 0.5);
-      segg.move(direction);
-      segg.resize(12.);
+      // segg.move(direction);
+      // segg.resize(12.);
+      segg.rotate(2., direction);
       object = &segg; // super egg !
     }
     else {
@@ -257,10 +258,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
-    }
+    // float c=2000.;
+    // for (int i=0; i<3; i++){
+    //  vertex_resampling(object, f_argument, c, *(_state.mc));
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

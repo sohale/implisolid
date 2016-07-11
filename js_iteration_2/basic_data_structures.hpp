@@ -168,6 +168,43 @@ void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
 
 }
 
+bool Matrix_Matrix_Product(REAL m1[],const REAL m2[])
+{
+	typedef permutation_matrix<std::size_t> pmatrix;
+
+  matrix<REAL> M1(4,4);
+  matrix<REAL> M2(4,4);
+
+  for(int i=0; i<3; i++){
+    for(int j=0; j<4; j++){
+      M1(i,j)= m1[i*4+j];
+      M2(i,j)= m2[i*4+j];
+    }
+  }
+
+  M1(3,3) = 1.;
+  M1(3,0) = 0.;
+  M1(3,1) = 0.;
+  M1(3,2) = 0.;
+
+  M2(3,3) = 1.;
+  M2(3,0) = 0.;
+  M2(3,1) = 0.;
+  M2(3,2) = 0.;
+
+  matrix<REAL> M3(4,4);
+
+  M3 = prod(M1, M2);
+
+  for(int i=0; i<3; i++){
+    for(int j=0; j<4; j++){
+       m1[i*4+j] = M3(i,j);
+    }
+  }
+
+	return true;
+}
+
 namespace mp5_implicit {
 
     struct bounding_box {
