@@ -51,7 +51,7 @@ Based on MCC1
 
         main = Module.cwrap('main', 'number', []);
 
-        produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
+        // produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
 
         var newProducer={};
         newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'number', 'string', 'number']);
@@ -319,7 +319,7 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
 
     //console.log(newPolygonizer);
     //d("2   G..");
-    newPolygonizer.build_geometry( 28, 1.0, "sphere", subjective_time);
+    newPolygonizer.build_geometry( 28, 1.0, "sub_spheres", subjective_time);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -403,7 +403,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
-    newPolygonizer.build_geometry( 28, 1.0, "sphere", subjective_time);
+    newPolygonizer.build_geometry( 100, 1.0, "sub_spheres", subjective_time);
     newPolygonizer.needsFinish = true;
 
     var nverts = newPolygonizer.get_v_size();
@@ -476,6 +476,39 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
 
 'use strict';
 
+
+//*************** Arrow Functions ****************************
+function make_arrow(){
+    /**
+     * Create an arrow and add it to the scene.
+     */
+    var dir  = new THREE.Vector3( 10, 4, 0);
+    var origin = new THREE.Vector3(0, 0, 0);
+    var length = 10;
+    var hex = 0xffff00;
+
+    var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+    scene.add(arrowHelper);
+    console.log("Arrow");
+    return arrowHelper;
+}
+
+function change_arrow(arrow){
+    /**
+     * Update the arrow parameters
+     */
+    console.log("*****************************************")
+    console.log(arrow.position);
+    console.log("*****************************************")
+    arrow.setLength(200*Math.random());
+    arrow.setDirection(new THREE.Vector3( Math.random(), Math.random() ,Math.random()));
+    arrow.position.set(10*Math.random(), 10*Math.random(), 10*Math.random());
+    console.log("change_arrow")
+}
+// **************************************************************
+
+
+
 // global variables for meshes that are accessed and updated in the render loop, etc.
 var mesh_solid;
 var mesh2_tiny_box_wireframe;
@@ -498,6 +531,7 @@ var chosen_matrial;
 
 const SHOW_WIREFRAME = false;
 const SHOW_SOLID = true;
+
 
 function init_scene(newPolygonizer) {
 
@@ -566,7 +600,7 @@ function init_scene(newPolygonizer) {
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
     scene.add(dirLight);
-
+    var arrow = make_arrow();
 
     if(VERBOSE){
         console.log("RENDERER");
@@ -592,6 +626,7 @@ function init_scene(newPolygonizer) {
         if ( event.keyCode == 17 ) {
             //update_mc(newPolygonizer);
             call_multiple_times(newPolygonizer, update_mc);
+            change_arrow(arrow);
         }
         else
             console.log(event.keyCode);
@@ -726,6 +761,7 @@ function update_mc(newPolygonizer, delta_t){
             mesh_solid.position.copy(p1[0]);
             mesh_solid.rotation.copy(p1[1]);
             scene.add( mesh_solid );
+
         }
     }
 }
@@ -992,7 +1028,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         //function letmeknow(){console.log("Loading memory profiler");}
         Module={preRun:[
             letmeknow=function (){console.log("Loading memory profiler");},
-            memoryprofiler_add_hooks
+            // memoryprofiler_add_hooks
         ],
         onRuntimeInitialized: set_off,
     };

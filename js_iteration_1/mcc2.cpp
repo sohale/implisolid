@@ -259,6 +259,8 @@ extern "C" {
     void finish_geometry();
     void* get_f_ptr();
     void* get_v_ptr();
+    void implicit_value(REAL x, REAL y, REAL z);
+    void implicit_grad_value(REAL x, REAL y, REAL z, REAL * x_out, REAL * y_out, REAL * z_out);
     //also: queue, etc.
     //bad: one instance only.
     //    Solution 1:  MarchingCubes* build_geometry();
@@ -307,6 +309,7 @@ void meta_balls(MarchingCubes& mc, REAL time, REAL scale){
 }
 //#include "../js_iteration_2/unit_sphere.hpp"
 #include "../js_iteration_2/primitives.cpp"
+#include "../js_iteration_2/crisp_subtract.hpp"
 //using namespace mp5_implicit;
 
 
@@ -336,6 +339,11 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10;
         std::cout << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
+    }
+    else if(name == "sub_spheres"){
+        mp5_implicit::unit_sphere * s1 = new mp5_implicit::unit_sphere(2, 1, 1, 1);
+        mp5_implicit::unit_sphere * s2 = new mp5_implicit::unit_sphere(1.3);
+        object = new mp5_implicit::CrispSubtract(*s1, *s2);
     }
     else {
         std::cout << "Error! You must enter a valid name! So I made a sphere!" << std::endl;
@@ -567,5 +575,3 @@ int main() {
     std::cout << "main();" << std::endl;
     return 0;
 }
-
-
