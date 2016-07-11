@@ -58,6 +58,10 @@ public:
       else
         return true;
     }
+    virtual mp5_implicit::bounding_box  get_boundingbox() const {
+        REAL max_size = r*1.1;
+        return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
+    }
 };
 
 }  // namespace

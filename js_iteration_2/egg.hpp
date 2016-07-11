@@ -79,6 +79,10 @@ public:
       else
         return true;
     }
+    virtual mp5_implicit::bounding_box  get_boundingbox() const {
+        REAL max_size = norm_squared(a,b,c);
+        return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
+    }
 };
 
 }
