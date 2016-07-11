@@ -84,9 +84,9 @@ void build_vf(
     dim_t resolution = 28;  // 28;
     bool enableUvs = true;
     bool enableColors = true;
+    mp5_implicit::bounding_box box = {0,3,0,3,0,3};
 
-
-    MarchingCubes mc(resolution, enableUvs, enableColors);
+    MarchingCubes mc(resolution, box, enableUvs, enableColors);
 
 
     int numblobs = 4;
@@ -166,11 +166,13 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     bool enableUvs = true;
     bool enableColors = true;
 
+    mp5_implicit::bounding_box box = {0,3,0,3,0,3};
+
     if(VERBOSE)
         std::cout << "Leak-free (old version)" << std::endl;
 
 
-    MarchingCubes mc(resolution, 1.0, enableUvs, enableColors);
+    MarchingCubes mc(resolution, box, enableUvs, enableColors);
     //MarchingCubes* mc0 = new MarchingCubes(resolution, enableUvs, enableColors);
     //MarchingCubes &mc = *mc0;
     //MarchingCubesMock mc(resolution, enableUvs, enableColors);
@@ -345,15 +347,15 @@ void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time){
 
     if(!check_state_null())
         return;
-    std::cout << "New versionnnnnnnnnnnnn" << obj_name << std::endl;
+    std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
     //dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
-
+    mp5_implicit::bounding_box box = {0,3,0,3,0,3};//{15,20,15,20,15,20};
     //std::cout << "Leak-free : new" << std::endl;
 
     //MarchingCubes mc(resolution, enableUvs, enableColors);
-    _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution, box, enableUvs, enableColors);
     //std::cout << "constructor called. " << _state.mc << std::endl;
 
     _state.mc -> isolation = 80.0/4*0;
@@ -377,7 +379,7 @@ void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time){
 
     // ****************************
     // Does thismake things slower ?
-    boost::multi_array<REAL, 2>  mcgrid_vectorized = _state.mc -> prepare_grid(10.0);
+    boost::multi_array<REAL, 2>  mcgrid_vectorized = _state.mc -> prepare_grid();  // 10.0
     _state.mc -> eval_shape(*object, mcgrid_vectorized);
 
      delete object;

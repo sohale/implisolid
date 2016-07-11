@@ -20,8 +20,10 @@ class MarchingCubes{
     index_t size, size2, size3; //todo: non-equal grid sizes
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
-    REAL halfsize;
+    //REAL halfsize;
+    REAL xi0, yi0, zi0;
     REAL delta;
+    mp5_implicit::bounding_box box;
 
     array1d field;      // local_ yd and zd
     array1d normal_cache;
@@ -67,7 +69,7 @@ class MarchingCubes{
     static const int mc_triangles_table[256*16];
 
  protected:
-    void init( dim_t resolution, REAL delta1, REAL width);
+    void init( dim_t resolution, REAL delta1, mp5_implicit::bounding_box box);
 
 inline void VIntX(index_t q, array1d &pout, array1d &nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
 inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
@@ -81,7 +83,7 @@ void finish_queue( const callback_t& renderCallback );
 
 
 public:
-    MarchingCubes( dim_t resolution, REAL width, bool enableUvs, bool enableColors );
+    MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, bool enableUvs, bool enableColors);
     ~MarchingCubes(); //why does this have to be public: ?
 
     REAL isolation;
@@ -100,7 +102,7 @@ public:
     void seal_exterior(const REAL exterior_value = -100.);
     void subtract_dc(REAL dc_value);
 
-    boost::multi_array<REAL, 2> prepare_grid(REAL mc_grid_real_size);
+    boost::multi_array<REAL, 2> prepare_grid();
     //void eval_shape(const implicit_function& object, REAL mc_grid_real_size);
     void eval_shape(const implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
@@ -124,7 +126,7 @@ public:
 //static dim_t MarchingCubes::queueSize = ...;
 
 int EXCESS = 0;
-MarchingCubes::MarchingCubes( dim_t resolution, REAL width, bool enableUvs=false, bool enableColors=false )
+MarchingCubes::MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
@@ -148,7 +150,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, REAL width, bool enableUvs=false
     //if(VERBOSE)
     //    std::cout << resolution << " init"<< std::endl;
 
-    this->init( resolution, 987.667, width );
+    this->init( resolution, 987.667, box);
 
 /*
     //preallocate
@@ -166,7 +168,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, REAL width, bool enableUvs=false
 
 
 
-void MarchingCubes::init( dim_t resolution, REAL delta1, REAL width) {
+void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_box box) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
@@ -182,8 +184,16 @@ void MarchingCubes::init( dim_t resolution, REAL delta1, REAL width) {
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
 
+        REAL width = box.xmax - box.xmin;
+
         REAL delta = width / (REAL)resolution;  // (2.0 / (REAL)resolution)*size
-        this->halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
+        REAL halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
+        
+        this->xi0 = (-box.xmin) / delta ;
+        this->yi0 = (-box.ymin) / delta ;
+        this->zi0 = (-box.zmin) / delta ;
+
+        this->box = box;
 
         // deltas
         this->delta = delta;  // 2.0 / (REAL)this->size;
@@ -1118,20 +1128,20 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
     int smin2 = this->size - 2;
 
-    for ( int z = 1; z < smin2; z++ ) {
+    for ( int zi = 1; zi < smin2; zi++ ) {
 
-        index_t z_offset = this->size2 * z;
-        REAL fz = ( z - this->halfsize ) * this->delta; //+ 1
+        index_t z_offset = this->size2 * zi;
+        REAL fz = ( zi - this->zi0 ) * this->delta; //+ 1
 
-        for ( int y = 1; y < smin2; y++ ) {
+        for ( int yi = 1; yi < smin2; yi++ ) {
 
-            index_t y_offset = z_offset + this->size * y;
-            REAL fy = ( y - this->halfsize ) * this->delta; //+ 1
+            index_t y_offset = z_offset + this->size * yi;
+            REAL fy = ( yi - this->yi0 ) * this->delta; //+ 1
 
-            for ( int x = 1; x < smin2; x++ ) {
+            for ( int xi = 1; xi < smin2; xi++ ) {
 
-                REAL fx = ( x - this->halfsize ) * this->delta; //+ 1
-                index_t q = y_offset + x;
+                REAL fx = ( xi - this->xi0 ) * this->delta; //+ 1
+                index_t q = y_offset + xi;
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
 
@@ -1734,13 +1744,21 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 }
 
 boost::multi_array<REAL, 2>
-MarchingCubes::prepare_grid(REAL mc_grid_real_size) {
+MarchingCubes::prepare_grid() {
       int min_x = 0;
       int max_x = this->size;
       int min_y = 0;
       int max_y = this->size;
       int min_z = 0;
       int max_z = this->size;
+
+      REAL wx = this->box.xmax - this->box.xmin ;
+      REAL wy = this->box.ymax - this->box.ymin ;
+      REAL wz = this->box.zmax - this->box.zmin ;
+
+      REAL xfactor = wx /(REAL)this->size;
+      REAL yfactor = wy /(REAL)this->size;
+      REAL zfactor = wz /(REAL)this->size;
 
       boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
@@ -1749,9 +1767,9 @@ MarchingCubes::prepare_grid(REAL mc_grid_real_size) {
       for (int z = min_z; z < max_z; z++ ) {
           for (int y = min_y; y < max_y; y++ ) {
               for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = mc_grid_real_size*2.*(REAL)x/(REAL)this->size -1.*mc_grid_real_size;
-                  grid[x + y*this->size + z*this->size2][1] = mc_grid_real_size*2.*(REAL)y/(REAL)this->size -1.*mc_grid_real_size;
-                  grid[x + y*this->size + z*this->size2][2] = mc_grid_real_size*2.*(REAL)z/(REAL)this->size -1.*mc_grid_real_size;
+                  grid[x + y*this->size + z*this->size2][0] = (REAL)x * xfactor + this->box.xmin;
+                  grid[x + y*this->size + z*this->size2][1] = (REAL)y * yfactor + this->box.ymin;
+                  grid[x + y*this->size + z*this->size2][2] = (REAL)z * zfactor + this->box.zmin;
               }
           }
       }
