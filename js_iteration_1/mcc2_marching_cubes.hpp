@@ -22,7 +22,7 @@ class MarchingCubes{
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
     //REAL halfsize;
     REAL xi0, yi0, zi0;
-    REAL delta;
+    REAL deltax, deltay, deltaz;
     mp5_implicit::bounding_box box;
 
     array1d field;      // local_ yd and zd
@@ -184,19 +184,24 @@ void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
 
-        REAL width = box.xmax - box.xmin;
+        REAL widthx = box.xmax - box.xmin;
+        REAL widthy = box.ymax - box.ymin;
+        REAL widthz = box.zmax - box.zmin;
 
-        REAL delta = width / (REAL)resolution;  // (2.0 / (REAL)resolution)*size
-        REAL halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
+        const int skip_count = -2;
+        this->deltax = widthx / (REAL)(resolution - skip_count*2 );  // (2.0 / (REAL)resolution)*size
+        this->deltay = widthy / (REAL)(resolution - skip_count*2 );
+        this->deltaz = widthz / (REAL)(resolution - skip_count*2 );
+        //REAL halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
         
-        this->xi0 = (-box.xmin) / delta ;
-        this->yi0 = (-box.ymin) / delta ;
-        this->zi0 = (-box.zmin) / delta ;
+        this->xi0 = (-box.xmin) / deltax - skip_count;
+        this->yi0 = (-box.ymin) / deltay - skip_count;
+        this->zi0 = (-box.zmin) / deltaz - skip_count;
 
         this->box = box;
 
         // deltas
-        this->delta = delta;  // 2.0 / (REAL)this->size;
+        //this->delta = delta;  // 2.0 / (REAL)this->size;
         this->yd = this->size;
         this->zd = this->size2;
         this->yd_global = this->size;
@@ -352,7 +357,7 @@ inline void MarchingCubes:: VIntX(
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& normal_cache = this->normal_cache;
 
-    pout[ offset ]     = x + mu * this->delta;
+    pout[ offset ]     = x + mu * this->deltax;
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
@@ -398,7 +403,7 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
     const array1d& normal_cache = this->normal_cache;
 
     pout[ offset ]     = x;
-    pout[ offset + 1 ] = y + mu * this->delta;
+    pout[ offset + 1 ] = y + mu * this->deltay;
     pout[ offset + 2 ] = z;
 
     if(MarchingCubes::ENABLE_NORMALS){
@@ -431,7 +436,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
 
     pout[ offset ]     = x;
     pout[ offset + 1 ] = y;
-    pout[ offset + 2 ] = z + mu * this->delta;
+    pout[ offset + 2 ] = z + mu * this->deltaz;
 
     if(MarchingCubes::ENABLE_NORMALS){
         index_t q2 = q + this->zd * 3;
@@ -516,10 +521,14 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     //std::cout  << cubeindex << " ";
 
-    REAL d = this->delta,
-        fx2 = fx + d,
-        fy2 = fy + d,
-        fz2 = fz + d;
+    REAL dx = this->deltax;
+    REAL dy = this->deltay;
+    REAL dz = this->deltaz;
+    REAL
+        fx2 = fx + dx,
+        fy2 = fy + dy,
+        fz2 = fz + dz;
+
 
     //TODO: PUT A VLAUE HERE
     index_t ijk = q;
@@ -1131,16 +1140,16 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     for ( int zi = 1; zi < smin2; zi++ ) {
 
         index_t z_offset = this->size2 * zi;
-        REAL fz = ( zi - this->zi0 ) * this->delta; //+ 1
+        REAL fz = ( zi - this->zi0 ) * this->deltaz; //+ 1
 
         for ( int yi = 1; yi < smin2; yi++ ) {
 
             index_t y_offset = z_offset + this->size * yi;
-            REAL fy = ( yi - this->yi0 ) * this->delta; //+ 1
+            REAL fy = ( yi - this->yi0 ) * this->deltay; //+ 1
 
             for ( int xi = 1; xi < smin2; xi++ ) {
 
-                REAL fx = ( xi - this->xi0 ) * this->delta; //+ 1
+                REAL fx = ( xi - this->xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
@@ -1756,9 +1765,10 @@ MarchingCubes::prepare_grid() {
       REAL wy = this->box.ymax - this->box.ymin ;
       REAL wz = this->box.zmax - this->box.zmin ;
 
-      REAL xfactor = wx /(REAL)this->size;
-      REAL yfactor = wy /(REAL)this->size;
-      REAL zfactor = wz /(REAL)this->size;
+      const int skip = -2;
+      REAL xfactor = wx /(((REAL)this->size) - skip*2);
+      REAL yfactor = wy /(((REAL)this->size) - skip*2);
+      REAL zfactor = wz /(((REAL)this->size) - skip*2);
 
       boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);

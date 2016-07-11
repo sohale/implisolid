@@ -28,6 +28,8 @@ Todo:
 
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
 
 //#include <math.h>
 
@@ -251,7 +253,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 }*/
 
 extern "C" {
-    void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time);
+    void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -351,15 +353,35 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
     }
     return object;
 }
-void build_geometry(int resolution, REAL mc_size, char* obj_name, REAL time){
+void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+
 
     if(!check_state_null())
         return;
     std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
+    std::cout << "Mc_params : " << mc_parameters_json << endl;
+    namespace pt = boost::property_tree ;
+
+    std::stringstream json_stream;
+    json_stream << mc_parameters_json ;
+
+    pt::ptree dict;
+
+    // TODO : catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
+    pt::read_json(json_stream, dict);
+
+    REAL xmin = dict.get<REAL>("box.xmin",0);
+    REAL xmax = dict.get<REAL>("box.xmax",0);
+    REAL ymin = dict.get<REAL>("box.ymin",0);
+    REAL ymax = dict.get<REAL>("box.ymax",0);
+    REAL zmin = dict.get<REAL>("box.zmin",0);
+    REAL zmax = dict.get<REAL>("box.zmax",0);
+
     //dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
-    mp5_implicit::bounding_box box = {0,3,0,3,0,3};//{15,20,15,20,15,20};
+
+    mp5_implicit::bounding_box box = {xmin,xmax,ymin,ymax,zmin,zmax};//{15,20,15,20,15,20};
     //std::cout << "Leak-free : new" << std::endl;
 
     //MarchingCubes mc(resolution, enableUvs, enableColors);
