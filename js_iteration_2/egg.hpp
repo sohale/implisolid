@@ -18,6 +18,7 @@ public:
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
+
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
         for (int i=0; i<12; i++){
@@ -39,6 +40,7 @@ public:
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
+
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
         for (int i=0; i<12; i++){
@@ -81,6 +83,7 @@ public:
       InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
+
     virtual void move(const vectorized_vect direction) const{
       this->transf_matrix[3] += direction[0][0];
       this->transf_matrix[7] += direction[0][1];
@@ -98,11 +101,13 @@ public:
       }
       InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
     }
+
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
+
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
         vectorized_vect x_copy = x;
-        
+
         Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
