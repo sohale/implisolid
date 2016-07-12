@@ -98,28 +98,31 @@ public:
       }
       InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
     }
-    virtual void eval_implicit(vectorized_vect& x, vectorized_scalar* f_output) const {
+    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
-
-        Matrix_Vector_Product(this->inv_transf_matrix, x);
+        vectorized_vect x_copy = x;
+        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
 
-        auto i = x.begin();
-        auto e = x.end();
+        auto i = x_copy.begin();
+        auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
             (*f_output)[output_ctr] = 1 - norm_squared(((*i)[0]-this->x)/this->a, ((*i)[1]-this->y)/this->b, ((*i)[2]-this->z)/this->c);
         }
     }
-    virtual void eval_gradient(vectorized_vect& x, vectorized_vect* output) const {
+    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
+
+        vectorized_vect x_copy = x;
+        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
 
         const REAL a2 = pow(this->a,2);
         const REAL b2 = pow(this->b,2);
         const REAL c2 = pow(this->c,2);
         int output_ctr=0;
-        auto i = x.begin();
-        auto e = x.end();
+        auto i = x_copy.begin();
+        auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
             (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x)/a2;
             (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y)/b2;
