@@ -315,12 +315,12 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         g =currentMeshes[0].geometry
 
         IMPLICIT.finish_geometry();
-        var mc_properties_json = JSON.stringify({box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
-        IMPLICIT.build_geometry(28, mc_properties_json, "sphere",0.9);
+        var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+        IMPLICIT.build_geometry(......., mc_properties_json,);
         g.update_geometry(IMPLICIT)
 
 
-        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
+        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
 
         */
         return false;

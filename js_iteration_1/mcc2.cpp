@@ -254,7 +254,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 }*/
 
 extern "C" {
-    void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time);
+    void build_geometry( char* shape_parameters_json, char* mc_parameters_json);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -316,7 +316,7 @@ void meta_balls(MarchingCubes& mc, REAL time, REAL scale){
 //using namespace mp5_implicit;
 
 
-implicit_function*  object_factory(REAL f_argument, std::string name){
+implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     implicit_function* object;
     if (name == "double_mushroom"){
         object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
@@ -339,7 +339,7 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
     else if (name == "scylinder"){
         object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
     }else if(name == "meta_balls"){
-        REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10;
+        REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
         std::cout << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
     }
@@ -354,39 +354,107 @@ implicit_function*  object_factory(REAL f_argument, std::string name){
     }
     return object;
 }
-void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+
+
+
+implicit_function*  object_factory(string shape_parameters_json, bool& use_metaball) {
+
+
+    /*
+    mp5_implicit :: unit_sphere   object(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
+    // //_state.mc -> prepare_grid(1.0);
+    // //object.eval_implicit(grid, implicit_values);
+    _state.mc -> eval_shape(object, 1.0);
+    */
+
+
+/*
+    std::string name = std::string(obj_name);
+    std::cout << "Name : " << name << std::endl;
+
+    REAL f_argument = time;
+
+    implicit_function* object = object_factory_simple(f_argument, name);
+*/
+    //std::cout << "############################" << shape_parameters_json << std::endl;
+    std::stringstream shape_json_stream;
+    shape_json_stream << shape_parameters_json ;
+
+    namespace pt = boost::property_tree ;
+    pt::ptree shapeparams_dict;
+
+    pt::read_json(shape_json_stream, shapeparams_dict);
+
+    std::string name = shapeparams_dict.get<std::string>("type");
+    //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
+    //std::cout << "############Name : " << name << std::endl;
+    //REAL zmax = shapeparams_dict.get<REAL>("box.zmax",NaN);
+    // int resolution = shapeparams_dict.get<int>("resolution",-1);
+
+    // if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ){
+    //     std::cout << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
+    //     xmin = -1;
+    //     xmax = 1;
+    //     ymin = -1;
+    //     ymax = 1;
+    //     zmin = -1;
+    //     zmax = 1;
+    //     resolution = 28;
+    // }
+
+    REAL f_argument =  0; //rand()/(REAL)RAND_MAX;
+    use_metaball = false;
+
+    if(name=="meta_balls"){
+        f_argument = shapeparams_dict.get<REAL>("time", NaN);
+        use_metaball = true;
+    }
+    else{
+        //f_argument = 0;
+    }
+
+    implicit_function* object;
+
+    object = object_factory_simple(f_argument, name);
+
+    return object;
+}
+
+//void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+void build_geometry( char* shape_parameters_json, char* mc_parameters_json){
 
 
     if(!check_state_null())
         return;
-    std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
-    std::cout << "Mc_params : " << mc_parameters_json << endl;
+    //std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
+    //std::cout << "Mc_params : " << mc_parameters_json << endl;
+    //std::cout << "shape_json : " << shape_parameters_json << endl;
+
+    bool use_metaball;
+    std::string shape_parameters_json_str = std::string(shape_parameters_json) ;
+    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball);
+
+
+    std::stringstream mc_json_stream;
+    mc_json_stream << mc_parameters_json ;
+
     namespace pt = boost::property_tree ;
+    pt::ptree mcparams_dict;
 
-    std::stringstream json_stream;
-    json_stream << mc_parameters_json ;
-
-    pt::ptree dict;
-
-    REAL xmin ;
-    REAL xmax ;
-    REAL ymin ;
-    REAL ymax ;
-    REAL zmin ;
-    REAL zmax ;
 
     // TODO : find an alternativ to catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
     //try{
-    pt::read_json(json_stream, dict);
+    pt::read_json(mc_json_stream, mcparams_dict);
 
-    xmin = dict.get<REAL>("box.xmin",NaN);
-    xmax = dict.get<REAL>("box.xmax",NaN);
-    ymin = dict.get<REAL>("box.ymin",NaN);
-    ymax = dict.get<REAL>("box.ymax",NaN);
-    zmin = dict.get<REAL>("box.zmin",NaN);
-    zmax = dict.get<REAL>("box.zmax",NaN);
-    
-    if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) ){
+    REAL xmin = mcparams_dict.get<REAL>("box.xmin",NaN);
+    REAL xmax = mcparams_dict.get<REAL>("box.xmax",NaN);
+    REAL ymin = mcparams_dict.get<REAL>("box.ymin",NaN);
+    REAL ymax = mcparams_dict.get<REAL>("box.ymax",NaN);
+    REAL zmin = mcparams_dict.get<REAL>("box.zmin",NaN);
+    REAL zmax = mcparams_dict.get<REAL>("box.zmax",NaN);
+    int resolution = mcparams_dict.get<int>("resolution",-1);
+
+    if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ){
         std::cout << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
         xmin = -1;
         xmax = 1;
@@ -394,6 +462,7 @@ void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, RE
         ymax = 1;
         zmin = -1;
         zmax = 1;
+        resolution = 28;
     }
 
     /*}catch(pt::json_parser::json_parser_error parse_exception){
@@ -424,21 +493,6 @@ void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, RE
 
     _state.mc -> isolation = 80.0/4*0;
 
-    /*
-    mp5_implicit :: unit_sphere   object(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-    // //_state.mc -> prepare_grid(1.0);
-    // //object.eval_implicit(grid, implicit_values);
-    _state.mc -> eval_shape(object, 1.0);
-    */
-
-
-
-    std::string name = std::string(obj_name);
-    std::cout << "Name : " << name << std::endl;
-
-    REAL f_argument = time;
-
-    implicit_function* object = object_factory(f_argument, name);
 
 
     // ****************************
@@ -448,8 +502,9 @@ void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, RE
 
      delete object;
      object = NULL;
-     if(name == "meta_balls"){
-         meta_balls(*_state.mc, time, 1.0);
+     if(use_metaball){
+         REAL metaball_time = 0; 
+         meta_balls(*_state.mc, metaball_time, 1.0);
      }
 
     _state.mc->seal_exterior();
@@ -479,10 +534,6 @@ void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, RE
     }
 
 
-    if(VERBOSE){
-        std::cout << resolution << " " << time << std::endl;
-        std::cout << _state.mc << std::endl;
-    }
     _state.active = true;
 
     check_state();

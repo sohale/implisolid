@@ -5,7 +5,7 @@ function init(service) {
     'use strict';
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
-    service.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'string', 'number']);
+    service.build_geometry = Module.cwrap('build_geometry', null, [ 'string', 'string']);
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
     service.get_f_size = Module.cwrap('get_f_size', 'number', []);
     service.get_v = Module.cwrap('get_v', null, ['number']);
@@ -31,7 +31,7 @@ function init(service) {
 
 var ImplicitService = function(){
     init(this);
-    this.make_geometry = function (params, mc_params) {
+    this.make_geometry = function (shape_params, mc_params) {
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
@@ -40,7 +40,7 @@ var ImplicitService = function(){
             this.finish_geometry();
             this.needsFinish = false;
         }
-        this.build_geometry( 28, JSON.stringify(mc_params), params["implicit_obj_name"], params["subjective_time"]);
+        this.build_geometry(JSON.stringify(shape_params), JSON.stringify(mc_params));
         this.needsFinish = true;
 
         var nverts = this.get_v_size();
@@ -64,8 +64,11 @@ var ImplicitService = function(){
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService 
     this.getLiveGeometry = function(){
-        var mc_properties = {box: {xmin: 0, xmax: 3, ymin: 0 , ymax: 3, zmin: 0, zmax: 3}};
-        var geom = this.make_geometry( {subjective_time: 0.0, implicit_obj_name: "sphere"}, mc_properties);
+        var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
+        //var shape_properties = {type:"sphere",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
+        /*{subjective_time: 0.0, implicit_obj_name: "sphere"*/
+        var shape_properties = {type:"meta_balls",time: 0.0};
+        var geom = this.make_geometry(shape_properties, mc_properties);
         return geom;
     }
 
@@ -91,18 +94,27 @@ function _on_cpp_loaded() {
 
 
 
-function test_update1(t){
-    var g = currentMeshes[0].geometry;
+function test_update1(t, mesh){
+    var g = mesh.geometry;
 
     IMPLICIT.finish_geometry();
     IMPLICIT.needsFinish = false;
 
-    var mc_properties = JSON.stringify({box: {xmin: -1, xmax: Math.sin(t)*3, ymin: -1 , ymax: 3, zmin: -1, zmax: 3}});
-    var new_geometry = IMPLICIT.build_geometry(28, mc_properties, "sphere", 0);
+    var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1+0*Math.sin(t)*3, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}};
+    //var new_geometry = IMPLICIT.build_geometry(28, mc_properties, "sphere", 0);
+
+    //var shape_properties = {type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]};
+    var shape_properties = {type:"meta_balls",time: t };
+
+    var new_geometry = IMPLICIT.build_geometry(
+        JSON.stringify(shape_properties) ,
+        JSON.stringify(mc_properties));
+
+
     IMPLICIT.needsFinish = true;
 
     if(new_geometry){
-        currentMeshes[0].geometry = new_geometry;
+        mesh.geometry = new_geometry;
         g = new_geometry;
     }
     g.update_geometry(IMPLICIT);
@@ -119,5 +131,5 @@ function test_update2(t){
 }
 
 /*
-var t=0;test_update1(t);var iid=setInterval(function(){test_update2(t+=0.02);},6);
+var t=0;m=currentMeshes[0];test_update1(t, m);var iid=setInterval(function(){test_update1(t+=0.02, m);},6);
 */

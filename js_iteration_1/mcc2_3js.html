@@ -54,7 +54,7 @@ Based on MCC1
         // produce_object = Module.cwrap('produce_object_old2', null, ['number', 'number', 'number', 'number', 'number']);
 
         var newProducer={};
-        newProducer.build_geometry = Module.cwrap('build_geometry', null, ['number', 'string', 'string', 'number']);
+        newProducer.build_geometry = Module.cwrap('build_geometry', null, [ 'string', 'string']);
         newProducer.get_v_size = Module.cwrap('get_v_size', 'number', []);
         newProducer.get_f_size = Module.cwrap('get_f_size', 'number', []);
         newProducer.get_v = Module.cwrap('get_v', null, ['number']);
@@ -319,8 +319,9 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
 
     //console.log(newPolygonizer);
     //d("2   G..");
-    var mc_properties_json = JSON.stringify({box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
-    newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+    var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+    //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+    newPolygonizer.build_geometry( JSON.stringify({type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -405,9 +406,10 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
 
-    var mc_properties = JSON.stringify({box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+    var mc_properties = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
 
-    newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
+    //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
+    newPolygonizer.build_geometry( JSON.stringify({type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
 
     newPolygonizer.needsFinish = true;
 
@@ -461,8 +463,10 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
         console.error("not deallocated.");
     try{
         //d("2   G.");
-        var mc_properties_json = JSON.stringify({box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
-        newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+        //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        newPolygonizer.build_geometry( JSON.stringify({type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
+
         newPolygonizer.needsFinish = true;
     }catch(err){
         console.error("An error occured dugin MCC C++")

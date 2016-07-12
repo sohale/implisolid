@@ -900,7 +900,7 @@ void MarchingCubes::addBall(
 
                 fx = x / (REAL)this->size - ballx;
                 val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
-                if ( val > 0.0 ) this->field[ y_offset + x ] += val / 100*100;
+                if ( val > 0.0 ) this->field[ y_offset + x ] += val / 100;
             }
         }
     }
