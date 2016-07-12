@@ -229,7 +229,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       direction[0][1] = 0.3;
       direction[0][2] = 0.3;
 
-      super_bowl segg(0.5);
+      unit_sphere segg(0.5);
       // segg.move(direction);
       // segg.resize(12.);
       segg.rotate(2., direction);
