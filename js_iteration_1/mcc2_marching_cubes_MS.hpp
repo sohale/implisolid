@@ -571,7 +571,6 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
                   grid[x + y*this->size + z*this->size2][1] = grid_real_size*2.*(REAL)y/(REAL)this->size -1.*grid_real_size;
                   grid[x + y*this->size + z*this->size2][2] = grid_real_size*2.*(REAL)z/(REAL)this->size -1.*grid_real_size;
 
-
               }
           }
       }

@@ -163,9 +163,11 @@ bool InvertMatrix(const REAL input_A[], REAL inverse_A[])
 
 void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
   for (int i=0; i<vectou.shape()[0]; i++){
-    vectou[i][0] = matou[0]*vectou[i][0] + matou[1]*vectou[i][1] + matou[2]*vectou[i][2] + matou[3]*1.;
-    vectou[i][1] = matou[4]*vectou[i][0] + matou[5]*vectou[i][1] + matou[6]*vectou[i][2] + matou[7]*1.;
-    vectou[i][2] = matou[8]*vectou[i][0] + matou[9]*vectou[i][1] + matou[10]*vectou[i][2] + matou[11]*1.;
+    REAL vectou_0 = vectou[i][0];
+    REAL vectou_1 = vectou[i][1];
+    vectou[i][0] = matou[0]*vectou_0 + matou[1]*vectou_1 + matou[2]*vectou[i][2] + matou[3]*1.;
+    vectou[i][1] = matou[4]*vectou_0 + matou[5]*vectou_1 + matou[6]*vectou[i][2] + matou[7]*1.;
+    vectou[i][2] = matou[8]*vectou_0 + matou[9]*vectou_1 + matou[10]*vectou[i][2] + matou[11]*1.;
   }
 
 }

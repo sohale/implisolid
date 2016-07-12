@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 10;
+      REAL grid_real_size = 1.;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -225,14 +225,14 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     else if (name == "egg_transform"){
       boost::array<int, 2> direction_shape = { 1, 3 };
       boost::multi_array<REAL, 2> direction(direction_shape);
-      direction[0][0] = 0.2;
-      direction[0][1] = 0.2;
-      direction[0][2] = 0.2;
+      direction[0][0] = 0.;
+      direction[0][1] = 0.3;
+      direction[0][2] = 0.3;
 
       egg segg(0.3, 0.4, 0.5);
       // segg.move(direction);
-       segg.resize(12.);
-    //  segg.rotate(2., direction);
+      // segg.resize(12.);
+      segg.rotate(2., direction);
       object = &segg; // super egg !
     }
     else {

@@ -57,7 +57,7 @@ public:
     virtual void rotate(const REAL angle, const vectorized_vect axis) const {
       REAL ca = cos(angle);
       REAL sa = sin(angle);
-      REAL norm = axis[0][0]*axis[0][0] + axis[0][1]*axis[0][1] + axis[0][2]*axis[0][2];
+      REAL norm = sqrt(axis[0][0]*axis[0][0] + axis[0][1]*axis[0][1] + axis[0][2]*axis[0][2]);
       REAL a1 = axis[0][0]/norm;
       REAL a2 = axis[0][1]/norm;
       REAL a3 = axis[0][2]/norm;
@@ -76,8 +76,8 @@ public:
       rotation[10] = ca + a3*a3*(1.-ca);
       rotation[11] = 0.;
 
-
       Matrix_Matrix_Product(this->transf_matrix, rotation);
+
       InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
@@ -102,6 +102,7 @@ public:
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
         vectorized_vect x_copy = x;
+        
         Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
