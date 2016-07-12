@@ -31,6 +31,7 @@ Todo:
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
+
 //#include <math.h>
 
 extern "C" {
@@ -367,15 +368,48 @@ void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, RE
 
     pt::ptree dict;
 
-    // TODO : catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
+    REAL xmin ;
+    REAL xmax ;
+    REAL ymin ;
+    REAL ymax ;
+    REAL zmin ;
+    REAL zmax ;
+
+    // TODO : find an alternativ to catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
+    //try{
     pt::read_json(json_stream, dict);
 
-    REAL xmin = dict.get<REAL>("box.xmin",0);
-    REAL xmax = dict.get<REAL>("box.xmax",0);
-    REAL ymin = dict.get<REAL>("box.ymin",0);
-    REAL ymax = dict.get<REAL>("box.ymax",0);
-    REAL zmin = dict.get<REAL>("box.zmin",0);
-    REAL zmax = dict.get<REAL>("box.zmax",0);
+    xmin = dict.get<REAL>("box.xmin",NaN);
+    xmax = dict.get<REAL>("box.xmax",NaN);
+    ymin = dict.get<REAL>("box.ymin",NaN);
+    ymax = dict.get<REAL>("box.ymax",NaN);
+    zmin = dict.get<REAL>("box.zmin",NaN);
+    zmax = dict.get<REAL>("box.zmax",NaN);
+    
+    if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) ){
+        std::cout << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
+        xmin = -1;
+        xmax = 1;
+        ymin = -1;
+        ymax = 1;
+        zmin = -1;
+        zmax = 1;
+    }
+
+    /*}catch(pt::json_parser::json_parser_error parse_exception){
+        std::cout << "parse_exception"<< std::endl ;
+
+    }catch(pt::ptree_bad_data bad_data_exception){
+        std::cout << "bad_data_exception"<< std::endl ;
+
+    }catch(pt::ptree_bad_path bad_path_exception){1
+        std::cout << "bad_path_exception" << std::endl ;
+
+    }catch(...){
+        std::cout << "other_exception" << std::endl ;
+    }*/
+    
+
 
     //dim_t resolution = 28;
     bool enableUvs = true;
