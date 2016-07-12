@@ -38,6 +38,8 @@ using namespace std;
 
 typedef unsigned short int dim_t;
 typedef float REAL;
+const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
+inline bool isNaN(REAL x){return isnan(x);};
 
 typedef boost::multi_array<REAL, 1>  array1d;
 typedef boost::array<array1d::index, 1>  array_shape_t;
