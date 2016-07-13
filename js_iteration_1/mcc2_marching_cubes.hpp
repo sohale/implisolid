@@ -71,7 +71,7 @@ class MarchingCubes{
     static const int mc_triangles_table[256*16];
 
  protected:
-    void init( dim_t resolution, REAL delta1, mp5_implicit::bounding_box box);
+    void init( dim_t apparent_resolution, REAL delta1, mp5_implicit::bounding_box box);
 
 inline void VIntX(index_t q, array1d &pout, array1d &nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
 inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
@@ -85,7 +85,7 @@ void finish_queue( const callback_t& renderCallback );
 
 
 public:
-    MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, bool enableUvs, bool enableColors);
+    MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs, bool enableColors);
     ~MarchingCubes(); //why does this have to be public: ?
 
     REAL isolation;
@@ -128,11 +128,12 @@ public:
 //static dim_t MarchingCubes::queueSize = ...;
 
 int EXCESS = 0;
-MarchingCubes::MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, bool enableUvs=false, bool enableColors=false )
+MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
-        field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
-        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 *(MarchingCubes::ENABLE_NORMALS?1:0) }) )),
+        size(apparent_resolution + MarchingCubes::skip_count * 2),
+        field(array1d( array_shape_t ({{ size*size*size }}) )),
+        normal_cache(array1d( array_shape_t({ size*size*size*3 *(MarchingCubes::ENABLE_NORMALS?1:0) }) )),
 
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3 * (MarchingCubes::ENABLE_NORMALS?1:0) } ) )),
@@ -152,7 +153,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, 
     //if(VERBOSE)
     //    std::cout << resolution << " init"<< std::endl;
 
-    this->init( resolution, 987.667, box);
+    this->init( apparent_resolution, 987.667, box);
 
 /*
     //preallocate
@@ -170,7 +171,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, mp5_implicit::bounding_box box, 
 
 
 
-void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_box box) {
+void MarchingCubes::init( dim_t apparent_resolution, REAL delta1, mp5_implicit::bounding_box box) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
@@ -182,7 +183,8 @@ void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_
 
         // size of field, 32 is pushing it in Javascript :)
 
-        this->size = resolution;
+        //dim_t resolution = apparent_resolution + MarchingCubes::skip_count * 2;
+        //this->size = resolution;
         this->size2 = this->size * this->size;
         this->size3 = this->size2 * this->size;
 
@@ -190,9 +192,9 @@ void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_
         REAL widthy = box.ymax - box.ymin;
         REAL widthz = box.zmax - box.zmin;
 
-        this->deltax = widthx / (REAL)(resolution - MarchingCubes::skip_count*2 );  // (2.0 / (REAL)resolution)*size
-        this->deltay = widthy / (REAL)(resolution - MarchingCubes::skip_count*2 );
-        this->deltaz = widthz / (REAL)(resolution - MarchingCubes::skip_count*2 );
+        this->deltax = widthx / (REAL)(this->size - MarchingCubes::skip_count*2 );  // (2.0 / (REAL)resolution)*size
+        this->deltay = widthy / (REAL)(this->size - MarchingCubes::skip_count*2 );
+        this->deltaz = widthz / (REAL)(this->size - MarchingCubes::skip_count*2 );
         //REAL halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
 
         this->box = box;

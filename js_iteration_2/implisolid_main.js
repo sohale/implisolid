@@ -62,15 +62,15 @@ var ImplicitService = function(){
 
         return geom;
     };
-    //This method is called by the designer to obtain the geometry from the ImplicitService 
+    //This method is called by the designer to obtain the geometry from the ImplicitService
     this.getLiveGeometry = function(dict) {
         var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
         //var shape_properties = {type:"sphere",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
         /*{subjective_time: 0.0, implicit_obj_name: "sphere"*/
 
-        //var shape_properties = {type:"meta_balls",time: 0.0};        
-        //var shape_properties = dict;
-        var shape_properties = {type:"simple_sphere", radius: 3.0};
+        //var shape_properties = {type:"meta_balls",time: 0.0};
+        var shape_properties = dict;
+        //var shape_properties = {type:"simple_sphere", radius: 3.0};
 
         var geom = this.make_geometry(shape_properties, mc_properties);
         return geom;
@@ -107,13 +107,20 @@ function test_update1(t, mesh, dict){
 
     var s = Math.sin(t)*3+3;
     console.log("s="+s);
+
     var mc_properties = {resolution: 28, box: {xmin: (-1-s)*0, xmax: 1+s, ymin: (-1-s)*0 , ymax: 1+s, zmin: (-1-s)*0, zmax: 1+s}};
+
+    // Aliasing test:
+    //var res = Math.floor(28*(s+1)/3)-4; var sz = (res) * 0.14/2;
+    //var mc_properties = {resolution: res, box: {xmin: 0, xmax: sz, ymin: 0 , ymax: sz, zmin: 0, zmax: sz}};
+
+    //var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
     //var new_geometry = IMPLICIT.build_geometry(28, mc_properties, "sphere", 0);
 
     //var shape_properties = {type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]};
 
     //var shape_properties = mesh.parentShape.getDict1();
-
+    console.log()
     if(!dict){
         //var shape_properties = {type:"meta_balls",time: t };
         var shape_properties = {type:"simple_sphere", radius: 3.0};
@@ -135,13 +142,13 @@ function test_update1(t, mesh, dict){
         g = new_geometry;
     }
     g.update_geometry(IMPLICIT);
- 
+
 }
 
 
 function test_update2(t){
     var g = currentMeshes[0].geometry;
-    
+
     var new_geometry = g.update_geometry(IMPLICIT);
     if(new_geometry)
         currentMeshes[0].geometry = new_geometry
@@ -149,4 +156,6 @@ function test_update2(t){
 
 /*
 var t=0;m=currentMeshes[0];test_update1(t, m);var iid=setInterval(function(){test_update1(t+=0.02, m);},6);
+
+var t=0;m=currentMeshes[0]; d=m.parentShape.getDict1();test_update1(t, m);var iid=setInterval(function(){test_update1(t+=0.02, m,d);}, 66);
 */
