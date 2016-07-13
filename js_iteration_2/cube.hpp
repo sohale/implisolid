@@ -5,16 +5,23 @@ namespace mp5_implicit {
 class cube : public transformable_implicit_function {
 
 protected:
-    REAL h; REAL w; REAL d;
+    REAL p[18];
     REAL x; REAL y; REAL z;
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
 
 public:
     cube(REAL size_x, REAL size_y, REAL size_z){
-        this->h = size_z;
-        this->w = size_x;
-        this->d = size_y;
+        for (int i=0; i<18; i++){
+          this->p[i] = 0;
+        }
+        this->p[0] = size_x;
+        this->p[3] = -size_x;
+        this->p[7] = size_y;
+        this->p[10] = -size_y;
+        this->p[14] = size_z;
+        this->p[17] = -size_z;
+
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
@@ -34,9 +41,16 @@ public:
     }
 
     cube(REAL size_x, REAL size_y, REAL size_z, REAL center_x, REAL center_y, REAL center_z){
-        this->h = size_z;
-        this->w = size_x;
-        this->d = size_y;
+        for (int i=0; i<18; i++){
+          this->p[i] = 0;
+        }
+        this->p[0] = size_x;
+        this->p[3] = -size_x;
+        this->p[7] = size_y;
+        this->p[10] = -size_y;
+        this->p[14] = size_z;
+        this->p[17] = -size_z;
+
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
@@ -111,60 +125,70 @@ public:
         Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
         int output_ctr=0;
 
+        REAL cx = this->x;
+        REAL cy = this->y;
+        REAL cz = this->z;
+
+        REAL i1;
+        REAL i2;
+        REAL i3;
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            if (((*i)[0]-this->x<=w/2.) && ((*i)[1]-this->y<=d/2.) && ((*i)[2]-this->z<=h/2.) && ((*i)[0]-this->x >= -w/2.) && ((*i)[1]-this->y >= -d/2.) && ((*i)[2]-this->z >= -h/2.)){
-              (*f_output)[output_ctr] = 1.;
-            }
-            else{
-
-              (*f_output)[output_ctr] = - 1.;
-            }
-
+          i1 = (*i)[0];
+          i2 = (*i)[1];
+          i3 = (*i)[2];
+          (*f_output)[output_ctr] = min(
+            (i1 - cx - p[0])*p[0]*(-2.) + (i2 - cy - p[1])*p[1]*(-2.) + (i3 - cz - p[2])*p[2]*(-2.),
+            min((i1 - cx - p[0+1*3])*p[0+1*3]*(-2.) + (i2 - cy - p[1+1*3])*p[1+1*3]*(-2.) + (i3 - cz - p[2+1*3])*p[2+1*3]*(-2.),
+            min((i1 - cx - p[0+2*3])*p[0+2*3]*(-2.) + (i2 - cy - p[1+2*3])*p[1+2*3]*(-2.) + (i3 - cz - p[2+2*3])*p[2+2*3]*(-2.),
+            min((i1 - cx - p[0+3*3])*p[0+3*3]*(-2.) + (i2 - cy - p[1+3*3])*p[1+3*3]*(-2.) + (i3 - cz - p[2+3*3])*p[2+3*3]*(-2.),
+            min((i1 - cx - p[0+4*3])*p[0+4*3]*(-2.) + (i2 - cy - p[1+4*3])*p[1+4*3]*(-2.) + (i3 - cz - p[2+4*3])*p[2+4*3]*(-2.),
+            (i1 - cx - p[0+5*3])*p[0+5*3]*(-2.) + (i2 - cy - p[1+5*3])*p[1+5*3]*(-2.) + (i3 - cz - p[2+5*3])*p[2+5*3]*(-2.)
+          )))));
         }
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
-      vectorized_vect x_copy = x;
-      Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
-
-        int output_ctr=0;
-        auto i = x_copy.begin();
-        auto e = x_copy.end();
-        for(; i!=e; i++, output_ctr++){
-            if ((*i)[0]-this->x < -this->w+0.05) {
-                  (*output)[output_ctr][0] = +1.* ((*i)[0]-this->x);
-            }
-            else if((*i)[0]-this->x > this->w-0.05){
-                (*output)[output_ctr][0] = -1. * ((*i)[0]-this->x);
-            }
-            else if ((*i)[1]-this->y < -this->d-0.05){
-                  (*output)[output_ctr][1] = +1.*((*i)[1]-this->y);
-            }
-            else if((*i)[1]-this->y < -this->d+0.05){
-                (*output)[output_ctr][1] = -1.*((*i)[1]-this->y);
-            }
-            else if ((*i)[2]-this->z < -this->h-0.05){
-                  (*output)[output_ctr][2] = +1.*((*i)[2]-this->z);
-            }
-            else if((*i)[2]-this->z < -this->h+0.05){
-                (*output)[output_ctr][2] = -1.*((*i)[2]-this->z);
-            }
-            else
-              (*output)[output_ctr][0]= 1; // arbitrary value to avoid null vectors may need to be changed
-
-        }
+      // vectorized_vect x_copy = x;
+      // Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+      //
+      //   int output_ctr=0;
+      //   auto i = x_copy.begin();
+      //   auto e = x_copy.end();
+      //   for(; i!=e; i++, output_ctr++){
+      //       if ((*i)[0]-this->x < -this->w+0.05) {
+      //             (*output)[output_ctr][0] = +1.* ((*i)[0]-this->x);
+      //       }
+      //       else if((*i)[0]-this->x > this->w-0.05){
+      //           (*output)[output_ctr][0] = -1. * ((*i)[0]-this->x);
+      //       }
+      //       else if ((*i)[1]-this->y < -this->d-0.05){
+      //             (*output)[output_ctr][1] = +1.*((*i)[1]-this->y);
+      //       }
+      //       else if((*i)[1]-this->y < -this->d+0.05){
+      //           (*output)[output_ctr][1] = -1.*((*i)[1]-this->y);
+      //       }
+      //       else if ((*i)[2]-this->z < -this->h-0.05){
+      //             (*output)[output_ctr][2] = +1.*((*i)[2]-this->z);
+      //       }
+      //       else if((*i)[2]-this->z < -this->h+0.05){
+      //           (*output)[output_ctr][2] = -1.*((*i)[2]-this->z);
+      //       }
+      //       else
+      //         (*output)[output_ctr][0]= 1; // arbitrary value to avoid null vectors may need to be changed
+      //
+      //   }
     }
     bool integrity_invariant() const {
-      if(this->w < MEAN_PRINTABLE_LENGTH || this->d < MEAN_PRINTABLE_LENGTH || this->h < MEAN_PRINTABLE_LENGTH)
+      if(this->p[0] < MEAN_PRINTABLE_LENGTH || this->p[7] < MEAN_PRINTABLE_LENGTH || this->p[14] < MEAN_PRINTABLE_LENGTH)
         return false;
       else
         return true;
     }
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        REAL max_size = norm_squared(h,w,d);
+        REAL max_size = norm_squared(p[0],p[7],p[14]);
         return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
     }
 };

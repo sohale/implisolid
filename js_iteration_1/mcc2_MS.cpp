@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "egg_transform";
+    string name = "cube";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -201,7 +201,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(1., 1., 1., 0.2, 0.1, 0.3);
+      cube cube(0.5, 0.5, 0.5);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -257,11 +257,11 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
         mapctr++;
       }
     }
-
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
-    }
+    //
+    // float c=2000.;
+    // for (int i=0; i<3; i++){
+    //  vertex_resampling(object, f_argument, c, *(_state.mc));
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
