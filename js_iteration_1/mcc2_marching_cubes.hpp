@@ -35,7 +35,8 @@ class MarchingCubes{
     //Queue, Buffer, Cache: sizes are: 4096, 16, 28**3, respectively.
 
     static const bool ENABLE_NORMALS = false;
-    static const int skip_count = 2; // -2
+    static const int skip_count_l = 2; // -2
+    static const int skip_count_h = 3;
 
 
  protected:
@@ -131,7 +132,7 @@ int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
-        resolution(apparent_resolution + MarchingCubes::skip_count * 2),
+        resolution(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
         field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
         normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 *(MarchingCubes::ENABLE_NORMALS?1:0) }) )),
 
@@ -183,7 +184,7 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         // size of field, 32 is pushing it in Javascript :)
 
-        //dim_t resolution = apparent_resolution + MarchingCubes::skip_count * 2;
+        //dim_t resolution = apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h;
         //this->size = resolution;
         this->size2 = this->resolution * this->resolution;
         this->size3 = this->size2 * this->resolution;
@@ -192,9 +193,9 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         REAL widthy = box.ymax - box.ymin;
         REAL widthz = box.zmax - box.zmin;
 
-        this->deltax = widthx / (REAL)(this->resolution - MarchingCubes::skip_count*2 );  // (2.0 / (REAL)resolution)*size
-        this->deltay = widthy / (REAL)(this->resolution - MarchingCubes::skip_count*2 );
-        this->deltaz = widthz / (REAL)(this->resolution - MarchingCubes::skip_count*2 );
+        this->deltax = widthx / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );  // (2.0 / (REAL)resolution)*size
+        this->deltay = widthy / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
+        this->deltaz = widthz / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
         //REAL halfsize = width / 2.0 / delta; // ((REAL)this->resolution) / 2.0;
 
         this->box = box;
@@ -1133,9 +1134,9 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     this->begin_queue();
 
     REAL xi0, yi0, zi0;
-    xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count;
-    yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count;
-    zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count;
+    xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
+    yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
+    zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
 
     // Triangulate. Yeah, this is slow.
 
@@ -1769,9 +1770,9 @@ MarchingCubes::prepare_grid() {
       REAL wy = this->box.ymax - this->box.ymin ;
       REAL wz = this->box.zmax - this->box.zmin ;
 
-      REAL xfactor = wx /(REAL)(this->resolution - MarchingCubes::skip_count*2);
-      REAL yfactor = wy /(REAL)(this->resolution - MarchingCubes::skip_count*2);
-      REAL zfactor = wz /(REAL)(this->resolution - MarchingCubes::skip_count*2);
+      REAL xfactor = wx /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
+      REAL yfactor = wy /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
+      REAL zfactor = wz /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
 
       boost::array<int, 2> grid_shape = {{ this->resolution*this->resolution*this->resolution , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
@@ -1781,9 +1782,9 @@ MarchingCubes::prepare_grid() {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
                   boost::multi_array<REAL, 2>::index  i = x + y*this->resolution + z*this->size2;
-                  grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count * this->deltax;
-                  grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count * this->deltay;
-                  grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count * this->deltaz;
+                  grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->deltax;
+                  grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->deltay;
+                  grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->deltaz;
               }
           }
       }
