@@ -84,6 +84,7 @@ var ImplicitService = function(){
         //var mc_properties = {resolution: 28, box: {xmin: 92.9405888205127-100-s, xmax: 92.9405888205127-100+s, ymin: 101.93969389296757-100-s, ymax: 101.93969389296757-100+s, zmin: 8.59828143220919-5-s, zmax: 8.59828143220919-5+s}};
 
 
+        shape_properties.type = "egg";
         var m = shape_properties.matrix;
         var bb ={};
         var dd = 0.0;
