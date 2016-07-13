@@ -16,11 +16,34 @@ public:
           this->p[i] = 0;
         }
         this->p[0] = size_x;
+        this->p[1] = size_x/2.;
         this->p[3] = -size_x;
+        this->p[4] = -size_x/2.;
+        this->p[8] = size_y/2.;
         this->p[7] = size_y;
         this->p[10] = -size_y;
+        this->p[11] = -size_y/2.;
         this->p[14] = size_z;
         this->p[17] = -size_z;
+
+        // REAL m = 50.;
+        // this->p[0] = cos(1.*M_PI/5.)/m;
+        // this->p[1] = sin(1.*M_PI/5)/m;
+        // this->p[2] = 1./m;
+        // this->p[3] = cos(3.*M_PI/5.)/m;
+        // this->p[4] = sin(3*M_PI/5)/m;
+        // this->p[5] = 1./m;
+        // this->p[6] = cos(5.*M_PI/5.)/m;
+        // this->p[7] = sin(5.*M_PI/5.)/m;
+        // this->p[8] = 1./m;
+        // this->p[9] = cos(7.*M_PI/5.)/m;
+        // this->p[10] = sin(7.*M_PI/5.)/m;
+        // this->p[11] = 1./m;
+        // this->p[13] = cos(9.*M_PI/5.)/m;
+        // this->p[12] = sin(9.*M_PI/5.)/m;
+        // this->p[14] = 1./m;
+        // this->p[17] = -1./4.;
+
 
         this->x = 0.;
         this->y = 0.;
@@ -184,9 +207,9 @@ public:
 
     }
     bool integrity_invariant() const {
-      if(this->p[0] < MEAN_PRINTABLE_LENGTH || this->p[7] < MEAN_PRINTABLE_LENGTH || this->p[14] < MEAN_PRINTABLE_LENGTH)
-        return false;
-      else
+      // if(this->p[0] < MEAN_PRINTABLE_LENGTH || this->p[7] < MEAN_PRINTABLE_LENGTH) //this->p[14] < MEAN_PRINTABLE_LENGTH)
+      //   return false;
+      // else
         return true;
     }
 

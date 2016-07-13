@@ -201,7 +201,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(0.5, 0.5, 0.5);
+      cube cube(0.4, 0.4, 0.4);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -257,7 +257,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
         mapctr++;
       }
     }
-    
+
     float c=2000.;
     for (int i=0; i<3; i++){
      vertex_resampling(object, f_argument, c, *(_state.mc));
