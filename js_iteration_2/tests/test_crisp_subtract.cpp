@@ -74,7 +74,7 @@ TEST(CrispSubtractTests, TwoSpheresOverlapping){
 
      mp5_implicit::CrispSubtract crs = mp5_implicit::CrispSubtract(s1,s2);
 
-     // 1st point x1**2 + y1**2 + z1**2 = 0,outside both spheres, should output -
+     // 1st point outside both spheres, should output -
      x[0][0] = -3.0;
      x[0][1] = 0.0;
      x[0][2] = 0.0;
@@ -100,6 +100,5 @@ TEST(CrispSubtractTests, TwoSpheresOverlapping){
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    std::cout << "Good bye." << std::endl;
     return RUN_ALL_TESTS();
 }
