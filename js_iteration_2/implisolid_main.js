@@ -71,17 +71,18 @@ var ImplicitService = function(){
         /*{subjective_time: 0.0, implicit_obj_name: "sphere"*/
 
         //var shape_properties = {type:"meta_balls",time: 0.0};
-        //var shape_properties = dict;
+        var shape_properties = dict;
         //var shape_properties = {type:"simple_sphere", radius: 3.0};
 
         // var shape_properties = {type:"egg",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
         // var s = 10;
         // var mc_properties = {resolution: 28, box: {xmin: 100-s, xmax: 100+s, ymin: 100-s, ymax: 100+s, zmin: 5-s, zmax: 5+s}};
 
-        var shape_properties = {type:"egg",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[1,0,0,92.9405888205127-100,0,1,0,101.93969389296757-100,0,0,1,8.59828143220919-5,0,0,0,1],index:7935813}
+        //var shape_properties = {type:"egg",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[1,0,0,92.9405888205127-100,0,1,0,101.93969389296757-100,0,0,1,8.59828143220919-5,0,0,0,1],index:7935813}
         var s = 1;
         //var mc_properties = {resolution: 28, box: {xmin: -s, xmax: s, ymin: -s, ymax: s, zmin: -s, zmax: s}};
         //var mc_properties = {resolution: 28, box: {xmin: 92.9405888205127-100-s, xmax: 92.9405888205127-100+s, ymin: 101.93969389296757-100-s, ymax: 101.93969389296757-100+s, zmin: 8.59828143220919-5-s, zmax: 8.59828143220919-5+s}};
+
 
         var m = shape_properties.matrix;
         var bb ={};
@@ -98,7 +99,7 @@ var ImplicitService = function(){
         bb["zmin"] = m[11] - wz/2 +dd;
         bb["zmax"] = m[11] + wz/2-dd;
         var mc_properties = {resolution: 28, box: bb};
-
+        console.log (" mc properties : " + JSON.stringify(mc_properties));
         var geom = this.make_geometry(shape_properties, mc_properties);
         return geom;
     }
