@@ -38,6 +38,7 @@ public:
         this->a = 0.5;
         this->b = 0.5;
         this->c = 0.5;
+
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
