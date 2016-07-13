@@ -31,6 +31,26 @@ public:
             this->inv_transf_matrix[i] = 0;
           }
         }
+        my_assert(this->integrity_invariant(), "");
+    }
+
+    egg(REAL matrix[12]) {
+        this->a = 1;
+        this->b = 1;
+        this->c = 1;
+        this->x = 0.;
+        this->y = 0.;
+        this->z = 0.;
+
+        this->transf_matrix = new REAL [12];
+        this->inv_transf_matrix = new REAL [12];
+
+        for (int i=0; i<12; i++){
+            transf_matrix[i] = matrix[i];
+        }
+
+        InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+        my_assert(this->integrity_invariant(), "");
     }
 
     egg(REAL radius_x, REAL radius_y, REAL radius_z, REAL center_x, REAL center_y, REAL center_z){
@@ -53,7 +73,7 @@ public:
             this->inv_transf_matrix[i] = 0;
           }
         }
-
+        my_assert(this->integrity_invariant(), "");
       }
 
     virtual void rotate(const REAL angle, const vectorized_vect axis) const {
