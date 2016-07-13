@@ -376,7 +376,7 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
     implicit_function* object = object_factory_simple(f_argument, name);
 */
-    //std::cout << "############################" << shape_parameters_json << std::endl;
+    std::cout << "############################" << shape_parameters_json << std::endl;
     std::stringstream shape_json_stream;
     shape_json_stream << shape_parameters_json ;
 
@@ -402,6 +402,7 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
     //     resolution = 28;
     // }
 
+
     REAL f_argument =  0; //rand()/(REAL)RAND_MAX;
     use_metaball = false;
 
@@ -415,7 +416,21 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
     implicit_function* object;
 
-    object = object_factory_simple(f_argument, name);
+    if (name == "implicit_double_mushroom"){
+        std::cout << "implicit_double_mushroom case " << std::endl;
+        object = new mp5_implicit::double_mushroom(0.9,0.4 ,0.4 , 1/0.2 );
+    }
+    else
+    if (name == "simple_sphere"){
+        std::cout << "******************* simple_sphere case " << std::endl;
+        REAL radius = shapeparams_dict.get<REAL>("radius");
+        object = new mp5_implicit::unit_sphere(radius);
+        std::cout << "radius " << radius << std::endl;
+    }
+    else{
+        std::cout << "otherwise " << std::endl;
+        object = object_factory_simple(f_argument, name);
+    }
 
     return object;
 }
@@ -464,6 +479,9 @@ void build_geometry( char* shape_parameters_json, char* mc_parameters_json){
         zmax = 1;
         resolution = 28;
     }
+    //std::cout << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
+
+
 
     /*}catch(pt::json_parser::json_parser_error parse_exception){
         std::cout << "parse_exception"<< std::endl ;
@@ -477,7 +495,7 @@ void build_geometry( char* shape_parameters_json, char* mc_parameters_json){
     }catch(...){
         std::cout << "other_exception" << std::endl ;
     }*/
-    
+
 
 
     //dim_t resolution = 28;
@@ -503,11 +521,11 @@ void build_geometry( char* shape_parameters_json, char* mc_parameters_json){
      delete object;
      object = NULL;
      if(use_metaball){
-         REAL metaball_time = 0; 
+         REAL metaball_time = 0;
          meta_balls(*_state.mc, metaball_time, 1.0);
      }
 
-    _state.mc->seal_exterior();
+    _state.mc->seal_exterior(-10000000.0);
 
     //std::cout << "balls added." << std::endl;
 
