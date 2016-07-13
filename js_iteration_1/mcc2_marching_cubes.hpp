@@ -21,7 +21,7 @@ class MarchingCubes{
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
     //REAL halfsize;
-    REAL xi0, yi0, zi0;
+
     REAL deltax, deltay, deltaz;
     mp5_implicit::bounding_box box;
 
@@ -35,6 +35,8 @@ class MarchingCubes{
     //Queue, Buffer, Cache: sizes are: 4096, 16, 28**3, respectively.
 
     static const bool ENABLE_NORMALS = false;
+    static const int skip_count = 2; // -2
+
 
  protected:
     //Buffers:
@@ -188,15 +190,10 @@ void MarchingCubes::init( dim_t resolution, REAL delta1, mp5_implicit::bounding_
         REAL widthy = box.ymax - box.ymin;
         REAL widthz = box.zmax - box.zmin;
 
-        const int skip_count = -2;
-        this->deltax = widthx / (REAL)(resolution - skip_count*2 );  // (2.0 / (REAL)resolution)*size
-        this->deltay = widthy / (REAL)(resolution - skip_count*2 );
-        this->deltaz = widthz / (REAL)(resolution - skip_count*2 );
+        this->deltax = widthx / (REAL)(resolution - MarchingCubes::skip_count*2 );  // (2.0 / (REAL)resolution)*size
+        this->deltay = widthy / (REAL)(resolution - MarchingCubes::skip_count*2 );
+        this->deltaz = widthz / (REAL)(resolution - MarchingCubes::skip_count*2 );
         //REAL halfsize = width / 2.0 / delta; // ((REAL)this->size) / 2.0;
-        
-        this->xi0 = (-box.xmin) / deltax - skip_count;
-        this->yi0 = (-box.ymin) / deltay - skip_count;
-        this->zi0 = (-box.zmin) / deltaz - skip_count;
 
         this->box = box;
 
@@ -868,12 +865,12 @@ void MarchingCubes::addBall(
         ys = bally * this->size / scale,
         xs = ballx * this->size / scale;
 
-    int min_z = floor( zs - radius ); if ( min_z < 1 ) min_z = 1;
-    int max_z = floor( zs + radius ); if ( max_z > this->size - 1 ) max_z = this->size - 1;
-    int min_y = floor( ys - radius ); if ( min_y < 1 ) min_y = 1;
-    int max_y = floor( ys + radius ); if ( max_y > this->size - 1 ) max_y = this->size - 1;
-    int min_x = floor( xs - radius ); if ( min_x < 1  ) min_x = 1;
-    int max_x = floor( xs + radius ); if ( max_x > this->size - 1 ) max_x = this->size - 1;
+    int min_zi = floor( zs - radius ); if ( min_zi < 1 ) min_zi = 1;
+    int max_zi = floor( zs + radius ); if ( max_zi > this->size - 1 ) max_zi = this->size - 1;
+    int min_yi = floor( ys - radius ); if ( min_yi < 1 ) min_yi = 1;
+    int max_yi = floor( ys + radius ); if ( max_yi > this->size - 1 ) max_yi = this->size - 1;
+    int min_xi = floor( xs - radius ); if ( min_xi < 1  ) min_xi = 1;
+    int max_xi = floor( xs + radius ); if ( max_xi > this->size - 1 ) max_xi = this->size - 1;
 
 
     // Don't polygonize_cube in the outer layer because normals aren't
@@ -884,19 +881,19 @@ void MarchingCubes::addBall(
     REAL fx, fy, fz, fz2, fy2, val;  //Does doing like this make it faster?
     int y_offset, z_offset;
 
-    for ( z = min_z; z < max_z; z++ ) {
+    for ( z = min_zi; z < max_zi; z++ ) {
 
         z_offset = this->size2 * z,
         fz = z / (REAL)this->size - ballz,
         fz2 = fz * fz;
 
-        for ( y = min_y; y < max_y; y++ ) {
+        for ( y = min_yi; y < max_yi; y++ ) {
 
             y_offset = z_offset + this->size * y;
             fy = y / (REAL)this->size - bally;
             fy2 = fy * fy;
 
-            for ( x = min_x; x < max_x; x++ ) {
+            for ( x = min_xi; x < max_xi; x++ ) {
 
                 fx = x / (REAL)this->size - ballx;
                 val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
@@ -1133,6 +1130,11 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     this->reset_result();  //receiver of the queue
     this->begin_queue();
 
+    REAL xi0, yi0, zi0;
+    xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count;
+    yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count;
+    zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count;
+
     // Triangulate. Yeah, this is slow.
 
     int smin2 = this->size - 2;
@@ -1140,16 +1142,16 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
     for ( int zi = 1; zi < smin2; zi++ ) {
 
         index_t z_offset = this->size2 * zi;
-        REAL fz = ( zi - this->zi0 ) * this->deltaz; //+ 1
+        REAL fz = ( zi + zi0 ) * this->deltaz; //+ 1
 
         for ( int yi = 1; yi < smin2; yi++ ) {
 
             index_t y_offset = z_offset + this->size * yi;
-            REAL fy = ( yi - this->yi0 ) * this->deltay; //+ 1
+            REAL fy = ( yi + yi0 ) * this->deltay; //+ 1
 
             for ( int xi = 1; xi < smin2; xi++ ) {
 
-                REAL fx = ( xi - this->xi0 ) * this->deltax; //+ 1
+                REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
                 this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
@@ -1754,32 +1756,32 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
 boost::multi_array<REAL, 2>
 MarchingCubes::prepare_grid() {
-      int min_x = 0;
-      int max_x = this->size;
-      int min_y = 0;
-      int max_y = this->size;
-      int min_z = 0;
-      int max_z = this->size;
+      int min_xi = 0;
+      int max_xi = this->size;
+      int min_yi = 0;
+      int max_yi = this->size;
+      int min_zi = 0;
+      int max_zi = this->size;
 
       REAL wx = this->box.xmax - this->box.xmin ;
       REAL wy = this->box.ymax - this->box.ymin ;
       REAL wz = this->box.zmax - this->box.zmin ;
 
-      const int skip = -2;
-      REAL xfactor = wx /(((REAL)this->size) - skip*2);
-      REAL yfactor = wy /(((REAL)this->size) - skip*2);
-      REAL zfactor = wz /(((REAL)this->size) - skip*2);
+      REAL xfactor = wx /(REAL)(this->size - MarchingCubes::skip_count*2);
+      REAL yfactor = wy /(REAL)(this->size - MarchingCubes::skip_count*2);
+      REAL zfactor = wz /(REAL)(this->size - MarchingCubes::skip_count*2);
 
       boost::array<int, 2> grid_shape = {{ this->size*this->size*this->size , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
 
       // Todo: write an iterator
-      for (int z = min_z; z < max_z; z++ ) {
-          for (int y = min_y; y < max_y; y++ ) {
-              for (int x = min_x; x < max_x; x++ ) {
-                  grid[x + y*this->size + z*this->size2][0] = (REAL)x * xfactor + this->box.xmin;
-                  grid[x + y*this->size + z*this->size2][1] = (REAL)y * yfactor + this->box.ymin;
-                  grid[x + y*this->size + z*this->size2][2] = (REAL)z * zfactor + this->box.zmin;
+      for (int z = min_zi; z < max_zi; z++ ) {
+          for (int y = min_yi; y < max_yi; y++ ) {
+              for (int x = min_xi; x < max_xi; x++ ) {
+                  boost::multi_array<REAL, 2>::index  i = x + y*this->size + z*this->size2;
+                  grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count * this->deltax;
+                  grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count * this->deltay;
+                  grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count * this->deltaz;
               }
           }
       }
@@ -1797,17 +1799,17 @@ void MarchingCubes::eval_shape(const implicit_function& object, const boost::mul
       object.eval_implicit(mcgrid_vectorized, &implicit_values);
 
 
-      int min_x = 0;
-      int max_x = this->size;
-      int min_y = 0;
-      int max_y = this->size;
-      int min_z = 0;
-      int max_z = this->size;
+      int min_xi = 0;
+      int max_xi = this->size;
+      int min_yi = 0;
+      int max_yi = this->size;
+      int min_zi = 0;
+      int max_zi = this->size;
 
       // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
-      for (int z = min_z; z < max_z; z++ ) {
-          for (int y = min_y; y < max_y; y++ ) {
-              for (int x = min_x; x < max_x; x++ ) {
+      for (int z = min_zi; z < max_zi; z++ ) {
+          for (int y = min_yi; y < max_yi; y++ ) {
+              for (int x = min_xi; x < max_xi; x++ ) {
                 this->field[x + y*this->size + z*this->size2] += implicit_values[x + y*this->size + z*this->size2];
               }
           }
@@ -1818,17 +1820,17 @@ void MarchingCubes::eval_shape(const implicit_function& object, const boost::mul
 
 void MarchingCubes::subtract_dc(REAL dc_value){
 
-      int min_x = 0;
-      int max_x = this->size;
-      int min_y = 0;
-      int max_y = this->size;
-      int min_z = 0;
-      int max_z = this->size;
+      int min_xi = 0;
+      int max_xi = this->size;
+      int min_yi = 0;
+      int max_yi = this->size;
+      int min_zi = 0;
+      int max_zi = this->size;
 
       // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
-      for (int z = min_z; z < max_z; z++ ) {
-          for (int y = min_y; y < max_y; y++ ) {
-              for (int x = min_x; x < max_x; x++ ) {
+      for (int z = min_zi; z < max_zi; z++ ) {
+          for (int y = min_yi; y < max_yi; y++ ) {
+              for (int x = min_xi; x < max_xi; x++ ) {
                 this->field[x + y*this->size + z*this->size2] -= dc_value;
               }
           }

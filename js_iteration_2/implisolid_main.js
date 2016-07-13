@@ -63,11 +63,15 @@ var ImplicitService = function(){
         return geom;
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService 
-    this.getLiveGeometry = function(){
+    this.getLiveGeometry = function(dict) {
         var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
         //var shape_properties = {type:"sphere",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
         /*{subjective_time: 0.0, implicit_obj_name: "sphere"*/
-        var shape_properties = {type:"meta_balls",time: 0.0};
+
+        //var shape_properties = {type:"meta_balls",time: 0.0};        
+        //var shape_properties = dict;
+        var shape_properties = {type:"simple_sphere", radius: 3.0};
+
         var geom = this.make_geometry(shape_properties, mc_properties);
         return geom;
     }
@@ -94,17 +98,30 @@ function _on_cpp_loaded() {
 
 
 
-function test_update1(t, mesh){
+//function test_update1(t, mesh){
+function test_update1(t, mesh, dict){
     var g = mesh.geometry;
 
     IMPLICIT.finish_geometry();
     IMPLICIT.needsFinish = false;
 
-    var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1+0*Math.sin(t)*3, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}};
+    var s = Math.sin(t)*3+3;
+    console.log("s="+s);
+    var mc_properties = {resolution: 28, box: {xmin: (-1-s)*0, xmax: 1+s, ymin: (-1-s)*0 , ymax: 1+s, zmin: (-1-s)*0, zmax: 1+s}};
     //var new_geometry = IMPLICIT.build_geometry(28, mc_properties, "sphere", 0);
 
     //var shape_properties = {type: "sphere",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]};
-    var shape_properties = {type:"meta_balls",time: t };
+
+    //var shape_properties = mesh.parentShape.getDict1();
+
+    if(!dict){
+        //var shape_properties = {type:"meta_balls",time: t };
+        var shape_properties = {type:"simple_sphere", radius: 3.0};
+    }
+    else
+    {
+        var shape_properties = dict;
+    }
 
     var new_geometry = IMPLICIT.build_geometry(
         JSON.stringify(shape_properties) ,
