@@ -150,35 +150,38 @@ public:
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
-      // vectorized_vect x_copy = x;
-      // Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
-      //
-      //   int output_ctr=0;
-      //   auto i = x_copy.begin();
-      //   auto e = x_copy.end();
-      //   for(; i!=e; i++, output_ctr++){
-      //       if ((*i)[0]-this->x < -this->w+0.05) {
-      //             (*output)[output_ctr][0] = +1.* ((*i)[0]-this->x);
-      //       }
-      //       else if((*i)[0]-this->x > this->w-0.05){
-      //           (*output)[output_ctr][0] = -1. * ((*i)[0]-this->x);
-      //       }
-      //       else if ((*i)[1]-this->y < -this->d-0.05){
-      //             (*output)[output_ctr][1] = +1.*((*i)[1]-this->y);
-      //       }
-      //       else if((*i)[1]-this->y < -this->d+0.05){
-      //           (*output)[output_ctr][1] = -1.*((*i)[1]-this->y);
-      //       }
-      //       else if ((*i)[2]-this->z < -this->h-0.05){
-      //             (*output)[output_ctr][2] = +1.*((*i)[2]-this->z);
-      //       }
-      //       else if((*i)[2]-this->z < -this->h+0.05){
-      //           (*output)[output_ctr][2] = -1.*((*i)[2]-this->z);
-      //       }
-      //       else
-      //         (*output)[output_ctr][0]= 1; // arbitrary value to avoid null vectors may need to be changed
-      //
-      //   }
+
+      vectorized_vect x_copy = x;
+      Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+
+        int output_ctr=0;
+
+      REAL cx = this->x;
+      REAL cy = this->y;
+      REAL cz = this->z;
+
+      REAL i1;
+      REAL i2;
+      REAL i3;
+      auto i = x_copy.begin();
+      auto e = x_copy.end();
+      for(; i<e; i++, output_ctr++){
+        i1 = (*i)[0];
+        i2 = (*i)[1];
+        i3 = (*i)[2];
+        int index = 0;
+        REAL min = (i1 - cx - p[0])*p[0]*(-2.) + (i2 - cy - p[1])*p[1]*(-2.) + (i3 - cz - p[2])*p[2]*(-2.);
+        for (int i=0; i<6; i++){
+          if ((i1 - cx - p[0+i*3])*p[0+i*3]*(-2.) + (i2 - cy - p[1+i*3])*p[1+i*3]*(-2.) + (i3 - cz - p[2+i*3])*p[2+i*3]*(-2.) < min){
+            index = i;
+            min = (i1 - cx - p[0+i*3])*p[0+i*3]*(-2.) + (i2 - cy - p[1+i*3])*p[1+i*3]*(-2.) + (i3 - cz - p[2+i*3])*p[2+i*3]*(-2.);
+          }
+        }
+        (*output)[output_ctr][0] = p[index*3+0];
+        (*output)[output_ctr][1] = p[index*3+1];
+        (*output)[output_ctr][2] = p[index*3+2];
+      }
+
     }
     bool integrity_invariant() const {
       if(this->p[0] < MEAN_PRINTABLE_LENGTH || this->p[7] < MEAN_PRINTABLE_LENGTH || this->p[14] < MEAN_PRINTABLE_LENGTH)
