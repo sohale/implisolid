@@ -16,7 +16,29 @@ else
     exit
 fi
 
-OPTIM=1
+echo "Select how to compile [0 / 1] or press Enter for default(Development)"
+echo
+
+echo Development Version: 0
+echo Optimized Version: 1
+read OPTIM
+
+
+case "$OPTIM" in
+    0)
+    echo "Will now compile in Development Version, optimizations are turned off"
+    OPTIM=0
+    ;;
+    1)
+    echo "Will now compile in Optimized Version, optimizations are turned on"
+    OPTIM=1
+    ;;
+    *)
+    OPTIM=0
+    echo "Running default, Development Version"
+    ;;
+esac
+
 if [ $OPTIM -eq 0 ]
 then
 
@@ -29,6 +51,7 @@ then
         -s DEMANGLE_SUPPORT=1 \
          -s ASSERTIONS=1 \
         -pedantic -std=c++14 \
+        --profiling \
         mcc2.cpp -o mcc2.compiled.js
 
 fi
