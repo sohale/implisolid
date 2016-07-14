@@ -36,7 +36,7 @@ Todo:
 
 extern "C" {
     void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
-    int main();
+    int main(int argc, char **argv);
 }
 
 const bool VERBOSE = false;
@@ -376,7 +376,7 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
     implicit_function* object = object_factory_simple(f_argument, name);
 */
-    std::cout << "############################" << shape_parameters_json << std::endl;
+    //std::cout << "############################" << shape_parameters_json << std::endl;
     std::stringstream shape_json_stream;
     shape_json_stream << shape_parameters_json ;
 
@@ -420,7 +420,7 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
     }
     else
     if (name == "simple_sphere"){
-        std::cout << "******************* simple_sphere case " << std::endl;
+        //std::cout << "******************* simple_sphere case " << std::endl;
         REAL radius = shapeparams_dict.get<REAL>("radius");
         object = new mp5_implicit::unit_sphere(radius);
         std::cout << "radius " << radius << std::endl;
@@ -431,7 +431,7 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
 
             REAL x = element.second.get_value<REAL>();
-            std::cout << "matrix value : " << x << std::endl;
+            //std::cout << "matrix value : " << x << std::endl;
             matrix12[i] = x;
             i++;
         }
@@ -598,6 +598,8 @@ void get_v(REAL* v_out, int vcount){
     if(vcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
 }
 
+
+
 void get_f(int* f_out, int fcount){
     if(!check_state())
         return;
@@ -614,6 +616,7 @@ void get_f(int* f_out, int fcount){
     if(fcount*3 != ctr)  std::cout << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
     //std::cout << std::endl;
 };
+
 
 /* Data is already there, so why copy it? Also, keep it until next round. */
 void* get_v_ptr(){
@@ -659,8 +662,8 @@ void finish_geometry() {
 
 #include "timer.hpp"
 
-int main() {
-    /*
+/*int main() {
+
     timer t;
     t.stop();
     // MarchingCubes mc( dim_t resolution, bool enableUvs, bool enableColors );
@@ -709,7 +712,8 @@ int main() {
 
 
     t.stop();
-*/
+
     std::cout << "main();" << std::endl;
     return 0;
 }
+*/
