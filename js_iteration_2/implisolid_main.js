@@ -85,11 +85,12 @@ var ImplicitService = function(){
         //var mc_properties = {resolution: 28, box: {xmin: -s, xmax: s, ymin: -s, ymax: s, zmin: -s, zmax: s}};
         //var mc_properties = {resolution: 28, box: {xmin: 92.9405888205127-100-s, xmax: 92.9405888205127-100+s, ymin: 101.93969389296757-100-s, ymax: 101.93969389296757-100+s, zmin: 8.59828143220919-5-s, zmax: 8.59828143220919-5+s}};
 
+        //implicit_double_mushroom center will be zero.
 
         //shape_properties.type = "egg";
         var m = shape_properties.matrix;
         var bb ={};
-        var dd = 4.1;
+        var dd = 0.0;
         var wx = Math.sqrt(m[0]*m[0] + m[1]*m[1] + m[2]*m[2]);
         var wy = Math.sqrt(m[4]*m[4] + m[5]*m[5] + m[6]*m[6]);
         var wz = Math.sqrt(m[8]*m[8] + m[9]*m[9] + m[10]*m[10]);
