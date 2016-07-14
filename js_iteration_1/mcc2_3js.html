@@ -319,9 +319,23 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
 
     //console.log(newPolygonizer);
     //d("2   G..");
-    var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+    var x0=0, y0=0, z0=0;
+    var r = subjective_time;
+    var mc_properties_json = JSON.stringify({
+        resolution: 28,
+        box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
+    });
+    var mp5_json = JSON.stringify({
+        type: "egg",
+        //radius: 3.0,  //double_mushroom only
+        matrix:[
+            r, 0,0, x0,
+            0,r, 0, y0,
+            0,0,r,  z0,
+            0,0,0,   1]
+    });
     //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-    newPolygonizer.build_geometry( JSON.stringify({type: "implicit_double_mushroom",radius: 3.0,matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
+    newPolygonizer.build_geometry( mp5_json , mc_properties_json);
     //implicit_double_mushroom center will be zero.
 
     var nverts = newPolygonizer.get_v_size();
@@ -407,10 +421,24 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
 
-    var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+    var r = subjective_time;
+    var x0=0, y0=0, z0=0;
+    var mc_properties_json = JSON.stringify({
+        resolution: 28,
+        box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
+    });
+    var mp5_json = JSON.stringify({
+        type: "egg",
+        //radius: subjective_time,
+        matrix:[
+            r, 0,0, x0,
+            0,r, 0, y0,
+            0,0,r,  z0,
+            0,0,0,   1]
+    });
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
-    newPolygonizer.build_geometry( JSON.stringify({type: "implicit_double_mushroom",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
+    newPolygonizer.build_geometry( mp5_json , mc_properties_json);
         //implicit_double_mushroom center will be zero.
 
     newPolygonizer.needsFinish = true;
@@ -465,9 +493,24 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
         console.error("not deallocated.");
     try{
         //d("2   G.");
-        var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+        var x0=0, y0=0, z0=0;
+        var r = subjective_time;
+        var mc_properties_json = JSON.stringify({
+            resolution: 28,
+            box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
+        });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-        newPolygonizer.build_geometry( JSON.stringify({type: "implicit_double_mushroom",matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1]}) , mc_properties_json);
+        var mp5_json = JSON.stringify({
+            type: "egg",
+            //radius: r, //boudbl_mushroom only
+            matrix:[
+                r, 0,0, x0,
+                0,r, 0, y0,
+                0,0, r, z0,
+                0,0,0,   1]
+        });
+
+        newPolygonizer.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
         newPolygonizer.needsFinish = true;
