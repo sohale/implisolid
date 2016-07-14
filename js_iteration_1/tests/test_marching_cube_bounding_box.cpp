@@ -80,8 +80,8 @@ TEST(MarchingCubesBoundingBox, ExactBoundingBoxEgg) {
  */
 
 
-    build_geometry("{\"type\":\"egg\",\"displayColor\":{\"x\":0.6413270673767635,\"y\":0.8385504499196117,\"z\":0.4723932649315161},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7920505}",
-        "{\"resolution\":28,\"box\":{\"xmin\":-5,\"xmax\":5,\"ymin\":-5,\"ymax\":5,\"zmin\":-5,\"zmax\":5}}");
+    build_geometry((char*)"{\"type\":\"egg\",\"displayColor\":{\"x\":0.6413270673767635,\"y\":0.8385504499196117,\"z\":0.4723932649315161},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7920505}",
+        (char*)"{\"resolution\":28,\"box\":{\"xmin\":-5,\"xmax\":5,\"ymin\":-5,\"ymax\":5,\"zmin\":-5,\"zmax\":5}}");
 
     EXPECT_EQ(get_f_size(),7352);
 
@@ -113,8 +113,8 @@ TEST(MarchingCubesBoundingBox, ExactBoundingBoxEgg) {
 TEST(MarchingCubesBoundingBox, ExactBoundingBoxSphere) {
 
 
-    build_geometry("{\"type\":\"simple_sphere\", \"radius\": 3.0}",
-        "{\"resolution\":28,\"box\":{\"xmin\":-3,\"xmax\":3,\"ymin\":-3,\"ymax\":3,\"zmin\":-3,\"zmax\":3}}");
+    build_geometry((char*)"{\"type\":\"simple_sphere\", \"radius\": 3.0}",
+        (char*)"{\"resolution\":28,\"box\":{\"xmin\":-3,\"xmax\":3,\"ymin\":-3,\"ymax\":3,\"zmin\":-3,\"zmax\":3}}");
 
     EXPECT_EQ(get_f_size(),7352);
 
@@ -143,8 +143,8 @@ TEST(MarchingCubesBoundingBox, ExactBoundingBoxSphereDoubleMushroom) {
 
 
 
-    build_geometry("{\"type\":\"implicit_double_mushroom\",\"displayColor\":{\"x\":0.10352949217446406,\"y\":0.27710496720866984,\"z\":0.23427879298291177},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7584363}",
-    "{\"resolution\":28,\"box\":{\"xmin\":-1,\"xmax\":1,\"ymin\":-1,\"ymax\":1,\"zmin\":-1,\"zmax\":1}}");
+    build_geometry((char*)"{\"type\":\"implicit_double_mushroom\",\"displayColor\":{\"x\":0.10352949217446406,\"y\":0.27710496720866984,\"z\":0.23427879298291177},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7584363}",
+    (char*)"{\"resolution\":28,\"box\":{\"xmin\":-1,\"xmax\":1,\"ymin\":-1,\"ymax\":1,\"zmin\":-1,\"zmax\":1}}");
 
     EXPECT_EQ(get_f_size(),5880);
 
@@ -181,7 +181,7 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxEgg) {
 
         std::stringstream mc_params_json ;
         mc_params_json << "{\"resolution\":28,\"box\":{\"xmin\":" << randomBox.xmin << ",\"xmax\":" << randomBox.xmax << ",\"ymin\":" << randomBox.ymin << ",\"ymax\":" << randomBox.ymax << ",\"zmin\":" << randomBox.zmin << ",\"zmax\":" << randomBox.zmax << "}}" ;
-         build_geometry("{\"type\":\"egg\",\"displayColor\":{\"x\":0.6413270673767635,\"y\":0.8385504499196117,\"z\":0.4723932649315161},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7920505}",
+         build_geometry((char*)"{\"type\":\"egg\",\"displayColor\":{\"x\":0.6413270673767635,\"y\":0.8385504499196117,\"z\":0.4723932649315161},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7920505}",
 
         strdup(mc_params_json.str().c_str()));
 
@@ -220,7 +220,7 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxSimpleSphere) {
 
         std::stringstream mc_params_json ;
         mc_params_json << "{\"resolution\":28,\"box\":{\"xmin\":" << randomBox.xmin << ",\"xmax\":" << randomBox.xmax << ",\"ymin\":" << randomBox.ymin << ",\"ymax\":" << randomBox.ymax << ",\"zmin\":" << randomBox.zmin << ",\"zmax\":" << randomBox.zmax << "}}" ;
-         build_geometry("{\"type\":\"simple_sphere\", \"radius\": 3.0}",
+         build_geometry((char*)"{\"type\":\"simple_sphere\", \"radius\": 3.0}",
         strdup(mc_params_json.str().c_str()));
 
         mp5_implicit::bounding_box realBox = {10,-10,10,-10,10,-10};
@@ -256,7 +256,7 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxDoubleMushroom) {
 
         std::stringstream mc_params_json ;
         mc_params_json << "{\"resolution\":28,\"box\":{\"xmin\":" << randomBox.xmin << ",\"xmax\":" << randomBox.xmax << ",\"ymin\":" << randomBox.ymin << ",\"ymax\":" << randomBox.ymax << ",\"zmin\":" << randomBox.zmin << ",\"zmax\":" << randomBox.zmax << "}}" ;
-         build_geometry("{\"type\":\"implicit_double_mushroom\",\"displayColor\":{\"x\":0.10352949217446406,\"y\":0.27710496720866984,\"z\":0.23427879298291177},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7584363}",
+         build_geometry((char*)"{\"type\":\"implicit_double_mushroom\",\"displayColor\":{\"x\":0.10352949217446406,\"y\":0.27710496720866984,\"z\":0.23427879298291177},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":7584363}",
 
         strdup(mc_params_json.str().c_str()));
 
