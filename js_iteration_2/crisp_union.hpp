@@ -55,19 +55,9 @@ public:
         auto e = x.end();
 
         for (auto i = x.begin(); i < e; i++, output_ctr++){
-            if(f1[output_ctr] >=0. && f2[output_ctr] >= 0.){
-              (*f_output)[output_ctr] = max(f1[output_ctr], f2[output_ctr]);
-            }
-            else if(f1[output_ctr] < 0. && f2[output_ctr] < 0.){
-              (*f_output)[output_ctr] = max(f1[output_ctr], f2[output_ctr]);
-            }
-            else if(f1[output_ctr] >= 0.){
-              (*f_output)[output_ctr] = f1[output_ctr];
-            }
-            else{
-              (*f_output)[output_ctr] = f2[output_ctr];
-            }
+            (*f_output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (f1[output_ctr]): f2[output_ctr];
         }
+
     }
 
     void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -93,7 +83,7 @@ public:
         auto e = x.end();
 
         for (auto i = x.begin(); i < e; i++, output_ctr++){
-            (*output)[output_ctr] = (f1[output_ctr] >= f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
+            (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
         }
 
     }

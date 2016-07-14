@@ -217,10 +217,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &scylinder;
     }
     else if (name == "egg_cylinder"){
-      egg segg(0.6, 0.5, 0.6);
-//      scylinder scylinder(0.3, 1.4);
-      cube cube(0.4, 0.4, 0.4);
-      CrispUnion crispou(segg, cube);
+      egg segg(0.4, 0.5, 0.4);
+      scylinder scylinder(0.3, 1.4);
+  //    cube cube(0.4, 0.4, 0.4);
+      CrispUnion crispou(segg, scylinder);
       object = &crispou;
     }
     else if (name == "egg_transform"){
@@ -258,7 +258,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
         mapctr++;
       }
     }
-
+    
     float c=2000.;
     for (int i=0; i<3; i++){
      vertex_resampling(object, f_argument, c, *(_state.mc));
