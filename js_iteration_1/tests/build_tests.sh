@@ -19,7 +19,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-OPTIM=0
+OPTIM=1
 GTEST_ROOT=/home/charles/MP5/googletest
 fullfilename=$1 # get first argument as input file
 
@@ -43,18 +43,36 @@ then
     tput bold
     echo " * * * Development Version * * * "
     echo Compiling ...
-    echo Error messages, and output information will be sent to "em_compile.log"
     em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
             "$1" \
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
             "$filename".compiled.js 2>&1 \
-            && js "$filename".compiled.js \
+            && js "$filename".compiled.js
     tput sgr0  # reset terminal options
 
 fi
 
+if [ $OPTIM -eq 1 ]
+then
+    cols=$( tput cols )
+    tput bold
+    echo " * * * Optimised Version * * * (doesnt work with      --llvm-lto 1  ) "
+    echo Compiling ...
+    em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
+            -s ASSERTIONS=1 \
+            -pedantic -std=c++14 \
+            -O3   \
+            -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
+            -s TOTAL_MEMORY=30100100   \
+            "$1" \
+            ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
+            "$filename".compiled.js 2>&1 \
+            && js "$filename".compiled.js
+    tput sgr0  # reset terminal options
+
+fi
 
 # if [ $OPTIM -eq 1 ]
 #     echo " * * * ERROR * * * "
