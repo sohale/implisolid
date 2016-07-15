@@ -538,13 +538,13 @@ void set_object(char* shape_parameters_json) {
         return;
     }
 
-    std::cout << "before: current_object " << current_object << std::endl;
+    //std::cout << "before: current_object " << current_object << std::endl;
 
     std::string str = std::string(shape_parameters_json);
     bool dummy;
     current_object = object_factory(str , dummy);
 
-    std::cout << "after: current_object " << current_object << std::endl;
+    //std::cout << "after: current_object " << current_object << std::endl;
 }
 void unset_object() {
     if(current_object == NULL){
@@ -572,6 +572,7 @@ void set_x(void* verts, int n) {
         (*current_x)[i][0] = real_verts[i*3 + 0];
         (*current_x)[i][1] = real_verts[i*3 + 1];
         (*current_x)[i][2] = real_verts[i*3 + 2];
+        /*
         if(i < 10) {
             std::cout
                 << (*current_x)[i][0] << " "
@@ -579,10 +580,11 @@ void set_x(void* verts, int n) {
                 << (*current_x)[i][2] << " "
                 << std::endl;
         }
+        */
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
-    std::cout << "warning: size is n x 0:  " << current_f->shape()[0] << "," << current_f->shape()[1] << std::endl;
+    //std::cout << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
     current_grad = new vectorized_vect( shape_t{n, 3}  );
 }
 void unset_x() {
@@ -623,6 +625,7 @@ void calculate_implicit_gradients() {
 
     current_object -> eval_gradient(*current_x, current_grad);
 
+    /*
     std::cout << "calculated grad: "
         << (*current_grad)[0][0] << " "
         << (*current_grad)[0][1] << " "
@@ -632,6 +635,7 @@ void calculate_implicit_gradients() {
         << (*current_x)[0][1] << " "
         << (*current_x)[0][2] << " "
         << std::endl;
+    */
 
 }
 void* get_gradients_ptr() {
@@ -639,12 +643,13 @@ void* get_gradients_ptr() {
         std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
         return NULL;
     }
-
+    /*
     std::cout << "current_grad: "
         << (*current_grad)[0][0] << " "
         << (*current_grad)[0][1] << " "
         << (*current_grad)[0][2] << " "
         << std::endl;
+    */
     return current_grad->data();
 }
 int get_gradients_size() {

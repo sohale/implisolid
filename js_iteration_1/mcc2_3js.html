@@ -85,6 +85,7 @@ Based on MCC1
             //d(1);
             newPolygonizer.finish_geometry();
             newPolygonizer.needsFinish = false;
+            //todo(sohail):  Why newPolygonizer is used here? We should use 'this'.
         }
         newProducer.set_vect = function (float32Array){
             if (float32Array.length % 3 != 0) {console.error("bad input array");};
@@ -461,10 +462,10 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
             0,0,r,  z0,
             0,0,0,   1]
     });
-    global_mp5 = mp5_json_0;
+    //global_mp5 = mp5_json_0;
 
 
-    var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[3,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],"index":4872526}]}}';
+    var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[1.1,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],"index":4872526}]}}';
 
     var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
     mp5_json_dict.matrix[3]=0;
@@ -474,7 +475,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     mp5_json = JSON.stringify(mp5_json_dict);
 
-    //global_mp5 = mp5_json;
+    global_mp5 = mp5_json;
 
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
@@ -551,6 +552,8 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
                 0,0,0,   1]
         });
 
+        global_mp5 = mp5_json;
+
         newPolygonizer.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
@@ -605,7 +608,7 @@ function change_arrow(arrow, newPolygonizer, mp5_str){
     var ptr = newPolygonizer.get_gradients_ptr();
     var ptr_len = newPolygonizer.get_gradients_size();
     var g = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
-    console.log("grad len = " +  ptr_len+ "  grad = " + g);  // x 4
+    //console.log("grad len = " +  ptr_len+ "  grad = " + g);  // x 4
     var gx = g[0];
     var gy = g[1];
     var gz = g[2];
@@ -619,12 +622,13 @@ function change_arrow(arrow, newPolygonizer, mp5_str){
     //arrow.setLength(200*Math.random());
     var l = Math.sqrt(gx*gx + gy*gy + gz*gz);
     //l = l * 100/10000;
-    console.log("l: "+l);
+    //console.log("l: "+l);
     var ls = 50.;
     arrow.position.set(x, y, z);
     arrow.setLength(ls);
+    // This can easily get broken. i.e. by multiplying ls.
     arrow.setDirection(new THREE.Vector3( -gx/l, -gy/l, -gz/l));
-    console.log("change_arrow");
+    //console.log("change_arrow");
 }
 // **************************************************************
 
