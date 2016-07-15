@@ -427,7 +427,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
         resolution: 28,
         box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
     });
-    var mp5_json = JSON.stringify({
+    var mp5_json_0 = JSON.stringify({
         type: "egg",
         //radius: subjective_time,
         matrix:[
@@ -436,6 +436,13 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
             0,0,r,  z0,
             0,0,0,   1]
     });
+
+    var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[1,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],"index":4872526}]}}';
+
+    var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
+    console.log(mp5_json_dict);
+
+    mp5_json = JSON.stringify(mp5_json_dict);
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
     newPolygonizer.build_geometry( mp5_json , mc_properties_json);

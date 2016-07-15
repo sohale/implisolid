@@ -424,8 +424,21 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
         REAL radius = shapeparams_dict.get<REAL>("radius");
         object = new mp5_implicit::unit_sphere(radius);
         std::cout << "radius " << radius << std::endl;
-    }else
-    if (name == "egg"){
+    }
+    else if (name == "egg"){
+        REAL matrix12[12];
+        int i = 0;
+        for (pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+
+            REAL x = element.second.get_value<REAL>();
+            //std::cout << "matrix value : " << x << std::endl;
+            matrix12[i] = x;
+            i++;
+        }
+
+        object = new mp5_implicit::egg(matrix12);
+    }
+    else if (name == "Union"){
         REAL matrix12[12];
         int i = 0;
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
