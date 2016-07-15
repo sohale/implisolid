@@ -63,6 +63,18 @@ Based on MCC1
         newProducer.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
+
+        newProducer.set_object = Module.cwrap('set_object', null, ['string']);
+        newProducer.unset_object = Module.cwrap('unset_object', null, []);
+        newProducer.set_x = Module.cwrap('set_x', null, ['number', 'number']);
+        newProducer.unset_x = Module.cwrap('unset_x', null, []);
+        newProducer.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
+        newProducer.get_values_ptr = Module.cwrap('get_values_ptr', 'number', []);
+        newProducer.get_values_size = Module.cwrap('get_values_size', 'number', []);
+        newProducer.calculate_implicit_gradients = Module.cwrap('calculate_implicit_gradients', null, []);
+        newProducer.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
+        newProducer.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
+
         newProducer.init = function(){ newProducer.needsFinish = false; }
         newProducer.finish_with = function (){
             //after the last round.
@@ -73,6 +85,15 @@ Based on MCC1
             //d(1);
             newPolygonizer.finish_geometry();
             newPolygonizer.needsFinish = false;
+        }
+        newProducer.set_vect = function (float32Array){
+            if (float32Array.length % 3 != 0) {console.error("bad input array");};
+            var nverts = float32Array.length / 3;
+            var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
+            Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
+            this.set_x(verts_space, nverts);
+            Module._free( verts_space );
+
         }
 
         newProducer.init();
@@ -393,6 +414,8 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
     return geom;
 }
 
+
+var global_mp5 = "***";
 /*
 Three ways:
 1-  make_geometry_oldold()
@@ -438,6 +461,8 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
             0,0,r,  z0,
             0,0,0,   1]
     });
+    global_mp5 = mp5_json_0;
+
 
     var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[3,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],"index":4872526}]}}';
 
@@ -448,6 +473,9 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     console.log(mp5_json_dict);
 
     mp5_json = JSON.stringify(mp5_json_dict);
+
+    //global_mp5 = mp5_json;
+
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
     newPolygonizer.build_geometry( mp5_json , mc_properties_json);
@@ -562,17 +590,41 @@ function make_arrow(){
     return arrowHelper;
 }
 
-function change_arrow(arrow){
+function change_arrow(arrow, newPolygonizer, mp5_str){
     /**
      * Update the arrow parameters
-     */
-    console.log("*****************************************")
-    console.log(arrow.position);
-    console.log("*****************************************")
-    arrow.setLength(200*Math.random());
-    arrow.setDirection(new THREE.Vector3( Math.random(), Math.random() ,Math.random()));
-    arrow.position.set(10*Math.random(), 10*Math.random(), 10*Math.random());
-    console.log("change_arrow")
+    */
+
+    var x = 100 * (Math.random()*2 - 1.);
+    var y = 100 * (Math.random()*2 - 1.);
+    var z = 100 * (Math.random()*2 - 1.);
+
+    newPolygonizer.set_object(mp5_str);
+    newPolygonizer.set_vect(new Float32Array([x, y, z]));
+    newPolygonizer.calculate_implicit_gradients();
+    var ptr = newPolygonizer.get_gradients_ptr();
+    var ptr_len = newPolygonizer.get_gradients_size();
+    var g = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+    console.log("grad len = " +  ptr_len+ "  grad = " + g);  // x 4
+    var gx = g[0];
+    var gy = g[1];
+    var gz = g[2];
+    newPolygonizer.unset_x();
+    newPolygonizer.unset_object();
+
+
+    //console.log("*****************************************")
+    //console.log(arrow.position);
+    //console.log("*****************************************")
+    //arrow.setLength(200*Math.random());
+    var l = Math.sqrt(gx*gx + gy*gy + gz*gz);
+    //l = l * 100/10000;
+    console.log("l: "+l);
+    var ls = 50.;
+    arrow.position.set(x, y, z);
+    arrow.setLength(ls);
+    arrow.setDirection(new THREE.Vector3( -gx/l, -gy/l, -gz/l));
+    console.log("change_arrow");
 }
 // **************************************************************
 
@@ -585,6 +637,9 @@ var materials_list; //, material_f;
 var material_wireframe;
 var mesh_wireframe = null;
 //var last_geometry = null;
+
+var global_arrow;
+
 const CHOSEN_MATERIAL_INDEX = 7; //3;
     //1: grayscale boring phong.
     //2: faceted. (good for debug / shape study)
@@ -669,6 +724,7 @@ function init_scene(newPolygonizer) {
     dirLight.position.set(100, 100, 50);
     scene.add(dirLight);
     var arrow = make_arrow();
+    global_arrow = arrow;
 
     if(VERBOSE){
         console.log("RENDERER");
@@ -694,7 +750,7 @@ function init_scene(newPolygonizer) {
         if ( event.keyCode == 17 ) {
             //update_mc(newPolygonizer);
             call_multiple_times(newPolygonizer, update_mc);
-            change_arrow(arrow);
+            //change_arrow(arrow, newPolygonizer, global_mp5);
         }
         else
             console.log(event.keyCode);
@@ -803,6 +859,9 @@ function update_mc(newPolygonizer, delta_t){
     //geometry.index.needsUpdate = true;
     "";
     */
+
+    change_arrow(global_arrow, newPolygonizer, global_mp5);
+
 
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_WIREFRAME){

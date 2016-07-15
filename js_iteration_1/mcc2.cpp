@@ -237,10 +237,15 @@ extern "C" {
     // void implicit_value(REAL x, REAL y, REAL z);
     // void implicit_grad_value(REAL x, REAL y, REAL z, REAL * x_out, REAL * y_out, REAL * z_out);
 
-
+    /********************************************************
+        New API for direct evaluation of implicit functions
+    *********************************************************/
     //global variables: implicit_function* last_object, last_x, v_results, g_results,
     void set_object(char* shape_parameters_json);  // call object_factory. Sets a global variable   last_object
-    void set_x(void* verts);   // sets last_x, a multi_array.
+    void unset_object();
+
+    void set_x(void* verts, int n);   // sets last_x, a multi_array.
+    void unset_x();
 
     void calculate_implicit_values();  // multi_array or vector that has a .data().  // calculate v_results from  last_object.eval_implicit()
     void* get_values_ptr();  // return v_results.data()
@@ -249,6 +254,7 @@ extern "C" {
     void calculate_implicit_gradients();  // calculate g_results from  last_object.eval_gradient()
     void* get_gradients_ptr(); // return g_results.data()
     int get_gradients_size(); // return g_results
+
 
 
     //void calculate_gradients()
@@ -513,6 +519,141 @@ void finish_geometry() {
     delete _state.mc;
     _state.active = false;
     _state.mc = 0;
+}
+
+
+#include "../js_iteration_2/basic_data_structures.hpp"
+
+typedef boost::array<vectorized_vect::index, 2>  shape_t;
+
+implicit_function* current_object = NULL;
+
+vectorized_vect* current_x = NULL;
+vectorized_vect* current_grad = NULL;
+vectorized_scalar* current_f = NULL;
+
+void set_object(char* shape_parameters_json) {
+    if(current_object != NULL){
+        std::cout << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
+        return;
+    }
+
+    std::cout << "before: current_object " << current_object << std::endl;
+
+    std::string str = std::string(shape_parameters_json);
+    bool dummy;
+    current_object = object_factory(str , dummy);
+
+    std::cout << "after: current_object " << current_object << std::endl;
+}
+void unset_object() {
+    if(current_object == NULL){
+        std::cout << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
+        return;
+    }
+
+    delete current_object;
+    current_object = NULL;
+}
+
+void set_x(void* verts, int n) {
+    if(current_x != NULL){
+        std::cout << "Error: You set() before unset()ing the previous set()." << std::endl;
+        return;
+    }
+    if( n < 0 || n >= 10000) {
+        std::cout << "Error: n is outside [0, 10000]." << std::endl;
+        return;
+    }
+
+    current_x = new vectorized_vect( shape_t{n, 3} );
+    REAL* real_verts = reinterpret_cast<REAL*>(verts);
+    for(int i = 0; i < n; i++) {
+        (*current_x)[i][0] = real_verts[i*3 + 0];
+        (*current_x)[i][1] = real_verts[i*3 + 1];
+        (*current_x)[i][2] = real_verts[i*3 + 2];
+        if(i < 10) {
+            std::cout
+                << (*current_x)[i][0] << " "
+                << (*current_x)[i][1] << " "
+                << (*current_x)[i][2] << " "
+                << std::endl;
+        }
+    }
+    std::cout << std::endl;
+    current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
+    std::cout << "warning: size is n x 0:  " << current_f->shape()[0] << "," << current_f->shape()[1] << std::endl;
+    current_grad = new vectorized_vect( shape_t{n, 3}  );
+}
+void unset_x() {
+    if(current_x == NULL){
+        std::cout << "Error: You cannot unset() before a set()." << std::endl;
+        return;
+    }
+
+    delete current_x;
+    delete current_f;
+    delete current_grad;
+    current_x = NULL;
+    current_f = NULL;
+    current_grad = NULL;
+}
+
+
+void calculate_implicit_values() {
+    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+        std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
+        return;
+    }
+
+    current_object -> eval_implicit(*current_x, current_f);
+}
+void* get_values_ptr() {
+    return current_f->data();
+}
+int get_values_size() {
+    return current_f->shape()[0];
+}
+
+void calculate_implicit_gradients() {
+    if(current_x == NULL || current_grad == NULL || current_object == NULL) {
+        std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
+        return;
+    }
+
+    current_object -> eval_gradient(*current_x, current_grad);
+
+    std::cout << "calculated grad: "
+        << (*current_grad)[0][0] << " "
+        << (*current_grad)[0][1] << " "
+        << (*current_grad)[0][2] << " "
+        << "  calculated from x ="
+        << (*current_x)[0][0] << " "
+        << (*current_x)[0][1] << " "
+        << (*current_x)[0][2] << " "
+        << std::endl;
+
+}
+void* get_gradients_ptr() {
+    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+        std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
+        return NULL;
+    }
+
+    std::cout << "current_grad: "
+        << (*current_grad)[0][0] << " "
+        << (*current_grad)[0][1] << " "
+        << (*current_grad)[0][2] << " "
+        << std::endl;
+    return current_grad->data();
+}
+int get_gradients_size() {
+    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+        std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
+        return 0;
+    }
+
+    return current_grad->shape()[0] * 3;
 }
 
 

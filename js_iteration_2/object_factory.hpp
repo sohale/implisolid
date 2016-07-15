@@ -52,7 +52,7 @@ void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
         for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
 
             REAL x = element.second.get_value<REAL>();
-            std::cout << "matrix value : " << x << std::endl;
+            //std::cout << "matrix value : " << x << std::endl;
             matrix12[i] = x;
             i++;
         }

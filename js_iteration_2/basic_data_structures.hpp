@@ -44,6 +44,7 @@ inline bool isNaN(REAL x){return isnan(x);};
 typedef boost::multi_array<REAL, 1>  array1d;
 typedef boost::array<array1d::index, 1>  array_shape_t;
 typedef array1d::index  index_t;
+//typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
 
 typedef array1d::index  vertex_t;
