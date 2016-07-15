@@ -121,7 +121,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
             }else{
                 implicit_function * b = object_factory(element.second, use_metaball);
                 std::cout << element.second.get_value<string>("type") << std::endl ;
-                a = new mp5_implicit::CrispUnion(*a, *b);
+
+                //a = new mp5_implicit::CrispUnion(*a, *b);
+                //std::vector<const implicit_function*> versus std::vector<implicit_function*>
+                std::vector<implicit_function*> ab = std::vector<implicit_function*>();
+                ab.push_back(a);
+                ab.push_back(b);
+                a = new mp5_implicit::transformed_union(ab, matrix12);
             }
 
             //std::cout << "##### " << element.second.get_child("type") << std::endl;

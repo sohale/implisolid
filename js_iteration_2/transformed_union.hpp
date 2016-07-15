@@ -9,7 +9,8 @@ class transformed_union : public transformed {
 
     std::vector<implicit_function*> children;
 
-    transformed_union (REAL matrix[12], std::vector<implicit_function*> children)
+public:
+    transformed_union (std::vector<implicit_function*> children, REAL matrix[12])
         : transformed(matrix), children(children)
     {
         my_assert(children.size() == 2, "for now only works on two objects.");
