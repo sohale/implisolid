@@ -423,7 +423,7 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     var r = subjective_time;
     var x0=0, y0=0, z0=0;
-    var bbsz = 3;
+    var bbsz = 3+5;
     var mc_properties_json = JSON.stringify({
         resolution: 28,
         box: {xmin: x0-bbsz, xmax: x0+bbsz, ymin: y0-bbsz , ymax: y0+bbsz, zmin: z0-bbsz, zmax: z0+bbsz}
@@ -506,9 +506,10 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
         //d("2   G.");
         var x0=0, y0=0, z0=0;
         var r = subjective_time;
+        var bbsz = 3*2;
         var mc_properties_json = JSON.stringify({
             resolution: 28,
-            box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
+            box: {xmin: x0-bbsz, xmax: x0+bbsz, ymin: y0-bbsz , ymax: y0+bbsz, zmin: z0-bbsz, zmax: z0+bbsz}
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
         var mp5_json = JSON.stringify({
@@ -636,24 +637,23 @@ function init_scene(newPolygonizer) {
     }
     //last_geometry = geometry;
 
+
+    const MESH_SCALE = 300/10;
+
     if(SHOW_WIREFRAME){
         mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
         mesh_wireframe.position.set( 0, 0, 0 );
-        mesh_wireframe.scale.set( 300, 300, 300 );
+        mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
         scene.add( mesh_wireframe );
     }
-
     //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
-
-
     //material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
-
     if(SHOW_SOLID){
         //mesh_solid = new THREE.Mesh( geometry, material_f );
         //nice ones: 2, 3,  (checked until 4)
         mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
         mesh_solid.position.set( 0, 0, 0 );
-        mesh_solid.scale.set( 300, 300, 300 );
+        mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
         scene.add( mesh_solid );
     }
 
