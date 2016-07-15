@@ -75,6 +75,20 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 */
 
 #include "mcc2_marching_cubes.hpp"
+#include "tests/marching_cubes_mock.hpp"
+
+void meta_balls(MarchingCubes& mc, REAL time, REAL scale) {
+    int numblobs = 4;
+    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+        REAL D = 1;
+        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
+        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
+        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
+        REAL subtract = 12;
+        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
+    }
+}
 
 
 /*********************************************************
@@ -96,16 +110,18 @@ void build_vf(
     MarchingCubes mc(resolution, box, enableUvs, enableColors);
 
 
-    int numblobs = 4;
     REAL time = 0.1;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77;  // dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
-    }
+    // int numblobs = 4;
+    // for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+    //     REAL D = 1;
+    //     REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
+    //     REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
+    //     REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
+    //     REAL subtract = 12;
+    //     REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+    //     mc.addBall(ballx, bally, ballz, strength, subtract, scale);
+    // }
+    meta_balls(mc, time, scale);
     mc.seal_exterior();
 
     /*
@@ -130,8 +146,6 @@ void build_vf(
 }
 
 
-#include "tests/marching_cubes_mock.hpp"
-
 
 // Not used
 void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, REAL scale) {
@@ -152,17 +166,18 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     // MarchingCubes &mc = *mc0;
     // MarchingCubesMock mc(resolution, enableUvs, enableColors);
 
-    int numblobs = 4;
     // REAL time = 0.1 ;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL D = 1;
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D+ 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
-    }
+    // int numblobs = 4;
+    // for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+    //     REAL D = 1;
+    //     REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
+    //     REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
+    //     REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
+    //     REAL subtract = 12;
+    //     REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
+    //     mc.addBall(ballx, bally, ballz, strength, subtract, scale);
+    // }
+    meta_balls(mc, time, scale);
     mc.seal_exterior();
 
     /*
@@ -273,18 +288,6 @@ bool check_state_null() {
     return true;
 }
 
-
-void meta_balls(MarchingCubes& mc, REAL time, REAL scale) {
-    int numblobs = 4;
-    for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-        REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 + 0.5;
-        REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77;  //  dip into the floor
-        REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 + 0.5;
-        REAL subtract = 12;
-        REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-        mc.addBall(ballx, bally, ballz, strength, subtract, scale);
-    }
-}
 
 #include "../js_iteration_2/object_factory.hpp"
 
