@@ -77,8 +77,8 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 #include "mcc2_marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"
 
-void meta_balls(MarchingCubes& mc, REAL time, REAL scale) {
-    int numblobs = 4;
+void meta_balls(MarchingCubes& mc, int num_blobs, REAL time, REAL scale) {
+    int numblobs = num_blobs;  // default: 4
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL D = 1;
         REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
@@ -111,17 +111,7 @@ void build_vf(
 
 
     REAL time = 0.1;
-    // int numblobs = 4;
-    // for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-    //     REAL D = 1;
-    //     REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
-    //     REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
-    //     REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
-    //     REAL subtract = 12;
-    //     REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-    //     mc.addBall(ballx, bally, ballz, strength, subtract, scale);
-    // }
-    meta_balls(mc, time, scale);
+    meta_balls(mc, 4, time, scale);
     mc.seal_exterior();
 
     /*
@@ -167,17 +157,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     // MarchingCubesMock mc(resolution, enableUvs, enableColors);
 
     // REAL time = 0.1 ;
-    // int numblobs = 4;
-    // for (int ball_i = 0; ball_i < numblobs; ball_i++) {
-    //     REAL D = 1;
-    //     REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
-    //     REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
-    //     REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
-    //     REAL subtract = 12;
-    //     REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
-    //     mc.addBall(ballx, bally, ballz, strength, subtract, scale);
-    // }
-    meta_balls(mc, time, scale);
+    meta_balls(mc, 4, time, scale);
     mc.seal_exterior();
 
     /*
@@ -185,7 +165,6 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     REAL subtract = (REAL)12.;
     REAL strength = (REAL)(1.2 / ( ( sqrt( numblobs ) - 1. ) / 4. + 1. ));
     mc.addBall(0.5, 0.5, 0.5, strength, subtract, scale);
-
     mc.addBall(0, 0, 0.5, strength, subtract, scale);
     */
 
@@ -289,21 +268,14 @@ bool check_state_null() {
 }
 
 
-#include "../js_iteration_2/object_factory.hpp"
+namespace mp5_implicit{
+struct mc_settings {
+    mp5_implicit::bounding_box box;
+    int resolution;
+};
+}
 
-// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
-void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
-    if (!check_state_null())
-        return;
-    // std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
-    // std::cout << "Mc_params : " << mc_parameters_json << endl;
-    // std::cout << "shape_json : " << shape_parameters_json << endl;
-
-    bool use_metaball;
-    std::string shape_parameters_json_str = std::string(shape_parameters_json);
-    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball);
-
-
+mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
     std::stringstream mc_json_stream;
     mc_json_stream << mc_parameters_json;
 
@@ -321,6 +293,7 @@ void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
     REAL ymax = mcparams_dict.get<REAL>("box.ymax", NaN);
     REAL zmin = mcparams_dict.get<REAL>("box.zmin", NaN);
     REAL zmax = mcparams_dict.get<REAL>("box.zmax", NaN);
+
     int resolution = mcparams_dict.get<int>("resolution", -1);
 
     if ( isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ) {
@@ -334,7 +307,6 @@ void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
         resolution = 28;
     }
     // std::cout << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
-
 
 
     /*}catch(pt::json_parser::json_parser_error parse_exception){
@@ -351,16 +323,40 @@ void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
     }*/
 
 
+    mp5_implicit::mc_settings  mc_settings_from_json;  // settings
+    mp5_implicit::bounding_box box = {xmin, xmax, ymin, ymax, zmin, zmax};  // {15,20,15,20,15,20};
+    mc_settings_from_json.box = box;
+    mc_settings_from_json.resolution = resolution;
+
+    return mc_settings_from_json;
+}
+
+
+#include "../js_iteration_2/object_factory.hpp"
+
+// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
+    if (!check_state_null())
+        return;
+    // std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
+    // std::cout << "Mc_params : " << mc_parameters_json << endl;
+    // std::cout << "shape_json : " << shape_parameters_json << endl;
+
+    bool use_metaball;
+    std::string shape_parameters_json_str = std::string(shape_parameters_json);
+    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball);
+
+
+    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+
+    // std::cout << "Leak-free : new" << std::endl;
 
     // dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
 
-    mp5_implicit::bounding_box box = {xmin, xmax, ymin, ymax, zmin, zmax};  // {15,20,15,20,15,20};
-    // std::cout << "Leak-free : new" << std::endl;
-
     // MarchingCubes mc(resolution, enableUvs, enableColors);
-    _state.mc = new MarchingCubes(resolution, box, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(mc_settings_from_json.resolution, mc_settings_from_json.box, enableUvs, enableColors);
     // std::cout << "constructor called. " << _state.mc << std::endl;
 
     _state.mc -> isolation = 80.0/4*0;
@@ -376,7 +372,7 @@ void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
      object = NULL;
      if (use_metaball) {
          REAL metaball_time = 0;
-         meta_balls(*_state.mc, metaball_time, 1.0);
+         meta_balls(*_state.mc, 4, metaball_time, 1.0);
      }
 
     _state.mc->seal_exterior(-10000000.0);
