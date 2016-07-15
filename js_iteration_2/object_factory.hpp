@@ -144,9 +144,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
     return object;
 
-
-
-
 }
 
 

@@ -233,8 +233,26 @@ extern "C" {
     void finish_geometry();
     void* get_f_ptr();
     void* get_v_ptr();
-    void implicit_value(REAL x, REAL y, REAL z);
-    void implicit_grad_value(REAL x, REAL y, REAL z, REAL * x_out, REAL * y_out, REAL * z_out);
+
+    // void implicit_value(REAL x, REAL y, REAL z);
+    // void implicit_grad_value(REAL x, REAL y, REAL z, REAL * x_out, REAL * y_out, REAL * z_out);
+
+
+    //global variables: implicit_function* last_object, last_x, v_results, g_results,
+    void set_object(char* shape_parameters_json);  // call object_factory. Sets a global variable   last_object
+    void set_x(void* verts);   // sets last_x, a multi_array.
+
+    void calculate_implicit_values();  // multi_array or vector that has a .data().  // calculate v_results from  last_object.eval_implicit()
+    void* get_values_ptr();  // return v_results.data()
+    int get_values_size();   // return v_results
+
+    void calculate_implicit_gradients();  // calculate g_results from  last_object.eval_gradient()
+    void* get_gradients_ptr(); // return g_results.data()
+    int get_gradients_size(); // return g_results
+
+
+    //void calculate_gradients()
+
     // also: queue, etc.
     // bad: one instance only.
     //     Solution 1:  MarchingCubes* build_geometry();
@@ -269,10 +287,13 @@ bool check_state_null() {
 
 
 namespace mp5_implicit{
+
+/* Holds all MC information that is transferred through json. Separate from the shape json (i.e. the MP5 Json). */
 struct mc_settings {
     mp5_implicit::bounding_box box;
     int resolution;
 };
+
 }
 
 mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
@@ -330,7 +351,6 @@ mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
 
     return mc_settings_from_json;
 }
-
 
 #include "../js_iteration_2/object_factory.hpp"
 

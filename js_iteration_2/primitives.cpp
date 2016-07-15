@@ -78,3 +78,4 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "super_bowl.hpp"
 #include "scone.hpp"
 #include "scylinder.hpp"
+#include "transformed_union.hpp"
