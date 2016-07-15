@@ -11,6 +11,24 @@ protected:
     REAL* inv_transf_matrix;
 
 public:
+    scylinder(REAL matrix12[12]){
+        this->r = 0.5;
+        this->h = 1;
+
+        this->x = 0.;
+        this->y = 0.;
+        this->z = 0.;
+
+        this->transf_matrix = new REAL [12];
+        this->inv_transf_matrix = new REAL [12];
+
+        for (int i=0; i<12; i++){
+            transf_matrix[i] = matrix12[i];
+        }
+
+        InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+        my_assert(this->integrity_invariant(), "");
+    }
     scylinder(REAL radius, REAL height){
         this->r = radius;
         this->h = height;

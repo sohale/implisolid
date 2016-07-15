@@ -11,14 +11,41 @@ protected:
     REAL* inv_transf_matrix;
 
 public:
+    cube(REAL matrix12[12]){
+       for (int i=0; i<18; i++){
+          this->p[i] = 0;
+        }
+        this->p[0] = 0.5;
+        this->p[3] = -0.5;
+        this->p[7] = 0.5;
+        this->p[10] = -0.5;
+        this->p[14] = 0.5;
+        this->p[17] = -0.5;
+
+        this->x = 0;
+        this->y = 0;
+        this->z = 0;
+
+        this->transf_matrix = new REAL [12];
+        this->inv_transf_matrix = new REAL [12];
+        for (int i=0; i<12; i++){
+
+            this->transf_matrix[i] = matrix12[i];
+
+
+        }
+          InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+    }
     cube(REAL size_x, REAL size_y, REAL size_z){
         for (int i=0; i<18; i++){
           this->p[i] = 0;
         }
         this->p[0] = size_x;
         this->p[1] = size_x/2.;
+
         this->p[3] = -size_x;
         this->p[4] = -size_x/2.;
+
         this->p[8] = size_y/2.;
         this->p[7] = size_y;
         this->p[10] = -size_y;
@@ -162,7 +189,8 @@ public:
           i2 = (*i)[1];
           i3 = (*i)[2];
           (*f_output)[output_ctr] = min(
-            (i1 - cx - p[0])*p[0]*(-2.) + (i2 - cy - p[1])*p[1]*(-2.) + (i3 - cz - p[2])*p[2]*(-2.),
+            // (X-C) . P
+                (i1 - cx - p[0+0*3])*p[0+0*3]*(-2.) + (i2 - cy - p[1])*p[1]*(-2.) + (i3 - cz - p[2])*p[2]*(-2.),
             min((i1 - cx - p[0+1*3])*p[0+1*3]*(-2.) + (i2 - cy - p[1+1*3])*p[1+1*3]*(-2.) + (i3 - cz - p[2+1*3])*p[2+1*3]*(-2.),
             min((i1 - cx - p[0+2*3])*p[0+2*3]*(-2.) + (i2 - cy - p[1+2*3])*p[1+2*3]*(-2.) + (i3 - cz - p[2+2*3])*p[2+2*3]*(-2.),
             min((i1 - cx - p[0+3*3])*p[0+3*3]*(-2.) + (i2 - cy - p[1+3*3])*p[1+3*3]*(-2.) + (i3 - cz - p[2+3*3])*p[2+3*3]*(-2.),

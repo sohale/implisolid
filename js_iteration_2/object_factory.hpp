@@ -47,6 +47,17 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
 
 namespace pt = boost::property_tree ;
 
+void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
+        int i = 0;
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+
+            REAL x = element.second.get_value<REAL>();
+            std::cout << "matrix value : " << x << std::endl;
+            matrix12[i] = x;
+            i++;
+        }
+}
+
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball) {
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
@@ -88,30 +99,34 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         object = new mp5_implicit::unit_sphere(radius);
         std::cout << "radius " << radius << std::endl;
     }
-    else if (name == "egg" || name == "cylinder" || name == "cube"){
+    else
+    if (name == "cube"){
         REAL matrix12[12];
-        int i = 0;
-        for (pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+        getMatrix12(matrix12,shapeparams_dict);
 
-            REAL x = element.second.get_value<REAL>();
-            //std::cout << "matrix value : " << x << std::endl;
-            matrix12[i] = x;
-            i++;
-        }
+        object = new mp5_implicit::cube(matrix12);
+       // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+    }
+    else
+    if (name == "cylinder"){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+
+        object = new mp5_implicit::scylinder(matrix12);
+       // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+    }
+    else
+    if (name == "egg" || name == "cylinder"){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
 
         object = new mp5_implicit::egg(matrix12);
     }
 
     else if (name == "Union"){
         REAL matrix12[12];
-        int i = 0;
-        for (pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+        getMatrix12(matrix12,shapeparams_dict);
 
-            REAL x = element.second.get_value<REAL>();
-            std::cout << "matrix value : " << x << std::endl;
-            matrix12[i] = x;
-            i++;
-        }
         implicit_function * a = NULL;
 
 
@@ -151,6 +166,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     return object;
 
 }
+
 
 
 
