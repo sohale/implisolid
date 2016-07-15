@@ -77,6 +77,9 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 #include "mcc2_marching_cubes.hpp"
 
 
+/*********************************************************
+    Old version, legacy
+ *********************************************************/
 
 void build_vf(
     // std::vector<REAL>& verts3,
@@ -219,6 +222,13 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 /*void produce_v(){
 }*/
+
+
+
+/*********************************************************
+    public interface for JavaScript
+ *********************************************************/
+
 
 extern "C" {
     void build_geometry(char* shape_parameters_json, char* mc_parameters_json);
