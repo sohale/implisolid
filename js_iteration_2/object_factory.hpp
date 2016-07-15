@@ -129,8 +129,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
         implicit_function * a = NULL;
 
+        implicit_function * o_matrix;
+        implicit_function * o_plain;
 
-        for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")){
+        for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a==NULL){
                 a = object_factory(element.second, use_metaball);
             }else{
@@ -142,12 +144,16 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 std::vector<implicit_function*> ab = std::vector<implicit_function*>();
                 ab.push_back(a);
                 ab.push_back(b);
-                a = new mp5_implicit::transformed_union(ab, matrix12);
+                o_matrix = new mp5_implicit::transformed_union(ab, matrix12);
+                REAL eye_matrix12[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0};
+                o_plain =  new mp5_implicit::transformed_union(ab, eye_matrix12);
+                a = o_plain;
             }
 
             //std::cout << "##### " << element.second.get_child("type") << std::endl;
             //i++;
         }
+        a = o_matrix;
         //std::cout  << "#####" << shapeparams_dict.get<string>("children") << std::endl;
         //implicit_function * a = object_factory();
         //implicit_function * b;

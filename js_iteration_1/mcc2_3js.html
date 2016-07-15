@@ -423,7 +423,8 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     var r = subjective_time;
     var x0=0, y0=0, z0=0;
-    var bbsz = 3+5;
+    //var bbsz = 18;
+    var bbsz = 9;
     var mc_properties_json = JSON.stringify({
         resolution: 28,
         box: {xmin: x0-bbsz, xmax: x0+bbsz, ymin: y0-bbsz , ymax: y0+bbsz, zmin: z0-bbsz, zmax: z0+bbsz}
@@ -597,7 +598,7 @@ const CHOSEN_MATERIAL_INDEX = 7; //3;
     //11: changing cyan
 var chosen_matrial;
 
-const SHOW_WIREFRAME = false;
+const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
 
