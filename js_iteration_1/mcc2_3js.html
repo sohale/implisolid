@@ -18,6 +18,7 @@
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
 <!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
+<!-- <script type="text/javascript" src="./three-r77.js"></script> -->
 
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
 -->
@@ -334,30 +335,13 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 
 
 // Keep this method, although it is not used.
-function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
 {
     var startTime = new Date();
 
-
-    //console.log(newPolygonizer);
-    //d("2   G..");
-    var x0=0, y0=0, z0=0;
-    var r = subjective_time;
-    var mc_properties_json = JSON.stringify({
-        resolution: 28,
-        box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
-    });
-    var mp5_json = JSON.stringify({
-        type: "egg",
-        //radius: 3.0,  //double_mushroom only
-        matrix:[
-            r, 0,0, x0,
-            0,r, 0, y0,
-            0,0,r,  z0,
-            0,0,0,   1]
-    });
     //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-    newPolygonizer.build_geometry( mp5_json , mc_properties_json);
+    //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
+    newPolygonizer.build_geometry( shape_json , polygonization_json);
     //implicit_double_mushroom center will be zero.
 
     var nverts = newPolygonizer.get_v_size();
@@ -416,7 +400,124 @@ function make_geometry_old1(newPolygonizer, subjective_time, reusable_geometry, 
 }
 
 
+const MESH_SCALE = 300/10;
+const BB_SIZE = 9;
+const ARROWS_COUNT = 1;
+
 var global_mp5 = "***";
+
+function provide_input (subjective_time, update_mode) {
+    // update_mode: 0 => init
+    // update_mode: 1 => update
+    // update_mode: 2 => deprecated (used in make_geometry_old1() )
+
+    // asked for:
+    var shape_json, polygonization_json;
+
+    if(1 || update_mode == 0) {
+        var r = subjective_time;
+        var x0=0, y0=0, z0=0;
+        //var BB_SIZE = 18;
+        //const BB_SIZE = 9;
+        var mc_properties_json = JSON.stringify({
+            resolution: 28,
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE}
+        });
+        var mp5_json_0 = JSON.stringify({
+            type: "egg",
+            //radius: subjective_time,
+            matrix:[
+                r, 0,0, x0,
+                0,r, 0, y0,
+                0,0,r,  z0,
+                0,0,0,   1]
+        });
+        //global_mp5 = mp5_json_0;
+
+
+        if(update_mode == 0) {
+            var sz = 1.;
+        } else {
+            var sz = r;
+        }
+        var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":['+sz+',0,0,82.63768850593796,0,'+sz+',0,126.37324151118989,0,0,'+sz+',5.000000079354265,0,0,0,1],"index":4872526}]}}';
+
+        var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
+        mp5_json_dict.matrix[3]=0;
+        mp5_json_dict.matrix[7]=0;
+        mp5_json_dict.matrix[11]=0;
+        //console.log(mp5_json_dict);
+
+        mp5_json = JSON.stringify(mp5_json_dict);
+
+        global_mp5 = mp5_json;
+
+        shape_json = mp5_json;
+        polygonization_json = mc_properties_json;
+
+        var tuple = [shape_json, polygonization_json];
+        return tuple;
+    }
+
+    //Alternatively, use a growing sphere only.
+    if(update_mode == 1 || update_mode == 2) {
+        //d("2   G.");
+        var x0=0, y0=0, z0=0;
+        var r = subjective_time;
+        //var BB_SIZE = 6.;
+        var mc_properties_json = JSON.stringify({
+            resolution: 28,
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE}
+        });
+        //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        var mp5_json = JSON.stringify({
+            type: "egg",
+            //radius: r, //boudbl_mushroom only
+            matrix:[
+                r, 0,0, x0,
+                0,r, 0, y0,
+                0,0, r, z0,
+                0,0,0,   1]
+        });
+
+
+        shape_json = mp5_json;
+        polygonization_json = mc_properties_json;
+
+        //global_mp5 = mp5_json;
+        var tuple = [shape_json, polygonization_json];
+        return tuple;
+
+    }
+
+    /*
+    if(update_mode == 2) {
+        //not used anymore
+        //console.log(newPolygonizer);
+        //d("2   G..");
+        var x0=0, y0=0, z0=0;
+        var r = subjective_time;
+        var mc_properties_json = JSON.stringify({
+            resolution: 28,
+            box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
+        });
+        var mp5_json = JSON.stringify({
+            type: "egg",
+            //radius: 3.0,  //double_mushroom only
+            matrix:[
+                r, 0,0, x0,
+                0,r, 0, y0,
+                0,0,r,  z0,
+                0,0,0,   1]
+        });
+        shape_json = mp5_json;
+        polygonization_json = mc_properties_json;
+        var tuple = [shape_json, polygonization_json];
+        return tuple;
+    }
+    */
+
+}
 /*
 Three ways:
 1-  make_geometry_oldold()
@@ -424,8 +525,12 @@ Three ways:
 3-  make_geometry_new2()
 */
 
-function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, re_allocate_buffers)
+function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
 {
+    //console.log(shape_json);
+    //console.log(polygonization_json);
+
+
     // reusable_geometry is not used;
     var startTime = new Date();
 
@@ -445,41 +550,14 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
 
-    var r = subjective_time;
-    var x0=0, y0=0, z0=0;
-    //var bbsz = 18;
-    var bbsz = 9;
-    var mc_properties_json = JSON.stringify({
-        resolution: 28,
-        box: {xmin: x0-bbsz, xmax: x0+bbsz, ymin: y0-bbsz , ymax: y0+bbsz, zmin: z0-bbsz, zmax: z0+bbsz}
-    });
-    var mp5_json_0 = JSON.stringify({
-        type: "egg",
-        //radius: subjective_time,
-        matrix:[
-            r, 0,0, x0,
-            0,r, 0, y0,
-            0,0,r,  z0,
-            0,0,0,   1]
-    });
-    //global_mp5 = mp5_json_0;
 
-
-    var mp5_json = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[1.1,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],"index":4872526}]}}';
-
-    var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
-    mp5_json_dict.matrix[3]=0;
-    mp5_json_dict.matrix[7]=0;
-    mp5_json_dict.matrix[11]=0;
-    console.log(mp5_json_dict);
-
-    mp5_json = JSON.stringify(mp5_json_dict);
-
-    global_mp5 = mp5_json;
-
+    //////////////////////
+    //var mp5_json = "";
+    //var mc_properties_json = "";
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
-    newPolygonizer.build_geometry( mp5_json , mc_properties_json);
+    //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
+    newPolygonizer.build_geometry( shape_json , polygonization_json);
         //implicit_double_mushroom center will be zero.
 
     newPolygonizer.needsFinish = true;
@@ -520,7 +598,11 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
 //unload
-function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
+function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, geometry) {
+
+    //console.log(mp5_json);
+    //console.log(mc_properties_json);
+
     var startTime = new Date();
 
     //console.log(newPolygonizer.needsFinish);
@@ -533,33 +615,13 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
     if(newPolygonizer.needsFinish)
         console.error("not deallocated.");
     try{
-        //d("2   G.");
-        var x0=0, y0=0, z0=0;
-        var r = subjective_time;
-        var bbsz = 3*2;
-        var mc_properties_json = JSON.stringify({
-            resolution: 28,
-            box: {xmin: x0-bbsz, xmax: x0+bbsz, ymin: y0-bbsz , ymax: y0+bbsz, zmin: z0-bbsz, zmax: z0+bbsz}
-        });
-        //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-        var mp5_json = JSON.stringify({
-            type: "egg",
-            //radius: r, //boudbl_mushroom only
-            matrix:[
-                r, 0,0, x0,
-                0,r, 0, y0,
-                0,0, r, z0,
-                0,0,0,   1]
-        });
-
-        global_mp5 = mp5_json;
 
         newPolygonizer.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
         newPolygonizer.needsFinish = true;
     }catch(err){
-        console.error("An error occured dugin MCC C++")
+        console.error("An error occured during MCC C++")
         console.info(err);
     }finally {
     }
@@ -593,45 +655,85 @@ function make_arrow(){
     return arrowHelper;
 }
 
-function change_arrow(arrow, newPolygonizer, mp5_str){
+function make_multiple_arrows(n) {
+    /**
+     * Create an arrow and add it to the scene.
+     */
+    var arrowHelpers = [];
+    for(var i=0;i<n;i++) {
+        var dir  = new THREE.Vector3( 10, 4, 0);
+        var origin = new THREE.Vector3(0, 0, 0);
+        var length = 10;
+        var hex = 0xffff00;
+
+        var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+        scene.add(arrowHelper);
+        arrowHelpers.push(arrowHelper);
+        console.log("Arrow");
+    }
+    return arrowHelpers;
+}
+
+function change_arrows(arrows, newPolygonizer, mp5_str, n) {
     /**
      * Update the arrow parameters
     */
 
-    var x = 100 * (Math.random()*2 - 1.);
-    var y = 100 * (Math.random()*2 - 1.);
-    var z = 100 * (Math.random()*2 - 1.);
+    var vlist = [];
+    for(var i=0;i<n;i++) {
+        var x = MESH_SCALE*10 * (Math.random()*2 - 1.);
+        var y = MESH_SCALE*10 * (Math.random()*2 - 1.);
+        var z = MESH_SCALE*10 * (Math.random()*2 - 1.);
+        vlist.push(x);
+        vlist.push(y);
+        vlist.push(z);
+    }
+    //var _verts = new Float32Array([x, y, z]);
+    var _verts = new Float32Array(vlist);
 
     newPolygonizer.set_object(mp5_str);
-    newPolygonizer.set_vect(new Float32Array([x, y, z]));
+    newPolygonizer.set_vect(_verts);
     newPolygonizer.calculate_implicit_gradients();
     var ptr = newPolygonizer.get_gradients_ptr();
     var ptr_len = newPolygonizer.get_gradients_size();
     var g = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
     //console.log("grad len = " +  ptr_len+ "  grad = " + g);  // x 4
-    var gx = g[0];
-    var gy = g[1];
-    var gz = g[2];
+
+    var dir = null;
+    for(var i=0;i<n;i++) {
+
+        //if not bush
+        var x = _verts[i*3 + 0];
+        var y = _verts[i*3 + 1];
+        var z = _verts[i*3 + 2];
+
+        var gx = g[i*3 + 0];
+        var gy = g[i*3 + 1];
+        var gz = g[i*3 + 2];
+        //newPolygonizer.unset_x();
+        //newPolygonizer.unset_object();
+
+
+        //console.log("*****************************************")
+        //console.log(arrow.position);
+        //console.log("*****************************************")
+        //arrow.setLength(200*Math.random());
+        var l = Math.sqrt(gx*gx + gy*gy + gz*gz);
+        //l = l * 100/10000;
+        //console.log("l: "+l);
+        var ls = MESH_SCALE*1.5;
+        arrows[i].position.set(x, y, z);
+        arrows[i].setLength(ls);
+        // This can easily get broken. i.e. by multiplying ls.
+        dir = new THREE.Vector3( -gx/l, -gy/l, -gz/l);
+        arrows[i].setDirection(dir);
+        //console.log("change_arrow");
+    }
+
     newPolygonizer.unset_x();
     newPolygonizer.unset_object();
-
-
-    //console.log("*****************************************")
-    //console.log(arrow.position);
-    //console.log("*****************************************")
-    //arrow.setLength(200*Math.random());
-    var l = Math.sqrt(gx*gx + gy*gy + gz*gz);
-    //l = l * 100/10000;
-    //console.log("l: "+l);
-    var ls = 50.;
-    arrow.position.set(x, y, z);
-    arrow.setLength(ls);
-    // This can easily get broken. i.e. by multiplying ls.
-    arrow.setDirection(new THREE.Vector3( -gx/l, -gy/l, -gz/l));
-    //console.log("change_arrow");
 }
 // **************************************************************
-
 
 
 // global variables for meshes that are accessed and updated in the render loop, etc.
@@ -642,7 +744,7 @@ var material_wireframe;
 var mesh_wireframe = null;
 //var last_geometry = null;
 
-var global_arrow;
+var global_arrows;
 
 const CHOSEN_MATERIAL_INDEX = 7; //3;
     //1: grayscale boring phong.
@@ -661,7 +763,7 @@ const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
 
-function init_scene(newPolygonizer) {
+function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     scene = new THREE.Scene();
 
@@ -680,25 +782,34 @@ function init_scene(newPolygonizer) {
     material_wireframe = new THREE.MeshBasicMaterial( {
         color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true,} );
 
-    //if(delta_t === undefined)
-    var delta_t = 0.2;
-    // Subjective time!
-    global_time += delta_t;
+    // //if(delta_t === undefined)
+    // var delta_t = 0.2;
+    // // Subjective time!
+    // global_time += delta_t;
 
 
     var geometry = null;
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
     if(CALL_VERSION==1){
-        geometry = make_geometry_oldold(global_time);
+        //geometry = make_geometry_oldold(global_time);
+        geometry = make_geometry_oldold(shape_json, polygonization_json);
     }
     else{
-        geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
-        //geometry = make_geometry_old1(newPolygonizer, global_time, null);
+        /*
+            for make_geometry_old1() only:
+            var tuple = provide_input(subjective_time, 2);
+            shape_json = tuple[0];
+            polygonization_json = tuple[1];
+
+            // //geometry = make_geometry_old1(newPolygonizer, global_time, polygonization_json, null);
+
+            geometry = make_geometry_old1(newPolygonizer, shape_json,  null);         //keep this comment
+        */
+        //geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+        geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, true);
     }
     //last_geometry = geometry;
 
-
-    const MESH_SCALE = 300/10;
 
     if(SHOW_WIREFRAME){
         mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
@@ -727,8 +838,10 @@ function init_scene(newPolygonizer) {
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
     scene.add(dirLight);
-    var arrow = make_arrow();
-    global_arrow = arrow;
+    //var arrow = make_arrow();
+    //global_arrow = arrow;
+    var arrows = make_multiple_arrows(ARROWS_COUNT);
+    global_arrows = arrows;
 
     if(VERBOSE){
         console.log("RENDERER");
@@ -771,6 +884,16 @@ function init_scene(newPolygonizer) {
 }
 
 function update_mc(newPolygonizer, delta_t){
+
+    if(delta_t === undefined)
+        delta_t = 0.2;
+    // Subjective time!
+    global_time += delta_t;
+
+    var tuple = provide_input(global_time, 1);
+    var shape_json = tuple[0];
+    var polygonization_json = tuple[1];
+
 
     //Three modes of speed here for (UPDATE_SAME_GEOM_OBJECT, EVEN_REUSE_MESH_OBJECT):
     //  (false, false) // Creates a new Geometry object at each loop iteration.
@@ -827,19 +950,17 @@ function update_mc(newPolygonizer, delta_t){
         mesh_wireframe = null;
     }
 
-    if(delta_t === undefined)
-        delta_t = 0.2;
-    // Subjective time!
-    global_time += delta_t;
-
     var geometry = null;
     if(UPDATE_SAME_GEOM_OBJECT) {
         geometry = g;
-        update_reused_geometry(newPolygonizer, global_time, geometry);
+        //update_reused_geometry(newPolygonizer, global_time, geometry);
+        update_reused_geometry(newPolygonizer, shape_json, polygonization_json, geometry);
     }
     else {
         if(CALL_VERSION==1){
-            geometry = make_geometry_oldold(global_time);
+            //geometry = make_geometry_oldold(global_time);
+            geometry = make_geometry_oldold(shape_json, polygonization_json);
+
         }
         else{
             //reused_last_geom = null;
@@ -847,7 +968,8 @@ function update_mc(newPolygonizer, delta_t){
 
             //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
 
-            geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+            geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, false);  //FALSE??
         }
     };
     /*
@@ -864,13 +986,14 @@ function update_mc(newPolygonizer, delta_t){
     "";
     */
 
-    change_arrow(global_arrow, newPolygonizer, global_mp5);
+    //change_arrow(global_arrow, newPolygonizer, global_mp5);
+    change_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT);
 
 
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_WIREFRAME){
             mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-            mesh_wireframe.scale.set( 300, 300, 300 );
+            mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             //copy so that we dont lose the rotation, position of the meshes.
             mesh_wireframe.position.copy(p2[0]);
             mesh_wireframe.rotation.copy(p2[1]);
@@ -888,7 +1011,7 @@ function update_mc(newPolygonizer, delta_t){
         if(SHOW_SOLID){
             mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
             //   //mesh_solid.position.set( 0, 0, 0 );
-            mesh_solid.scale.set( 300, 300, 300 );
+            mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             mesh_solid.position.copy(p1[0]);
             mesh_solid.rotation.copy(p1[1]);
             scene.add( mesh_solid );
@@ -1148,7 +1271,17 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     function set_off() {
         console.log("ready.");
         var newPolygonizer = init_polygonizer();
-        init_scene(newPolygonizer);
+
+        //if(delta_t === undefined)
+        var delta_t = 0.2;
+        // Subjective time!
+        global_time += delta_t;
+
+        var tuple = provide_input(global_time, 0);
+        var shape_json = tuple[0];
+        var polygonization_json = tuple[1];
+
+        init_scene(newPolygonizer, shape_json, polygonization_json);
         animate();
     };
 </script>
