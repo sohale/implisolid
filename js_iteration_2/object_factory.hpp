@@ -123,7 +123,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         object = new mp5_implicit::egg(matrix12);
     }
 
-    else if (name == "Union"){
+    else if (name == "Union") {
+        //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -137,7 +138,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 a = object_factory(element.second, use_metaball);
             }else{
                 implicit_function * b = object_factory(element.second, use_metaball);
-                std::cout << element.second.get_value<string>("type") << std::endl ;
+
+                //The following always prints an empty line:
+                //std::cout << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
 
                 //a = new mp5_implicit::CrispUnion(*a, *b);
                 //std::vector<const implicit_function*> versus std::vector<implicit_function*>

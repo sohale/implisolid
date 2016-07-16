@@ -16,13 +16,22 @@ else
     exit
 fi
 
-echo "Select how to compile [0 / 1] or press Enter for default(Development)"
-echo
+case "$1" in
+    0)
+    OPTIM=0
+    ;;
+    1)
+    OPTIM=1
+    ;;
+    *)
+    echo "Select how to compile [0 / 1] or press Enter for default(Development)"
+    echo
 
-echo Development Version: 0
-echo Optimized Version: 1
-read OPTIM
-
+    echo Development Version: 0
+    echo Optimized Version: 1
+    read OPTIM
+    ;;
+esac
 
 case "$OPTIM" in
     0)
