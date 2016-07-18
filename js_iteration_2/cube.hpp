@@ -53,6 +53,13 @@ public:
         this->p[14] = size_z;
         this->p[17] = -size_z;
 
+        // this->p[0] = size_x;
+        // this->p[3] = -size_x;
+        // this->p[7] = size_y;
+        // this->p[10] = -size_y;
+        // this->p[14] = size_z;
+        // this->p[17] = -size_z;
+
         // REAL m = 50.;
         // this->p[0] = cos(1.*M_PI/5.)/m;
         // this->p[1] = sin(1.*M_PI/5)/m;
