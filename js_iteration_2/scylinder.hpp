@@ -61,10 +61,10 @@ public:
         REAL UVW[9];
         for (int i=0; i<9; i++){
           int modulus = i%3;
-          if(modulus ==0){
+          if(modulus == 0){
             UVW[i] = u[modulus];
           }
-          else if(modulus ==1){
+          else if(modulus == 1){
             UVW[i] = v[modulus];
           }
           else{
@@ -75,7 +75,6 @@ public:
         REAL UVW_inv[9];
         // doing the Cross_Vector_Product to determine the value of v
         Cross_Vector_Product(u,w,v);
-
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];

@@ -198,23 +198,7 @@ void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
 
 }
 
-<<<<<<< HEAD
-void Cross_Vector_Product(const vectorized_vect& vec1, const vectorized_vect& vec2, vectorized_vect& vec3){
 
-    my_assert (vec1.shape()[0] == vec2.shape()[0], "Sizes don't match");
-    my_assert (vec1.shape()[0] == vec3.shape()[0], "Sizes don't match");
-    for (int i=0; i<vec1.shape()[0]; i++){
-        const REAL vec1_0 = vec1[i][0];
-        const REAL vec1_1 = vec1[i][1];
-        const REAL vec1_2 = vec1[i][2];
-        const REAL vec2_0 = vec2[i][0];
-        const REAL vec2_1 = vec2[i][1];
-        const REAL vec2_2 = vec2[i][2];
-
-        vec3[i][0] = vec1_1 * vec2_2 - vec1_2 * vec2_1;
-        vec3[i][1] = vec1_2 * vec2_0 - vec1_0 * vec2_2;
-        vec3[i][2] = vec1_0 * vec2_1 - vec1_1 * vec2_0;
-=======
 void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
 
     // my_assert (vec1.shape()[0] == vec2.shape()[0], "Sizes don't match");
@@ -229,8 +213,6 @@ void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
     vec3[0] = vec1_1 * vec2_2 - vec1_2 * vec2_1;
     vec3[1] = vec1_2 * vec2_0 - vec1_0 * vec2_2;
     vec3[2] = vec1_0 * vec2_1 - vec1_1 * vec2_0;
->>>>>>> New cylinder with the python way in progress
-
 
 }
 
