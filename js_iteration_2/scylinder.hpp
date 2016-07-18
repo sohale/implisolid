@@ -31,12 +31,23 @@ public:
         InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
         my_assert(this->integrity_invariant(), "");
     }
-    scylinder(REAL radius, REAL height){
-        this->r = radius;
-        this->h = height;
-        this->x = 0.;
-        this->y = 0.;
-        this->z = 0.;
+    scylinder(REAL U[3], REAL W[3], REAL r_u, REAL r_v, REAL clen){
+      this->radius_u = r_u;
+      this->radius_v = r_v;
+      this->c_len = clen;
+      this->r = 0.5;
+      this->h = 1;
+      this->x = 0;
+      this->y = 0;
+      this->z = 0;
+
+      this->w = new REAL[3];
+      this->u = new REAL[3];
+
+      for (int i=0; i<3; i++){
+        this->u[i] = U[i];
+        this->w[i] = W[i];
+      }
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -147,10 +158,11 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-          REAL t0 = (*i)[0]*w[0] + (*i)[1]*w[1] + (*i)[2]*w[2];
+          REAL t0 = ((*i)[0]-this->x)*w[0] + ((*i)[1]-this->y)*w[1] + ((*i)[2]-this->z)*w[2];
           REAL t1 = c_len - t0;
-    //      cout << t1 << endl;
-          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0)*((*i)[0] - w[0]*t0) + ((*i)[1] - w[1]*t0)*((*i)[1] - w[1]*t0) +((*i)[1] - w[1]*t0)*((*i)[1] - w[1]*t0));
+          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0 - this->x)*((*i)[0] - w[0]*t0 - this->x)
+            + ((*i)[1] - w[1]*t0- this->y)*((*i)[1] - w[1]*t0 - this->y) +((*i)[2] - w[2]*t0 - this->z)*((*i)[2] - w[2]*t0 - this->z));
+
           (*f_output)[output_ctr] = min(t0,min(t1,r_));
 
         }
