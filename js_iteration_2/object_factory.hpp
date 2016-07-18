@@ -116,7 +116,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
     else
-    if (name == "egg" || name == "cylinder"){
+    if (name == "egg"){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -163,6 +163,52 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
         object = a;
         //object = new mp5_implicit::egg(matrix12);
+    }else if (name == "Intersection") {
+        //todo: Use SimpleUnion if (matrix12 == eye(4))
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+        int count = 0;
+        for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
+            if (a==NULL){
+                a = object_factory(element.second, use_metaball);
+            }else{
+                if(count > 1){
+                    std::cout << "An CrispIntersection should have only 2 child" << std::endl;
+                    break;
+                }
+                b = object_factory(element.second, use_metaball);
+
+            }
+            count++;
+        }
+
+        object = new mp5_implicit::CrispIntersection(*a, *b);
+    }else if (name == "Substraction") {
+        //todo: Use SimpleUnion if (matrix12 == eye(4))
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+        int count = 0;
+        for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
+            if (a==NULL){
+                a = object_factory(element.second, use_metaball);
+            }else{
+                if(count > 1){
+                    std::cout << "An CrispIntersection should have only 2 child" << std::endl;
+                    break;
+                }
+                b = object_factory(element.second, use_metaball);
+
+            }
+            count++;
+        }
+
+        object = new mp5_implicit::CrispSubtract(*a, *b);
     }
     else{
         // if(name=="meta_balls")
