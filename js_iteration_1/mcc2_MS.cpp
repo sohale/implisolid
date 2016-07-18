@@ -227,8 +227,8 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       u[2] = 0;
       w[0] = 0;
       w[1] = 1;
-      w[2] = 0;
-      scylinder scylinder(u, w , 0.1, 0.1, 0.1); //0.7
+      w[2] = 1;
+      scylinder scylinder(u, w , 0.2, 0.2, 0.7, 0.1, 0.1, 0.1); //0.7
       object = &scylinder;
     }
     else if (name == "egg_cylinder"){

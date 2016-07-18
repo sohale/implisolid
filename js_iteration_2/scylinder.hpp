@@ -7,6 +7,8 @@ class scylinder : public transformable_implicit_function {
 protected:
     REAL r; REAL h;
     REAL x; REAL y; REAL z;
+    REAL* u; REAL* w; REAL c_len;
+    REAL radius_u; REAL radius_v;
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
 
@@ -50,31 +52,23 @@ public:
         }
     }
 
-    scylinder(REAL u[3], REAL w[3], REAL center_x, REAL center_y, REAL center_z){
+    scylinder(REAL U[3], REAL W[3], REAL r_u, REAL r_v, REAL clen, REAL center_x, REAL center_y, REAL center_z){
+        this->radius_u = r_u;
+        this->radius_v = r_v;
+        this->c_len = clen;
         this->r = 0.5;
         this->h = 1;
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
 
-        REAL v[3];
-        REAL UVW[9];
-        for (int i=0; i<9; i++){
-          int modulus = i%3;
-          if(modulus == 0){
-            UVW[i] = u[modulus];
-          }
-          else if(modulus == 1){
-            UVW[i] = v[modulus];
-          }
-          else{
-            UVW[i] = w[modulus];
-          }
-        }
+        this->w = new REAL[3];
+        this->u = new REAL[3];
 
-        REAL UVW_inv[9];
-        // doing the Cross_Vector_Product to determine the value of v
-        Cross_Vector_Product(u,w,v);
+        for (int i=0; i<3; i++){
+          this->u[i] = U[i];
+          this->w[i] = W[i];
+        }
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -89,7 +83,6 @@ public:
           }
         }
 
-        InvertMatrix(UVW, UVW_inv);
     }
 
 
@@ -154,10 +147,11 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-          (*f_output)[output_ctr] = -((*i)[0]-this->x)*((*i)[0]-this->x) - ((*i)[1]-this->y)*((*i)[1]-this->y) + r2;
-          if((*i)[2]-this->z >= this->h/2 || (*i)[2]-this->z <= -this->h/2 ){
-            (*f_output)[output_ctr] = -1.;
-          }
+          REAL t0 = (*i)[0]*w[0] + (*i)[1]*w[1] + (*i)[2]*w[2];
+          REAL t1 = c_len - t0;
+    //      cout << t1 << endl;
+          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0)*((*i)[0] - w[0]*t0) + ((*i)[1] - w[1]*t0)*((*i)[1] - w[1]*t0) +((*i)[1] - w[1]*t0)*((*i)[1] - w[1]*t0));
+          (*f_output)[output_ctr] = min(t0,min(t1,r_));
 
         }
     }
