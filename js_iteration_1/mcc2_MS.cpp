@@ -220,24 +220,25 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &scone;
     }
     else if (name == "scylinder"){
-      REAL u[3];
       REAL w[3];
-      u[0] = 1;
-      u[1] = 0;
-      u[2] = 0;
       w[0] = 0;
       w[1] = 1;
       w[2] = 0;
-      scylinder scylinder(u, w , 0.5, 0.4, 0.8, 0., 0.0, 0.0); //0.7
+      scylinder scylinder(w , 0.3, 0.4, 0.8, 0., 0.0, 0.0); //0.7
       object = &scylinder;
     }
-  //   else if (name == "egg_cylinder"){
-  //     egg segg(0.6, 0.5, 0.5);
-  //     scylinder scylinder(0.3, 1.4, 0.2, 0.1, 0.2);
-  // //    cube cube(0.4, 0.4, 0.4);
-  //     CrispIntersection crispou(segg, scylinder);
-  //     object = &crispou;
-  //   }
+    else if (name == "egg_cylinder"){
+
+      REAL w[3];
+      w[0] = 0;
+      w[1] = 1;
+      w[2] = 0;
+      egg segg(0.6, 0.5, 0.5);
+      scylinder scylinder(w, 0.2, 0.1, 0.2);
+  //    cube cube(0.4, 0.4, 0.4);
+      CrispIntersection crispou(segg, scylinder);
+      object = &crispou;
+    }
     else if (name == "egg_transform"){
       boost::array<int, 2> direction_shape = { 1, 3 };
       boost::multi_array<REAL, 2> direction(direction_shape);

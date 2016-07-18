@@ -5,22 +5,26 @@ namespace mp5_implicit {
 class scylinder : public transformable_implicit_function {
 
 protected:
-    REAL r; REAL h;
     REAL x; REAL y; REAL z;
-    REAL* u; REAL* w; REAL c_len;
+    REAL* w; REAL c_len;
     REAL radius_u; REAL radius_v;
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
 
 public:
     scylinder(REAL matrix12[12]){
-        this->r = 0.5;
-        this->h = 1;
+        this->radius_u = 0.4;
+        this->radius_v = 0.5;
+        this->c_len = 0.8;
 
         this->x = 0.;
         this->y = 0.;
         this->z = 0.;
 
+        this->w = new REAL[3];
+        w[0] = 0;
+        w[1] = 1.;
+        w[2] = 0;
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
 
@@ -31,23 +35,18 @@ public:
         InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
         my_assert(this->integrity_invariant(), "");
     }
-    scylinder(REAL U[3], REAL W[3], REAL r_u, REAL r_v, REAL clen){
+
+    scylinder(REAL W[3], REAL r_u, REAL r_v, REAL clen){
       this->radius_u = r_u;
       this->radius_v = r_v;
       this->c_len = clen;
-      this->r = 0.5;
-      this->h = 1;
+
       this->x = 0;
       this->y = 0;
       this->z = 0;
 
       this->w = new REAL[3];
-      this->u = new REAL[3];
 
-      for (int i=0; i<3; i++){
-        this->u[i] = U[i];
-        this->w[i] = W[i];
-      }
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -63,21 +62,18 @@ public:
         }
     }
 
-    scylinder(REAL U[3], REAL W[3], REAL r_u, REAL r_v, REAL clen, REAL center_x, REAL center_y, REAL center_z){
+    scylinder(REAL W[3], REAL r_u, REAL r_v, REAL clen, REAL center_x, REAL center_y, REAL center_z){
         this->radius_u = r_u;
         this->radius_v = r_v;
         this->c_len = clen;
-        this->r = 0.5;
-        this->h = 1;
+
         this->x = center_x;
         this->y = center_y;
         this->z = center_z;
 
         this->w = new REAL[3];
-        this->u = new REAL[3];
 
         for (int i=0; i<3; i++){
-          this->u[i] = U[i];
           this->w[i] = W[i];
         }
 
@@ -151,17 +147,22 @@ public:
 
         Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
 
-        const REAL r2 = squared(this->r);
-
         int output_ctr=0;
 
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-          REAL t0 = ((*i)[0]-this->x)*w[0] + ((*i)[1]-this->y)*w[1] + ((*i)[2]-this->z)*w[2];
+          REAL i0 = (*i)[0];
+          REAL i1 = (*i)[1];
+          REAL i2 = (*i)[2];
+          REAL w0 = w[0];
+          REAL w1 = w[1];
+          REAL w2 = w[2];
+
+          REAL t0 = (i0-this->x)*w0 + (i1-this->y)*w1 + (i2-this->z)*w2;
           REAL t1 = c_len - t0;
-          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0 - this->x)*((*i)[0] - w[0]*t0 - this->x)
-            + ((*i)[1] - w[1]*t0- this->y)*((*i)[1] - w[1]*t0 - this->y) +((*i)[2] - w[2]*t0 - this->z)*((*i)[2] - w[2]*t0 - this->z));
+          REAL r_ = radius_u - sqrt((i0 - w0*t0 - this->x)*(i0 - w0*t0 - this->x)
+            + (i1 - w1*t0- this->y)*(i1 - w1*t0 - this->y) +(i2 - w2*t0 - this->z)*(i2 - w2*t0 - this->z));
 
           (*f_output)[output_ctr] = min(t0,min(t1,r_));
 
@@ -176,12 +177,19 @@ public:
         int output_ctr=0;
         auto i = x_copy.begin();
         auto e = x_copy.end();
-        const REAL r2 = squared(this->r);
+
         for(; i!=e; i++, output_ctr++){
-          REAL t0 = ((*i)[0]-this->x)*w[0] + ((*i)[1]-this->y)*w[1] + ((*i)[2]-this->z)*w[2];
+          REAL i0 = (*i)[0];
+          REAL i1 = (*i)[1];
+          REAL i2 = (*i)[2];
+          REAL w0 = w[0];
+          REAL w1 = w[1];
+          REAL w2 = w[2];
+
+          REAL t0 = (i0-this->x)*w0 + (i1-this->y)*w1 + (i2-this->z)*w2;
           REAL t1 = c_len - t0;
-          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0 - this->x)*((*i)[0] - w[0]*t0 - this->x)
-            + ((*i)[1] - w[1]*t0- this->y)*((*i)[1] - w[1]*t0 - this->y) +((*i)[2] - w[2]*t0 - this->z)*((*i)[2] - w[2]*t0 - this->z));
+          REAL r_ = radius_u - sqrt((i0 - w0*t0 - this->x)*(i0 - w0*t0 - this->x)
+            + (i1 - w1*t0- this->y)*(i1 - w1*t0 - this->y) +(i2 - w2*t0 - this->z)*(i2 - w2*t0 - this->z));
 
           bool c_t0 = 0;
           bool c_t1 = 0;
@@ -197,22 +205,22 @@ public:
             c_r = 1;
           }
 
-          (*output)[output_ctr][0] = c_t0*w[0] + c_t1*(-w[0]) + c_r*(w[0]*t0 + this->x - (*i)[0]);
-          (*output)[output_ctr][1] = c_t0*w[1] + c_t1*(-w[1]) + c_r*(w[1]*t0 + this->y - (*i)[1]);
-          (*output)[output_ctr][2] = c_t0*w[2] + c_t1*(-w[2]) + c_r*(w[2]*t0 + this->z - (*i)[2]);
+          (*output)[output_ctr][0] = c_t0*w0 + c_t1*(-w0) + c_r*(w0*t0 + this->x - i0);
+          (*output)[output_ctr][1] = c_t0*w1 + c_t1*(-w1) + c_r*(w1*t0 + this->y - i1);
+          (*output)[output_ctr][2] = c_t0*w2 + c_t1*(-w2) + c_r*(w2*t0 + this->z - i2);
 
 
         }
     }
     bool integrity_invariant() const {
-      if(this->r < MEAN_PRINTABLE_LENGTH || this->h < MEAN_PRINTABLE_LENGTH)
+      if(this->radius_u < MEAN_PRINTABLE_LENGTH || this->c_len < MEAN_PRINTABLE_LENGTH)
         return false;
       else
         return true;
     }
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        REAL max_size = norm_squared(r, h, 0.0);
+        REAL max_size = norm_squared(this->radius_u, this->c_len, 0.0);
         return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
     }
 };
