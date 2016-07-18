@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "cube";
+    string name = "scylinder";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -220,7 +220,15 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &scone;
     }
     else if (name == "scylinder"){
-      scylinder scylinder(0.4, 1.4, 0.1, 0.1, 0.1); //0.7
+      REAL u[3];
+      REAL w[3];
+      u[0] = 1;
+      u[1] = 0;
+      u[2] = 0;
+      w[0] = 0;
+      w[1] = 1;
+      w[2] = 0;
+      scylinder scylinder(u, w , 0.1, 0.1, 0.1); //0.7
       object = &scylinder;
     }
     else if (name == "egg_cylinder"){
