@@ -2,11 +2,12 @@
 import numpy as np
 # from ipdb import set_trace
 # see http://nullege.com/codes/show/src@p@y@pyformex-0.9.0@pyformex@plugins@vtk_itf.py/36/vtk.util.numpy_support.vtk_to_numpy
+from vtk import *
 
 def vtk_mc(gridvals, rrr):
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = rrr
 
-    from vtk import *
+
 
     data_numpy = gridvals
 

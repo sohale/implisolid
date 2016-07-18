@@ -1,4 +1,4 @@
-from ipdb import set_trace
+# from ipdb import set_trace
 import profile_support
 from vtk_mc import vtk_mc
 
