@@ -228,7 +228,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       w[0] = 0;
       w[1] = 1;
       w[2] = 0;
-      scylinder scylinder(u, w , 0.2, 0.2, 0.7, 0.0, 0.0, 0.0); //0.7
+      scylinder scylinder(u, w , 0.5, 0.4, 0.8, 0., 0.0, 0.0); //0.7
       object = &scylinder;
     }
   //   else if (name == "egg_cylinder"){
@@ -274,10 +274,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    // float c=2000.;
-    // for (int i=0; i<3; i++){
-    //  vertex_resampling(object, f_argument, c, *(_state.mc));
-    // }
+    float c=2000.;
+    for (int i=0; i<3; i++){
+     vertex_resampling(object, f_argument, c, *(_state.mc));
+    }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

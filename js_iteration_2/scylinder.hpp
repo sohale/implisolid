@@ -178,19 +178,29 @@ public:
         auto e = x_copy.end();
         const REAL r2 = squared(this->r);
         for(; i!=e; i++, output_ctr++){
+          REAL t0 = ((*i)[0]-this->x)*w[0] + ((*i)[1]-this->y)*w[1] + ((*i)[2]-this->z)*w[2];
+          REAL t1 = c_len - t0;
+          REAL r_ = radius_u - sqrt(((*i)[0] - w[0]*t0 - this->x)*((*i)[0] - w[0]*t0 - this->x)
+            + ((*i)[1] - w[1]*t0- this->y)*((*i)[1] - w[1]*t0 - this->y) +((*i)[2] - w[2]*t0 - this->z)*((*i)[2] - w[2]*t0 - this->z));
 
-          if((*i)[2]-this->z >= this->h/2 || (*i)[2]-this->z <= -this->h/2){
+          bool c_t0 = 0;
+          bool c_t1 = 0;
+          bool c_r = 0;
 
-            (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x);
-            (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y);
-            (*output)[output_ctr][2] = 0.;
-
+          if (t0 <= t1 && t0 <= r_){
+            c_t0 = 1;
           }
-          else {
-            (*output)[output_ctr][0] = 0.;
-            (*output)[output_ctr][1] = 0.;
-            (*output)[output_ctr][2] = -1.;
+          if (t1 <= t0 && t1 <= r_){
+            c_t1 = 1;
           }
+          if (r_ <= t0 && r_ <= t1){
+            c_r = 1;
+          }
+
+          (*output)[output_ctr][0] = c_t0*w[0] + c_t1*(-w[0]) + c_r*(w[0]*t0 + this->x - (*i)[0]);
+          (*output)[output_ctr][1] = c_t0*w[1] + c_t1*(-w[1]) + c_r*(w[1]*t0 + this->y - (*i)[1]);
+          (*output)[output_ctr][2] = c_t0*w[2] + c_t1*(-w[2]) + c_r*(w[2]*t0 + this->z - (*i)[2]);
+
 
         }
     }
