@@ -200,8 +200,8 @@ void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
 
 void Cross_Vector_Product(const vectorized_vect& vec1, const vectorized_vect& vec2, vectorized_vect& vec3){
 
-    assert (vec1.shape()[0] == vec2.shape()[0])
-    assert (vec1.shape()[0] == vec3.shape()[0])
+    my_assert (vec1.shape()[0] == vec2.shape()[0], "Sizes don't match");
+    my_assert (vec1.shape()[0] == vec3.shape()[0], "Sizes don't match");
     for (int i=0; i<vec1.shape()[0]; i++){
         const REAL vec1_0 = vec1[i][0];
         const REAL vec1_1 = vec1[i][1];

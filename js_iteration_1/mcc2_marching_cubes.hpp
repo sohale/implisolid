@@ -1774,7 +1774,7 @@ MarchingCubes::prepare_grid() {
       REAL yfactor = wy /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
       REAL zfactor = wz /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
 
-      boost::array<int, 2> grid_shape = {{ this->resolution*this->resolution*this->resolution , 3 }};
+      boost::array<vectorized_vect::index, 2> grid_shape = {{ this->resolution*this->resolution*this->resolution , 3 }};
       boost::multi_array<REAL, 2> grid(grid_shape);
 
       // Todo: write an iterator
@@ -1796,7 +1796,7 @@ void MarchingCubes::eval_shape(const implicit_function& object, const boost::mul
 
 
 
-      boost::array<int, 1> implicit_values_shape = {{ this->resolution*this->resolution*this->resolution }};
+      boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution*this->resolution*this->resolution }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
       object.eval_implicit(mcgrid_vectorized, &implicit_values);
