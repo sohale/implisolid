@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "egg_cylinder";
+    string name = "cube";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -202,6 +202,13 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     }
     else if (name == "cube"){
       cube cube(0.4, 0.4, 0.4);
+      // boost::array<int, 2> direction_shape = { 1, 3 };
+      // boost::multi_array<REAL, 2> direction(direction_shape);
+      // direction[0][0] = 0.;
+      // direction[0][1] = 0.3;
+      // direction[0][2] = 0.3;
+      //
+      // cube.rotate(2., direction);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -217,7 +224,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &scylinder;
     }
     else if (name == "egg_cylinder"){
-      egg segg(0.4, 0.5, 0.4);
+      egg segg(0.6, 0.5, 0.5);
       scylinder scylinder(0.3, 1.4);
   //    cube cube(0.4, 0.4, 0.4);
       CrispIntersection crispou(segg, scylinder);
@@ -259,10 +266,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
-    }
+    // float c=2000.;
+    // for (int i=0; i<3; i++){
+    //  vertex_resampling(object, f_argument, c, *(_state.mc));
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
