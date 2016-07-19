@@ -66,18 +66,18 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5):
     """ Calculating the numerical derivative using 'mean of diff' """
     grad_mean = np.mean(-np.diff(v3, axis=1) / delta_t, axis=1)
     if _VERBOSE:
-        print("grad_mean: ", grad_mean)
-        print("grad_convolusion: ", grad_cnv)
+        sys.stderr.write("grad_mean: ", grad_mean)
+        sys.stderr.write("grad_convolusion: ", grad_cnv)
 
     if False:
         g = iobj.implicitGradient(pos0_3)
     if _VERBOSE:
-        print("grad_analytical: ", g)
+        sys.stderr.write("grad_analytical: ", g)
 
-        print("Errors:")
-        print("conv error: ", g - grad_cnv)
+        sys.stderr.write("Errors:")
+        sys.stderr.write("conv error: ", g - grad_cnv)
 
-        print("to be continued")
+        sys.stderr.write("to be continued")
 
     return grad_cnv
 

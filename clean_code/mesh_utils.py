@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 VERBOSE = False
 
@@ -31,7 +32,7 @@ def make_edge_lookup_old(faces):
     # assert nfaces % 2 == 0
     num_edges = nfaces * 3 / 2
     if True:    # VERBOSE:
-        print("nfaces= ", nfaces, "num_edges:", num_edges)
+        sys.stderr.write("nfaces= ", nfaces, "num_edges:", num_edges)
 
     edges_of_faces = np.zeros((nfaces, 3), dtype=np.int) - 1
     faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
@@ -44,7 +45,7 @@ def make_edge_lookup_old(faces):
     for fi in range(len(faces)):
         for vj in range(3):
             if VERBOSE:
-                print("------------")
+                sys.stderr.write("------------")
             v2j = (vj + 1) % 3
             e = (faces[fi, vj], faces[fi, v2j])
             eu = (e[0], e[1]) if e[1] > e[0] else (e[1], e[0])
@@ -55,8 +56,8 @@ def make_edge_lookup_old(faces):
             eu_pair_int_signed = eu_pair_int
 
             if VERBOSE:
-                print("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
-                print(" e=", e, " eu_pair_int=", eu_pair_int)
+                sys.stderr.write("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
+                sys.stderr.write(" e=", e, " eu_pair_int=", eu_pair_int)
 
             if eulookup[eu_pair_int] < 0:
                 new_edge = True
@@ -64,7 +65,7 @@ def make_edge_lookup_old(faces):
                 new_edge = False
 
             if VERBOSE:
-                print("new_edge= ", new_edge, " edge_counter=", edge_counter)
+                sys.stderr.write("new_edge= ", new_edge, " edge_counter=", edge_counter)
 
             if new_edge:
                 e_id = edge_counter
@@ -89,31 +90,31 @@ def make_edge_lookup_old(faces):
 
                 other_fi = faces_of_edges[e_id, 0]
                 if VERBOSE:
-                    print(vj, faces[fi, :], faces[other_fi, :])
+                    sys.stderr.write(vj, faces[fi, :], faces[other_fi, :])
 
                 if VERBOSE:
-                    print(vertpairs_of_edges[e_id], eu_pair_int_signed)
+                    sys.stderr.write(vertpairs_of_edges[e_id], eu_pair_int_signed)
                 assert vertpairs_of_edges[e_id] == -eu_pair_int_signed or \
                     vertpairs_of_edges[e_id] == +eu_pair_int_signed     # eu
                 assert eulookup[eu_pair_int] == e_id
 
             if VERBOSE:
-                print("edges_of_faces ", edges_of_faces)
-                print("faces_of_edges ", faces_of_edges)
-                print("eulookup ", eulookup)
+                sys.stderr.write("edges_of_faces ", edges_of_faces)
+                sys.stderr.write("faces_of_edges ", faces_of_edges)
+                sys.stderr.write("eulookup ", eulookup)
             if True:
                 eu_paired_int = vertpairs_of_edges[e_id]
                 (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
                 if VERBOSE:
-                    print("vertpair:", eu_paired_int, " -> ", v1, v2)
+                    sys.stderr.write("vertpair:", eu_paired_int, " -> ", v1, v2)
 
     for fi in range(len(faces)):
         e123 = edges_of_faces[fi, :]
         assert e123.size == 3, "Polygons > 3 not allowed"
         e0, e1, e2 = e123[0], e123[1], e123[2]
         if VERBOSE:
-            print("edges_of_faces[%d]=" % (fi,), e123)
-            print(faces_of_edges[e0, :], " , ", faces_of_edges[e1, :], " , ", faces_of_edges[e2, :])
+            sys.stderr.write("edges_of_faces[%d]=" % (fi,), e123)
+            sys.stderr.write(faces_of_edges[e0, :], " , ", faces_of_edges[e1, :], " , ", faces_of_edges[e2, :])
 
         assert fi in faces_of_edges[e0, :]
         assert fi in faces_of_edges[e1, :]
@@ -133,7 +134,7 @@ def make_edge_lookup_old(faces):
         assert eu_paired_int == v1 + v2 * modulo
         assert eu_paired_int >= 0
         if VERBOSE:
-            print(eu_paired_int, eulookup[eu_paired_int], e_id)
+            sys.stderr.write(eu_paired_int, eulookup[eu_paired_int], e_id)
         assert np.abs(eulookup[eu_paired_int]) == e_id
 
     assert np.all(np.ravel(edges_of_faces) > -1)
@@ -151,7 +152,7 @@ def make_edge_lookup_sparse(faces):
     assert nfaces % 2 == 0
     num_edges = nfaces * 3 / 2
     if True:    # VERBOSE:
-        print("nfaces= ", nfaces, "num_edges:", num_edges)
+        sys.stderr.write("nfaces= ", nfaces, "num_edges:", num_edges)
 
     edges_of_faces = np.zeros((nfaces, 3), dtype=np.int) - 1
     faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
@@ -164,7 +165,7 @@ def make_edge_lookup_sparse(faces):
     for fi in range(len(faces)):
         for vj in range(3):
             if VERBOSE:
-                print("------------")
+                sys.stderr.write("------------")
             v2j = (vj + 1) % 3
             e = (faces[fi, vj], faces[fi, v2j])
             # eu = (vj, v2j) if vj>v2j else (v2j, vj)  #unique edge id
@@ -177,9 +178,9 @@ def make_edge_lookup_sparse(faces):
             eu_pair_int_signed = eu_pair_int
 
             if VERBOSE:
-                print("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
+                sys.stderr.write("eu_pair_int = eu[0] + eu[1] * modulo", eu[0], eu[1], " -> ", eu_pair_int)
                 # dont confuse e_id and eu_pair_int. vertpairs_of_edges[e_id] == eu_pair_int
-                print(" e=", e, " eu_pair_int=", eu_pair_int)
+                sys.stderr.write(" e=", e, " eu_pair_int=", eu_pair_int)
 
             # print("********** ", eu_pair_int)
             if eulookup[eu_pair_int, 0]-1 < 0:
@@ -188,7 +189,7 @@ def make_edge_lookup_sparse(faces):
                 new_edge = False
 
             if VERBOSE:
-                print("new_edge= ", new_edge, " edge_counter=", edge_counter)
+                sys.stderr.write("new_edge= ", new_edge, " edge_counter=", edge_counter)
 
             if new_edge:
                 # vertpairs_of_edges = ***
@@ -219,32 +220,32 @@ def make_edge_lookup_sparse(faces):
 
                 other_fi = faces_of_edges[e_id, 0]
                 if VERBOSE:
-                    print(vj, faces[fi, :], faces[other_fi, :])
+                    sys.stderr.write(vj, faces[fi, :], faces[other_fi, :])
 
                 if VERBOSE:
-                    print(vertpairs_of_edges[e_id], eu_pair_int_signed)
+                    sys.stderr.write(vertpairs_of_edges[e_id], eu_pair_int_signed)
                 assert vertpairs_of_edges[e_id] == -eu_pair_int_signed or \
                     vertpairs_of_edges[e_id] == +eu_pair_int_signed     # eu
                 assert eulookup[eu_pair_int, 0] == e_id + 1
 
             if VERBOSE:
-                print("edges_of_faces ", edges_of_faces)
-                print("faces_of_edges ", faces_of_edges)
-                # print("vertpairs_of_edges ", vertpairs_of_edges)
-                print("eulookup ", eulookup-1)
+                sys.stderr.write("edges_of_faces ", edges_of_faces)
+                sys.stderr.write("faces_of_edges ", faces_of_edges)
+                # sys.stderr.write("vertpairs_of_edges ", vertpairs_of_edges)
+                sys.stderr.write("eulookup ", eulookup-1)
             if True:
                 eu_paired_int = vertpairs_of_edges[e_id]
                 (v1, v2) = (eu_paired_int % modulo, eu_paired_int / modulo)
                 if VERBOSE:
-                    print("vertpair:", eu_paired_int, " -> ", v1, v2)
+                    sys.stderr.write("vertpair:", eu_paired_int, " -> ", v1, v2)
 
     for fi in range(len(faces)):
         e123 = edges_of_faces[fi, :]
         assert e123.size == 3, "Polygons > 3 not allowed"
         e0, e1, e2 = e123[0], e123[1], e123[2]
         if VERBOSE:
-            print("edges_of_faces[%d]=" % (fi,), e123)
-            print(faces_of_edges[e0, :], " , ", faces_of_edges[e1, :], " , ", faces_of_edges[e2, :])
+            sys.stderr.write("edges_of_faces[%d]=" % (fi,), e123)
+            sys.stderr.write(faces_of_edges[e0, :], " , ", faces_of_edges[e1, :], " , ", faces_of_edges[e2, :])
 
         assert fi in faces_of_edges[e0, :]
         assert fi in faces_of_edges[e1, :]
@@ -264,7 +265,7 @@ def make_edge_lookup_sparse(faces):
         assert eu_paired_int == v1 + v2 * modulo
         assert eu_paired_int >= 0
         if VERBOSE:
-            print(eu_paired_int, eulookup[eu_paired_int, 0]-1, e_id)
+            sys.stderr.write(eu_paired_int, eulookup[eu_paired_int, 0]-1, e_id)
         assert np.abs(eulookup[eu_paired_int, 0]) == e_id+1
 
     assert np.all(np.ravel(edges_of_faces) > -1)

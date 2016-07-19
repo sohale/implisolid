@@ -144,7 +144,7 @@ def check_face_triplets(faces):
 
 
 def check_faces(faces):
-    # print("------ check_faces(faces)")
+    # sys.stderr.write("------ check_faces(faces)")
 
     redundant_faces = check_face_triplets(faces)
 
@@ -204,7 +204,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
         examples_list = example_objects.get_all_examples([2])
         for example_name in examples_list:
-            print("example_name = ", example_name)
+            sys.stderr.write("example_name = ", example_name)
             iobj = example_objects.make_example_vectorized(example_name)
             from example_objects import make_example_vectorized
             iobj = make_example_vectorized(example_name)
@@ -234,7 +234,7 @@ class ImplicitFunctionTests(unittest.TestCase):
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
             vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
-            print("MC calculated.")
+            sys.stderr.write("MC calculated.")
             sys.stdout.flush()
 
             check_mesh(faces)

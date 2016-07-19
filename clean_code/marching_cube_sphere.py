@@ -7,7 +7,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
  gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
 
-    print("Mayavi.")
+    sys.stderr.write("Mayavi.")
     sys.stdout.flush()
 
     if pointsizes is None:
@@ -29,10 +29,10 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
 
             continue
         if vertex.size == 0:
-            print("Warning: empty vertex")
+            sys.stderr.write("Warning: empty vertex")
             continue
         if faces.size == 0:
-            print("Warning: no faces")
+            sys.stderr.write("Warning: no faces")
             continue
 
         assert vertex.ndim == 2
@@ -204,7 +204,7 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
     if old:
         return np.swapaxes(vgrid, 0, 1)
     else:
-        print ("*********************************************")
+        sys.stderr.write("*********************************************")
         vgrid = np.swapaxes(vgrid, 1, 2)
         vgrid = np.swapaxes(vgrid, 0, 1)
         return vgrid
@@ -220,7 +220,7 @@ def demo_sphere():
     vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
 
     print vertex, faces
-    print("MC calculated.")
+    sys.stderr.write("MC calculated.")
     sys.stdout.flush()
     display_simple_using_mayavi_2([(vertex, faces), (vertex, faces), ],
        pointcloud_list=[],

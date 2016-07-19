@@ -141,7 +141,7 @@ def compute_triangle_areas(vertex, faces, return_normals=False):
     degenerates_count = len(faces_areas[faces_areas < DEGENERACY_THRESHOLD])
     faces_areas[faces_areas < DEGENERACY_THRESHOLD] = np.nan  # -1
     if degenerates_count > 0:
-        print("degenerate triangles", degenerates_count)
+        sys.stderr.write("degenerate triangles"+ str( degenerates_count))
     if not return_normals:
         return faces_areas
     else:
@@ -238,7 +238,7 @@ def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, ce
 
 
     umbrella_faces = faceslist_neighbours_of_vertex[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
-    print("umbrella_faces: ", umbrella_faces)
+    sys.stderr.write("umbrella_faces: ", umbrella_faces)
     # wa = np.zeros()
     # w_list = []
     # for i_faces in umbrella_faces:
@@ -252,7 +252,7 @@ def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, ce
     #     w_list.append(w)
     # print "w_list ", w_list
 
-    print("===============")
+    sys.stderr.write("===============")
     # w seems tobe calculated fine. next: store w_i and cache them for adaptive resampling, for which we need to normalise it across the neighbours.
     nfaces = centroids.shape[0]
     wi_total_array = np.zeros((nfaces,))
@@ -315,7 +315,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
  gradients_at=None, gradients_from_iobj=None, pointsizes=None, pointcloud_opacity=1.):
     """Two separate panels"""
 
-    print("Mayavi.")
+    sys.stderr.write("Mayavi.")
     sys.stdout.flush()
 
     from mayavi import mlab
@@ -338,10 +338,10 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
         if vertex is None:
             continue
         if vertex.size == 0:
-            print("Warning: empty vertex")
+            sys.stderr.write("Warning: empty vertex")
             continue
         if faces.size == 0:
-            print("Warning: no faces")
+            sys.stderr.write("Warning: no faces")
             continue
 
         assert vertex.ndim == 2
@@ -394,7 +394,7 @@ def display_simple_using_mayavi_2(vf_list, pointcloud_list, minmax=(-1, 1), maya
         v = iobj.implicitFunction(x)
         x_sel = x[v >= 0, :]
         if x_sel.size == 0:
-            print("No points")
+            sys.stderr.write("No points")
             return
         ax.points3d(x_sel[:, 0], x_sel[:, 1], x_sel[:, 2], color=(0, 0, 0), scale_factor=0.2)
 
@@ -442,7 +442,7 @@ def get_A_b(nlist_numpy, centroids, centroids_gradients, qem_origin):
     norms = np.linalg.norm(normals, ord=2, axis=1)
     # can be either 0, 1 or Nan
     if np.any(norms < 0.000001):  # can be exactly 0.0
-        print("Error: bad normal", normals)
+        sys.stderr.write("Error: bad normal" + str(normals))
 
     # TH_N = 0.0000001  # 0.000001 = I millions of millimeter = 1 nanometer
     # can be 0,0,0, inf, nonsharp, degenerate, ...
@@ -759,9 +759,9 @@ def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroid
         new_x = np.dot(np.transpose(v), y)
 
         if not s[0] > 0.000001:
-            print("Warning! sigma_1 == 0")
-            print(s)
-            print("A", A)
+            sys.stderr.write("Warning! sigma_1 == 0")
+            sys.stderr.write(s)
+            sys.stderr.write("A", A)
 
             result_vertex_ranks[vi] = 0
 
@@ -773,10 +773,10 @@ def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroid
             pass
         result_vertex_ranks[vi] = rank
 
-    print("max rank = ", np.max(result_vertex_ranks))
-    print("min rank = ", np.min(result_vertex_ranks))
+    sys.stderr.write("max rank = ", np.max(result_vertex_ranks))
+    sys.stderr.write("min rank = ", np.min(result_vertex_ranks))
     if not np.min(result_vertex_ranks) >= 1:
-        print("Warning: assertion: np.min(result_vertex_ranks) >= 1 failed.")
+        sys.stderr.write("Warning: assertion: np.min(result_vertex_ranks) >= 1 failed.")
 
     if False:
         assert np.min(result_vertex_ranks) >= 1
@@ -1626,7 +1626,7 @@ def do_subdivision(vertex, faces, iobj, curvature_epsilon, randomized_probabilit
     # check_degenerate_faces(vertex2, facets2, "assert")
     # build_faces_of_faces(facets2)
 
-    print("Subdivision applied.");sys.stdout.flush()
+    sys.stderr.write("Subdivision applied.");sys.stdout.flush()
     return vertex2, faces2
 
 
@@ -1669,7 +1669,7 @@ def demo_combination_plus_qem():
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
     vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
-    print("MC calculated.")
+    sys.stderr.write("MC calculated.")
     sys.stdout.flush()
 
     # creating a file where we are going to collect some data to make some test and comparison with
@@ -1709,7 +1709,7 @@ def demo_combination_plus_qem():
                 exit()
 
             assert not np.any(np.isnan(vertex.ravel()))  # fails
-            print("vertex relaxation applied.")
+            sys.stderr.write("vertex relaxation applied.")
             sys.stdout.flush()
 
         # ************************
@@ -1759,7 +1759,7 @@ def demo_combination_plus_qem():
     for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
         vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
         assert not np.any(np.isnan(vertex.ravel()))  # fails
-        print("vertex relaxation applied.")
+        sys.stderr.write("vertex relaxation applied.")
         sys.stdout.flush()
 
     # ************************
