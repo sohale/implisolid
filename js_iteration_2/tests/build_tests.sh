@@ -19,10 +19,10 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-OPTIM=0
+OPTIM=1
 GTEST_ROOT=~/googletest
 fullfilename=$1 # get first argument as input file
-
+BOOST_FOLDER=/usr/local/include/boost_1_61_0/
 extension="${fullfilename##*.}" # seperate extension and filename
 filename="${fullfilename%.*}"   # this is needed for the output file name
 
@@ -56,28 +56,20 @@ then
 fi
 
 
-# if [ $OPTIM -eq 1 ]
-#     echo " * * * ERROR * * * "
-#     # @echo on
-#     # em++ ^
-#     #         -I C:\sohail\March\emscripten\boost_1_61_0\   ^
-#     #           ^
-#     #         -s EXPORTED_FUNCTIONS="['_main' ]" ^
-#     #         -s NO_EXIT_RUNTIME=1          ^
-#     #         -Winline         ^
-#     #         -s TOTAL_MEMORY=30100100    ^
-#     #         -s DEMANGLE_SUPPORT=1   ^
-#     #          -s ASSERTIONS=1               ^
-#     #          --llvm-lto 1     ^
-#     #         -O3   ^
-#     #         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  ^
-#     #                                     ^
-#     #         -pedantic -std=c++14  ^
-#     #     primitives_test.cpp  ^
-#     #         -o  ./build/primitives_test.compiled.js
-#     #
-#     #
-#     #
-#     # @rem      -s ALLOW_MEMORY_GROWTH=1  ^   # This makes it 3X slower!
-#     # @rem     -s TOTAL_MEMORY=16777216
-# fi
+if [ $OPTIM -eq 1 ]; then
+    echo " * * * Optimized Version  * * *  "
+      em++  -I $BOOST_FOLDER -s EXPORTED_FUNCTIONS="['_main' ]"  \
+            -s NO_EXIT_RUNTIME=1                \
+            -Winline    \
+            -s TOTAL_MEMORY=301001000           \
+            -s DEMANGLE_SUPPORT=1               \
+             -s ASSERTIONS=1                    \
+             --llvm-lto 1                       \
+            -O3                                 \
+            -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS \
+            -pedantic -std=c++14  \
+             "$filename".cpp      \
+            -o  "$filename".compiled.js
+fi
+
+
