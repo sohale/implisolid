@@ -9,7 +9,7 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include "../../js_iteration_1/mcc2_MS.cpp"
-#include "../lib/finite_diff_1.hpp"
+
 
 using namespace std;
 using namespace mp5_implicit;
@@ -118,7 +118,6 @@ boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 boost::array<int, 2> gradou_values_shape = { 5*5*5,3 };
 boost::multi_array<REAL, 2> gradou_values(gradou_values_shape);
 
-
 for (int z = 0; z < 5; z++ ) {
     for (int y = 0; y < 5; y++ ) {
         for (int x = 0; x < 5; x++ ) {
@@ -130,12 +129,10 @@ for (int z = 0; z < 5; z++ ) {
         }
     }
 }
-cout << "yoooo" << endl;
+
 object->eval_implicit(grid, &implicit_values);
 
-cout << "Good morning guys!" << endl;
 object->eval_gradient(grid, &gradou_values);
-cout << "What s up ??" << endl;
 
 ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/js_iteration_2/tests/gradou_values.txt");
 
@@ -146,7 +143,7 @@ for (int i=0; i<125.; i++){
     f_out << gradou_values[i][1];
     f_out << " " ;
     f_out << gradou_values[i][2];
-    //cout << gradou_values[i][0] << endl;
+    cout << gradou_values[i][0] << endl;
     f_out <<  "\n";
 }
 f_out << endl;
