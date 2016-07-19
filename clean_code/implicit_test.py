@@ -311,11 +311,11 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         less_a = np.less(np.abs(va - correctScalar), TOLERANCE)
 
         if not np.all(less_a):
-            print("Some error:")
-            print(xa)
-            print(va)
-            print(ga)
-            print(e)
+            sys.stderr.write("Some error:")
+            sys.stderr.write(xa)
+            sys.stderr.write(va)
+            sys.stderr.write(ga)
+            sys.stderr.write(e)
 
         self.assertTrue(np.all(less_a), ("Implicit Function's scalar value incorrect"))
 
@@ -401,7 +401,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
 
         examples_list = example_objects.get_all_examples([2])
         for example_name in examples_list:
-            print("example_name = ", example_name)
+            sys.stderr.write("example_name = ", example_name)
             iobj = example_objects.make_example_vectorized(example_name)
             self.check_gradient_function(iobj, objname=example_name)
 
@@ -413,7 +413,7 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         err = np.sum(np.abs(g - g2), axis=1)
         err_max = np.max(np.abs(g - g2), axis=1)
         err_rel = np.sum(np.abs(g - g2), axis=1) / np.mean(np.abs(g))
-        print(err, err_max, err_rel)
+        sys.stderr.write(err, err_max, err_rel)
         # print(err)
         self.assertTrue(np.all(err < NUMERICAL_GRADIENT_TOLERANCE))
 
@@ -440,15 +440,15 @@ class ImplicitFunctionVectorizedTests(unittest.TestCase):
         err_max = np.max(np.abs(a - b), axis=1)
         err_rel = np.sum(np.abs(a - b), axis=1) / np.mean(np.abs(a))
         if err >= tolerance:
-            print("err: ", err)
-            print("err(max): ", err_max, "  err_rel:", err_rel)
-            print("a,g_numerical: ", a, b)
+            sys.stderr.write("err: ", err)
+            sys.stderr.write("err(max): ", err_max, "  err_rel:", err_rel)
+            sys.stderr.write("a,g_numerical: ", a, b)
 
         err_n = np.sum(np.abs(a - b), axis=1)
         if np.any(err_n >= tolerance):
-            print(np.any(err_n < tolerance), "aaa")
-            # print(err_n.shape, "*******")
-            print(a, b, a - b)
+            sys.stderr.write(np.any(err_n < tolerance), "aaa")
+            # sys.stderr.write(err_n.shape, "*******")
+            sys.stderr.write(a, b, a - b)
 
     #    self.assertTrue(np.all(err_n < tolerance), msg="absolute error exceeds: %f %s" % (np.max(err_n), description,))
     #    self.assertTrue(np.all(err < tolerance), msg=" %s" % (description,))

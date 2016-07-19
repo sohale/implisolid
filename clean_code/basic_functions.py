@@ -13,7 +13,7 @@ def make_inverse(m):
     assert np.allclose(np.dot(m, invm), np.eye(4), atol=TOLERANCE), "Matrix inversion failed: Matrix is singular or bad conditioned"
     error = np.sum(np.abs(np.dot(invm, m) - np.eye(4)))
     if VERBOSE:
-        print("Error of the inverse matrix: %2.20f" % error)
+        sys.stderr.write("Error of the inverse matrix: %2.20f" % error)
     v0001 = np.reshape(np.array((0, 0, 0, 1)), (4))
     assert np.allclose(invm[3, :], v0001, atol=TOLERANCE), "Last row of the inverse matrix should be 0,0,0,1 "
     return invm
@@ -55,7 +55,7 @@ def check_vector4_vectorized(p):
     assert p.shape[1:] == (4,), "Vector must be a numpy array of (Nx4) elements"
     e = np.sum(np.abs(p[:, 3] - 1))
     if e > 0.0:
-        print("EERROR:", e)
+        sys.stderr.write("EERROR:", e)
     assert np.allclose(p[:, 3], 1, 0.00000000000001), "4th element of every Vector must be 1.0"
     assert not np.any(np.isnan(p.ravel()))
     assert not np.any(np.isinf(p.ravel()))
@@ -241,13 +241,13 @@ def normalize_vector4_vectorized(v, zero_normal="leave_zero_norms"):
     e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
 
     if not (e1a and e0a):
-        print("r:", r)
-        print("v:", v)
-        print("c:", v)
-        print("denom: ", denominator)
-        print(norms)
-        print(denominator)
-        print(np.sum(r[:, 0:3] * r[:, 0:3], axis=1))
+        sys.stderr.write("r:", r)
+        sys.stderr.write("v:", v)
+        sys.stderr.write("c:", v)
+        sys.stderr.write("denom: ", denominator)
+        sys.stderr.write(norms)
+        sys.stderr.write(denominator)
+        sys.stderr.write(np.sum(r[:, 0:3] * r[:, 0:3], axis=1))
 
     assert e1a and e0a
     r[:, 3] = 1
@@ -281,13 +281,13 @@ def normalize_vector3_vectorized(v, zero_normal="leave_zero_norms"):
     e0a = np.all(np.abs(df[zeros_i]) < 0.00000000001)
 
     if not (e1a and e0a):
-        print("r:", r)
-        print("v:", v)
-        print("c:", v)
-        print("denom: ", denominator)
-        print(norms)
-        print(denominator)
-        print(np.sum(r*r, axis=1))
+        sys.stderr.write("r:", r)
+        sys.stderr.write("v:", v)
+        sys.stderr.write("c:", v)
+        sys.stderr.write("denom: ", denominator)
+        sys.stderr.write(norms)
+        sys.stderr.write(denominator)
+        sys.stderr.write(np.sum(r*r, axis=1))
 
     assert e1a and e0a
     return r

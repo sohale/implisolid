@@ -107,7 +107,7 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     from skimage import measure
     verts, faces = measure.marching_cubes(vgrid, 0)
     verts = ((verts) * STEPSIZE + rng[0])
-    print("OLD: swapping x,y")
+    sys.stderr.write("OLD: swapping x,y")
     verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)
     return verts, faces
 
@@ -127,7 +127,7 @@ def make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=True):
         vgrid = np.swapaxes(vgrid, 1, 2)
         vgrid = np.swapaxes(vgrid, 0, 1)
         return vgrid
-        # print("no swap")
+        # sys.stderr.write("no swap")
         # return vgrid
 
 #
@@ -257,7 +257,7 @@ def test7_dice():
         m.save('stl/implicit7-dice.stl')  # wow
 
     display_simple_using_mayavi_vf1(verts, faces)
-    print(np.min(verts.ravel()), np.max(verts.ravel()))
+    sys.stderr.write(np.min(verts.ravel()), np.max(verts.ravel()))
 
     plot_stlmesh(m)
 
@@ -283,7 +283,7 @@ def test8_bigdice():
         m.save('stl/implicit8-bigdice-.stl')  # wow
 
     display_simple_using_mayavi_vf1(verts, faces)
-    print(np.min(verts.ravel()), np.max(verts.ravel()))
+    sys.stderr.write(np.min(verts.ravel()), np.max(verts.ravel()))
 
     plot_stlmesh(m)
 
@@ -299,13 +299,13 @@ def test9_icesl1():
     #    m = np.eye(4) * r1
     #    m[3, 3] = 1
     #    m[0,3] = 25  #tooth, r1=4.
-    #    print(m)
+    #    sys.stderr.write(m)
 
     sc = 1. / 4.
     r1 = 2 * 25 * sc
     m = np.eye(4) * r1
     m[3, 3] = 1
-    print(m)
+    sys.stderr.write(m)
 
     a = ns.Ellipsoid(m)
     b = ns.UnitCube1(2 * 40. * sc)
@@ -323,7 +323,7 @@ def test9_icesl1():
         m.save('stl/icesl_example1.stl')  # wow
 
     display_simple_using_mayavi_vf1(verts, faces)
-    print(np.min(verts.ravel()), np.max(verts.ravel()))
+    sys.stderr.write(np.min(verts.ravel()), np.max(verts.ravel()))
 
     plot_stlmesh(m)
 

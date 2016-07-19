@@ -58,7 +58,7 @@ class SimpleCylinder(ImplicitFunction):
         def check(boolean, reason):
             sd["sane"] = sd["sane"] and boolean
             if not boolean:
-                print("Error:", reason)
+                sys.stderr.write("Error:", reason)
             pass
         check(np.abs(np.linalg.norm(self.w)-1.0) < norm_tol, "w1")
         check(np.abs(np.linalg.norm(self.u)-1.0) < norm_tol, "u1")

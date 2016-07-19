@@ -15,7 +15,6 @@ def puppy_magic(mp5source):
     from stl_tests import make_mc_values_grid
     gridvals = make_mc_values_grid(iobj, -60., 60., 1., old=False)
     vertex, faces = vtk_mc(gridvals, (-60., 60., 1.))
-    print("MC calculated.")
     sys.stdout.flush()
 
 
@@ -31,7 +30,6 @@ def puppy_magic(mp5source):
 def m2stl_mesh(verts, faces):
     from stl import mesh
     fv = verts[faces, :]
-    print(fv.shape)
 
     data = np.zeros(fv.shape[0], dtype=mesh.Mesh.dtype)
     for i in range(fv.shape[0]):

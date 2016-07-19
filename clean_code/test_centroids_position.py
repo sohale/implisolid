@@ -17,7 +17,7 @@ class ImplicitFunctionTests(unittest.TestCase):
 
         examples_list = example_objects.get_all_examples([2])
         for example_name in examples_list:
-            print("example_name = ", example_name)
+            sys.stderr.write("example_name = ", example_name)
             iobj = example_objects.make_example_vectorized(example_name)
             from example_objects import make_example_vectorized
             iobj = make_example_vectorized(example_name)
@@ -51,7 +51,7 @@ class ImplicitFunctionTests(unittest.TestCase):
             from stl_tests import make_mc_values_grid
             gridvals = make_mc_values_grid(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE, old=False)
             vertex, faces = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
-            print("MC calculated.")
+            sys.stderr.write("MC calculated.")
             sys.stdout.flush()
 
             from ohtake_belyaev_demo_subdivision_projection_qem import process2_vertex_resampling_relaxation, compute_average_edge_length, set_centers_on_surface__ohtake_v3s
@@ -59,7 +59,7 @@ class ImplicitFunctionTests(unittest.TestCase):
             for i in range(VERTEX_RELAXATION_ITERATIONS_COUNT):
                 vertex, facets_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
             assert not np.any(np.isnan(vertex.ravel()))  # fails
-            print("Vertex relaxation applied.")
+            sys.stderr.write("Vertex relaxation applied.")
             sys.stdout.flush()
 
             # projection

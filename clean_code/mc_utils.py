@@ -36,7 +36,7 @@ def make_grid(iobj, rng, old=None, return_xyz=False):
     if np.sum(vgrid_v > 0) == 0:
         raise PolygonizationError("The shape is empty. No interior points detected")
     if VERBOSE:
-        print("interior points:", np.sum(vgrid_v > 0))
+        sys.stderr.write("interior points:" +  str(np.sum(vgrid_v > 0)))
     if return_xyz:
         return vgrid, xyz_nparray
     else:
