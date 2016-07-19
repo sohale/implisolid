@@ -40,7 +40,7 @@ implicit_function * object;
 // object = &sphere;
 // }
 // else if (name == "cube"){
-cube cube(f_argument);
+cube cube(0.4,0.4,0.4);
 object = &cube;
 // }
 // else if (name == "super_bowl"){
