@@ -7,6 +7,7 @@
 
 implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     implicit_function* object;
+    /*
     if (name == "double_mushroom"){
         object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
     }
@@ -25,21 +26,26 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     else if (name == "scone"){
         object = new mp5_implicit::scone(f_argument +2.5,f_argument +2.5,f_argument +2.5,-0.1);
     }
-    else if (name == "scylinder"){
-        object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
-    }else if(name == "meta_balls"){
+    //else if (name == "scylinder"){
+    //    object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
+    //}
+    //else
+    */
+    if(name == "meta_balls"){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
         std::cout << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
     }
-    else if(name == "sub_spheres"){
+    /*else if(name == "sub_spheres"){
         mp5_implicit::unit_sphere * s1 = new mp5_implicit::unit_sphere(2, 1, 1, 1);
         mp5_implicit::unit_sphere * s2 = new mp5_implicit::unit_sphere(1.3);
         object = new mp5_implicit::CrispSubtract(*s1, *s2);
     }
+    */
     else {
         std::cout << "Error! You must enter a valid name " <<  name << "! So I made a sphere!" << std::endl;
-        object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
+        //object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
+        object = new mp5_implicit::unit_sphere(1000.);
     }
     return object;
 }
@@ -90,17 +96,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
     if (name == "implicit_double_mushroom"){
         std::cout << "implicit_double_mushroom case " << std::endl;
-        object = new mp5_implicit::double_mushroom(0.9,0.4 ,0.4 , 1/0.2 );
+        // object = new mp5_implicit::double_mushroom(0.9, 0.4 ,0.4 , 1/0.2 );
+        object = new mp5_implicit::double_mushroom(0.9, 0.4/2, 0.4/2, 1/0.2 );
     }
     else
-    if (name == "simple_sphere"){
+    /*if (name == "simple_sphere"){
         //std::cout << "******************* simple_sphere case " << std::endl;
         REAL radius = shapeparams_dict.get<REAL>("radius");
         object = new mp5_implicit::unit_sphere(radius);
         std::cout << "radius " << radius << std::endl;
     }
-    else
-    if (name == "cube"){
+    else*/
+    if (name == "icube"){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -108,7 +115,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
     else
-    if (name == "cylinder"){
+    if (name == "icylinder"){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -116,11 +123,17 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
     else
-    if (name == "egg"){
+    if (name == "iellipsoid"){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
         object = new mp5_implicit::egg(matrix12);
+    }else
+    if (name == "icone"){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+
+        object = new mp5_implicit::scone(matrix12);
     }
 
     else if (name == "Union") {
@@ -186,7 +199,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         }
 
         object = new mp5_implicit::CrispIntersection(*a, *b);
-    }else if (name == "Substraction") {
+    }else if (name == "Difference") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
@@ -199,7 +212,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 a = object_factory(element.second, use_metaball);
             }else{
                 if(count > 1){
-                    std::cout << "An CrispIntersection should have only 2 child" << std::endl;
+                    std::cout << "An CrispSubstraction should have only 2 child" << std::endl;
                     break;
                 }
                 b = object_factory(element.second, use_metaball);

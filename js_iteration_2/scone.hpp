@@ -12,6 +12,33 @@ protected:
     REAL* inv_transf_matrix;
 
 public:
+
+  scone(REAL matrix12[12]){
+      this->r = matrix12[0];
+      this->a = matrix12[1];
+      this->b = matrix12[2];
+      this->c = matrix12[3];
+      this->x = matrix12[4];
+      this->y = matrix12[5];
+      this->z = matrix12[6];
+
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
+
+      for (int i=0; i<12; i++){
+        if(i==0 || i==5 || i==10){
+          this->transf_matrix[i] = 1;
+          this->inv_transf_matrix[i] = 1;
+        }
+        else{
+          this->transf_matrix[i] = 0;
+          this->inv_transf_matrix[i] = 0;
+        }
+      }
+
+      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      my_assert(this->integrity_invariant(), "");
+  }
     scone(REAL height, REAL radius_x, REAL radius_y, REAL radius_increase_speed ){
         this->r = height;
         this->a = radius_x;

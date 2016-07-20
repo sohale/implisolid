@@ -143,7 +143,6 @@ for (int i=0; i<125.; i++){
     f_out << gradou_values[i][1];
     f_out << " " ;
     f_out << gradou_values[i][2];
-    cout << gradou_values[i][0] << endl;
     f_out <<  "\n";
 }
 f_out << endl;
