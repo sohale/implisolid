@@ -5,7 +5,7 @@ namespace mp5_implicit {
 class scone : public transformable_implicit_function {
 
 protected:
-    REAL r;
+    REAL h;
     REAL a; REAL b; REAL c;
     REAL x; REAL y; REAL z;
     REAL* transf_matrix;
@@ -14,33 +14,26 @@ protected:
 public:
 
   scone(REAL matrix12[12]){
-      this->r = matrix12[0];
-      this->a = matrix12[1];
-      this->b = matrix12[2];
-      this->c = matrix12[3];
-      this->x = matrix12[4];
-      this->y = matrix12[5];
-      this->z = matrix12[6];
+      this->h = 1;
+      this->a = 1;
+      this->b = 1;
+      this->c = 1;
+      this->x = 0;
+      this->y = 0;
+      this->z = -0.5;
 
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
 
       for (int i=0; i<12; i++){
-        if(i==0 || i==5 || i==10){
-          this->transf_matrix[i] = 1;
-          this->inv_transf_matrix[i] = 1;
-        }
-        else{
-          this->transf_matrix[i] = 0;
-          this->inv_transf_matrix[i] = 0;
-        }
+          transf_matrix[i] = matrix12[i];
       }
 
       InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
       my_assert(this->integrity_invariant(), "");
   }
     scone(REAL height, REAL radius_x, REAL radius_y, REAL radius_increase_speed ){
-        this->r = height;
+        this->h = height;
         this->a = radius_x;
         this->b = radius_y;
         this->c = 1/radius_increase_speed;
@@ -63,7 +56,7 @@ public:
     }
 
     scone(REAL height, REAL radius_x, REAL radius_y, REAL radius_increase_speed, REAL center_x, REAL center_y, REAL center_z ){
-        this->r = height;
+        this->h = height;
         this->a = radius_x;
         this->b = radius_y;
         this->c = 1/radius_increase_speed;
@@ -142,18 +135,26 @@ public:
         const REAL b2 = squared(this->b);
         const REAL c2 = squared(this->c);
 
+        const REAL x0 = this->x;
+        const REAL y0 = this->y;
+        const REAL z0 = this->z;
+
         int output_ctr=0;
 
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-          if((*i)[2]-this->z >= 0.0){
-            (*f_output)[output_ctr] = -((*i)[0]-this->x)*((*i)[0]-this->x)/a2 - ((*i)[1]-this->y)*((*i)[1]-this->y)/b2 + ((*i)[2]-this->z)*((*i)[2]-this->z)/c2;
-
-          }
-          if((*i)[2]-this->z >= this->r || (*i)[2]-this->z <= 0.0 ){
-            (*f_output)[output_ctr] = -1.;
-          }
+            REAL x = (*i)[0];
+            REAL y = (*i)[1];
+            REAL z = (*i)[2];
+            REAL r = (1 - (z-z0)/this->c) / 2.;
+            REAL f;
+            if (((z-z0) >= 0.0)  && ((z-z0) < this->h) ) {  //  // Note that z is negated, because the cone will be reversed.
+                f = - (x-x0)*(x-x0)/a2 - (y-y0)*(y-y0)/b2 + r*r;
+            } else {
+                f = -1.;
+            }
+            (*f_output)[output_ctr] = f;
 
         }
     }
@@ -166,35 +167,44 @@ public:
         const REAL a2 = squared(this->a);
         const REAL b2 = squared(this->b);
         const REAL c2 = squared(this->c);
+        const REAL x0 = this->x;
+        const REAL y0 = this->y;
+        const REAL z0 = this->z;
+
         int output_ctr=0;
         auto i = x_copy.begin();
         auto e = x_copy.end();
-        const REAL r2 = squared(this->r);
+        const REAL r2 = squared(this->h);
         for(; i!=e; i++, output_ctr++){
 
-          if((*i)[2]-this->z <= this->r){
+            if((z-z0) <= this->h){  // wrong: need to check both 0 and h
 
-            (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x)/a2;
-            (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y)/b2;
-            (*output)[output_ctr][2] = 2. * ((*i)[2]-this->z)/c2;
+                REAL x = (*i)[0];
+                REAL y = (*i)[1];
+                REAL z = (*i)[2];
 
-          }
-          else {
-            (*output)[output_ctr][0] = 0.;
-            (*output)[output_ctr][1] = 0.;
-            (*output)[output_ctr][2] = -1.;
-          }
+                (*output)[output_ctr][0] = -2. * (x-x0)/a2;
+                (*output)[output_ctr][1] = -2. * (y-y0)/b2;
+                (*output)[output_ctr][2] = 2. * (z-z0)/c2;
+
+            }
+            else {
+
+                (*output)[output_ctr][0] = 0.;
+                (*output)[output_ctr][1] = 0.;
+                (*output)[output_ctr][2] = -1.;
+            }
 
         }
     }
     bool integrity_invariant() const {
-      if(this->r < MEAN_PRINTABLE_LENGTH || this->a < MEAN_PRINTABLE_LENGTH || this->b < MEAN_PRINTABLE_LENGTH || this->c < MEAN_PRINTABLE_LENGTH)
+      if(this->h < MEAN_PRINTABLE_LENGTH || this->a < MEAN_PRINTABLE_LENGTH || this->b < MEAN_PRINTABLE_LENGTH || this->c < MEAN_PRINTABLE_LENGTH)
         return false;
       else
         return true;
     }
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        REAL max_size = norm_squared(r,a+c*r,b+c*r);
+        REAL max_size = norm_squared(h,a+c*h,b+c*h);
         return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
     }
 };
