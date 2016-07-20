@@ -125,6 +125,8 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             console.error("padded_normals = ?");
         }
 
+        var flat = false;
+        if(!flat)
         this.addAttribute( 'normal', new THREE.BufferAttribute( padded_normals, 3, true ) );
         //this.addAttribute( 'color', new THREE.BufferAttribute( padded_colors, 3, true ) ); //color is overidden
         //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
@@ -202,7 +204,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         if(verts.length > availableVertsSize){
 
             grow_needed = true;
-            
+
             //console.log("needed "+verts.length );
 /*
             console.log(geometry.attributes.position.array.length);  */
@@ -261,7 +263,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             geometry.attributes.position.needsUpdate = true;
             geometry.attributes.index.needsUpdate = true;
             geometry.attributes.normal.needsUpdate = true;
-        
+
             return false;//new_geometry;
 
         }
@@ -329,6 +331,9 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
 
 
     };
+
+    // this.computeBoundingBox = function...; // not needed.
+    // this.computeBoundingSphere = function...; // not needed.
 
     this.allocate_buffers(verts_, faces_,  pre_allocate_, faces_capacity_, verts_capacity_);
 };

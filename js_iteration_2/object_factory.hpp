@@ -25,9 +25,9 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     else if (name == "scone"){
         object = new mp5_implicit::scone(f_argument +2.5,f_argument +2.5,f_argument +2.5,-0.1);
     }
-    else if (name == "scylinder"){
+    /*else if (name == "scylinder"){
         object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
-    }else if(name == "meta_balls"){
+    }*/else if(name == "meta_balls"){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
         std::cout << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);

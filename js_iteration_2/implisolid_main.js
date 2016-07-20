@@ -63,7 +63,7 @@ var ImplicitService = function(){
         return geom;
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService
-    this.getLiveGeometry = function(dict) {
+    this.getLiveGeometry = function(dict, bbox) {
         //var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
 
         //var shape_properties = {type:"sphere",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
@@ -87,6 +87,7 @@ var ImplicitService = function(){
 
         //implicit_double_mushroom center will be zero.
 
+        /*
         //shape_properties.type = "egg";
         var m = shape_properties.matrix;
         var bb ={};
@@ -102,6 +103,21 @@ var ImplicitService = function(){
 
         bb["zmin"] = m[11] - wz/2 +dd;
         bb["zmax"] = m[11] + wz/2-dd;
+        */
+        assert(bbox, "yOU need to specify the bounding box");
+
+
+        var bb ={};
+        var sc = 1.0;
+        bb["xmin"] = bbox.min.x * sc;
+        bb["xmax"] = bbox.max.x * sc;
+
+        bb["ymin"] = bbox.min.y * sc;
+        bb["ymax"] = bbox.max.y * sc;
+
+        bb["zmin"] = bbox.min.z * sc;
+        bb["zmax"] = bbox.max.z * sc;
+
         var mc_properties = {resolution: 28, box: bb};
 
 
@@ -128,8 +144,6 @@ function _on_cpp_loaded() {
 </script>
 <script type="text/javascript" src="mcc2.cpp.js"></script>
 */
-
-
 
 
 //function test_update1(t, mesh){

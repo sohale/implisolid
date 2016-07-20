@@ -13,18 +13,18 @@ protected:
 
 public:
     scylinder(REAL matrix12[12]){
-        this->radius_u = 0.4;
+        this->radius_u = 0.5;
         this->radius_v = 0.5;
-        this->c_len = 0.8;
+        this->c_len = 1.0;
 
         this->x = 0.;
         this->y = 0.;
-        this->z = 0.;
+        this->z = -0.5;
 
         this->w = new REAL[3];
         w[0] = 0;
-        w[1] = 1.;
-        w[2] = 0;
+        w[1] = 0.;
+        w[2] = 1;
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
 
