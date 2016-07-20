@@ -37,13 +37,19 @@ using namespace std;
 
 
 typedef unsigned short int dim_t;
-typedef float REAL;
+
+typedef float REAL;     // heavily used (can be changed to double from here at any time)
+
 const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
+
 inline bool isNaN(REAL x){return isnan(x);};
 
 typedef boost::multi_array<REAL, 1>  array1d;
+
 typedef boost::array<array1d::index, 1>  array_shape_t;
+
 typedef array1d::index  index_t;
+
 //typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
 
@@ -97,6 +103,7 @@ typedef boost::multi_array<REAL, 2>  array2d;
  * Creates an empty array with dimensions N x 3, whose elements are of floating
  * point numbers(REAL).
  *
+ * Notes: make_empty_x allocates memory according to nsize.
  */
 
 boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
@@ -107,6 +114,15 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
     boost::multi_array<REAL, 2> values (values_shape);
     return values;
 }
+
+/**
+ * Function: InvertMatrix
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
 
 // Create a InvertMatrix function
 
@@ -162,6 +178,16 @@ bool InvertMatrix(const REAL input_A[], REAL inverse_A[])
 	return true;
 }
 
+/**
+ * Function: Matrix_Vector_Product
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
+
+
 void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
     const REAL m0 = matou[0];
     const REAL m1 = matou[1];
@@ -187,6 +213,17 @@ void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
     }
 
 }
+
+
+/**
+ * Function: Matrix_Vector_Product_0
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
+
 void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
   for (int i=0; i<vectou.shape()[0]; i++){
     REAL vectou_0 = vectou[i][0];
@@ -198,6 +235,15 @@ void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
 
 }
 
+
+/**
+ * Function: Cross_Vector_Product
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
 
 void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
 
@@ -216,6 +262,15 @@ void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
 
 }
 
+
+/**
+ * Function: Matrix_Matrix_Product
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
 
 bool Matrix_Matrix_Product(REAL m1[],const REAL m2[])
 {
