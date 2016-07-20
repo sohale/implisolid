@@ -50,6 +50,7 @@ then
             "$1" \
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
             "$filename".compiled.js > em_compile.log 2>&1 \
+            && echo "compile success." \
             && node "$filename".compiled.js \
     tput sgr0  # reset terminal options
 
