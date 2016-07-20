@@ -5,13 +5,16 @@
 
 /**
  * File: crisp_union.hpp
- * ------------------------
+ * ----------------------
+
  * Defines the class CrispUnion which implements the csg union
+
  * operation between two implicit functions in accordance to the formula:
- * 	f(x) = min(f1(x), -f2(x)).f1 and f2 are implicit functions whose substraction
+
+ * 	f(x) = max(f1(x),f2(x)). Functions f1 and f2 are implicit functions whose union
+
  * 	we want to compute.
- * Implementation notes:
- *----------------------
+
  */
 
 namespace mp5_implicit{

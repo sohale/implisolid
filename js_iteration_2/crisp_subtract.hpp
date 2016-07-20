@@ -5,13 +5,16 @@
 
 /**
  * File: crisp_subtract.hpp
- * ------------------------
+ * -------------------------
+ 
  * Defines the class CrispSubtract which implements the csg subtraction
+
  * operation between two implicit functions in accordance to the formula:
- * 	f(x) = min(f1(x), -f2(x)).f1 and f2 are implicit functions whose substraction
+
+ * 	f(x) = min(f1(x), -f2(x)) . Functions f1 and f2 are implicit functions whose substraction
+
  * 	we want to compute.
- * Implementation notes:
- *----------------------
+
  */
 
 namespace mp5_implicit{

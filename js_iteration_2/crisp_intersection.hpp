@@ -5,13 +5,16 @@
 
 /**
  * File: crisp_intersection.hpp
- * ------------------------
- * Defines the class CrispUnion which implements the csg intersection
+ * -----------------------------
+
+ * Defines the class CrispIntersection which implements the csg intersection
+
  * operation between two implicit functions in accordance to the formula:
- * 	f(x) = min(f1(x), -f2(x)).f1 and f2 are implicit functions whose substraction
+
+ * 	f(x) = min(f1(x),f2(x)). Functions f1 and f2 are implicit functions whose intersection
+
  * 	we want to compute.
- * Implementation notes:
- *----------------------
+ *  
  */
 
 namespace mp5_implicit{
@@ -20,13 +23,13 @@ public:
 
     /**
      * Function Declarations:
-     * CrispUnion(a, b) --> The constructor of the class.
+     * CrispIntersection(a, b) --> The constructor of the class.
      * 		a and b are of type implicit_function, and need to be evaluated
      * 		on a grid or vector.
      *
      * eval_implicit --> evaluation of the implicit function.
      * eval_gradient --> evaluation of the implicit gradient.
-     * ~CrispUnion --> Deconstructor of the class.
+     * ~CrispIntersection --> Deconstructor of the class.
      */
 
     CrispIntersection(const implicit_function & a_, const implicit_function & b_)
