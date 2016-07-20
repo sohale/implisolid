@@ -186,7 +186,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         }
 
         object = new mp5_implicit::CrispIntersection(*a, *b);
-    }else if (name == "Substraction") {
+    }else if (name == "Difference") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
@@ -199,7 +199,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 a = object_factory(element.second, use_metaball);
             }else{
                 if(count > 1){
-                    std::cout << "An CrispIntersection should have only 2 child" << std::endl;
+                    std::cout << "An CrispSubstraction should have only 2 child" << std::endl;
                     break;
                 }
                 b = object_factory(element.second, use_metaball);
