@@ -77,13 +77,13 @@ public:
         //my_assert(this->integrity_invariant(), ""); // fixme: has problems
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         return x_copy;
     }
     void gradient_post_implace_transformation(const vectorized_vect& x) const {
         // todo(sohail):
-        // Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        // matrix_vector_product(this->inv_transf_matrix, x_copy);
     }
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const = 0;

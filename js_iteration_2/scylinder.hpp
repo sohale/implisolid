@@ -145,7 +145,7 @@ public:
 
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
 
@@ -172,7 +172,7 @@ public:
 
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
         auto i = x_copy.begin();

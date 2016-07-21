@@ -101,7 +101,7 @@ public:
         my_assert(this->integrity_invariant(), "");
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         const REAL r2 = this->r;
 
@@ -127,7 +127,7 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         const REAL r2 = squared(this->r);
         int output_ctr=0;

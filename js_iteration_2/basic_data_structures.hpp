@@ -179,7 +179,7 @@ bool invert_matrix(const REAL input_A[], REAL inverse_A[])
 }
 
 /**
- * Function: Matrix_Vector_Product
+ * Function: matrix_vector_product
  * Usage:
  * ---------------------------------------
  * Desc:
@@ -188,7 +188,7 @@ bool invert_matrix(const REAL input_A[], REAL inverse_A[])
  */
 
 
-void Matrix_Vector_Product(const REAL matou[], vectorized_vect& vectou){
+void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
     const REAL m0 = matou[0];
     const REAL m1 = matou[1];
     const REAL m2 = matou[2];
