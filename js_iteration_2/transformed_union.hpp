@@ -36,7 +36,30 @@ public:
         }
     };
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
-        ;
+      const vectorized_scalar::index nsize = x.shape()[0];
+
+      auto sf = make_shape_1d(nsize);
+
+      vectorized_scalar f1 = vectorized_scalar(sf);  // first function
+      vectorized_scalar f2 = vectorized_scalar(sf);  // second function
+
+      auto shape = boost::array<vectorized_vect::index, 2>{nsize, 3};
+      vectorized_vect grad1 = vectorized_vect(shape);
+      vectorized_vect grad2 = vectorized_vect(shape);
+
+      children[0]->eval_implicit(x, &f1);
+      children[1]->eval_implicit(x, &f2);
+
+      children[0]->eval_gradient(x, &grad1);
+      children[1]->eval_gradient(x, &grad2);
+
+      vectorized_scalar::index output_ctr = 0;
+
+      auto e = x.end();
+
+      for (auto i = x.begin(); i < e; i++, output_ctr++){
+          (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
+      }
     };
     bool integrity_invariant() const {
 
