@@ -63,7 +63,7 @@ var ImplicitService = function(){
         return geom;
     };
     //This method is called by the designer to obtain the geometry from the ImplicitService
-    this.getLiveGeometry = function(dict, bbox) {
+    this.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
         //var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
 
         //var shape_properties = {type:"sphere",displayColor:{x:0.38015037447759337,y:0.6015094592616681,z:0.9774198226067741},matrix:[10,0,0,92.9405888205127,0,10,0,101.93969389296757,0,0,10,8.59828143220919,0,0,0,1],index:7935813}
@@ -118,7 +118,7 @@ var ImplicitService = function(){
         bb["zmin"] = bbox.min.z * sc;
         bb["zmax"] = bbox.max.z * sc;
 
-        var mc_properties = {resolution: 28, box: bb};
+        var mc_properties = {resolution: 28, box: bb, ignore_root_matrix: ignore_root_matrix};
 
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));

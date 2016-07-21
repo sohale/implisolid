@@ -241,7 +241,7 @@ extern "C" {
         New API for direct evaluation of implicit functions
     *********************************************************/
     //global variables: implicit_function* last_object, last_x, v_results, g_results,
-    void set_object(char* shape_parameters_json);  // call object_factory. Sets a global variable   last_object
+    void set_object(char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
     void unset_object();
 
     void set_x(void* verts, int n);   // sets last_x, a multi_array.
@@ -298,6 +298,7 @@ namespace mp5_implicit{
 struct mc_settings {
     mp5_implicit::bounding_box box;
     int resolution;
+    bool ignore_root_matrix;
 };
 
 }
@@ -355,6 +356,9 @@ mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
     mc_settings_from_json.box = box;
     mc_settings_from_json.resolution = resolution;
 
+
+    mc_settings_from_json.ignore_root_matrix = mcparams_dict.get<bool>("ignore_root_matrix", false);
+
     return mc_settings_from_json;
 }
 
@@ -368,12 +372,12 @@ void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
     // std::cout << "Mc_params : " << mc_parameters_json << endl;
     // std::cout << "shape_json : " << shape_parameters_json << endl;
 
+    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+
     bool use_metaball;
     std::string shape_parameters_json_str = std::string(shape_parameters_json);
-    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball);
-
-
-    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+    bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
+    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
 
     // std::cout << "Leak-free : new" << std::endl;
 
@@ -532,7 +536,7 @@ vectorized_vect* current_x = NULL;
 vectorized_vect* current_grad = NULL;
 vectorized_scalar* current_f = NULL;
 
-void set_object(char* shape_parameters_json) {
+void set_object(char* shape_parameters_json, bool ignore_root_matrix) {
     if(current_object != NULL){
         std::cout << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;
@@ -542,7 +546,7 @@ void set_object(char* shape_parameters_json) {
 
     std::string str = std::string(shape_parameters_json);
     bool dummy;
-    current_object = object_factory(str , dummy);
+    current_object = object_factory(str , dummy, ignore_root_matrix);
 
     //std::cout << "after: current_object " << current_object << std::endl;
 }

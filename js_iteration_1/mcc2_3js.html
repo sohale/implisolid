@@ -67,7 +67,7 @@ Based on MCC1
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
 
-        newProducer.set_object = Module.cwrap('set_object', null, ['string']);
+        newProducer.set_object = Module.cwrap('set_object', null, ['string', 'number']);
         newProducer.unset_object = Module.cwrap('unset_object', null, []);
         newProducer.set_x = Module.cwrap('set_x', null, ['number', 'number']);
         newProducer.unset_x = Module.cwrap('unset_x', null, []);
@@ -700,7 +700,7 @@ function make_multiple_arrows(n) {
     return arrowHelpers;
 }
 
-function change_arrows(arrows, newPolygonizer, mp5_str, n) {
+function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
     /**
      * Update the arrow parameters
     */
@@ -717,7 +717,7 @@ function change_arrows(arrows, newPolygonizer, mp5_str, n) {
     //var _verts = new Float32Array([x, y, z]);
     var _verts = new Float32Array(vlist);
 
-    newPolygonizer.set_object(mp5_str);
+    newPolygonizer.set_object(mp5_str, ignore_root_matrix);
     newPolygonizer.set_vect(_verts);
     newPolygonizer.calculate_implicit_gradients();
     var ptr = newPolygonizer.get_gradients_ptr();
@@ -1011,9 +1011,9 @@ function update_mc(newPolygonizer, delta_t){
     //geometry.index.needsUpdate = true;
     "";
     */
-
+    var ignore_root_matrix = false;
     //change_arrow(global_arrow, newPolygonizer, global_mp5);
-    change_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT);
+    change_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
 
 
     if(!EVEN_REUSE_MESH_OBJECT){

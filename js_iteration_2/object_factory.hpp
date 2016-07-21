@@ -64,7 +64,7 @@ void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
         }
 }
 
-implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball) {
+implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
     //std::cout << "############Name : " << name << std::endl;
@@ -147,10 +147,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         implicit_function * o_plain;
 
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
-            if (a==NULL){
-                a = object_factory(element.second, use_metaball);
-            }else{
-                implicit_function * b = object_factory(element.second, use_metaball);
+            if (a == NULL){
+                a = object_factory(element.second, use_metaball, false);
+            } else {
+                implicit_function * b = object_factory(element.second, use_metaball, false);
 
                 //The following always prints an empty line:
                 //std::cout << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
@@ -186,13 +186,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         int count = 0;
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a==NULL){
-                a = object_factory(element.second, use_metaball);
+                a = object_factory(element.second, use_metaball, false);
             }else{
                 if(count > 1){
                     std::cout << "An CrispIntersection should have only 2 child" << std::endl;
                     break;
                 }
-                b = object_factory(element.second, use_metaball);
+                b = object_factory(element.second, use_metaball, false);
 
             }
             count++;
@@ -209,13 +209,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         int count = 0;
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a==NULL){
-                a = object_factory(element.second, use_metaball);
+                a = object_factory(element.second, use_metaball, false);
             }else{
                 if(count > 1){
                     std::cout << "An CrispSubstraction should have only 2 child" << std::endl;
                     break;
                 }
-                b = object_factory(element.second, use_metaball);
+                b = object_factory(element.second, use_metaball, false);
 
             }
             count++;
@@ -238,7 +238,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
 
 
-implicit_function*  object_factory(string shape_parameters_json, bool& use_metaball) {
+implicit_function*  object_factory(string shape_parameters_json, bool& use_metaball, bool ignore_root_matrix) {
 
 
     /*
@@ -266,6 +266,6 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
     pt::read_json(shape_json_stream, shapeparams_dict);
 
-    return object_factory(shapeparams_dict, use_metaball);
+    return object_factory(shapeparams_dict, use_metaball, ignore_root_matrix);
 
 }
