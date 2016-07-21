@@ -107,7 +107,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         std::cout << "radius " << radius << std::endl;
     }
     else*/
-    if (name == "icube"){
+    if (name == "icube" || name == "cube" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -115,7 +115,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
     else
-    if (name == "icylinder"){
+    if (name == "icylinder" || name == "cylinder" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
@@ -123,13 +123,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
     else
-    if (name == "iellipsoid"){
+    if (name == "iellipsoid" || name == "ellipsoid" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
         object = new mp5_implicit::egg(matrix12);
     }else
-    if (name == "icone"){
+    if (name == "icone" || name == "cone" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
 
