@@ -50,7 +50,7 @@ public:
             transf_matrix[i] = matrix[i];
         }
 
-        InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+        invert_matrix(this->transf_matrix, this->inv_transf_matrix);
         my_assert(this->integrity_invariant(), "");
     }
 
@@ -99,9 +99,9 @@ public:
       rotation[10] = ca + a3*a3*(1.-ca);
       rotation[11] = 0.;
 
-      Matrix_Matrix_Product(this->transf_matrix, rotation);
+      matrix_matrix_product(this->transf_matrix, rotation);
 
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
 
@@ -109,7 +109,7 @@ public:
       this->transf_matrix[3] += direction[0][0];
       this->transf_matrix[7] += direction[0][1];
       this->transf_matrix[11] += direction[0][2];
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
     virtual void resize(const REAL ratio) const{
@@ -120,7 +120,7 @@ public:
         this->transf_matrix[i] *= ratio;
         }
       }
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
     }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
@@ -129,7 +129,7 @@ public:
         my_assert(this->integrity_invariant(), "");
         vectorized_vect x_copy = x;
 
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;
 
@@ -146,7 +146,7 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
         vectorized_vect x_copy = x;
-        Matrix_Vector_Product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         const REAL a2 = pow(this->a,2);
         const REAL b2 = pow(this->b,2);
