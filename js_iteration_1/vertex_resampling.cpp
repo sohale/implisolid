@@ -33,8 +33,8 @@ typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
-REAL norm(REAL x, REAL y, REAL z){
-  REAL norm = sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+REAL norm_2(REAL x, REAL y, REAL z){
+  REAL norm = sqrt(x*x + y*y + z*z);
   return norm;
 }
 
@@ -52,19 +52,15 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
-
-  if(1){
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
-      REAL norm = sqrt(pow(centroid_normals_normalized[i][0],2)+pow(centroid_normals_normalized[i][1],2)+pow(centroid_normals_normalized[i][2],2));
+      REAL norm = norm_2(centroid_normals_normalized[i][0], centroid_normals_normalized[i][1], centroid_normals_normalized[i][2]);
       assert(norm!=0.);
       for(int j = 0; j < 3; j++){
         centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
         assert(centroid_normals_normalized[i][j] <= 1.);
         assert(centroid_normals_normalized[i][j] >= -1.);
       }
-
     }
-  }
 }
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
@@ -181,7 +177,7 @@ REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized)
     mimj = -1.0;
   }
 
-  REAL pipj = norm(pi_x - pj_x, pi_y - pj_y, pi_z - pj_z);
+  REAL pipj = norm_2(pi_x - pj_x, pi_y - pj_y, pi_z - pj_z);
   if (pipj == 0){
     return 0;
   }
