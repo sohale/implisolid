@@ -229,9 +229,9 @@ public:
           }
         }
 
-        (*output)[output_ctr][0] = p[index*3+0];
-        (*output)[output_ctr][1] = p[index*3+1];
-        (*output)[output_ctr][2] = p[index*3+2];
+        (*output)[output_ctr][0] = -p[index*3+0];
+        (*output)[output_ctr][1] = -p[index*3+1];
+        (*output)[output_ctr][2] = -p[index*3+2];
 
         REAL g0 = (*output)[output_ctr][0];
         REAL g1 = (*output)[output_ctr][1];
