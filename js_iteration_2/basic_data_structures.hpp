@@ -116,7 +116,7 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
 }
 
 /**
- * Function: InvertMatrix
+ * Function: invert_matrix
  * Usage:
  * ---------------------------------------
  * Desc:
@@ -124,12 +124,12 @@ boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
  * Notes:
  */
 
-// Create a InvertMatrix function
+// Create a invert_matrix function
 
  /* Matrix inversion routine.
  Uses lu_factorize and lu_substitute in uBLAS to invert a matrix */
 
-bool InvertMatrix(const REAL input_A[], REAL inverse_A[])
+bool invert_matrix(const REAL input_A[], REAL inverse_A[])
 {
 	typedef permutation_matrix<std::size_t> pmatrix;
 
@@ -264,7 +264,7 @@ void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
 
 
 /**
- * Function: Matrix_Matrix_Product
+ * Function: matrix_matrix_product
  * Usage:
  * ---------------------------------------
  * Desc:
@@ -272,7 +272,7 @@ void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
  * Notes:
  */
 
-bool Matrix_Matrix_Product(REAL m1[],const REAL m2[])
+bool matrix_matrix_product(REAL m1[],const REAL m2[])
 {
 	typedef permutation_matrix<std::size_t> pmatrix;
 

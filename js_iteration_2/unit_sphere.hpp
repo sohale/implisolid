@@ -75,9 +75,9 @@ public:
       rotation[10] = ca + a3*a3*(1.-ca);
       rotation[11] = 0.;
 
-      Matrix_Matrix_Product(this->transf_matrix, rotation);
+      matrix_matrix_product(this->transf_matrix, rotation);
 
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
 
@@ -85,7 +85,7 @@ public:
       this->transf_matrix[3] += direction[0][0];
       this->transf_matrix[7] += direction[0][1];
       this->transf_matrix[11] += direction[0][2];
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
     }
     virtual void resize(const REAL ratio) const{
@@ -96,7 +96,7 @@ public:
         this->transf_matrix[i] *= ratio;
         }
       }
-      InvertMatrix(this->transf_matrix, this->inv_transf_matrix);
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
     }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
