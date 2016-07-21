@@ -49,7 +49,6 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 }
 
 
-//add assert coming from the normalize_vector3_vectorized
 void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
@@ -221,8 +220,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
     }
 
     for (int j=0; j< umbrella_faces.size(); j++){
-       w.push_back(wi_total_array[umbrella_faces[j]]/sum_w); //push_back is slow
-      // w[j]= wi_total_array[umbrella_faces[j]]/sum_w;
+       w.push_back(wi_total_array[umbrella_faces[j]]/sum_w);
     }
     REAL new_verts_x = 0;
     REAL new_verts_y = 0;
@@ -238,7 +236,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   }
 }
 
-
+// main function
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
 
   int nfaces = faces.shape()[0];
