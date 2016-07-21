@@ -167,7 +167,7 @@ public:
         }
     }
     bool integrity_invariant() const {
-      if(MEAN_PRINTABLE_LENGTH > this->r || MEAN_PRINTABLE_LENGTH > this->a || MEAN_PRINTABLE_LENGTH  > this->b)
+      if(MIN_PRINTABLE_LENGTH > this->r || MIN_PRINTABLE_LENGTH > this->a || MIN_PRINTABLE_LENGTH  > this->b)
         return false;
       else
         return true;

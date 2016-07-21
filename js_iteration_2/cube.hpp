@@ -53,13 +53,6 @@ public:
         this->p[14] = size_z;
         this->p[17] = -size_z;
 
-        // this->p[0] = size_x;
-        // this->p[3] = -size_x;
-        // this->p[7] = size_y;
-        // this->p[10] = -size_y;
-        // this->p[14] = size_z;
-        // this->p[17] = -size_z;
-
         // REAL m = 50.;
         // this->p[0] = cos(1.*M_PI/5.)/m;
         // this->p[1] = sin(1.*M_PI/5)/m;
@@ -242,7 +235,7 @@ public:
 
     }
     bool integrity_invariant() const {
-      // if(this->p[0] < MEAN_PRINTABLE_LENGTH || this->p[7] < MEAN_PRINTABLE_LENGTH) //this->p[14] < MEAN_PRINTABLE_LENGTH)
+      // if(this->p[0] < MIN_PRINTABLE_LENGTH || this->p[7] < MIN_PRINTABLE_LENGTH) || this->p[14] < MIN_PRINTABLE_LENGTH)
       //   return false;
       // else
         return true;

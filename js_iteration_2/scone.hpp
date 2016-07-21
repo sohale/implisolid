@@ -198,7 +198,7 @@ public:
         }
     }
     bool integrity_invariant() const {
-      if(this->h < MEAN_PRINTABLE_LENGTH || this->a < MEAN_PRINTABLE_LENGTH || this->b < MEAN_PRINTABLE_LENGTH || this->c < MEAN_PRINTABLE_LENGTH)
+      if(this->h < MIN_PRINTABLE_LENGTH || this->a < MIN_PRINTABLE_LENGTH || this->b < MIN_PRINTABLE_LENGTH || this->c < MIN_PRINTABLE_LENGTH)
         return false;
       else
         return true;

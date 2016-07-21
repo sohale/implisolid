@@ -133,7 +133,7 @@ public:
         }
     }
     bool integrity_invariant() const {
-      if(this->r < MEAN_PRINTABLE_LENGTH)
+      if(this->r < MIN_PRINTABLE_LENGTH)
         return false;
       else
         return true;

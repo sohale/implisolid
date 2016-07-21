@@ -334,7 +334,7 @@ namespace mp5_implicit {
  */
 
 const REAL ROOT_TOLERANCE = 0.001;  //
-const REAL MEAN_PRINTABLE_LENGTH = 0.01;  //
+const REAL MIN_PRINTABLE_LENGTH = 0.01;  //
 
 
 #endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP

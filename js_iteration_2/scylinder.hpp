@@ -213,7 +213,7 @@ public:
         }
     }
     bool integrity_invariant() const {
-      if(this->radius_u < MEAN_PRINTABLE_LENGTH || this->c_len < MEAN_PRINTABLE_LENGTH)
+      if(this->radius_u < MIN_PRINTABLE_LENGTH || this->c_len < MIN_PRINTABLE_LENGTH)
         return false;
       else
         return true;

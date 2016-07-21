@@ -203,8 +203,8 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 void vertex_resampling(verts_t& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c){
   int nfaces = centroids.shape()[0];
-//  c=2000.0;
-  boost::array<int, 2> wi_total_array_shape = {nfaces, 1 }; //look to see if { is enoug}
+
+  boost::array<int, 2> wi_total_array_shape = {nfaces, 1 };
   boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
 
   for (int i_faces=0; i_faces<nfaces; i_faces++){
@@ -215,7 +215,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
     std::vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
     std::vector<REAL> w;
     REAL sum_w = 0;
-    // sum_w could be calculated by a function
+
     for (int j=0; j< umbrella_faces.size(); j++){
       sum_w += wi_total_array[umbrella_faces[j]];
     }
@@ -237,6 +237,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
     new_verts[i][2] = new_verts_z;
   }
 }
+
 
 void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
 
