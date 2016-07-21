@@ -64,7 +64,14 @@ void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
         }
 }
 
+void copy_eye(REAL matrix12[12]){
+    REAL eye[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0 };
+    for(int j=0;j<12;j++)
+        matrix12[j] = eye[j];
+}
+
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
+    std::cout << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
     //std::cout << "############Name : " << name << std::endl;
@@ -110,7 +117,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     if (name == "icube" || name == "cube" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
-
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
         object = new mp5_implicit::cube(matrix12);
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
     }
@@ -118,6 +127,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     if (name == "icylinder" || name == "cylinder" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         object = new mp5_implicit::scylinder(matrix12);
        // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
@@ -126,12 +138,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     if (name == "iellipsoid" || name == "ellipsoid" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         object = new mp5_implicit::egg(matrix12);
     }else
     if (name == "icone" || name == "cone" ){
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         object = new mp5_implicit::scone(matrix12);
     }
@@ -140,6 +158,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         implicit_function * a = NULL;
 
@@ -180,6 +201,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         implicit_function * a = NULL;
         implicit_function * b = NULL;
@@ -203,6 +227,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
         implicit_function * a = NULL;
         implicit_function * b = NULL;

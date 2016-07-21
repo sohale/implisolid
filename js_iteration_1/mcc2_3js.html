@@ -417,7 +417,6 @@ function setShapeMatrix2Eye(shape_matrix) {
 }
 
 const MESH_SCALE = 300/10;
-const BB_SIZE = 9;
 const ARROWS_COUNT = 20;
 
 var global_mp5 = "***";
@@ -432,13 +431,7 @@ function provide_input (subjective_time, update_mode) {
 
     if(1 || update_mode == 0) {
         var r = subjective_time;
-        var x0=0, y0=0, z0=0;
-        //var BB_SIZE = 18;
-        //const BB_SIZE = 9;
-        var mc_properties_json = JSON.stringify({
-            resolution: 28,
-            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE}
-        });
+
         var mp5_json_0 = JSON.stringify({
             type: "egg",
             //radius: subjective_time,
@@ -468,7 +461,9 @@ function provide_input (subjective_time, update_mode) {
         mp5_json_dict.matrix[7]=0;
         mp5_json_dict.matrix[11]=0;
         */
-        setShapeMatrix2Eye(mp5_json_dict.matrix);
+        if(false) {
+            setShapeMatrix2Eye(mp5_json_dict.matrix);
+        }
         //console.log(mp5_json_dict);
 
         //var bb = getBoundingBoxForTree();
@@ -477,6 +472,22 @@ function provide_input (subjective_time, update_mode) {
         mp5_json = JSON.stringify(mp5_json_dict);
 
         global_mp5 = mp5_json;
+
+
+
+        const BB_SIZE = 9;
+        var x0=0, y0=0, z0=0;
+        //var BB_SIZE = 18;
+        //const BB_SIZE = 9;
+        var mc_properties_json = JSON.stringify({
+            resolution: 28,
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            ignore_root_matrix: true,
+        });
+
+
+
+
 
         shape_json = mp5_json;
         polygonization_json = mc_properties_json;
@@ -489,6 +500,8 @@ function provide_input (subjective_time, update_mode) {
     if(update_mode == 1 || update_mode == 2) {
         //d("2   G.");
         var x0=0, y0=0, z0=0;
+        const BB_SIZE = 1;
+
         var r = subjective_time;
         //var BB_SIZE = 6.;
         var mc_properties_json = JSON.stringify({
