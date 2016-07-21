@@ -201,14 +201,14 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(0.4, 0.4, 0.4);
-      // boost::array<int, 2> direction_shape = { 1, 3 };
-      // boost::multi_array<REAL, 2> direction(direction_shape);
-      // direction[0][0] = 0.;
-      // direction[0][1] = 0.3;
-      // direction[0][2] = 0.3;
-      //
-      // cube.rotate(2., direction);
+      cube cube(0.2, 0.2, 0.2);
+      boost::array<int, 2> direction_shape = { 1, 3 };
+      boost::multi_array<REAL, 2> direction(direction_shape);
+      direction[0][0] = 0.;
+      direction[0][1] = 0.0;
+      direction[0][2] = 0.3;
+
+      cube.rotate(2., direction);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -220,11 +220,17 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &scone;
     }
     else if (name == "scylinder"){
+      boost::array<int, 2> direction_shape = { 1, 3 };
+      boost::multi_array<REAL, 2> direction(direction_shape);
+      direction[0][0] = 0.;
+      direction[0][1] = 0.0;
+      direction[0][2] = 0.3;
       REAL w[3];
       w[0] = 0;
       w[1] = 1;
       w[2] = 0;
       scylinder scylinder(w , 0.4, 0.4, 0.8, 0., 0.0, 0.0); //0.7
+      scylinder.rotate(2., direction);
       object = &scylinder;
     }
     else if (name == "egg_cylinder"){
@@ -355,34 +361,34 @@ void finish_geometry() {
 
 #include "timer.hpp"
 
-// int main() {
-//   //***** This part was used to creat test files *****//
-//   //
-//   // if (writing_test_file){
-//   //
-//   // int resolution = 28;
-//   // REAL time = 0.2;
-//   // check_state_null();
-//   // bool enableUvs = true;
-//   // bool enableColors = true;
-//   //
-//   // _state.mc = new MarchingCubes(resolution, 1.0, enableUvs, enableColors);
-//   //
-//   // _state.mc -> isolation = 0.0;
-//   //   // before we had some amazing meatballs! merde a celui qui le lira!
-//   //   REAL grid_real_size= 10;
-//   // string name = "sphere";
-//   // _state.mc->create_shape(name,grid_real_size,f_argument);
-//   //
-//   // _state.mc->seal_exterior();
-//   //
-//   // const callback_t renderCallback;
-//   // _state.mc->render_geometry(renderCallback);
-//   //
-//   //   _state.mc->vertex_resampling(name, f_argument);
-//   //
-//   //  }
-//   //   std::cout << "main();" << std::endl;
-//
-//     return 0;
-// }
+int main() {
+  //***** This part was used to creat test files *****//
+  //
+  // if (writing_test_file){
+  //
+  // int resolution = 28;
+  // REAL time = 0.2;
+  // check_state_null();
+  // bool enableUvs = true;
+  // bool enableColors = true;
+  //
+  // _state.mc = new MarchingCubes(resolution, 1.0, enableUvs, enableColors);
+  //
+  // _state.mc -> isolation = 0.0;
+  //   // before we had some amazing meatballs! merde a celui qui le lira!
+  //   REAL grid_real_size= 10;
+  // string name = "sphere";
+  // _state.mc->create_shape(name,grid_real_size,f_argument);
+  //
+  // _state.mc->seal_exterior();
+  //
+  // const callback_t renderCallback;
+  // _state.mc->render_geometry(renderCallback);
+  //
+  //   _state.mc->vertex_resampling(name, f_argument);
+  //
+  //  }
+  //   std::cout << "main();" << std::endl;
+
+    return 0;
+}

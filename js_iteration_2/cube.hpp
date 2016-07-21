@@ -228,9 +228,19 @@ public:
             min = (i1 - cx - p[0+i*3])*p[0+i*3]*(-2.) + (i2 - cy - p[1+i*3])*p[1+i*3]*(-2.) + (i3 - cz - p[2+i*3])*p[2+i*3]*(-2.);
           }
         }
+
         (*output)[output_ctr][0] = p[index*3+0];
         (*output)[output_ctr][1] = p[index*3+1];
         (*output)[output_ctr][2] = p[index*3+2];
+
+        REAL g0 = (*output)[output_ctr][0];
+        REAL g1 = (*output)[output_ctr][1];
+        REAL g2 = (*output)[output_ctr][2];
+
+        (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
+        (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
+        (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
+
       }
 
     }

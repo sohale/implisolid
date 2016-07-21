@@ -150,7 +150,14 @@ public:
             (*output)[output_ctr][1] = 0;
             (*output)[output_ctr][2] = -1;
           }
+          
+          REAL g0 = (*output)[output_ctr][0];
+          REAL g1 = (*output)[output_ctr][1];
+          REAL g2 = (*output)[output_ctr][2];
 
+          (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
+          (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
+          (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
         }
     }
     bool integrity_invariant() const {

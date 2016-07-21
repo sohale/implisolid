@@ -209,6 +209,13 @@ public:
           (*output)[output_ctr][1] = c_t0*w1 + c_t1*(-w1) + c_r*(w1*t0 + this->y - i1);
           (*output)[output_ctr][2] = c_t0*w2 + c_t1*(-w2) + c_r*(w2*t0 + this->z - i2);
 
+          REAL g0 = (*output)[output_ctr][0];
+          REAL g1 = (*output)[output_ctr][1];
+          REAL g2 = (*output)[output_ctr][2];
+          
+          (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
+          (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
+          (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
 
         }
     }
