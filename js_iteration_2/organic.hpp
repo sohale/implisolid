@@ -130,14 +130,14 @@ public:
         vectorized_vect x_copy = x;
 
         matrix_vector_product(this->inv_transf_matrix, x_copy);
-
+        const REAL r = this->a*this->a;
         int output_ctr=0;
 
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
             REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
-            REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +36;
+            REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
 
             (*f_output)[output_ctr] = min(f,bouding_sphere);
 
@@ -148,15 +148,14 @@ public:
         vectorized_vect x_copy = x;
         matrix_vector_product(this->inv_transf_matrix, x_copy);
 
-        const REAL a2 = pow(this->a,2);
-        const REAL b2 = pow(this->b,2);
-        const REAL c2 = pow(this->c,2);
+        const REAL r = this->a*this->a;
+
         int output_ctr=0;
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
           REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
-          REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +36;
+          REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
 
           if(f<bouding_sphere){
             (*output)[output_ctr][0] = this->b*cos(this->b*(*i)[0]);
