@@ -202,7 +202,7 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
 
-      vectorized_vect x_copy = x;
+      vectorized_vect x_copy = vectorized_vect(x);
       matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         int output_ctr=0;

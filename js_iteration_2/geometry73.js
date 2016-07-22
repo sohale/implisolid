@@ -85,6 +85,9 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
 
+        if (faces_capacity == 0 || faces.length == 0 || verts.length == 0 ) {
+            console.warn("faces_capacity == 0");
+        }
         console.log("verts : "+ verts_capacity + " faces : "+ faces_capacity);
         var padded_faces, padded_verts;
         if(pre_allocate){
