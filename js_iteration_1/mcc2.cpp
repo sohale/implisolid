@@ -251,7 +251,7 @@ extern "C" {
     void* get_values_ptr();  // return v_results.data()
     int get_values_size();   // return v_results
 
-    void calculate_implicit_gradients();  // calculate g_results from  last_object.eval_gradient()
+    void calculate_implicit_gradients(bool normalize_and_invert);  // calculate g_results from  last_object.eval_gradient()
     void* get_gradients_ptr(); // return g_results.data()
     int get_gradients_size(); // return g_results
 
@@ -621,13 +621,33 @@ int get_values_size() {
     return current_f->shape()[0];
 }
 
-void calculate_implicit_gradients() {
+void calculate_implicit_gradients(bool normalize_and_invert) {
     if(current_x == NULL || current_grad == NULL || current_object == NULL) {
         std::cout << "Error: You need to set_x() and set_object() first." << std::endl;
         return;
     }
 
     current_object -> eval_gradient(*current_x, current_grad);
+    if(normalize_and_invert) {
+        for(auto it = current_grad->begin(); it < current_grad->end(); it++) {
+            REAL x = (*it)[0];
+            REAL y = (*it)[1];
+            REAL z = (*it)[2];
+            REAL norm = std::sqrt(x*x + y*y + z*z);
+
+            REAL norm_factor;
+            if (norm > 0.000000001) {
+                norm_factor = -1.0 / norm;
+            } else {
+                norm_factor = -42.0; // how to avoid look black
+            }
+
+            (*it)[0] = x * norm_factor;
+            (*it)[1] = y * norm_factor;
+            (*it)[2] = z * norm_factor;
+        }
+    }
+
 
     /*
     std::cout << "calculated grad: "

@@ -7,7 +7,7 @@ class scone : public transformable_implicit_function {
 protected:
     REAL h;
     REAL a; REAL b; REAL c;
-    REAL x; REAL y; REAL z;
+    REAL x; REAL y; REAL z0;
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
 
@@ -20,7 +20,7 @@ public:
       this->c = 1;
       this->x = 0;
       this->y = 0;
-      this->z = -0.5;
+      this->z0 = -0.5;
 
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
@@ -39,7 +39,7 @@ public:
         this->c = 1/radius_increase_speed;
         this->x = 0.;
         this->y = 0.;
-        this->z = 0.;
+        this->z0 = 0.;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -62,7 +62,7 @@ public:
         this->c = 1/radius_increase_speed;
         this->x = center_x;
         this->y = center_y;
-        this->z = center_z;
+        this->z0 = center_z;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -137,17 +137,17 @@ public:
 
         const REAL x0 = this->x;
         const REAL y0 = this->y;
-        const REAL z0 = this->z;
+        const REAL z0 = this->z0;
 
         int output_ctr=0;
 
-        auto i = x_copy.begin();
+
         auto e = x_copy.end();
-        for(; i<e; i++, output_ctr++){
+        for(auto i = x_copy.begin(); i<e; i++, output_ctr++){
             REAL x = (*i)[0];
             REAL y = (*i)[1];
             REAL z = (*i)[2];
-            REAL r = (1 - (z-z0)/this->c) / 2.;
+            REAL r = (h - (z-z0)/this->c) / (h*2.);  // works only iif h == 0
             REAL f;
             if (((z-z0) >= 0.0)  && ((z-z0) < this->h) ) {  //  // Note that z is negated, because the cone will be reversed.
                 f = - (x-x0)*(x-x0)/a2 - (y-y0)*(y-y0)/b2 + r*r;
@@ -169,30 +169,36 @@ public:
         const REAL c2 = squared(this->c);
         const REAL x0 = this->x;
         const REAL y0 = this->y;
-        const REAL z0 = this->z;
+        const REAL z0 = this->z0;
 
         int output_ctr=0;
-        auto i = x_copy.begin();
+
         auto e = x_copy.end();
-        const REAL r2 = squared(this->h);
-        for(; i!=e; i++, output_ctr++){
+        //const REAL r2 = squared(this->h);
+        for(auto i = x_copy.begin(); i!=e; i++, output_ctr++){
 
-            if((z-z0) <= this->h){  // wrong: need to check both 0 and h
 
-                REAL x = (*i)[0];
-                REAL y = (*i)[1];
-                REAL z = (*i)[2];
+            REAL x = (*i)[0];
+            REAL y = (*i)[1];
+            REAL z = (*i)[2];
+
+            // if( (z-z0) > 0 && (z-z0) < this->h - 0.1
+
+            //if( true || (z-z0) > 0 ){  // wrong: need to check both 0 and h
+            if( (z-z0) > 0  && ((z-z0) < this->h) ){  // wrong: need to check both 0 and h
+
+                // REAL r = (1 - (z-z0)/this->c) / 2.;
 
                 (*output)[output_ctr][0] = -2. * (x-x0)/a2;
                 (*output)[output_ctr][1] = -2. * (y-y0)/b2;
-                (*output)[output_ctr][2] = 2. * (z-z0)/c2;
+                (*output)[output_ctr][2] = -1/(this->c*2) + (z-z0)/(c2*2);
 
             }
             else {
 
                 (*output)[output_ctr][0] = 0.;
                 (*output)[output_ctr][1] = 0.;
-                (*output)[output_ctr][2] = -1.;
+                (*output)[output_ctr][2] = 1.;
             }
 
             REAL g0 = (*output)[output_ctr][0];

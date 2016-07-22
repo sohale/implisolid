@@ -112,10 +112,12 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             }
         //assert(this.attributes.index.array === padded_faces);
 
+        //if(!ignoreNormals) {
         var padded_normals;
         if(pre_allocate){
             console.log("Allocating separate space for norms, colors.");
             padded_normals = copy_Float32Array_preallocated(verts, verts_capacity*3, "random");
+            // if !ignoreNormals ...
             padded_normals.set(padded_verts);
             //var padded_colors = copy_Float32Array_preallocated(verts, verts_capacity*3, "random");
             //var uvs = copy_Float32Array_preallocated(new Float32Array([]), verts_capacity*3 * 0, "random");
@@ -125,9 +127,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             console.error("padded_normals = ?");
         }
 
-        var flat = false;
-        if(!flat)
+        // We always need to allocate normals
         this.addAttribute( 'normal', new THREE.BufferAttribute( padded_normals, 3, true ) );
+
+        //}
+
         //this.addAttribute( 'color', new THREE.BufferAttribute( padded_colors, 3, true ) ); //color is overidden
         //this.addAttribute( 'uv', new THREE.BufferAttribute( uvs, 2 ) );
 
@@ -161,7 +165,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
     /*
     This function may return new LiveBufferGeometry71 object, in this case the old geometry has to be replaced (by the new returned object) in the caller function.
     */
-    this.update_geometry = function(implicit_service) {
+    this.update_geometry = function(implicit_service, ignoreNormals) {
 
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
@@ -240,7 +244,9 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             */
         }else{
             geometry.attributes.position.array.set(verts);
-            geometry.attributes.normal.array.set(verts);
+            if(!ignoreNormals) {
+                geometry.attributes.normal.array.set(verts);
+            }
         }
 
         var availableFacesSize = geometry.attributes.index.array.length;
@@ -262,7 +268,9 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
 
             geometry.attributes.position.needsUpdate = true;
             geometry.attributes.index.needsUpdate = true;
-            geometry.attributes.normal.needsUpdate = true;
+            if(!ignoreNormals) {
+                geometry.attributes.normal.needsUpdate = true;
+            }
 
             return false;//new_geometry;
 
@@ -310,7 +318,9 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         //geometry.computeOffsets();
         geometry.attributes.position.needsUpdate = true;
         geometry.attributes.index.needsUpdate = true;
-        geometry.attributes.normal.needsUpdate = true;
+        if(!ignoreNormals) {
+            geometry.attributes.normal.needsUpdate = true;
+        }
         //geometry.attributes.color.needsUpdate = true;
 
         /*
@@ -319,10 +329,10 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         IMPLICIT.finish_geometry();
         var mc_properties_json = JSON.stringify({resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
         IMPLICIT.build_geometry(......., mc_properties_json,);
-        g.update_geometry(IMPLICIT)
+        g.update_geometry(IMPLICIT, false)
 
 
-        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT);}
+        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT, false);}
 
         */
         return false;
@@ -331,6 +341,41 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
 
 
     };
+
+    this.update_normals_from_array = function(normals) {
+        //i.e. setNormals()
+        // Only called after updateGeometry(), or after LiveGeometry()
+        var geometry = this;
+        // assert ensure length
+        geometry.attributes.normal.array.set(normals);
+        geometry.attributes.normal.needsUpdate = true;
+    };
+
+    this.update_normals = function(implicit_service, x, mp5_str, ignore_root_matrix) {
+        // Only called after updateGeometry(), or after LiveGeometry()
+
+        //this.aaaaaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+
+        // var x = new Float32Array(nverts);
+
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+
+        implicit_service.set_object(mp5_str, ignore_root_matrix);
+        implicit_service.set_vect(x);  // overhead
+        implicit_service.calculate_implicit_gradients(true);
+        var ptr = implicit_service.get_gradients_ptr();
+        var ptr_len = implicit_service.get_gradients_size();
+        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+        //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+        var geom = this;
+        geom.update_normals_from_array(gradients);
+
+        implicit_service.unset_x();
+        implicit_service.unset_object();
+
+    };
+
 
     // this.computeBoundingBox = function...; // not needed.
     // this.computeBoundingSphere = function...; // not needed.
