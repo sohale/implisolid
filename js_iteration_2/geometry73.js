@@ -15,12 +15,12 @@ function __check_TypedArray_type(src, _type){
 /**
 * @param {Number | String} initial_value: if "random" then randomize color else if it's a number color set to this value
 */
-function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
+function copy_Float32Array_preallocated(src, min_prealloc_size, initial_value)  {
     __check_TypedArray_type(src, Float32Array);
     var TYPE_SIZE = 4;
-    if(prealloc_size % 1 !== 0) console.error("prealloc_size must be integer: " + prealloc_size);
-    //if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
-    var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
+    if(min_prealloc_size % 1 !== 0) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
+    //if(min_prealloc_size !== int(min_prealloc_size)) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
+    var len_bytes = Math.max(min_prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     var r = new Float32Array(dst);
     r.set(new Float32Array(src));
@@ -37,23 +37,23 @@ function copy_Float32Array_preallocated(src, prealloc_size, initial_value)  {
     }
     return r;
 }
-function copy_Uint32Array_preallocated(src, prealloc_size)  {
+function copy_Uint32Array_preallocated(src, min_prealloc_size)  {
     __check_TypedArray_type(src, Uint32Array);
     var TYPE_SIZE = 4;
-    //if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
-    if(prealloc_size % 1 !== 0) console.error("prealloc_size must be integer: " + prealloc_size);
-    var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);
+    //if(min_prealloc_size !== int(min_prealloc_size)) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
+    if(min_prealloc_size % 1 !== 0) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
+    var len_bytes = Math.max(min_prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
     console.log("dst[0] : " + dst[0]);
     var r = new Uint32Array(dst);
     r.set(new Uint32Array(src));
     return r;
 }
-function copy_Uint16Array_preallocated(src, prealloc_size)  {
+function copy_Uint16Array_preallocated(src, min_prealloc_size)  {
     __check_TypedArray_type(src, Uint16Array);
     var TYPE_SIZE = 2;
-    if(prealloc_size !== int(prealloc_size)) console.error("prealloc_size must be integer: " + prealloc_size);
-    var len_bytes = Math.max(prealloc_size*TYPE_SIZE, src.byteLength);;
+    if(min_prealloc_size !== int(min_prealloc_size)) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
+    var len_bytes = Math.max(min_prealloc_size*TYPE_SIZE, src.byteLength);;
     var dst = new ArrayBuffer(len_bytes);
     var r = new Uint16Array(dst);
     r.set(new Uint16Array(src));
@@ -61,39 +61,44 @@ function copy_Uint16Array_preallocated(src, prealloc_size)  {
 }
 
 /** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
-function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, verts_capacity_) {
+function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacity_, min_verts_capacity_) {
 
     THREE.BufferGeometry.call( this );
     this.type = 'LiveBufferGeometry71';
 
     this.parameters = { };
 
-    if(faces_capacity_ === undefined) faces_capacity_ = 9000*0;
-    if(verts_capacity_ === undefined) verts_capacity_ = 8000*0;
+    if(min_faces_capacity_ === undefined) min_faces_capacity_ = 9000*0;
+    if(min_verts_capacity_ === undefined) min_verts_capacity_ = 8000*0;
 
     const GROWTH_FACTOR = 1.5;
     const GROWTH_ADDITIONAL = 1;
 
-    //_expect(faces_capacity_);
-    //_expect(verts_capacity_);
-    //console.log("verts : "+ verts_capacity_ + " faces : "+ faces_capacity_);
+    //_expect(min_faces_capacity_);
+    //_expect(min_verts_capacity_);
+    //console.log("verts : "+ min_verts_capacity_ + " faces : "+ min_faces_capacity_);
 
-    this.allocate_buffers = function(verts, faces,  pre_allocate, faces_capacity, verts_capacity) {
+    this.allocate_buffers = function(verts, faces,  pre_allocate, faces_capacity, min_verts_capacity) {
         if(faces.length == 0){
             console.log("emptyimplicit");
             var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
             var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
 
-        if (faces_capacity == 0 || faces.length == 0 || verts.length == 0 ) {
+        /*if (faces_capacity == 0 || faces.length == 0 || verts.length == 0 ) {
             console.warn("faces_capacity == 0");
         }
-        console.log("verts : "+ verts_capacity + " faces : "+ faces_capacity);
+        */
+        if (faces.length == 0 || verts.length == 0 ) {
+            console.error("faces.length, verts.length == 0");
+        }
+
+        console.log("verts : "+ min_verts_capacity + " faces : "+ faces_capacity);
         var padded_faces, padded_verts;
         if(pre_allocate){
             console.log("Allocating separate space for verts,faces.");
             padded_faces = copy_Uint32Array_preallocated(faces, faces_capacity*3);
-            padded_verts = copy_Float32Array_preallocated(verts, verts_capacity*3);
+            padded_verts = copy_Float32Array_preallocated(verts, min_verts_capacity*3);
         }
         else
         {
@@ -119,11 +124,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
         var padded_normals;
         if(pre_allocate){
             console.log("Allocating separate space for norms, colors.");
-            padded_normals = copy_Float32Array_preallocated(verts, verts_capacity*3, "random");
+            padded_normals = copy_Float32Array_preallocated(verts, min_verts_capacity*3, "random");
             // if !ignoreNormals ...
             padded_normals.set(padded_verts);
-            //var padded_colors = copy_Float32Array_preallocated(verts, verts_capacity*3, "random");
-            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), verts_capacity*3 * 0, "random");
+            //var padded_colors = copy_Float32Array_preallocated(verts, min_verts_capacity*3, "random");
+            //var uvs = copy_Float32Array_preallocated(new Float32Array([]), min_verts_capacity*3 * 0, "random");
             //padded_colors.set(padded_verts);
         }
         else{
@@ -264,9 +269,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
             console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
             var faces_capacity = Math.floor(Math.max(availableFacesSize/3, faces_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
-            var verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
+            var min_verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
 
-            this.allocate_buffers(verts, faces,  true, faces_capacity, verts_capacity);
+            console.error(faces_capacity+"  "+min_verts_capacity);
+
+            this.allocate_buffers(verts, faces,  true, faces_capacity, min_verts_capacity);
             //var new_geometry= new LiveBufferGeometry71( verts, faces,  true, Math.max(availableFacesSize/3, faces.length/3) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
 
             geometry.attributes.position.needsUpdate = true;
@@ -383,7 +390,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, faces_capacity_, 
     // this.computeBoundingBox = function...; // not needed.
     // this.computeBoundingSphere = function...; // not needed.
 
-    this.allocate_buffers(verts_, faces_,  pre_allocate_, faces_capacity_, verts_capacity_);
+    this.allocate_buffers(verts_, faces_,  pre_allocate_, min_faces_capacity_, min_verts_capacity_);
 };
 
 LiveBufferGeometry71.prototype = Object.create( THREE.BufferGeometry.prototype );

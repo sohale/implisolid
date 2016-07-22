@@ -61,6 +61,10 @@ var ImplicitService = function(){
             this.finish_geometry();
             this.needsFinish = false;
         }
+
+        //console.log("mc_params.resolution " + mc_params.resolution);
+        //mc_params.resolution = 40;
+
         var mp5_str = JSON.stringify(shape_params);
         this.build_geometry(mp5_str, JSON.stringify(mc_params));
         this.needsFinish = true;
