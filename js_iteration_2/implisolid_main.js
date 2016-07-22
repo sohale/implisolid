@@ -14,6 +14,17 @@ function init(service) {
     service.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
     service.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
+    service.set_object = Module.cwrap('set_object', null, ['string', 'number']);
+    service.unset_object = Module.cwrap('unset_object', null, []);
+    service.set_x = Module.cwrap('set_x', null, ['number', 'number']);  // sends the x points for evaluation of implicit or gradient
+    service.unset_x = Module.cwrap('unset_x', null, []);
+    service.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
+    service.get_values_ptr = Module.cwrap('get_values_ptr', 'number', []);
+    service.get_values_size = Module.cwrap('get_values_size', 'number', []);
+    service.calculate_implicit_gradients = Module.cwrap('calculate_implicit_gradients', null, ['number']);  // boolean argument to normalize and reverse the vevtors, suitable for rendering.
+    service.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
+    service.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
+
     service.init = function(){ service.needsFinish = false; }
     service.finish_with = function (){
         //after the last round.
@@ -23,7 +34,17 @@ function init(service) {
         service.finish_geometry();
         service.needsFinish = false;
     }
+    service.set_vect = function (float32Array) {
+        // Accesses module
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        if (float32Array.length % 3 != 0) {console.error("bad input array");};
+        var nverts = float32Array.length / 3;
+        var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
+        Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
+        this.set_x(verts_space, nverts);
+        Module._free( verts_space );
 
+    }
     service.init();
     return service;
 }
@@ -40,7 +61,8 @@ var ImplicitService = function(){
             this.finish_geometry();
             this.needsFinish = false;
         }
-        this.build_geometry(JSON.stringify(shape_params), JSON.stringify(mc_params));
+        var mp5_str = JSON.stringify(shape_params);
+        this.build_geometry(mp5_str, JSON.stringify(mc_params));
         this.needsFinish = true;
 
         var nverts = this.get_v_size();
@@ -55,6 +77,12 @@ var ImplicitService = function(){
         var allocate_buffers = true;
         var geom = new LiveBufferGeometry71(verts, faces, allocate_buffers);
 
+        // Set the normals
+        var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
+        geom.update_normals(this, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+        //this.aaaaaaaaaaaa(verts);
+
+
         var endTime = new Date();
         var timeDiff = endTime - startTime;
 
@@ -62,6 +90,26 @@ var ImplicitService = function(){
 
         return geom;
     };
+    /*
+    this.aaaaaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+
+        // var x = new Float32Array(nverts);
+
+        this.set_object(mp5_str, ignore_root_matrix);
+        this.set_vect(x);  // overhead
+        this.calculate_implicit_gradients();
+        var ptr = this.get_gradients_ptr();
+        var ptr_len = this.get_gradients_size();
+        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+        //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+        geom.update_normals(gradients);
+
+        this.unset_x();
+        this.unset_object();
+
+    }
+    */
     //This method is called by the designer to obtain the geometry from the ImplicitService
     this.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
         //var mc_properties = {resolution: 28, box: {xmin: -1, xmax: 1, ymin: -1, ymax: 1, zmin: -1, zmax: 1}};
@@ -189,7 +237,8 @@ function test_update1(t, mesh, dict){
         mesh.geometry = new_geometry;
         g = new_geometry;
     }
-    g.update_geometry(IMPLICIT);
+    g.update_geometry(IMPLICIT, true);
+    g.update_normals(IMPLICIT);
 
 }
 
@@ -197,9 +246,12 @@ function test_update1(t, mesh, dict){
 function test_update2(t){
     var g = currentMeshes[0].geometry;
 
-    var new_geometry = g.update_geometry(IMPLICIT);
-    if(new_geometry)
-        currentMeshes[0].geometry = new_geometry
+    var new_geometry = g.update_geometry(IMPLICIT, false);
+    g.update_normals(IMPLICIT);
+    if(new_geometry){
+        currentMeshes[0].geometry = new_geometry;
+    }
+
 }
 
 /*
