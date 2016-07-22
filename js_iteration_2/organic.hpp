@@ -136,11 +136,11 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            (*f_output)[output_ctr] = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
-            // if(abs((*i)[0])>this->a || abs((*i)[1])>this->a || abs((*i)[2])>this->a )
-            //     (*f_output)[output_ctr]=-1;
-            if(sqrt(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))>this->a)
-                (*f_output)[output_ctr]=-1;
+            REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
+            REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +36;
+
+            (*f_output)[output_ctr] = min(f,bouding_sphere);
+
         }
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -155,9 +155,19 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            (*output)[output_ctr][0] = -2. * ((*i)[0]-this->x)/a2;
-            (*output)[output_ctr][1] = -2. * ((*i)[1]-this->y)/b2;
-            (*output)[output_ctr][2] = -2. * ((*i)[2]-this->z)/c2;
+          REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
+          REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +36;
+
+          if(f<bouding_sphere){
+            (*output)[output_ctr][0] = this->b*cos(this->b*(*i)[0]);
+            (*output)[output_ctr][1] = this->b*cos(this->b*(*i)[1]);
+            (*output)[output_ctr][2] = -this->b*cos(this->b*(*i)[2]);
+          }
+          else{
+            (*output)[output_ctr][0] = -2*(*i)[0];
+            (*output)[output_ctr][1] = -2*(*i)[0];
+            (*output)[output_ctr][2] = -2*(*i)[0];
+          }
 
             REAL g0 = (*output)[output_ctr][0];
             REAL g1 = (*output)[output_ctr][1];

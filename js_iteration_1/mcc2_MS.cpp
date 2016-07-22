@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "scone";
+    string name = "organic";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 1.;
+      REAL grid_real_size = 10.;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -221,7 +221,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     }
 
     else if (name == "scone"){
-      scone scone(0.7, 0.2, 0.4, 0.1, 0.1, -0.1);
+      scone scone(0.8, 0.1, 0.5, 0., 0., 0.5);
       object = &scone;
     }
     else if (name == "scylinder"){
