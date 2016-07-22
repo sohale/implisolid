@@ -364,7 +364,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
     this.update_normals = function(implicit_service, x, mp5_str, ignore_root_matrix) {
         // Only called after updateGeometry(), or after LiveGeometry()
 
-        //this.aaaaaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+        //this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
 

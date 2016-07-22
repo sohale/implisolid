@@ -84,7 +84,7 @@ var ImplicitService = function(){
         // Set the normals
         var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
         geom.update_normals(this, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-        //this.aaaaaaaaaaaa(verts);
+        //this.aaaaaaaaa(verts);
 
 
         var endTime = new Date();
@@ -95,7 +95,7 @@ var ImplicitService = function(){
         return geom;
     };
     /*
-    this.aaaaaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+    this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
 
