@@ -14,12 +14,12 @@ protected:
 public:
 
   scone(REAL matrix12[12]){
-      this->h = 1;
+      this->h = 0.8;
       this->r1 = 0.1;
-      this->r2 = 1;
+      this->r2 = 0.5;
       this->x0 = 0;
       this->y0 = 0;
-      this->z0 = -0.5;
+      this->z0 = +0.5;
 
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
