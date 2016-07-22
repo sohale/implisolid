@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8.12)
+project(solidmodeler)
+add_subdirectory(pybind11)
+find_package(Boost 1.60)
+include_directories(${Boost_INCLUDE_DIRS})
+pybind11_add_module(solidmodeler pyInterface.cpp)
