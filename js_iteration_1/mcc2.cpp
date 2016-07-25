@@ -303,7 +303,7 @@ struct mc_settings {
 
 }
 
-mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
+mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_json) {
     std::stringstream mc_json_stream;
     mc_json_stream << mc_parameters_json;
 
@@ -365,7 +365,7 @@ mp5_implicit::mc_settings parse_mc_properties_json(char* mc_parameters_json) {
 #include "../js_iteration_2/object_factory.hpp"
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
-void build_geometry(char* shape_parameters_json, char* mc_parameters_json) {
+void build_geometry(const char* shape_parameters_json,const char* mc_parameters_json) {
     if (!check_state_null())
         return;
     // std::cout << "In build_geometry obj_name : " << obj_name << std::endl;

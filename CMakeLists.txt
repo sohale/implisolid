@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(solidmodeler)
+project(pymplicit)
 add_subdirectory(pybind11)
 find_package(Boost 1.60)
 include_directories(${Boost_INCLUDE_DIRS})
-pybind11_add_module(solidmodeler pyInterface.cpp)
+pybind11_add_module(pymplicit pyInterface.cpp)

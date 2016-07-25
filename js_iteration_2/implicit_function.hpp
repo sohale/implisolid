@@ -37,6 +37,13 @@ public:
     virtual ~implicit_function() {};
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        return mp5_implicit::bounding_box{-1, 1, -1.1, 1.1, -1.1, 1.1};
+        float v1 = -1;
+        float v2 = 1;
+        float v3 = -1.1;
+        float v4 = 1.1;
+        float v5 = -1.1;
+        float v6 = 1.1;
+
+        return mp5_implicit::bounding_box{v1, v2, v3, v4, v5, v6};
     };
 };
