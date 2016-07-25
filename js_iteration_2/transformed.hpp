@@ -72,6 +72,7 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const = 0;
 
     /* Makes a copy and applied the matrix. To be called inside the eval_implicit() and eval_gradient() */
+    /*
     vectorized_vect prepare_inner_vectors(const vectorized_vect& x) const {
         //my_assert(assert_implicit_function_io(x, *f_output), "");
         //my_assert(this->integrity_invariant(), ""); // fixme: has problems
@@ -81,6 +82,7 @@ public:
 
         return x_copy;
     }
+    */
     void gradient_post_implace_transformation(const vectorized_vect& x) const {
         // todo(sohail):
         // matrix_vector_product(this->inv_transf_matrix, x_copy);

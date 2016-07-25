@@ -309,6 +309,27 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
 	return true;
 }
 
+
+/* Makes a copy and applied the matrix. To be called inside the eval_implicit() and eval_gradient() */
+vectorized_vect prepare_inner_vectors(REAL* inv_transf_matrix, const vectorized_vect& x) {
+    //my_assert(assert_implicit_function_io(x, *f_output), "");
+    //my_assert(this->integrity_invariant(), ""); // fixme: has problems
+
+
+    vectorized_vect::index nc = x.shape()[0];  // converts int -> uint
+    vectorized_vect::index ndim = x.shape()[1];
+    auto shape_ = boost::array<vectorized_vect::index, 2>{nc, ndim};
+    vectorized_vect x_copy = vectorized_vect(shape_);
+    std::copy(x.begin(), x.end(), x_copy.begin());
+    //vectorized_vect x_copy = x;
+
+    //vectorized_vect x_copy = vectorized_vect(x.begin(), x.end());
+
+    matrix_vector_product(inv_transf_matrix, x_copy);
+
+    return x_copy;
+}
+
 namespace mp5_implicit {
 
     struct bounding_box {

@@ -125,9 +125,9 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
-        vectorized_vect x_copy = x;
-
-        matrix_vector_product(this->inv_transf_matrix, x_copy);
+        //vectorized_vect x_copy = x;
+        //matrix_vector_product(this->inv_transf_matrix, x_copy);
+        const vectorized_vect local_x = prepare_inner_vectors(this->inv_transf_matrix, x);
 
         const REAL a2 = squared(this->r2/this->h);
 
@@ -138,8 +138,8 @@ public:
         int output_ctr=0;
 
 
-        auto e = x_copy.end();
-        for(auto i = x_copy.begin(); i<e; i++, output_ctr++){
+        auto e = local_x.end();
+        for(auto i = local_x.begin(); i<e; i++, output_ctr++){
             REAL x = (*i)[0];
             REAL y = (*i)[1];
             REAL z = (*i)[2];
@@ -154,9 +154,9 @@ public:
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
-        vectorized_vect x_copy = x;
-
-        matrix_vector_product(this->inv_transf_matrix, x_copy);
+        //vectorized_vect local_x = x;
+        //matrix_vector_product(this->inv_transf_matrix, local_x);
+        const vectorized_vect local_x = prepare_inner_vectors(this->inv_transf_matrix, x);
 
         const REAL a2 = squared(this->r2/this->h);
 
@@ -166,9 +166,9 @@ public:
 
         int output_ctr=0;
 
-        auto e = x_copy.end();
+        auto e = local_x.end();
         //const REAL r2 = squared(this->h);
-        for(auto i = x_copy.begin(); i!=e; i++, output_ctr++){
+        for(auto i = local_x.begin(); i!=e; i++, output_ctr++){
 
 
             REAL x = (*i)[0];
@@ -200,17 +200,21 @@ public:
             }
 
 
-            (*output)[output_ctr][0] = this->transf_matrix[0]*gx + this->transf_matrix[4]*gy + this->transf_matrix[8]*gz;
-            (*output)[output_ctr][1] = this->transf_matrix[1]*gx + this->transf_matrix[5]*gy + this->transf_matrix[9]*gz;
-            (*output)[output_ctr][2] = this->transf_matrix[2]*gx + this->transf_matrix[6]*gy + this->transf_matrix[10]*gz;
+            (*output)[output_ctr][0] = this->inv_transf_matrix[0]*gx + this->inv_transf_matrix[4]*gy + this->inv_transf_matrix[8]*gz;
+            (*output)[output_ctr][1] = this->inv_transf_matrix[1]*gx + this->inv_transf_matrix[5]*gy + this->inv_transf_matrix[9]*gz;
+            (*output)[output_ctr][2] = this->inv_transf_matrix[2]*gx + this->inv_transf_matrix[6]*gy + this->inv_transf_matrix[10]*gz;
 
         }
     }
     bool integrity_invariant() const {
-      if(this->h < MIN_PRINTABLE_LENGTH || ((this->r1 < MIN_PRINTABLE_LENGTH) && (!scone::allow_zero_r1)) || this->r2 < MIN_PRINTABLE_LENGTH)
-        return false;
+      if(
+          this->h < MIN_PRINTABLE_LENGTH ||
+          ((this->r1 < MIN_PRINTABLE_LENGTH) && (!scone::allow_zero_r1)) ||
+          this->r2 < MIN_PRINTABLE_LENGTH
+        )
+          return false;
       else
-        return true;
+          return true;
     }
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
         REAL max_size = norm_squared(h,r2,r2);
