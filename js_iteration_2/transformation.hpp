@@ -6,7 +6,7 @@
 class transformable_implicit_function : public implicit_function {
 
 public:
-  
+
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
 
@@ -79,6 +79,5 @@ protected:
         return x_copy;
     }
     */
-=======
->>>>>>> Refactoring the transformation class
+
 };
