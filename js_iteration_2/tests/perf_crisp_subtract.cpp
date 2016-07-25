@@ -137,7 +137,7 @@ test_crisp_subtract_performance_in_chunks(const int nr_points, const int nr_chun
  * #Points		|		Time(ms)
  * 1M 			|			159
  * 100K			|		 	 24
- * 100K			|	      	  7
+ * 10K			|	      	  7
  */
 void
 test_mp5_object(int nr_points) {
