@@ -31,7 +31,7 @@ test_crisp_subtract_performance(const int nr_points)
 {
 	int nr_chunks=1;
 	std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-	std::cout << "Number of points: "  << nr_points << "\t" << "Number of chunks: " << ( nr_chunks ? nr_chunks: 1 ) <<std::endl;
+	std::cout << "Number of points: "  << nr_points << "t" << "Number of chunks: " << ( nr_chunks ? nr_chunks: 1 ) <<std::endl;
 	auto sf = make_shape_1d(nr_points); //  Create the shape of the output
 	vectorized_scalar f = vectorized_scalar(sf);
 
@@ -74,6 +74,12 @@ test_crisp_subtract_performance(const int nr_points)
  * #Points		|		Time(ms)
  * ------------------------------
  * #TODO: provide timings by running node perf_crisp_subtract.compiled.js
+ * #TODO: figure out the exception cause of the json object passed as a string:
+ * 		a) is it corrupted ?
+ * 			- See an example usage
+ * 			- Ask S
+ * 		b) is there a function mismatch?
+ *
  */
 
 
@@ -116,48 +122,64 @@ test_crisp_subtract_performance_in_chunks(const int nr_points, const int nr_chun
 /**
  * Function: test_mp5_object
  * Description:
+ *
  * This functions measures the performance of the calculation of nr_points points
  * on an implicit function. To retrieve the implicit function we use the
- * object_factory(str, bool). The first argument of object_factory, is of type string, and it represents
- * a json object that specifies the type of the implicit function and various properties.
- * The second argument is of no use to this function.
- *
+ * object_factory(str, bool, bool). The first argument of object_factory, is of type string, and it represents
+ * a json object that specifies the type of the implicit function and properties.
+ * The second argument is of no use to this function so can be set to false.
+ * Third argument is set to default = true;
  */
 
-#include "json.hpp"
-using json = nlohmann::json;
-
+/**
+ * Performance:
+ *
+ * #Points		|		Time(ms)
+ * 1M 			|			159
+ * 100K			|		 	 24
+ * 100K			|	      	  7
+ */
 void
 test_mp5_object(int nr_points) {
 
 	std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-	std::string str_json = "{\"printerSettings\":{\"name\":\"test\",\"layerThickness\":0.2,\"emptyLayer\":0,\"infillSpace\":4,\"topThickness\":0.6,\"paramSamples\":75,\"speedRate\":1000,\"circleSpeedRate\":1000,\"temperature\":220,\"inAirSpeed\":7000,\"flowRate\":0.035,\"criticalLength\":35,\"retractionSpeed\":2400,\"retractionLength\":5,\"shellNumber\":3,\"material\":\"PLA 2.85mm\",\"autoZScar\":true,\"zScarGap\":0.5,\"critLayerTime\":6,\"filamentDiameter\":2.85},\"mp5-version\":\"0.3\",\"root\":{\"type\":\"root\",\"children\":[{\"type\":\"Union\",\"protected\":false,\"children\":[{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.9661750055896976,\"y\":0.8085857086202395,\"z\":0.41578037212168595},\"matrix\":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],\"index\":7575510},{\"type\":\"cube\",\"displayColor\":{\"x\":0.23399071378141634,\"y\":0.31584816496653323,\"z\":0.35457351563365425},\"matrix\":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],\"index\":5587759},{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.43814645627496795,\"y\":0.39556472441055845,\"z\":0.3415798414286939},\"matrix\":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],\"index\":6657333}],\"initialSize\":{\"x\":1,\"y\":1,\"z\":1},\"displayColor\":{\"x\":0.6470588235294118,\"y\":0.2784313725490196,\"z\":0.5882352941176471},\"matrix\":[1,0,0,82.63768850593796,0,1,0,126.37324151118989,0,0,1,5.000000079354265,0,0,0,1],\"index\":4872526}]}}";
-	bool use_metaball = false;
-	
-	/*****************************************************
-	* There is an exception happening in the next line  *
-	******************************************************/
-	
-	implicit_function* object = object_factory(str_json,use_metaball,true);	
+	std::string str_json = "{\"printerSettings\":{\"name\":\"test\",\"layerThickness\":0.2,\"emptyLayer\":0,\"infillSpace\":4,\"topThickness\":0.6,\"paramSamples\":75,\"speedRate\":1000,\"circleSpeedRate\":1000,\"temperature\":220,\"inAirSpeed\":7000,\"flowRate\":0.035,\"criticalLength\":35,\"retractionSpeed\":2400,\"retractionLength\":5,\"shellNumber\":3,\"material\":\"PLA 2.85mm\",\"autoZScar\":true,\"zScarGap\":0.5,\"critLayerTime\":6,\"filamentDiameter\":2.85},\"mp5-version\":\"0.3\",\"root\":{\"type\":\"root\",\"children\":[{\"type\":\"Difference\",\"protected\":false,\"children\":[{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.7675997200783986,\"y\":0.03892568708507049,\"z\":0.1754374135888661},\"matrix\":[42.583184547062736,0,0,0,0,49.55270399250958,0,0,0,0,10,0,0,0,0,1],\"index\":652818},{\"type\":\"Difference\",\"protected\":false,\"children\":[{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.8122645344236872,\"y\":0.657334404743416,\"z\":0.7357336310755096},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":1272174},{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.11421729990684737,\"y\":0.07562705374348999,\"z\":0.6324600862122098},\"matrix\":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],\"index\":2463576}],\"initialSize\":{\"x\":1,\"y\":1,\"z\":1},\"displayColor\":{\"x\":0.6627450980392157,\"y\":0.4549019607843137,\"z\":0.7215686274509804},\"matrix\":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],\"index\":413872}],\"initialSize\":{\"x\":1,\"y\":1,\"z\":1},\"displayColor\":{\"x\":0.5529411764705883,\"y\":0.06666666666666667,\"z\":0.11764705882352941},\"matrix\":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],\"index\":6565922}]}}";
+	bool use_metaball = false, ignore_root_matrix = true;
+
+	std::stringstream shape_json_stream;
+    shape_json_stream << str_json ;
+
+	pt::ptree shapeparams_dict;
+	pt::ptree root_params;
+
+	pt::read_json(shape_json_stream, shapeparams_dict);
+	root_params = shapeparams_dict.get_child("root");
+
+
+	implicit_function *object; 	//  = object_factory(root_params.get_child("children"), use_metaball, ignore_root_matrix);
+	implicit_function * a = NULL;
+	implicit_function * b = NULL;
+
+	int count = 0;
+	for (pt::ptree::value_type &element : root_params.get_child("children")){
+		a = object_factory(element.second, use_metaball, ignore_root_matrix);
+		count++;
+	}
+
 	auto sf = make_shape_1d(nr_points);
-	vectorized_vect x = make_empty_x(nr_points); // This is the input; must be an orthogonal 3D grid, like numpy's mgrid 
+	vectorized_vect x = make_empty_x(nr_points); // This is the input; must be an orthogonal 3D grid, like numpy's mgrid
 	vectorized_scalar f = vectorized_scalar(sf); // This allocates memory for the output data structure,
 												 // which holds the values of the implicit_function corresponding to x
-	// Initialize x 
+	// Initialize x
 	for (int i = 0; i < nr_points; i++ ){
 		x[i][0] = 0.0;
 		x[i][1] = 0.0;
 		x[i][2] = 0.0;
 	};
 
-	timer t1; 
-
-	object->eval_implicit(x, &f);
-
-	t1.stop();
-
-	evaluate object-->function
-	put timer around it
+	timer t1;
+			a->eval_implicit(x, &f);
+		t1.stop();
 }
 
 int main()
@@ -171,6 +193,6 @@ int main()
 	test_crisp_subtract_performance_in_chunks(1000000, 200);
 	test_crisp_subtract_performance_in_chunks(1000000, 500);
 	test_crisp_subtract_performance_in_chunks(1000000, 1000);
-	test_mp5_object(1000);
+	test_mp5_object(10000);
 	return 0;
 }
