@@ -7,8 +7,7 @@ class organic : public transformable_implicit_function {
 protected:
     REAL a; REAL b; REAL c;
     REAL x; REAL y; REAL z;
-    REAL* transf_matrix;
-    REAL* inv_transf_matrix;
+
 
 public:
     organic(REAL radius_x, REAL radius_y, REAL radius_z){
@@ -35,9 +34,9 @@ public:
     }
 
     organic(REAL matrix[12]) {
-        this->a = 0.5;
-        this->b = 0.5;
-        this->c = 0.5;
+        this->a = 6.;
+        this->b = 2.5;
+        this->c = 1.;
 
         this->x = 0.;
         this->y = 0.;
@@ -77,51 +76,6 @@ public:
         my_assert(this->integrity_invariant(), "");
       }
 
-    virtual void rotate(const REAL angle, const vectorized_vect axis) const {
-      REAL ca = cos(angle);
-      REAL sa = sin(angle);
-      REAL norm = sqrt(axis[0][0]*axis[0][0] + axis[0][1]*axis[0][1] + axis[0][2]*axis[0][2]);
-      REAL a1 = axis[0][0]/norm;
-      REAL a2 = axis[0][1]/norm;
-      REAL a3 = axis[0][2]/norm;
-
-      REAL rotation[12];
-      rotation[0] = ca + a1*a1*(1.-ca);
-      rotation[1] = a1*a2*(1.-ca) - a3*sa;
-      rotation[2] = a1*a3*(1.-ca) + a2*sa;
-      rotation[3] = 0.;
-      rotation[4] = a1*a2*(1.-ca) + a3*sa;
-      rotation[5] = ca + a2*a2*(1.-ca);
-      rotation[6] = a2*a3*(1.-ca) - a1*sa;
-      rotation[7] = 0.;
-      rotation[8] = a1*a3*(1.-ca) - a2*sa;
-      rotation[9] = a2*a3*(1.-ca) + a1*sa;
-      rotation[10] = ca + a3*a3*(1.-ca);
-      rotation[11] = 0.;
-
-      matrix_matrix_product(this->transf_matrix, rotation);
-
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-
-    }
-
-    virtual void move(const vectorized_vect direction) const{
-      this->transf_matrix[3] += direction[0][0];
-      this->transf_matrix[7] += direction[0][1];
-      this->transf_matrix[11] += direction[0][2];
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-
-    }
-    virtual void resize(const REAL ratio) const{
-      for (int i=0; i<12; i++){
-        if(i==3 || i==7 || i==11){
-        }
-        else{
-        this->transf_matrix[i] *= ratio;
-        }
-      }
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-    }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
 
@@ -136,10 +90,39 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
+
+          //*******HERE ARE ALL THE SHAPES THAT WROK AND MAY PROVE USEFULL ONE DAY************//
+
+                                        //Honey Comb//
+
             REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
             REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
+            (*f_output)[output_ctr] = min(f, bouding_sphere);
 
-            (*f_output)[output_ctr] = min(f,bouding_sphere);
+                                        //Cube of spheres//
+
+            // REAL f1 = c*(1-4*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)+ 17*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)-22*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4));
+            // REAL f2 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f3 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f4 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f5 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f6 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f7 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f8 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f9 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            //
+            // (*f_output)[output_ctr] = max(f1,max(f2,max(f3,max(f4,max(f5,max(f6,max(f7,max(f8,f9))))))));
+
+                                        //MAETBALLL//
+
+            //
+            // REAL f1 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]+3.5,2))/9)-0.05;
+            // REAL f2 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]-3.5,2))/9);
+            // REAL f3 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]-3.5,2))/9);
+            // REAL f4 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]+3.5,2))/9);
+            // (*f_output)[output_ctr] = f1+f2+f3+f4;
+
+                                        //?????//
 
         }
     }
@@ -154,6 +137,9 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
+
+                                  // Gradient for the honey comb //
+
           REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
           REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
 
@@ -172,9 +158,9 @@ public:
             REAL g1 = (*output)[output_ctr][1];
             REAL g2 = (*output)[output_ctr][2];
 
-            (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
-            (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
-            (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
+            (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
+            (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
+            (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
         }
     }
     bool integrity_invariant() const {

@@ -5,26 +5,27 @@
 
 namespace mp5_implicit {
 
-class transformed_union : public transformed {
+class transformed_intersection : public transformed {
 
     std::vector<implicit_function*> children;
 
 public:
-    transformed_union (std::vector<implicit_function*> children, REAL matrix[12])
+    transformed_intersection (std::vector<implicit_function*> children, REAL matrix[12])
         : transformed(matrix), children(children)
     {
         my_assert(children.size() == 2, "for now only works on two objects.");
+
         /*
-        this->transf_matrix = new REAL [12];
-        this->inv_transf_matrix = new REAL [12];
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
 
-        for (int i=0; i<12; i++){
-            transf_matrix[i] = matrix12[i];
-        }
+      for (int i=0; i<12; i++){
+          transf_matrix[i] = matrix12[i];
+      }
 
-        invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-        my_assert(this->integrity_invariant(), "");
-        */
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+      my_assert(this->integrity_invariant(), "");
+      */
     }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
@@ -43,7 +44,7 @@ public:
         vectorized_scalar::index output_ctr = 0;
         auto e = local_x.end();
         for (auto i = local_x.begin(); i < e; i++, output_ctr++){
-            (*f_output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (f1[output_ctr]): f2[output_ctr];
+            (*f_output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (f2[output_ctr]): f1[output_ctr];
         }
     };
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -71,7 +72,7 @@ public:
       auto e = local_x.end();
 
       for (auto i = local_x.begin(); i < e; i++, output_ctr++){
-          (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
+          (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad2[output_ctr]): grad1[output_ctr];
 
           REAL gx = (*output)[output_ctr][0];
           REAL gy = (*output)[output_ctr][1];

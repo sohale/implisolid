@@ -157,7 +157,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     else if (name == "Union") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
-        getMatrix12(matrix12,shapeparams_dict);
+        getMatrix12(matrix12, shapeparams_dict);
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
@@ -220,9 +220,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
             }
             count++;
+            if (count > 2) {
+                std::cout << "Error: Intersection cannot be applied to more than two objects." << std::endl;
+            }
         }
 
-        object = new mp5_implicit::CrispIntersection(*a, *b);
+        // object = new mp5_implicit::CrispIntersection(*a, *b);
+        //object = new mp5_implicit::transformed_intersection(*a, *b, matrix12);
+        std::vector<implicit_function *> children;
+        children.push_back(a);
+        children.push_back(b);
+        object = new mp5_implicit::transformed_intersection(children, matrix12);
+
     }else if (name == "Difference") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
@@ -246,9 +255,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
             }
             count++;
+            if (count > 2) {
+                std::cout << "Error: Intersection cannot be applied to more than two objects." << std::endl;
+            }
+
         }
 
-        object = new mp5_implicit::CrispSubtract(*a, *b);
+        // object = new mp5_implicit::CrispSubtract(*a, *b);
+        // object = new mp5_implicit::transformed_subtract(*a, *b, matrix12);
+        std::vector<implicit_function *> children;
+        children.push_back(a);
+        children.push_back(b);
+        object = new mp5_implicit::transformed_subtract(children, matrix12);
     }
     else{
         // if(name=="meta_balls")

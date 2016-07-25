@@ -1660,7 +1660,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
             if(novel)
                 overall_vert_index = next_unique_vect_counter;
             else
-                overall_vert_index = e.first->second;
+                overall_vert_index = e.first->second;  // e.first = map entry, i.e. (key, value). Its .second=value is the unique sorted certex index.
 
             if(novel)
                 next_unique_vect_counter++;

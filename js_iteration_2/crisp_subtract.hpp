@@ -81,13 +81,13 @@ public:
         b.eval_gradient(x, &grad2);
 
 
-        auto e = x.end();
         for (auto i = grad2.begin(); i < grad2.end(); i++) {
                 (*i)[0] =  -(*i)[0];
                 (*i)[1] =  -(*i)[1];
                 (*i)[2] =  -(*i)[2];
         }
 
+        auto e = x.end();
         vectorized_scalar::index output_ctr = 0;
         for (auto i = x.begin(); i < e; i++, output_ctr++) {
             (*output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];

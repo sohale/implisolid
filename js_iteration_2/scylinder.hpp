@@ -8,8 +8,6 @@ protected:
     REAL x; REAL y; REAL z;
     REAL* w; REAL c_len;
     REAL radius_u; REAL radius_v;
-    REAL* transf_matrix;
-    REAL* inv_transf_matrix;
 
 public:
     scylinder(REAL matrix12[12]){
@@ -93,52 +91,6 @@ public:
     }
 
 
-    virtual void rotate(const REAL angle, const vectorized_vect axis) const {
-      REAL ca = cos(angle);
-      REAL sa = sin(angle);
-      REAL norm = sqrt(axis[0][0]*axis[0][0] + axis[0][1]*axis[0][1] + axis[0][2]*axis[0][2]);
-      REAL a1 = axis[0][0]/norm;
-      REAL a2 = axis[0][1]/norm;
-      REAL a3 = axis[0][2]/norm;
-
-      REAL rotation[12];
-      rotation[0] = ca + a1*a1*(1.-ca);
-      rotation[1] = a1*a2*(1.-ca) - a3*sa;
-      rotation[2] = a1*a3*(1.-ca) + a2*sa;
-      rotation[3] = 0.;
-      rotation[4] = a1*a2*(1.-ca) + a3*sa;
-      rotation[5] = ca + a2*a2*(1.-ca);
-      rotation[6] = a2*a3*(1.-ca) - a1*sa;
-      rotation[7] = 0.;
-      rotation[8] = a1*a3*(1.-ca) - a2*sa;
-      rotation[9] = a2*a3*(1.-ca) + a1*sa;
-      rotation[10] = ca + a3*a3*(1.-ca);
-      rotation[11] = 0.;
-
-      matrix_matrix_product(this->transf_matrix, rotation);
-
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-
-    }
-
-    virtual void move(const vectorized_vect direction) const{
-      this->transf_matrix[3] += direction[0][0];
-      this->transf_matrix[7] += direction[0][1];
-      this->transf_matrix[11] += direction[0][2];
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-
-    }
-    virtual void resize(const REAL ratio) const{
-      for (int i=0; i<12; i++){
-        if(i==3 || i==7 || i==11){
-        }
-        else{
-        this->transf_matrix[i] *= ratio;
-        }
-      }
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-    }
-
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
@@ -213,9 +165,9 @@ public:
           REAL g1 = (*output)[output_ctr][1];
           REAL g2 = (*output)[output_ctr][2];
 
-          (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
-          (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
-          (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
+          (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
+          (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
+          (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
 
         }
     }
