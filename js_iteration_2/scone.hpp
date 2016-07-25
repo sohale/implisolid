@@ -10,6 +10,7 @@ protected:
     REAL x0; REAL y0; REAL z0;
     REAL* transf_matrix;
     REAL* inv_transf_matrix;
+    static const bool allow_zero_r1 = true;
 
 public:
 
@@ -178,35 +179,35 @@ public:
             REAL uperside = -(z-z0)-r1;
             REAL lowerside = (z-z0)+h;
 
+            REAL gx;
+            REAL gy;
+            REAL gz;
+
             if(uperside < f && uperside < lowerside){
-                (*output)[output_ctr][0] = 0.;
-                (*output)[output_ctr][1] = 0.;
-                (*output)[output_ctr][2] = -1.;
+                gx = 0.;
+                gy = 0.;
+                gz = -1.;
               }
             else if(lowerside < f && lowerside < uperside){
-                (*output)[output_ctr][0] = 0.;
-                (*output)[output_ctr][1] = 0.;
-                (*output)[output_ctr][2] = +1.;
+                gx = 0.;
+                gy = 0.;
+                gz = +1.;
               }
             else{
-              (*output)[output_ctr][0] = -2*(x-x0)/a2;
-              (*output)[output_ctr][1] = -2*(y-y0)/a2;
-              (*output)[output_ctr][2] = 2*(z-z0);
+              gx = -2*(x-x0)/a2;
+              gy = -2*(y-y0)/a2;
+              gz = 2*(z-z0);
             }
 
 
-            REAL g0 = (*output)[output_ctr][0];
-            REAL g1 = (*output)[output_ctr][1];
-            REAL g2 = (*output)[output_ctr][2];
-
-            (*output)[output_ctr][0] = this->transf_matrix[0]*g0 + this->transf_matrix[4]*g1 + this->transf_matrix[8]*g2;
-            (*output)[output_ctr][1] = this->transf_matrix[1]*g0 + this->transf_matrix[5]*g1 + this->transf_matrix[9]*g2;
-            (*output)[output_ctr][2] = this->transf_matrix[2]*g0 + this->transf_matrix[6]*g1 + this->transf_matrix[10]*g2;
+            (*output)[output_ctr][0] = this->transf_matrix[0]*gx + this->transf_matrix[4]*gy + this->transf_matrix[8]*gz;
+            (*output)[output_ctr][1] = this->transf_matrix[1]*gx + this->transf_matrix[5]*gy + this->transf_matrix[9]*gz;
+            (*output)[output_ctr][2] = this->transf_matrix[2]*gx + this->transf_matrix[6]*gy + this->transf_matrix[10]*gz;
 
         }
     }
     bool integrity_invariant() const {
-      if(this->h < MIN_PRINTABLE_LENGTH || this->r1 < MIN_PRINTABLE_LENGTH || this->r2 < MIN_PRINTABLE_LENGTH)
+      if(this->h < MIN_PRINTABLE_LENGTH || ((this->r1 < MIN_PRINTABLE_LENGTH) && (!scone::allow_zero_r1)) || this->r2 < MIN_PRINTABLE_LENGTH)
         return false;
       else
         return true;
