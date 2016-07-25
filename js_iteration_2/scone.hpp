@@ -14,8 +14,8 @@ protected:
 public:
 
   scone(REAL matrix12[12]){
-      this->h = 0.8;
-      this->r1 = 0.1;
+      this->h = 1;
+      this->r1 = 0.0;
       this->r2 = 0.5;
       this->x0 = 0;
       this->y0 = 0;
@@ -143,7 +143,7 @@ public:
             REAL y = (*i)[1];
             REAL z = (*i)[2];
 
-            REAL f = -(x-x0)*(x-x0)/a2 - (y-y0)*(y-y0)/a2 + (z-z0)*(z-z0);
+            REAL f = -(x-x0)*(x-x0) - (y-y0)*(y-y0) + (z-z0)*(z-z0)*a2;
             REAL uperside = -(z-z0)-r1;
             REAL lowerside = (z-z0)+h;
 
