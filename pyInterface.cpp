@@ -3,33 +3,37 @@
 #include "js_iteration_1/mcc2.cpp"
 #include <string>
 #include <array>
+#include <iostream>
 
 namespace py = pybind11;
+using namespace std;
 
 py::array_t<float> getVerts(){
     float* verts = (float *)get_v_ptr();
     unsigned int array_size;
     array_size = get_v_size();
 
-    return py::array(py::buffer_info(verts, sizeof(float),
-                   py::format_descriptor<float>::value,
-                   1,
-                   {array_size},
-                   {sizeof(float)* array_size}));
+
+    return py::array(py::buffer_info(verts,
+                    sizeof(float),
+                    py::format_descriptor<float>::value,
+                    2,
+                    {array_size, 3},
+                    {sizeof(float)*3, sizeof(float)}));
 
 }
 
-py::array_t<float>  getFaces(){
+py::array_t<int>  getFaces(){
 
-    float* faces = (float *)get_f_ptr();
+    int* faces = (int *)get_f_ptr();
     unsigned int array_size;
     array_size = get_f_size();
 
-    return py::array(py::buffer_info(faces, sizeof(float),
-                   py::format_descriptor<float>::value,
-                   1,
-                   {array_size},
-                   {sizeof(float)* array_size}));
+    return py::array(py::buffer_info(faces, sizeof(int),
+                   py::format_descriptor<int>::value,
+                   2,
+                   {array_size, 3},
+                   {sizeof(int)*3,sizeof(int) }));
 }
 
 void buildGeometry(std::string shape_parameters_json, std::string mc_parameters_json){
