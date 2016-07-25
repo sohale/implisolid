@@ -35,9 +35,9 @@ public:
     }
 
     organic(REAL matrix[12]) {
-        this->a = 0.5;
-        this->b = 0.5;
-        this->c = 0.5;
+        this->a = 6.;
+        this->b = 2.5;
+        this->c = 1.;
 
         this->x = 0.;
         this->y = 0.;
@@ -136,10 +136,39 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
+
+          //*******HERE ARE ALL THE SHAPES THAT WROK AND MAY PROVE USEFULL ONE DAY************//
+
+                                        //Honey Comb//
+
             REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
             REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
+            (*f_output)[output_ctr] = min(f, bouding_sphere);
 
-            (*f_output)[output_ctr] = min(f,bouding_sphere);
+                                        //Cube of spheres//
+
+            // REAL f1 = c*(1-4*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)+ 17*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)-22*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4));
+            // REAL f2 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f3 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f4 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f5 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f6 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f7 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
+            // REAL f8 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            // REAL f9 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
+            //
+            // (*f_output)[output_ctr] = max(f1,max(f2,max(f3,max(f4,max(f5,max(f6,max(f7,max(f8,f9))))))));
+
+                                        //MAETBALLL//
+
+            //
+            // REAL f1 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]+3.5,2))/9)-0.05;
+            // REAL f2 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]-3.5,2))/9);
+            // REAL f3 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]-3.5,2))/9);
+            // REAL f4 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]+3.5,2))/9);
+            // (*f_output)[output_ctr] = f1+f2+f3+f4;
+
+                                        //?????//
 
         }
     }
@@ -154,6 +183,9 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
+
+                                  // Gradient for the honey comb //
+
           REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
           REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
 

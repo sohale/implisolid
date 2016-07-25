@@ -197,7 +197,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &segg; // super egg !
     }
     else if (name == "organic"){
-      organic organics(6., 3., 1.);
+      organic organics(5., 3., 1.);
       object = &organics; // super egg !
     }
     else if (name == "sphere"){
