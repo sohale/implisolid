@@ -185,6 +185,8 @@ function _on_cpp_loaded() {
     console.log("C++ ready.");
     //IMPLISOLID.
     IMPLICIT = new ImplicitService();
+
+    assert = _assert_000;
 };
 
 
