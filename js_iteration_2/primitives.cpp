@@ -72,7 +72,7 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "crisp_union.hpp"
 #include "crisp_intersection.hpp"
 #include "unit_sphere.hpp"
-#include "organic.hpp"
+#include "honey_comb.hpp"
 #include "double_mushroom.hpp"
 #include "egg.hpp"
 #include "cube.hpp"

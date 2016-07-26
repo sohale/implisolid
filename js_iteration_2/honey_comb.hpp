@@ -2,7 +2,7 @@
 #include "basic_data_structures.hpp"
 namespace mp5_implicit {
 
-class organic : public transformable_implicit_function {
+class honey_comb : public transformable_implicit_function {
 
 protected:
     REAL a; REAL b; REAL c;
@@ -10,7 +10,7 @@ protected:
 
 
 public:
-    organic(REAL radius_x, REAL radius_y, REAL radius_z){
+    honey_comb(REAL radius_x, REAL radius_y, REAL radius_z){
         this->a = radius_x;
         this->b = radius_y;
         this->c = radius_z;
@@ -33,9 +33,9 @@ public:
         my_assert(this->integrity_invariant(), "");
     }
 
-    organic(REAL matrix[12]) {
-        this->a = 6.;
-        this->b = 2.5;
+    honey_comb(REAL matrix[12]) {
+        this->a = 0.5;
+        this->b = 30.;
         this->c = 1.;
 
         this->x = 0.;
@@ -53,7 +53,7 @@ public:
         my_assert(this->integrity_invariant(), "");
     }
 
-    organic(REAL radius_x, REAL radius_y, REAL radius_z, REAL center_x, REAL center_y, REAL center_z){
+    honey_comb(REAL radius_x, REAL radius_y, REAL radius_z, REAL center_x, REAL center_y, REAL center_z){
         this->a = radius_x;
         this->b = radius_y;
         this->c = radius_z;

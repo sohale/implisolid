@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "lego";
+    string name = "honey_comb";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -196,9 +196,9 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       egg segg(0.3, 0.4, 0.5, 0.2, 0.1, 0.3);
       object = &segg; // super egg !
     }
-    else if (name == "organic"){
-      organic organics(5., 3., 1.);
-      object = &organics; // super egg !
+    else if (name == "honey_comb"){
+      honey_comb honey_comb(0.5, 30., 1.);
+      object = &honey_comb; // super egg !
     }
     else if (name == "sphere"){
       unit_sphere sphere(f_argument, 0.2, 0.1, 0.3);
