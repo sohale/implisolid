@@ -110,6 +110,32 @@ public:
           // face one
           REAL s1_1 = 0.01 - norm_squared(i1-0.5, i2-0., i3-0.);
 
+          // face two
+          REAL s2_1 = 0.01 - norm_squared(i1-0.2, i2-0.5, i3-0.2);
+          REAL s2_2 = 0.01 - norm_squared(i1+0.2, i2-0.5, i3+0.2);
+
+
+          //face four
+          REAL s3_1 = 0.01 - norm_squared(i1+0.25, i2+0.25, i3+0.5);
+          REAL s3_2 = 0.01 - norm_squared(i1-0., i2-0., i3+0.5);
+          REAL s3_3 = 0.01 - norm_squared(i1-0.25, i2-0.25, i3+0.5);
+
+
+          //face four
+          REAL s4_1 = 0.01 - norm_squared(i1-0.2, i2+0.2, i3-0.5);
+          REAL s4_2 = 0.01 - norm_squared(i1-0.2, i2-0.2, i3-0.5);
+          REAL s4_3 = 0.01 - norm_squared(i1+0.2, i2+0.2, i3-0.5);
+          REAL s4_4 = 0.01 - norm_squared(i1+0.2, i2-0.2, i3-0.5);
+
+
+          //face five
+          REAL s5_1 = 0.01 - norm_squared(i1-0.2, i2+0.5, i3-0.2);
+          REAL s5_2 = 0.01 - norm_squared(i1+0.2, i2+0.5, i3-0.2);
+          REAL s5_3 = 0.01 - norm_squared(i1+0.2, i2+0.5, i3+0.2);
+          REAL s5_4 = 0.01 - norm_squared(i1-0.2, i2+0.5, i3+0.2);
+          REAL s5_5 = 0.01 - norm_squared(i1+0., i2+0.5, i3-0.);
+
+
           //face six
           REAL s6_1 = 0.01 - norm_squared(i1+0.5, i2+0.25, i3-0.);
           REAL s6_2 = 0.01 - norm_squared(i1+0.5, i2+0.25, i3-0.25);
@@ -119,7 +145,7 @@ public:
           REAL s6_6 = 0.01 - norm_squared(i1+0.5, i2-0.25, i3+0.25);
 
 
-          REAL spheres = max(s1_1,max(s6_1,max(s6_2, max(s6_3, max(s6_4, max(s6_5, s6_6))))));
+          REAL spheres = max(s1_1,max(s2_1, max(s2_2,max(s6_1,max(s6_2, max(s6_3, max(s6_4, max(s6_5, max(s5_1, max(s5_2, max(s5_3, max(s5_4, max(s5_5,max(s4_1, max(s4_2, max(s4_3, max(s4_4, max(s3_1, max(s3_2, max(s3_3, s6_6))))))))))))))))))));
 
           if (cube < -spheres){
               (*f_output)[output_ctr] = cube;
