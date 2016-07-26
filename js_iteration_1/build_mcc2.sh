@@ -24,19 +24,19 @@ SAVE_BC=0
 TEMP=`getopt -o dob -l dev,opt,bitcode -- "$@"`
 eval set -- "$TEMP"
 # echo $TEMP
-# extract options and their arguments into variables 
+# extract options and their arguments into variables
 USAGE=$'Usage: ./build_mcc2.sh [option]
         -d or --dev for development version
-        -o or --opt for optimized version 
+        -o or --opt for optimized version
         -b or --bitcode to emit llvm Code'
 
-if [ "$#" -lt 2 ]; then 
+if [ "$#" -lt 2 ]; then
     echo "$USAGE"
-    exit 1 
-fi 
+    exit 1
+fi
 
 while true; do
-    case "$1" in 
+    case "$1" in
         -d|--dev)
             OPTIM=0
             shift
@@ -46,11 +46,11 @@ while true; do
             shift
             ;;
         -b|--bitcode)
-            SAVE_BC=1          
-            shift 
+            SAVE_BC=1
+            shift
             ;;
-        --)                                                                 
-            shift; break ;;            
+        --)
+            shift; break ;;
         *) echo "Internal Error"; exit 1 ;;
     esac
 done
@@ -64,6 +64,8 @@ then
             -I $BOOST_FOLDER   \
             -O3   \
             --profiling     \
+            -s DEMANGLE_SUPPORT=1  \
+            -s ASSERTIONS=1  \
             -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
             -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size' ]" \
             -s NO_EXIT_RUNTIME=1          \
@@ -91,7 +93,7 @@ then
         -pedantic -std=c++14 \
         mcc2.cpp -o mcc2.compiled.js
 #        --profiling \
-    exit 0 
+    exit 0
 fi
 
 
