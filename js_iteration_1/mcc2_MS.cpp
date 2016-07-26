@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "honey_comb";
+    string name = "dice";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -228,6 +228,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     else if (name == "lego"){
       legoland legoland(0.8, 0.1, 0.5);
       object = &legoland;
+    }
+    else if (name == "dice"){
+      dice dichu(0.8, 0.1, 0.5);
+      object = &dichu;
     }
     else if (name == "scylinder"){
       boost::array<int, 2> direction_shape = { 1, 3 };
@@ -291,10 +295,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
-    }
+    // float c=2000.;
+    // for (int i=0; i<3; i++){
+    //  vertex_resampling(object, f_argument, c, *(_state.mc));
+    // }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
