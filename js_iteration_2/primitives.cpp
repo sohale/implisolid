@@ -81,6 +81,7 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
 #include "scylinder.hpp"
 #include "legoland.hpp"
 #include "dice.hpp"
+#include "heart.hpp"
 #include "transformed_union.hpp"
 #include "transformed_intersection.hpp"
 #include "transformed_subtract.hpp"

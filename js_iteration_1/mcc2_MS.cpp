@@ -172,7 +172,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "dice";
+    string name = "heart";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -180,7 +180,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 0.8 ;
+      REAL grid_real_size = 1.5 ;
 
 
       // f_argument is made to always be between 0. and 1.
@@ -232,6 +232,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     else if (name == "dice"){
       dice dichu(0.8, 0.1, 0.5);
       object = &dichu;
+    }
+    else if (name == "heart"){
+      heart heartou(0.8, 0.1, 0.5);
+      object = &heartou;
     }
     else if (name == "scylinder"){
       boost::array<int, 2> direction_shape = { 1, 3 };
