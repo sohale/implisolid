@@ -97,6 +97,8 @@ public:
           REAL i1 = (*i)[0];
           REAL i2 = (*i)[1];
           REAL i3 = (*i)[2];
+
+          // side of the cube
           REAL c1 = (i1 - cx - 0.5)*0.5*(-2.);
           REAL c2 = (i1 - cx + 0.5)*(-0.5)*(-2.);
           REAL c3 = (i2 - cy - 0.3)*0.3*(-2.);
@@ -104,6 +106,7 @@ public:
           REAL c5 = (i3 - cz - 0.2)*0.2*(-2.);
           REAL c6 = (i3 - cz + 0.2)*(-0.2)*(-2.);
 
+          //first and second cylinder to be united
           REAL t0_1 = (i3);
           REAL t1_1 = 0.4 - t0_1;
           REAL r_1 = 0.15 - sqrt((i1  - 0.25)*(i1 - 0.25)
@@ -112,7 +115,7 @@ public:
           REAL r_2 = 0.15 - sqrt((i1  + 0.25)*(i1 + 0.25)
             + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
 
-
+          //third and fourth cylinder to be substracted
           REAL t0_3 = -(i3);
           REAL t1_3 =  0.5 - t0_1;
           REAL r_3 = 0.155 - sqrt((i1  - 0.25)*(i1 - 0.25)
@@ -120,45 +123,21 @@ public:
 
           REAL r_4 = 0.155 - sqrt((i1  + 0.25)*(i1 + 0.25)
             + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+          // object implicit values
           REAL cube = min(c1, min(c2, min(c3, min(c4, min(c5,c6)))));
           REAL cyl_1 = min(t0_1, min(t1_1, r_1));
           REAL cyl_2 = min(t0_1, min(t1_1, r_2));
           REAL cyl_3 = min(min(t0_3, t1_3), r_3);
           REAL cyl_4 = min(min(t0_3, t1_3), r_4);
-  //        (*f_output)[output_ctr] = max(t0_1,max(t1_1,max(r_1, max(r_2, max(c1, max(c2, max(c3, max(c4, max(c5,c6)))))))));
+
+          // union and substraction
           if (max(cube, max(cyl_1, cyl_2)) < -max(cyl_3, cyl_4)){
             (*f_output)[output_ctr] = max(cube, max(cyl_1, cyl_2));
           }
           else{
               (*f_output)[output_ctr] = -max(cyl_3, cyl_4);
           }
-        //  (*f_output)[output_ctr] = max(max(cube, max(cyl_1, cyl_2)),max(cyl_3, cyl_4));
-
-                                        //Cube of spheres//
-
-            // REAL f1 = c*(1-4*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)+ 17*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4)-22*(pow((*i)[0],2)+pow((*i)[1],2)+pow((*i)[2],2))/(9*a*a*2.4));
-            // REAL f2 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
-            // REAL f3 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
-            // REAL f4 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]+3,2))/(9*a*a));
-            // REAL f5 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
-            // REAL f6 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
-            // REAL f7 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]-3,2)+pow((*i)[2]+3,2))/(9*a*a));
-            // REAL f8 = c*(1-4*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]+3,2)+pow((*i)[1]-3,2)+pow((*i)[2]-3,2))/(9*a*a));
-            // REAL f9 = c*(1-4*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)+ 17*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a)-22*(pow((*i)[0]-3,2)+pow((*i)[1]+3,2)+pow((*i)[2]-3,2))/(9*a*a));
-            //
-            // (*f_output)[output_ctr] = max(f1,max(f2,max(f3,max(f4,max(f5,max(f6,max(f7,max(f8,f9))))))));
-
-                                        //MAETBALLL//
-
-            //
-            // REAL f1 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]+3.5,2))/9)-0.05;
-            // REAL f2 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]-3.5,2))/9);
-            // REAL f3 = exp(-(pow((*i)[0]-3.5,2)+pow((*i)[1]+3.5,2)+pow((*i)[2]-3.5,2))/9);
-            // REAL f4 = exp(-(pow((*i)[0]+3.5,2)+pow((*i)[1]-3.5,2)+pow((*i)[2]+3.5,2))/9);
-            // (*f_output)[output_ctr] = f1+f2+f3+f4;
-
-                                        //?????//
-
         }
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -168,30 +147,176 @@ public:
 
         const REAL r = this->a*this->a;
 
+        REAL cx = this->x;
+        REAL cy = this->y;
+        REAL cz = this->z;
+
         int output_ctr=0;
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
 
-                                  // Gradient for the honey comb //
+            REAL g0;
+            REAL g1;
+            REAL g2;
 
-          REAL f = sin(this->b*(*i)[0])+sin(this->b*(*i)[1])-sin(this->b*(*i)[2]);
-          REAL bouding_sphere = -(*i)[0]*(*i)[0] - (*i)[1]*(*i)[1] -(*i)[2]*(*i)[2] +r;
+            REAL i1 = (*i)[0];
+            REAL i2 = (*i)[1];
+            REAL i3 = (*i)[2];
 
-          if(f<bouding_sphere){
-            (*output)[output_ctr][0] = this->b*cos(this->b*(*i)[0]);
-            (*output)[output_ctr][1] = this->b*cos(this->b*(*i)[1]);
-            (*output)[output_ctr][2] = -this->b*cos(this->b*(*i)[2]);
-          }
-          else{
-            (*output)[output_ctr][0] = -2*(*i)[0];
-            (*output)[output_ctr][1] = -2*(*i)[0];
-            (*output)[output_ctr][2] = -2*(*i)[0];
-          }
+            // cube
+            REAL c1 = (i1 - cx - 0.5)*0.5*(-2.);
+            REAL c2 = (i1 - cx + 0.5)*(-0.5)*(-2.);
+            REAL c3 = (i2 - cy - 0.3)*0.3*(-2.);
+            REAL c4 = (i2 - cy + 0.3)*(-0.3)*(-2.);
+            REAL c5 = (i3 - cz - 0.2)*0.2*(-2.);
+            REAL c6 = (i3 - cz + 0.2)*(-0.2)*(-2.);
 
-            REAL g0 = (*output)[output_ctr][0];
-            REAL g1 = (*output)[output_ctr][1];
-            REAL g2 = (*output)[output_ctr][2];
+            // first and second cylinder to be united
+            REAL t0_1 = (i3);
+            REAL t1_1 = 0.4 - t0_1;
+            REAL r_1 = 0.15 - sqrt((i1  - 0.25)*(i1 - 0.25)
+              + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+            REAL r_2 = 0.15 - sqrt((i1  + 0.25)*(i1 + 0.25)
+              + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+            // third and fourht cylinder to be substracted
+            REAL t0_3 = -(i3);
+            REAL t1_3 =  0.5 - t0_1;
+            REAL r_3 = 0.155 - sqrt((i1  - 0.25)*(i1 - 0.25)
+              + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+            REAL r_4 = 0.155 - sqrt((i1  + 0.25)*(i1 + 0.25)
+              + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+            // object implicit values
+            REAL cube = min(c1, min(c2, min(c3, min(c4, min(c5,c6)))));
+            REAL cyl_1 = min(t0_1, min(t1_1, r_1));
+            REAL cyl_2 = min(t0_1, min(t1_1, r_2));
+            REAL cyl_3 = min(min(t0_3, t1_3), r_3);
+            REAL cyl_4 = min(min(t0_3, t1_3), r_4);
+
+            //substraction
+            if (max(cube, max(cyl_1, cyl_2)) < -max(cyl_3, cyl_4)){
+              //union
+              if(cube > cyl_1 && cube > cyl_2){ // cube
+                  int index = 0;
+                  if (cube == c1){
+                    g0 = -0.5;
+                    g1 = 0.;
+                    g2 = 0.;
+                  }
+                  else if(cube == c2){
+                    g0 = +0.5;
+                    g1 = 0.;
+                    g2 = 0.;
+                  }
+                  else if (cube == c3){
+                    g0 = 0.;
+                    g1 = -0.3;
+                    g2 = 0.;
+                  }
+                  else if (cube == c4){
+                    g0 = 0.;
+                    g1 = 0.3;
+                    g2 = 0.;
+                  }
+                  else if (cube == c5){
+                    g0 = 0.;
+                    g1 = 0.;
+                    g2 = -0.2;
+                  }
+                  else{
+                    g0 = 0.;
+                    g1 = 0.;
+                    g2 = 0.2;
+                  }
+
+              }
+              else if (cyl_1 > cube && cyl_1 > cyl_2){ // first cylinder
+                bool c_t0 = 0;
+                bool c_t1 = 0;
+                bool c_r = 0;
+
+                if (t0_1 <= t1_1 && t0_1 <= r_1){
+                  c_t0 = 1;
+                }
+                if (t1_1 <= t0_1 && t1_1 <= r_1){
+                  c_t1 = 1;
+                }
+                if (r_1 <= t0_1 && r_1 <= t1_1){
+                  c_r = 1;
+                }
+
+                g0 = + c_r*(0.25 - i1);
+                g1 =  c_r*(- i2);
+                g2 = c_t0*1. + c_t1*(-1.) + c_r*(1.*t0_1 - i3);
+
+              }
+              else{ // second cylinder
+                bool c_t0 = 0;
+                bool c_t1 = 0;
+                bool c_r = 0;
+
+                if (t0_1 <= t1_1 && t0_1 <= r_2){
+                  c_t0 = 1;
+                }
+                if (t1_1 <= t0_1 && t1_1 <= r_2){
+                  c_t1 = 1;
+                }
+                if (r_2 <= t0_1 && r_2 <= t1_1){
+                  c_r = 1;
+                }
+
+                g0 = + c_r*(-0.25 - i1);
+                g1 =  c_r*(- i2);
+                g2 = c_t0*1. + c_t1*(-1.) + c_r*(1.*t0_1 - i3);
+
+              }
+            }
+            else{ //substraction
+              if (cyl_3 > cyl_4){ // - third cylinder
+                bool c_t0 = 0;
+                bool c_t1 = 0;
+                bool c_r = 0;
+
+                if (t0_3 <= t1_3 && t0_3 <= r_3){
+                  c_t0 = 1;
+                }
+                if (t1_3 <= t0_3 && t1_3 <= r_3){
+                  c_t1 = 1;
+                }
+                if (r_3 <= t0_3 && r_3 <= t1_3){
+                  c_r = 1;
+                }
+
+                g0 = - c_r*(0.25 - i1);
+                g1 =  -c_r*(- i2);
+                g2 = -c_t0*1. - c_t1*(-1.) - c_r*(1.*t0_1 - i3);
+
+              }
+              else{ // -fourth cylinder
+                bool c_t0 = 0;
+                bool c_t1 = 0;
+                bool c_r = 0;
+
+                if (t0_3 <= t1_3 && t0_3 <= r_4){
+                  c_t0 = 1;
+                }
+                if (t1_3 <= t0_3 && t1_3 <= r_4){
+                  c_t1 = 1;
+                }
+                if (r_4 <= t0_3 && r_4 <= t1_3){
+                  c_r = 1;
+                }
+
+                g0 = - c_r*(-0.25 - i1);
+                g1 =  -c_r*(- i2);
+                g2 = -c_t0*1. - c_t1*(-1.) - c_r*(1.*t0_1 - i3);
+
+              }
+            }
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
