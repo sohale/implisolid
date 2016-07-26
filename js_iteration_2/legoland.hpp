@@ -105,18 +105,34 @@ public:
           REAL c6 = (i3 - cz + 0.2)*(-0.2)*(-2.);
 
           REAL t0_1 = (i3);
-          REAL t1_1 = 0.5 - t0_1;
+          REAL t1_1 = 0.4 - t0_1;
           REAL r_1 = 0.15 - sqrt((i1  - 0.25)*(i1 - 0.25)
             + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
 
           REAL r_2 = 0.15 - sqrt((i1  + 0.25)*(i1 + 0.25)
             + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
 
+
+          REAL t0_3 = -(i3);
+          REAL t1_3 =  0.5 - t0_1;
+          REAL r_3 = 0.155 - sqrt((i1  - 0.25)*(i1 - 0.25)
+            + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
+
+          REAL r_4 = 0.155 - sqrt((i1  + 0.25)*(i1 + 0.25)
+            + (i2)*(i2) +(i3 - t0_1)*(i3 - t0_1));
           REAL cube = min(c1, min(c2, min(c3, min(c4, min(c5,c6)))));
           REAL cyl_1 = min(t0_1, min(t1_1, r_1));
           REAL cyl_2 = min(t0_1, min(t1_1, r_2));
+          REAL cyl_3 = min(min(t0_3, t1_3), r_3);
+          REAL cyl_4 = min(min(t0_3, t1_3), r_4);
   //        (*f_output)[output_ctr] = max(t0_1,max(t1_1,max(r_1, max(r_2, max(c1, max(c2, max(c3, max(c4, max(c5,c6)))))))));
-          (*f_output)[output_ctr] = max(cube, max(cyl_1, cyl_2));
+          if (max(cube, max(cyl_1, cyl_2)) < -max(cyl_3, cyl_4)){
+            (*f_output)[output_ctr] = max(cube, max(cyl_1, cyl_2));
+          }
+          else{
+              (*f_output)[output_ctr] = -max(cyl_3, cyl_4);
+          }
+        //  (*f_output)[output_ctr] = max(max(cube, max(cyl_1, cyl_2)),max(cyl_3, cyl_4));
 
                                         //Cube of spheres//
 
