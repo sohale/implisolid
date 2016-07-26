@@ -40,9 +40,12 @@ REAL norm_2(REAL x, REAL y, REAL z){
 
 void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
   int nt = faces.shape()[0];
-  for (int j=0;j<nt; j++){
+  for (int j=0; j<nt; j++){
+    int f0 = faces[j][0];
+    int f1 = faces[j][1];
+    int f2 = faces[j][2];
     for (int di=0; di<3; di++){
-        centroids[j][di] = (verts[faces[j][0]][di] + verts[faces[j][1]][di] + verts[faces[j][2]][di])/3.;
+        centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di])/3.;
 
     }
   }
