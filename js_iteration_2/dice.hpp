@@ -187,47 +187,191 @@ public:
             REAL c5 = (i3 - cz - 0.5)*0.5*(-2.);
             REAL c6 = (i3 - cz + 0.5)*(-0.5)*(-2.);
 
+            REAL cube = min(c1, min(c2, min(c3, min(c4, min(c5,c6)))));
 
-            // //substraction
-            // if (max(cube, max(cyl_1, cyl_2)) < -max(cyl_3, cyl_4)){
-            //   //union
-            //   if(cube > cyl_1 && cube > cyl_2){ // cube
-            //       int index = 0;
-            //       if (cube == c1){
-            //         g0 = -0.5;
-            //         g1 = 0.;
-            //         g2 = 0.;
-            //       }
-            //       else if(cube == c2){
-            //         g0 = +0.5;
-            //         g1 = 0.;
-            //         g2 = 0.;
-            //       }
-            //       else if (cube == c3){
-            //         g0 = 0.;
-            //         g1 = -0.5;
-            //         g2 = 0.;
-            //       }
-            //       else if (cube == c4){
-            //         g0 = 0.;
-            //         g1 = 0.5;
-            //         g2 = 0.;
-            //       }
-            //       else if (cube == c5){
-            //         g0 = 0.;
-            //         g1 = 0.;
-            //         g2 = -0.5;
-            //       }
-            //       else{
-            //         g0 = 0.;
-            //         g1 = 0.;
-            //         g2 = 0.5;
-            //       }
-            //
-            //   }
-            //
-            //
-            // }
+            // face one
+            REAL s1_1 = 0.01 - norm_squared(i1-0.5, i2-0., i3-0.);
+
+            // face two
+            REAL s2_1 = 0.01 - norm_squared(i1-0.2, i2-0.5, i3-0.2);
+            REAL s2_2 = 0.01 - norm_squared(i1+0.2, i2-0.5, i3+0.2);
+
+
+            //face four
+            REAL s3_1 = 0.01 - norm_squared(i1+0.25, i2+0.25, i3+0.5);
+            REAL s3_2 = 0.01 - norm_squared(i1-0., i2-0., i3+0.5);
+            REAL s3_3 = 0.01 - norm_squared(i1-0.25, i2-0.25, i3+0.5);
+
+
+            //face four
+            REAL s4_1 = 0.01 - norm_squared(i1-0.2, i2+0.2, i3-0.5);
+            REAL s4_2 = 0.01 - norm_squared(i1-0.2, i2-0.2, i3-0.5);
+            REAL s4_3 = 0.01 - norm_squared(i1+0.2, i2+0.2, i3-0.5);
+            REAL s4_4 = 0.01 - norm_squared(i1+0.2, i2-0.2, i3-0.5);
+
+
+            //face five
+            REAL s5_1 = 0.01 - norm_squared(i1-0.2, i2+0.5, i3-0.2);
+            REAL s5_2 = 0.01 - norm_squared(i1+0.2, i2+0.5, i3-0.2);
+            REAL s5_3 = 0.01 - norm_squared(i1+0.2, i2+0.5, i3+0.2);
+            REAL s5_4 = 0.01 - norm_squared(i1-0.2, i2+0.5, i3+0.2);
+            REAL s5_5 = 0.01 - norm_squared(i1+0., i2+0.5, i3-0.);
+
+
+            //face six
+            REAL s6_1 = 0.01 - norm_squared(i1+0.5, i2+0.25, i3-0.);
+            REAL s6_2 = 0.01 - norm_squared(i1+0.5, i2+0.25, i3-0.25);
+            REAL s6_3 = 0.01 - norm_squared(i1+0.5, i2+0.25, i3+0.25);
+            REAL s6_4 = 0.01 - norm_squared(i1+0.5, i2-0.25, i3-0.);
+            REAL s6_5 = 0.01 - norm_squared(i1+0.5, i2-0.25, i3-0.25);
+            REAL s6_6 = 0.01 - norm_squared(i1+0.5, i2-0.25, i3+0.25);
+
+
+            REAL spheres = max(s1_1,max(s2_1, max(s2_2,max(s6_1,max(s6_2, max(s6_3, max(s6_4, max(s6_5, max(s5_1, max(s5_2, max(s5_3, max(s5_4, max(s5_5,max(s4_1, max(s4_2, max(s4_3, max(s4_4, max(s3_1, max(s3_2, max(s3_3, s6_6))))))))))))))))))));
+
+            //substraction
+            if (cube < - spheres){ // cube
+                  int index = 0;
+                  if (cube == c1){
+                    g0 = -0.5;
+                    g1 = 0.;
+                    g2 = 0.;
+                  }
+                  else if(cube == c2){
+                    g0 = +0.5;
+                    g1 = 0.;
+                    g2 = 0.;
+                  }
+                  else if (cube == c3){
+                    g0 = 0.;
+                    g1 = -0.5;
+                    g2 = 0.;
+                  }
+                  else if (cube == c4){
+                    g0 = 0.;
+                    g1 = 0.5;
+                    g2 = 0.;
+                  }
+                  else if (cube == c5){
+                    g0 = 0.;
+                    g1 = 0.;
+                    g2 = -0.5;
+                  }
+                  else{
+                    g0 = 0.;
+                    g1 = 0.;
+                    g2 = 0.5;
+                  }
+
+              }
+            else{
+              if (spheres == s1_1){
+                  g0 = -2.*(i1 - 0.5);
+                  g1 = -2.*(i2 - 0.);
+                  g2 = -2.*(i3 - 0.);
+              }
+              else if(spheres == s2_1){
+                  g0 = -2.*(i1 - 0.2);
+                  g1 = -2.*(i2 - 0.5);
+                  g2 = -2.*(i3 - 0.2);
+              }
+              else if(spheres == s2_2){
+                  g0 = -2.*(i1 + 0.2);
+                  g1 = -2.*(i2 - 0.5);
+                  g2 = -2.*(i3 + 0.2);
+              }
+              else if(spheres == s3_1){
+                  g0 = -2.*(i1 +0.25);
+                  g1 = -2.*(i2 +0.25);
+                  g2 = -2.*(i3 + 0.5);
+              }
+              else if(spheres == s3_2){
+                  g0 = -2.*(i1 - 0.);
+                  g1 = -2.*(i2 - 0.);
+                  g2 = -2.*(i3 + 0.5);
+              }
+              else if(spheres == s3_3){
+                  g0 = -2.*(i1 - 0.25);
+                  g1 = -2.*(i2 - 0.25);
+                  g2 = -2.*(i3 + 0.5);
+              }
+              else if(spheres == s4_1){
+                  g0 = -2.*(i1 - 0.2);
+                  g1 = -2.*(i2 + 0.2);
+                  g2 = -2.*(i3 - 0.5);
+              }
+              else if(spheres == s4_2){
+                  g0 = -2.*(i1 - 0.2);
+                  g1 = -2.*(i2 - 0.2);
+                  g2 = -2.*(i3 - 0.5);
+              }
+              else if(spheres == s4_3){
+                  g0 = -2.*(i1 + 0.2);
+                  g1 = -2.*(i2 + 0.2);
+                  g2 = -2.*(i3 - 0.5);
+              }
+              else if(spheres == s4_4){
+                  g0 = -2.*(i1 + 0.2);
+                  g1 = -2.*(i2 - 0.2);
+                  g2 = -2.*(i3 - 0.5);
+              }
+              else if(spheres == s5_1){
+                  g0 = -2.*(i1 - 0.2);
+                  g1 = -2.*(i2 + 0.5);
+                  g2 = -2.*(i3 - 0.2);
+              }
+              else if(spheres == s5_2){
+                  g0 = -2.*(i1 + 0.2);
+                  g1 = -2.*(i2 + 0.5);
+                  g2 = -2.*(i3 - 0.2);
+              }
+              else if(spheres == s5_3){
+                  g0 = -2.*(i1 + 0.2);
+                  g1 = -2.*(i2 + 0.5);
+                  g2 = -2.*(i3 + 0.2);
+              }
+              else if(spheres == s5_4){
+                  g0 = -2.*(i1 - 0.2);
+                  g1 = -2.*(i2 + 0.5);
+                  g2 = -2.*(i3 + 0.2);
+              }
+              else if(spheres == s5_5){
+                  g0 = -2.*(i1 - 0.);
+                  g1 = -2.*(i2 + 0.5);
+                  g2 = -2.*(i3 - 0.);
+              }
+              else if(spheres == s6_1){
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 + 0.25);
+                  g2 = -2.*(i3 - 0.);
+              }
+              else if(spheres == s6_2){
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 + 0.25);
+                  g2 = -2.*(i3 - 0.25);
+              }
+              else if(spheres == s6_3){
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 + 0.25);
+                  g2 = -2.*(i3 + 0.25);
+              }
+              else if(spheres == s6_4){
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 - 0.25);
+                  g2 = -2.*(i3 - 0.);
+              }
+              else if(spheres == s6_5){
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 - 0.25);
+                  g2 = -2.*(i3 - 0.25);
+              }
+              else{
+                  g0 = -2.*(i1 + 0.5);
+                  g1 = -2.*(i2 - 0.25);
+                  g2 = -2.*(i3 + 0.25);
+              }
+            }
+
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;

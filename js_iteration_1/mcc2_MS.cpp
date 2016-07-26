@@ -295,10 +295,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    // float c=2000.;
-    // for (int i=0; i<3; i++){
-    //  vertex_resampling(object, f_argument, c, *(_state.mc));
-    // }
+    float c=2000.;
+    for (int i=0; i<3; i++){
+     vertex_resampling(object, f_argument, c, *(_state.mc));
+    }
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
