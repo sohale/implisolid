@@ -3,7 +3,7 @@
 #include "primitives.cpp"
 #include "crisp_subtract.hpp"
 //using namespace mp5_implicit;
-
+using mp5_implicit::implicit_function;
 
 implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     implicit_function* object;

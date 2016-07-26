@@ -3,7 +3,7 @@
 #include "basic_data_structures.hpp"
 
 
-class transformable_implicit_function : public implicit_function {
+class transformable_implicit_function : public mp5_implicit::implicit_function {
 
 public:
 

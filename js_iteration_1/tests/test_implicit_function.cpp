@@ -25,7 +25,7 @@ REAL grid_real_size = 10;
 REAL f_argument = 0.5;
 
 //string name = "sphere";
-implicit_function * object;
+mp5_implicit::implicit_function * object;
 //
 // if (name == "double_mushroom"){
 // double_mushroom mushroom(f_argument+3.); //3.3

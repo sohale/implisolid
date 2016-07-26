@@ -14,7 +14,7 @@
  * 	f(x) = min(f1(x),f2(x)). Functions f1 and f2 are implicit functions whose intersection
 
  * 	we want to compute.
- *  
+ *
  */
 
 namespace mp5_implicit{

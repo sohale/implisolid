@@ -1,6 +1,11 @@
 #pragma once
 
 #include "basic_data_structures.hpp"
+
+namespace mp5_implicit
+{
+
+
 /**
  * Class: implicit_function
  * ----------------------------------------
@@ -47,3 +52,5 @@ public:
         return mp5_implicit::bounding_box{v1, v2, v3, v4, v5, v6};
     };
 };
+
+}

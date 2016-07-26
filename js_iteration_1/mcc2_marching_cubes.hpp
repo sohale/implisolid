@@ -106,8 +106,8 @@ public:
     void subtract_dc(REAL dc_value);
 
     boost::multi_array<REAL, 2> prepare_grid();
-    //void eval_shape(const implicit_function& object, REAL mc_grid_real_size);
-    void eval_shape(const implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
+    //void eval_shape(const mp5_implicit::implicit_function& object, REAL mc_grid_real_size);
+    void eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
 //field
     void reset(); //???? Nobody calls this.
@@ -1792,7 +1792,7 @@ MarchingCubes::prepare_grid() {
 }
 
 //Based on mcc2_MS.cpp
-void MarchingCubes::eval_shape(const implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
+void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
 
 
 

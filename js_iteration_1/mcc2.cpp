@@ -31,7 +31,7 @@ Todo:
 #include "boost/array.hpp"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
-
+#include "../js_iteration_2/vertex_resampling.cpp"
 
 // #include <math.h>
 
@@ -225,7 +225,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 
 extern "C" {
-    void build_geometry(char* shape_parameters_json, char* mc_parameters_json);
+    void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -240,8 +240,8 @@ extern "C" {
     /********************************************************
         New API for direct evaluation of implicit functions
     *********************************************************/
-    //global variables: implicit_function* last_object, last_x, v_results, g_results,
-    void set_object(char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
+    //global variables: mp5_implicit::implicit_function* last_object, last_x, v_results, g_results,
+    void set_object(const char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
     void unset_object();
 
     void set_x(void* verts, int n);   // sets last_x, a multi_array.
@@ -365,7 +365,7 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 #include "../js_iteration_2/object_factory.hpp"
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
-void build_geometry(const char* shape_parameters_json,const char* mc_parameters_json) {
+void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
     if (!check_state_null())
         return;
     // std::cout << "In build_geometry obj_name : " << obj_name << std::endl;
@@ -377,7 +377,10 @@ void build_geometry(const char* shape_parameters_json,const char* mc_parameters_
     bool use_metaball;
     std::string shape_parameters_json_str = std::string(shape_parameters_json);
     bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
-    implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
+
+    //unique_pointer<mp5_implicit::implicit_function> object = ...;
+
+    mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
 
     // std::cout << "Leak-free : new" << std::endl;
 
@@ -398,8 +401,10 @@ void build_geometry(const char* shape_parameters_json,const char* mc_parameters_
     boost::multi_array<REAL, 2>  mcgrid_vectorized = _state.mc -> prepare_grid();  // 10.0
     _state.mc -> eval_shape(*object, mcgrid_vectorized);
 
+     /*
      delete object;
      object = NULL;
+     */
      if (use_metaball) {
          REAL metaball_time = 0;
          meta_balls(*_state.mc, 4, metaball_time, 1.0);
@@ -431,6 +436,14 @@ void build_geometry(const char* shape_parameters_json,const char* mc_parameters_
     */
     }
 
+    float c = 2000.;
+    for (int i=0; i < 3; i++) {
+        // result_verts is modified
+        vertex_resampling(object, c, _state.mc -> result_verts, _state.mc->result_faces );
+    }
+
+    delete object;
+    object = NULL;
 
     _state.active = true;
 
@@ -530,13 +543,13 @@ void finish_geometry() {
 
 typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
-implicit_function* current_object = NULL;
+mp5_implicit::implicit_function* current_object = NULL;
 
 vectorized_vect* current_x = NULL;
 vectorized_vect* current_grad = NULL;
 vectorized_scalar* current_f = NULL;
 
-void set_object(char* shape_parameters_json, bool ignore_root_matrix) {
+void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     if(current_object != NULL){
         std::cout << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;

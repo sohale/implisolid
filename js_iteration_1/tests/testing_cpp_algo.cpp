@@ -43,7 +43,7 @@ int main() {
   int resolution = 28;
   REAL time = 0.2;
   REAL f_argument = 0.5;
-  implicit_function * object;
+  mp5_implicit::implicit_function * object;
 
   check_state_null();
   bool enableUvs = true;
