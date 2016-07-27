@@ -31,6 +31,9 @@ Todo:
 #include "boost/array.hpp"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
+
+#include "../js_iteration_2/object_collector.hpp"
+
 #include "../js_iteration_2/vertex_resampling.cpp"
 
 // #include <math.h>
@@ -362,6 +365,8 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     return mc_settings_from_json;
 }
 
+
+
 #include "../js_iteration_2/object_factory.hpp"
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
@@ -445,8 +450,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         vertex_resampling(object, c, _state.mc -> result_verts, _state.mc->result_faces );
     }
 
-    delete object;
+    //delete object;
     object = NULL;
+    gc_objects();
 
     _state.active = true;
 
@@ -542,6 +548,17 @@ void finish_geometry() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
 #include "../js_iteration_2/basic_data_structures.hpp"
 
 typedef boost::array<vectorized_vect::index, 2>  shape_t;
@@ -551,6 +568,7 @@ mp5_implicit::implicit_function* current_object = NULL;
 vectorized_vect* current_x = NULL;
 vectorized_vect* current_grad = NULL;
 vectorized_scalar* current_f = NULL;
+
 
 void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     if(current_object != NULL){
@@ -572,7 +590,9 @@ void unset_object() {
         return;
     }
 
-    delete current_object;
+    //delete current_object;
+    //current_object = NULL;
+    gc_objects();
     current_object = NULL;
 }
 
