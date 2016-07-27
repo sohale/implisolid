@@ -41,6 +41,7 @@ typedef unsigned short int dim_t;
 typedef float REAL;     // heavily used (can be changed to double from here at any time)
 
 const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
+//const REAL NaN = std::numeric_limits<REAL>::signaling_NaN();
 
 inline bool isNaN(REAL x){return isnan(x);};
 

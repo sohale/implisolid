@@ -90,20 +90,24 @@ public:
       }
     };
     bool integrity_invariant() const {
-
-        //transformed(this).integrity_invariant();
-        //???????????
-
         //TODO(sohail): Check the minimum size based on the SVD of the matrix.
-        return true;
+
+        REAL svd_s1 = 1;
+        REAL svd_s2 = 1;
+        REAL svd_s3 = 1;
+        if(
+          svd_s1 < MIN_PRINTABLE_LENGTH ||
+          svd_s2 < MIN_PRINTABLE_LENGTH ||
+          svd_s3 < MIN_PRINTABLE_LENGTH
+        )
+            return false;
+        else
+            return true;
     }
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        for ( auto it = children.begin(); it < children.end(); it++ ){
-
-        }
-        REAL max_size = norm_squared(transf_matrix[0], transf_matrix[4], transf_matrix[8]);
-        return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
+        REAL incorrect_dummy = 1;
+        return mp5_implicit::bounding_box{-incorrect_dummy,incorrect_dummy,-incorrect_dummy,incorrect_dummy,-incorrect_dummy,incorrect_dummy};
     }
 
 };

@@ -436,8 +436,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
     }
 
-    float c = 2000.;
-    for (int i=0; i < 3; i++) {
+    // mc_settings_from_json.vertexresampleing.c
+    // mc_settings_from_json.vertexresampleing.iterations
+    int vresamp_iters = 0; //3;
+    float c = 1.;
+    for (int i=0; i < vresamp_iters; i++) {
         // result_verts is modified
         vertex_resampling(object, c, _state.mc -> result_verts, _state.mc->result_faces );
     }
