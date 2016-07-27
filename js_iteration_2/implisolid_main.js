@@ -161,14 +161,15 @@ var ImplicitService = function(){
 
         var bb ={};
         var sc = 1.0;
-        bb["xmin"] = bbox.min.x * sc;
-        bb["xmax"] = bbox.max.x * sc;
+        var test = 0.;
+        bb["xmin"] = bbox.min.x * sc + test;
+        bb["xmax"] = bbox.max.x * sc - test;
 
-        bb["ymin"] = bbox.min.y * sc;
-        bb["ymax"] = bbox.max.y * sc;
+        bb["ymin"] = bbox.min.y * sc + test;
+        bb["ymax"] = bbox.max.y * sc - test;
 
-        bb["zmin"] = bbox.min.z * sc;
-        bb["zmax"] = bbox.max.z * sc;
+        bb["zmin"] = bbox.min.z * sc + test;
+        bb["zmax"] = bbox.max.z * sc - test;
 
         var mc_properties = {resolution: 28, box: bb, ignore_root_matrix: ignore_root_matrix};
 
