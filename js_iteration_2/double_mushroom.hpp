@@ -78,9 +78,11 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            (*f_output)[output_ctr] = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
-            if((*i)[2]-this->z > this->r) (*f_output)[output_ctr]=-1;
-            if((*i)[2]-this->z < -this->r) (*f_output)[output_ctr]=-1;
+            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            REAL uperside = r-((*i)[2]-this->z);
+            REAL lowerside = r+((*i)[2]-this->z);
+
+            (*f_output)[output_ctr] = min(f,min(uperside,lowerside));
 
         }
     }
@@ -97,30 +99,30 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            (*output)[output_ctr][0] = -2*((*i)[0]-this->x)/a2;
-            (*output)[output_ctr][1] = -2*((*i)[1]-this->y)/b2;
-            (*output)[output_ctr][2] =  2*((*i)[2]-this->z)/c2;
-            // this may be used :  && pow((*i)[0],2)+pow((*i)[1],2)<0.9
-            if((*i)[2]-this->z < this->r && (*i)[2]-this->z > this->r-0.05) {
-                        (*output)[output_ctr][0] = 0;
-                        (*output)[output_ctr][1] = 0;
-                        (*output)[output_ctr][2] = -1;}
-            if((*i)[2]-this->z > this->r) {
-                        (*output)[output_ctr][0] = 0;
-                        (*output)[output_ctr][1] = 0;
-                        (*output)[output_ctr][2] = -1;}
-            if((*i)[2]-this->z > -this->r && (*i)[2]-this->z < -this->r+0.05) {
-                        (*output)[output_ctr][0] = 0;
-                        (*output)[output_ctr][1] = 0;
-                        (*output)[output_ctr][2] = 1;}
-            if((*i)[2]-this->z < -this->r) {
-                        (*output)[output_ctr][0] = 0;
-                        (*output)[output_ctr][1] = 0;
-                        (*output)[output_ctr][2] = 1;}
+            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            REAL uperside = r-((*i)[2]-this->z);
+            REAL lowerside = r+((*i)[2]-this->z);
 
-            REAL g0 = (*output)[output_ctr][0];
-            REAL g1 = (*output)[output_ctr][1];
-            REAL g2 = (*output)[output_ctr][2];
+            REAL g0;
+            REAL g1;
+            REAL g2;
+
+            if(f<uperside && f <lowerside){
+              g0 = -2*((*i)[0]-this->x)/a2;
+              g1 = -2*((*i)[1]-this->y)/b2;
+              g2 =  2*((*i)[2]-this->z)/c2;
+            }
+            // this may be used :  && pow((*i)[0],2)+pow((*i)[1],2)<0.9
+            else if (uperside <f && uperside < lowerside){
+              g2 = -1;
+              g1 = 0;
+              g0 = 0;
+            }
+            else{
+              g2 = 1;
+              g1 = 0;
+              g0 = 0;
+            }
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
