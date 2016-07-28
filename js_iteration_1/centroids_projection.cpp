@@ -65,6 +65,12 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
   vectorized_scalar v_mid;
   vectorized_scalar abs_;
 
+  std::vector<int> indices_boundary;
+  std::vector<int> indices_outside;
+  std::vector<int> indices_inside;
+  std::vector<int> indices_eitherside;
+  std::vector<int> which_zeroed;
+
   int iteration = 1;
  // loop
   while (true){
@@ -76,8 +82,18 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
     }
 
     object->eval_implicit(x_mid, &v_mid);
-  //  abs_
 
+    for (int i=0; i<active_count; i++){
+      abs_[i] = ABS(v_mid[i]);
+    }
+
+
+
+    indices_boundary.clear();
+    indices_outside.clear();
+    indices_inside.clear();
+    indices_eitherside.clear();
+    which_zeroed.clear();
   }
 
 }
