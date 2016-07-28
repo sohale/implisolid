@@ -39,10 +39,19 @@ REAL norm_2(REAL x, REAL y, REAL z){
 }
 
 
-REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts)
+REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts){
+  int nfaces = faces.shape()[0];
+  REAL edge_length;
+  for (int j=0; j<nfaces; j++){
+    edge_length += norm_2((verts[faces[j][0]][0] - verts[faces[j][1]][0], verts[faces[j][0]][1] - verts[faces[j][1]][1], verts[faces[j][0]][2] - verts[faces[j][1]][2]));
+    edge_length += norm_2((verts[faces[j][0]][0] - verts[faces[j][2]][0], verts[faces[j][0]][1] - verts[faces[j][2]][1], verts[faces[j][0]][2] - verts[faces[j][2]][2]));
+    edge_length += norm_2((verts[faces[j][2]][0] - verts[faces[j][1]][0], verts[faces[j][2]][1] - verts[faces[j][1]][1], verts[faces[j][2]][2] - verts[faces[j][1]][2]));
+  }
+  return edge_length/(3.*nfaces);
+}
 
 
-void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
+void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids){
   int nt = faces.shape()[0];
   for (int j=0; j<nt; j++){
     int f0 = faces[j][0];
@@ -59,7 +68,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 
 
 
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
+std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& verts, const faces_t& faces){
   int nt = faces.shape()[0];
   int vt = verts.shape()[0];
   std::vector< std::vector<int>> neighbour_faces_of_vertex;
@@ -77,7 +86,7 @@ std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, fa
 }
 
 
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
+void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
     for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
@@ -92,7 +101,7 @@ void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_nor
 }
 
 
-void centroids_projection(implicit_function* object, verts_t& verts, faces_t& faces){
+void centroids_projection(implicit_function* object, verts_t& verts, const faces_t& faces){
 
   REAL average_edge;
   average_edge = compute_average_edge_length(verts, faces);
