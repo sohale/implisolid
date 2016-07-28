@@ -40,8 +40,59 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 
+void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t& x1, verts_t& x_2, REAL ROOT_TOLERANCE){
+
+  int n = x1.shape()[0];
+
+  boost::array<int, 2> grid_shape = { n*n*n , 3 };
+  boost::multi_array<REAL, 2> grid(grid_shape);
+
+  boost::array<int, 1> implicit_values_shape = { n*n*n };
+  boost::multi_array<REAL, 1> v1(implicit_values_shape);
+  boost::multi_array<REAL, 1> v2(implicit_values_shape);
 
 
+  for (int z = 0; z < n; z++ ) {
+      for (int y = 0; y < n; y++ ) {
+          for (int x = 0; x < n; x++ ) {
+              grid[x + y*n + z*n*n][0] = 2.*(REAL)x/(REAL)n -1.;
+              grid[x + y*n + z*n*n][1] = 2.*(REAL)y/(REAL)n -1.;
+              grid[x + y*n + z*n*n][2] = 2.*(REAL)z/(REAL)n -1.;
+
+          }
+      }
+  }
+
+  object->eval_implicit(grid, &v1);
+  object->eval_implicit(grid, &v2);
+
+  boost::array<int, 1> active_indices_shape = {n};
+  boost::array<int, 1> active_indices= { active_indices_shape };
+
+  for (int i=0; i<n; i++){
+    active_indices[i] = i;
+  }
+
+  int active_count = n;
+  int solved_count = 0;
+
+  boost::multi_array<REAL, 1> x_mid(implicit_values_shape);
+  boost::multi_array<REAL,1> v_mid(active_indices_shape);
+
+  int iteration = 1;
+
+}
+
+
+
+void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids,const REAL average_edge){
+  REAL min_gradient_len = 0.000001;
+  REAL ROOT_TOLERANCE = 0.0001;
+  int max_iter = 20;
+
+  REAL max_dist = average_edge;
+
+}
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& verts, const faces_t& faces){
   int nt = faces.shape()[0];
@@ -76,7 +127,7 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 }
 
 
-void centroids_projection(implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces){
+void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces){
 
   boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
   boost::multi_array<REAL, 2> verts(verts_shape);
@@ -111,7 +162,7 @@ void centroids_projection(implicit_function* object, std::vector<REAL>& result_v
   verts_t centroids;
   compute_centroids(faces, verts, centroids);
 
-  set_centers_on_surface(object, &centroids, average_edge);
+  set_centers_on_surface(object, centroids, average_edge);
 
   std::vector< std::vector<int>> vertex_neighbours_list;
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
