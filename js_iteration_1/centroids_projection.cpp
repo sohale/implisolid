@@ -40,31 +40,15 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 
-void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t& x1, verts_t& x_2, REAL ROOT_TOLERANCE){
+void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
+  // initilization step
+  int n = x1_arr.shape()[0];
 
-  int n = x1.shape()[0];
+  vectorized_scalar v1;
+  vectorized_scalar v2;
 
-  boost::array<int, 2> grid_shape = { n*n*n , 3 };
-  boost::multi_array<REAL, 2> grid(grid_shape);
-
-  boost::array<int, 1> implicit_values_shape = { n*n*n };
-  boost::multi_array<REAL, 1> v1(implicit_values_shape);
-  boost::multi_array<REAL, 1> v2(implicit_values_shape);
-
-
-  for (int z = 0; z < n; z++ ) {
-      for (int y = 0; y < n; y++ ) {
-          for (int x = 0; x < n; x++ ) {
-              grid[x + y*n + z*n*n][0] = 2.*(REAL)x/(REAL)n -1.;
-              grid[x + y*n + z*n*n][1] = 2.*(REAL)y/(REAL)n -1.;
-              grid[x + y*n + z*n*n][2] = 2.*(REAL)z/(REAL)n -1.;
-
-          }
-      }
-  }
-
-  object->eval_implicit(grid, &v1);
-  object->eval_implicit(grid, &v2);
+  object->eval_implicit(x1_arr, &v1);
+  object->eval_implicit(x2_arr, &v2);
 
   boost::array<int, 1> active_indices_shape = {n};
   boost::array<int, 1> active_indices= { active_indices_shape };
@@ -76,10 +60,25 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
   int active_count = n;
   int solved_count = 0;
 
-  boost::multi_array<REAL, 1> x_mid(implicit_values_shape);
-  boost::multi_array<REAL,1> v_mid(active_indices_shape);
+  boost::array<int, 3> x_mid_shape = {n,3};
+  boost::multi_array<REAL, 2> x_mid(x_mid_shape);
+  vectorized_scalar v_mid;
+  vectorized_scalar abs_;
 
   int iteration = 1;
+ // loop
+  while (true){
+
+    for (int i=0; i<active_count; i++){
+      x_mid[i][0] = (x1_arr[i][0]+ x2_arr[i][0])/2.;
+      x_mid[i][1] = (x1_arr[i][1]+ x2_arr[i][1])/2.;
+      x_mid[i][2] = (x1_arr[i][2]+ x2_arr[i][2])/2.;
+    }
+
+    object->eval_implicit(x_mid, &v_mid);
+  //  abs_
+
+  }
 
 }
 
@@ -91,6 +90,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   int max_iter = 20;
 
   REAL max_dist = average_edge;
+
+
 
 }
 
