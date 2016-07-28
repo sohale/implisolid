@@ -50,13 +50,6 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
-  // boost::array<int, 1> active_indices_shape = {n};
-  // boost::array<int, 1> active_indices= { active_indices_shape };
-  //
-  // for (int i=0; i<n; i++){
-  //   active_indices[i] = i;
-  // }
-
   std::vector<int> active_indices;
 
   for (int i=0; i<n; i++){
@@ -147,7 +140,6 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     for(int i=0; i<active_count; i++){
       v1[i] = v1[indices_eitherside[i]];
-
       v2[i] = v2[indices_eitherside[i]];
 
       x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
@@ -163,7 +155,6 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       break;
     }
 
-
     indices_boundary.clear();
     indices_outside.clear();
     indices_inside.clear();
@@ -174,15 +165,56 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 }
 
 
-
-void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids,const REAL average_edge){
+void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge){
   REAL min_gradient_len = 0.000001;
-  REAL ROOT_TOLERANCE = 0.0001;
   int max_iter = 20;
 
   REAL max_dist = average_edge;
 
+  vectorized_scalar fc_a;
+  vectorized_scalar signs_c;
 
+  int n = fc_a.shape()[0];
+
+  object->eval_implicit(centroids, &fc_a);
+
+  verts_t g_a;
+  compute_centroid_gradient(centroids, g_a, object);
+
+  boost::array<int, 3> dx0_c_grad_shape = {n,3};
+  boost::multi_array<REAL, 2> dx0_c_grad(dx0_c_grad_shape);
+
+  for (int i=0; i<fc_a.shape()[0]; i++){
+    if (fc_a[i] > ROOT_TOLERANCE ){
+      signs_c[i] = +1.;
+    }
+    else if(fc_a[i] < -ROOT_TOLERANCE){
+      signs_c[i] = -1.;
+    }
+    else{
+      signs_c[i] = 0.;
+    }
+
+    dx0_c_grad[i][0] = g_a[i][0]*signs_c[i];
+    dx0_c_grad[i][1] = g_a[i][1]*signs_c[i];
+    dx0_c_grad[i][2] = g_a[i][2]*signs_c[i];
+  }
+
+  REAL step_size = max_dist;
+
+  std::vector<int> alpha_list;
+
+  while(step_size > 0.001){
+    step_size = step_size*0.5;
+    int max_step;
+    max_step = min(max_iter, int(floor(max_dist/ABS(step_size)+0.001)));
+
+    for (int i=1; i< max_step+1; i+=2){
+      REAL alpha = float(i)*step_size;
+      alpha_list.push_back(alpha/average_edge);
+      alpha_list.push_back(-alpha/average_edge);
+    }
+  }
 
 }
 
@@ -218,6 +250,10 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
     }
 }
 
+
+void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t& centroid_gradients){
+
+}
 
 void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces){
 
