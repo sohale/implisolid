@@ -313,13 +313,137 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
 
     for (int j=0; j<n; j++){
-      if(success[j] == 1 or already_success[j] == 1){
+      if(success[j] == 1 || already_success[j] == 1){
         already_success[j] = 1;
       }
     }
 
+    if (still_nonsuccess_indices.size() == 0){
+      break;
+    }
+
   }
 
+  for (int i=0; i<still_nonsuccess_indices.size(); i++){
+    best_result_x[still_nonsuccess_indices[i]][0] = centroids[still_nonsuccess_indices[i]][0];
+    best_result_x[still_nonsuccess_indices[i]][1] = centroids[still_nonsuccess_indices[i]][1];
+    best_result_x[still_nonsuccess_indices[i]][2] = centroids[still_nonsuccess_indices[i]][2];
+  }
+
+  boost::array<int, 3> xa1_shape = {n,3};
+  boost::multi_array<REAL, 2> xa1(xa1_shape);
+  boost::multi_array<REAL, 2> xa2(xa1_shape);
+
+  vectorized_scalar f1;
+  vectorized_scalar f2;
+  f1 = fc_a;
+
+  xa1 = centroids;
+  xa2 = best_result_x;
+
+  object->eval_implicit(xa2, &f2);
+
+  std::vector<int> zeros2_bool;
+  std::vector<int> zeros1_bool;
+  std::vector<int> zeros1or2;
+  std::vector<int> relevants_bool;
+
+  for (int i=0; i<n; i++){
+
+    if (ABS(f2[i])<= ROOT_TOLERANCE){
+      zeros2_bool.push_back(1);
+    }
+    else{
+      zeros2_bool.push_back(0);
+    }
+
+    if (ABS(f1[i])<= ROOT_TOLERANCE){
+      zeros1_bool.push_back(1);
+      best_result_x[i][0] = centroids[i][0];
+      best_result_x[i][1] = centroids[i][1];
+      best_result_x[i][2] = centroids[i][2];
+    }
+    else{
+      zeros1_bool.push_back(0);
+    }
+
+    if (zeros2_bool[i] == 1 || zeros1_bool[i] == 1 ){
+      zeros1or2.push_back(1);
+    }
+    else{
+      zeros1or2.push_back(0);
+    }
+
+    if (already_success[i] == 1 && zeros1or2[i] == 0 ){
+      relevants_bool.push_back(i);
+    }
+
+  }
+
+  int m = relevants_bool.size();
+
+  boost::array<int, 3> x1_relevant_shape = {m,3};
+  boost::multi_array<REAL, 2> x1_relevant(x1_relevant_shape);
+  boost::multi_array<REAL, 2> x2_relevant(x1_relevant_shape);
+
+  vectorized_scalar f1_relevants;
+  vectorized_scalar f2_relevants;
+
+  for (int i=0; i<m; i++){
+    x1_relevant[i][0] = centroids[relevants_bool[i]][0];
+    x1_relevant[i][1] = centroids[relevants_bool[i]][1];
+    x1_relevant[i][2] = centroids[relevants_bool[i]][2];
+
+    x2_relevant[i][0] = best_result_x[relevants_bool[i]][0];
+    x2_relevant[i][1] = best_result_x[relevants_bool[i]][1];
+    x2_relevant[i][2] = best_result_x[relevants_bool[i]][2];
+  }
+
+  object->eval_implicit(x1_relevant, &f1_relevants);
+  object->eval_implicit(x2_relevant, &f2_relevants);
+
+  std::vector<int> swap_bool;
+
+  verts_t temp;
+  for (int i=0; i<m; i++){
+    int k = 0;
+    if (f2_relevants[i] < -ROOT_TOLERANCE){
+      swap_bool.push_back(1);
+      temp[k][0] = x2_relevant[i][0];
+      temp[k][1] = x2_relevant[i][1];
+      temp[k][2] = x2_relevant[i][2];
+      k += 1;
+      x2_relevant[i][0] = x1_relevant[i][0];
+      x2_relevant[i][1] = x1_relevant[i][1];
+      x2_relevant[i][2] = x1_relevant[i][2];
+      x1_relevant[i][0] = temp[k][0];
+      x1_relevant[i][1] = temp[k][1];
+      x1_relevant[i][2] = temp[k][2];
+    }
+    else{
+      swap_bool.push_back(0);
+    }
+
+  }
+
+  boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
+
+  bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);
+
+
+  for (int i=0; i<m; i++){
+    centroids[relevants_bool[i]][0] = x_bisect[i][0];
+    centroids[relevants_bool[i]][1] = x_bisect[i][1];
+    centroids[relevants_bool[i]][2] = x_bisect[i][2];
+  }
+
+  for (int i=0; i<n; i++){
+    if (zeros1or2[i] == 1){
+      centroids[i][0] = best_result_x[i][0];
+      centroids[i][1] = best_result_x[i][1];
+      centroids[i][2] = best_result_x[i][2];
+    }
+  }
 
 }
 
