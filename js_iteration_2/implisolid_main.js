@@ -25,6 +25,8 @@ function init(service) {
     service.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
     service.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
 
+    service.about = Module.cwrap('about', null, []);
+
     service.init = function(){ service.needsFinish = false; }
     service.finish_with = function (){
         //after the last round.

@@ -258,7 +258,7 @@ extern "C" {
     void* get_gradients_ptr(); // return g_results.data()
     int get_gradients_size(); // return g_results
 
-
+    void about();  // shows build information
 
     //void calculate_gradients()
 
@@ -547,7 +547,11 @@ void finish_geometry() {
     _state.mc = 0;
 }
 
-
+// information
+void about() {
+    std::cout << "Build 1" << std::endl;
+    std::cout << __DATE__ << " " << __TIME__ << std::endl;
+}
 
 
 

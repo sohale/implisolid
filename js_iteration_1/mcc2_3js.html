@@ -78,6 +78,8 @@ Based on MCC1
         newProducer.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
         newProducer.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
 
+        newProducer.about = Module.cwrap('about', null, []);
+
         newProducer.init = function(){ newProducer.needsFinish = false; }
         newProducer.finish_with = function (){
             //after the last round.
