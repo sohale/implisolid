@@ -6,6 +6,7 @@
 #include <map>
 #include "../js_iteration_2/primitives.cpp"
 #include "vertex_resampling.cpp"
+#include "centroids_projection.cpp"
 #include <fstream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -303,6 +304,8 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     for (int i=0; i<3; i++){
      vertex_resampling(object, f_argument, c, *(_state.mc));
     }
+
+    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
