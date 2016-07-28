@@ -78,11 +78,22 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
-            REAL uperside = r-((*i)[2]-this->z);
-            REAL lowerside = r+((*i)[2]-this->z);
+            // REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            // REAL uperside = r-((*i)[2]-this->z);
+            // REAL lowerside = r+((*i)[2]-this->z);
+            //
+            // (*f_output)[output_ctr] = min(f,min(uperside,lowerside));
 
-            (*f_output)[output_ctr] = min(f,min(uperside,lowerside));
+
+            if ((*i)[2]>r){
+              (*f_output)[output_ctr] = r - (*i)[2];
+            }
+            else if ((*i)[2]<-r){
+              (*f_output)[output_ctr] = r + (*i)[2];
+            }
+            else{
+              (*f_output)[output_ctr] = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            }
 
         }
     }
@@ -99,29 +110,30 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
-            REAL uperside = r-((*i)[2]-this->z);
-            REAL lowerside = r+((*i)[2]-this->z);
 
             REAL g0;
             REAL g1;
             REAL g2;
 
-            if(f<uperside && f <lowerside){
-              g0 = -2*((*i)[0]-this->x)/a2;
-              g1 = -2*((*i)[1]-this->y)/b2;
-              g2 =  2*((*i)[2]-this->z)/c2;
+            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            REAL uperside = r-((*i)[2]-this->z);
+            REAL lowerside = r+((*i)[2]-this->z);
+
+            if((*i)[2]<-r){
+              g2 = 1;
+              g1 = 0;
+              g0 = 0;
             }
-            // this may be used :  && pow((*i)[0],2)+pow((*i)[1],2)<0.9
-            else if (uperside <f && uperside < lowerside){
+            else if ((*i)[2]>r){
               g2 = -1;
               g1 = 0;
               g0 = 0;
             }
             else{
-              g2 = 1;
-              g1 = 0;
-              g0 = 0;
+
+              g0 = -2*((*i)[0]-this->x)/a2;
+              g1 = -2*((*i)[1]-this->y)/b2;
+              g2 =  2*((*i)[2]-this->z)/c2;
             }
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
