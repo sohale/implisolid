@@ -13,39 +13,14 @@ using namespace std;
 using namespace mp5_implicit;
 
 #define ASSERTS 1
-//#define VERBOSE  1
-typedef float REAL;
-typedef struct {
-   REAL x, y, z;
-} XYZ;
-
-
-REAL ABS(REAL x){
-  if(x<0)
-    return -x;
-  return x;
-}
-
-typedef boost::multi_array<REAL, 2> verts_t;
-typedef boost::multi_array<int, 2> faces_t;
-typedef std::vector<int> vector_int;
-typedef std::vector<std::vector<int>> neighbour;
-typedef pair<verts_t, faces_t> vf_t;
-
-
-REAL norm_2(REAL x, REAL y, REAL z){
-  REAL norm = sqrt(x*x + y*y + z*z);
-  return norm;
-}
-
 
 REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts){
   int nfaces = faces.shape()[0];
   REAL edge_length;
   for (int j=0; j<nfaces; j++){
-    edge_length += norm_2((verts[faces[j][0]][0] - verts[faces[j][1]][0], verts[faces[j][0]][1] - verts[faces[j][1]][1], verts[faces[j][0]][2] - verts[faces[j][1]][2]));
-    edge_length += norm_2((verts[faces[j][0]][0] - verts[faces[j][2]][0], verts[faces[j][0]][1] - verts[faces[j][2]][1], verts[faces[j][0]][2] - verts[faces[j][2]][2]));
-    edge_length += norm_2((verts[faces[j][2]][0] - verts[faces[j][1]][0], verts[faces[j][2]][1] - verts[faces[j][1]][1], verts[faces[j][2]][2] - verts[faces[j][1]][2]));
+    edge_length += norm_2(verts[faces[j][0]][0] - verts[faces[j][1]][0], verts[faces[j][0]][1] - verts[faces[j][1]][1], verts[faces[j][0]][2] - verts[faces[j][1]][2]);
+    edge_length += norm_2(verts[faces[j][0]][0] - verts[faces[j][2]][0], verts[faces[j][0]][1] - verts[faces[j][2]][1], verts[faces[j][0]][2] - verts[faces[j][2]][2]);
+    edge_length += norm_2(verts[faces[j][2]][0] - verts[faces[j][1]][0], verts[faces[j][2]][1] - verts[faces[j][1]][1], verts[faces[j][2]][2] - verts[faces[j][1]][2]);
   }
   return edge_length/(3.*nfaces);
 }
@@ -101,10 +76,37 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 }
 
 
-void centroids_projection(implicit_function* object, verts_t& verts, const faces_t& faces){
+void centroids_projection(implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces){
+
+  boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
+  boost::multi_array<REAL, 2> verts(verts_shape);
+  boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
+  boost::multi_array<int, 2> faces(faces_shape);
+
+  int output_verts=0;
+  auto i = result_verts.begin();
+  auto e = result_verts.end();
+  for(; i!=e; i++, output_verts++){
+      verts[output_verts][0] = (*i);
+      i++;
+      verts[output_verts][1] = (*i);
+      i++;
+      verts[output_verts][2] = (*i);
+  }
+
+  int output_faces=0;
+  auto i_f = result_faces.begin();
+  auto e_f = result_faces.end();
+  for(; i_f!=e_f; i_f++, output_faces++){
+      faces[output_faces][0] = (*i_f);
+      i_f++;
+      faces[output_faces][1] = (*i_f);
+      i_f++;
+      faces[output_faces][2] = (*i_f);
+  }
 
   REAL average_edge;
-  average_edge = compute_average_edge_length(verts, faces);
+  average_edge = compute_average_edge_length(faces,  verts);
 
   verts_t centroids;
   compute_centroids(faces, verts, centroids);
@@ -115,7 +117,7 @@ void centroids_projection(implicit_function* object, verts_t& verts, const faces
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
   verts_t centroid_gradients;
-  compute_centroid_gradients(centroids, centroid_gradients, object);
+  compute_centroid_gradient(centroids, centroid_gradients, object);
 
   vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
