@@ -39,7 +39,7 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
   }
 }
 
-
+// vectorized bisection
 void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
   // initilization step
   int n = x1_arr.shape()[0];
@@ -164,7 +164,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
 }
 
-
+// main function
 void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge){
   REAL min_gradient_len = 0.000001;
   int max_iter = 20;
@@ -402,13 +402,10 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   object->eval_implicit(x1_relevant, &f1_relevants);
   object->eval_implicit(x2_relevant, &f2_relevants);
 
-  std::vector<int> swap_bool;
-
   verts_t temp;
   for (int i=0; i<m; i++){
     int k = 0;
     if (f2_relevants[i] < -ROOT_TOLERANCE){
-      swap_bool.push_back(1);
       temp[k][0] = x2_relevant[i][0];
       temp[k][1] = x2_relevant[i][1];
       temp[k][2] = x2_relevant[i][2];
@@ -420,17 +417,15 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       x1_relevant[i][1] = temp[k][1];
       x1_relevant[i][2] = temp[k][2];
     }
-    else{
-      swap_bool.push_back(0);
-    }
+
 
   }
 
   boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
-
+  // calling the vectorized bisection
   bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);
 
-
+  //changing the values of the centroids
   for (int i=0; i<m; i++){
     centroids[relevants_bool[i]][0] = x_bisect[i][0];
     centroids[relevants_bool[i]][1] = x_bisect[i][1];
