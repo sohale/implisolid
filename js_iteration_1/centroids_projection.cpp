@@ -216,6 +216,111 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
   }
 
+  //THE algorithm
+  boost::array<int, 3> best_result_x_shape = {n,3};
+  boost::multi_array<REAL, 2> best_result_x(best_result_x_shape);
+
+  boost::array<int, 3> x1_half_shape = {n,3};
+  boost::multi_array<REAL, 2> x1_half(x1_half_shape);
+
+  boost::array<int, 3> xa4_shape = {n,3};
+  boost::multi_array<REAL, 2> xa4(xa4_shape);
+
+  vectorized_scalar f_a;
+  vectorized_scalar signs_a;
+
+  std::vector<int> success0;
+  std::vector<int> success;
+
+  std::vector<int> active_indices;
+
+  for (int i=0; i<n; i++){
+    active_indices.push_back(i);
+  }
+
+  int active_count = n;
+  std::vector<int> still_nonsuccess_indices = active_indices;
+
+  std::vector<int> new_success_indices;
+  std::vector<int> already_success;
+
+  for (int i=0; i<n; i++){
+    already_success.push_back(0);
+  }
+
+
+  int counter = -1;
+
+  for (int i=0; i< alpha_list.size(); i++){
+    counter += 1;
+    for (int j=0; j<n; j++){
+      x1_half[j][0] = centroids[j][0] + (max_dist*alpha_list[i])*dx0_c_grad[j][0];
+      x1_half[j][1] = centroids[j][1] + (max_dist*alpha_list[i])*dx0_c_grad[j][1];
+      x1_half[j][2] = centroids[j][2] + (max_dist*alpha_list[i])*dx0_c_grad[j][2];
+    }
+
+    active_indices = still_nonsuccess_indices;
+
+    for (int j=0; j<active_indices.size(); j++){
+      xa4[j][0] = x1_half[active_indices[j]][0];
+      xa4[j][1] = x1_half[active_indices[j]][1];
+      xa4[j][2] = x1_half[active_indices[j]][2];
+    }
+
+    object->eval_implicit(xa4, &f_a);
+
+    for (int j=0; j<f_a.shape()[0]; j++){
+      if (f_a[j] > ROOT_TOLERANCE ){
+        signs_a[j] = +1.;
+      }
+      else if(f_a[j] < -ROOT_TOLERANCE){
+        signs_a[j] = -1.;
+      }
+      else{
+        signs_a[j] = 0.;
+      }
+
+      success.push_back(0);
+
+      if(signs_a[j] * signs_c[active_indices[j]] <=0){
+        success0.push_back(1);
+      }
+      else{
+        success0.push_back(0);
+      }
+
+    }
+
+    for (int j=0; j< active_indices.size(); j++){
+      success[active_indices[j]] = success0[j];
+    }
+
+    still_nonsuccess_indices.clear();
+
+    for (int j=0; j<n; j++){
+      if (success[j] == 1 and already_success[j] == 0){
+        new_success_indices.push_back(j);
+      }
+      else{
+        still_nonsuccess_indices.push_back(j);
+      }
+    }
+
+    for (int j=0; j< new_success_indices.size(); j++){
+      best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
+      best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
+      best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
+    }
+
+    for (int j=0; j<n; j++){
+      if(success[j] == 1 or already_success[j] == 1){
+        already_success[j] = 1;
+      }
+    }
+
+  }
+
+
 }
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& verts, const faces_t& faces){
