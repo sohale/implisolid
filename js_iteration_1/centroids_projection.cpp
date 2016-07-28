@@ -40,7 +40,7 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 
-void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
+void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
   // initilization step
   int n = x1_arr.shape()[0];
 
@@ -50,11 +50,17 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
-  boost::array<int, 1> active_indices_shape = {n};
-  boost::array<int, 1> active_indices= { active_indices_shape };
+  // boost::array<int, 1> active_indices_shape = {n};
+  // boost::array<int, 1> active_indices= { active_indices_shape };
+  //
+  // for (int i=0; i<n; i++){
+  //   active_indices[i] = i;
+  // }
+
+  std::vector<int> active_indices;
 
   for (int i=0; i<n; i++){
-    active_indices[i] = i;
+    active_indices.push_back(i);
   }
 
   int active_count = n;
@@ -62,6 +68,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
 
   boost::array<int, 3> x_mid_shape = {n,3};
   boost::multi_array<REAL, 2> x_mid(x_mid_shape);
+
   vectorized_scalar v_mid;
   vectorized_scalar abs_;
 
@@ -85,8 +92,76 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x, verts_t&
 
     for (int i=0; i<active_count; i++){
       abs_[i] = ABS(v_mid[i]);
+      if(abs_[i] <= ROOT_TOLERANCE){
+        indices_boundary.push_back(i);
+      }
+      else{
+        indices_eitherside.push_back(i);
+      }
+      if(v_mid[i] < - ROOT_TOLERANCE){
+        indices_outside.push_back(i);
+      }
+      if(v_mid[i] > ROOT_TOLERANCE){
+        indices_inside.push_back(i);
+      }
+
     }
 
+    for (int i=0; i<indices_boundary.size(); i++){
+      which_zeroed.push_back(active_indices[indices_boundary[i]]);
+    }
+
+    int found_count = indices_boundary.size();
+    solved_count += found_count;
+
+    for (int i=0; i<which_zeroed.size(); i++){
+      res_x_arr[which_zeroed[i]][0] = x_mid[indices_boundary[i]][0];
+      res_x_arr[which_zeroed[i]][1] = x_mid[indices_boundary[i]][1];
+      res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
+    }
+
+    for (int i=0; i<indices_inside.size(); i++){
+      v2[indices_inside[i]] = v_mid[indices_inside[i]];
+      x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
+      x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
+      x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
+    }
+
+    for (int i=0; i<indices_outside.size(); i++){
+      v1[indices_outside[i]] = v_mid[indices_outside[i]];
+      x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
+      x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
+      x1_arr[indices_outside[i]][2] = x_mid[indices_outside[i]][2];
+    }
+
+    //next round
+    active_indices.clear();
+
+    for (int i=0; i<indices_eitherside.size(); i++){
+      active_indices.push_back(indices_eitherside[i]);
+    }
+
+    active_count = active_count - found_count;
+
+    iteration += 1;
+
+    for(int i=0; i<active_count; i++){
+      v1[i] = v1[indices_eitherside[i]];
+
+      v2[i] = v2[indices_eitherside[i]];
+
+      x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
+      x1_arr[i][1] = x1_arr[indices_eitherside[i]][1];
+      x1_arr[i][2] = x1_arr[indices_eitherside[i]][2];
+
+      x2_arr[i][0] = x2_arr[indices_eitherside[i]][0];
+      x2_arr[i][1] = x2_arr[indices_eitherside[i]][1];
+      x2_arr[i][2] = x2_arr[indices_eitherside[i]][2];
+    }
+
+    if (active_indices.size() == 0){
+      break;
+    }
 
 
     indices_boundary.clear();
