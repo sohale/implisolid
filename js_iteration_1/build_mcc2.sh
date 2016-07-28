@@ -114,6 +114,8 @@ then
             -s TOTAL_MEMORY=30100100    \
             -s ABORTING_MALLOC=0 \
             -s ALLOW_MEMORY_GROWTH=1 \
+            -s DISABLE_EXCEPTION_CATCHING=0  \
+            -s DEMANGLE_SUPPORT=1 \
             -pedantic -std=c++14  \
         mcc2.cpp  \
             -o  mcc2.compiled.js

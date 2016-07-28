@@ -171,6 +171,13 @@ var ImplicitService = function(){
         bb["zmin"] = bbox.min.z * sc + test;
         bb["zmax"] = bbox.max.z * sc - test;
 
+        _expect(bb["xmin"], "boundingbox has null");
+        _expect(bb["xmax"], "boundingbox has null");
+        _expect(bb["ymin"], "boundingbox has null");
+        _expect(bb["ymax"], "boundingbox has null");
+        _expect(bb["zmin"], "boundingbox has null");
+        _expect(bb["zmax"], "boundingbox has null");
+
         var mc_properties = {resolution: 28, box: bb, ignore_root_matrix: ignore_root_matrix};
 
 
