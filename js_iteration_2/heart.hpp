@@ -98,7 +98,7 @@ public:
           REAL i2 = (*i)[1];
           REAL i3 = (*i)[2];
 
-          (*f_output)[output_ctr] = -(pow(i1*i1 + (9./4.)*i2*i2 + i3*i3 - 1.,3) - i1*i1*i3*i3*i3 - (9./200.)*i2*i2*i3*i3*i3);
+          (*f_output)[output_ctr] = -(std::pow(i1*i1 + (9./4.)*i2*i2 + i3*i3 - 1.,3) - i1*i1*i3*i3*i3 - (9./200.)*i2*i2*i3*i3*i3);
 
         }
     }
@@ -127,9 +127,9 @@ public:
             REAL i3 = (*i)[2];
 
             REAL a = pow(i1*i1 + (9./4.)*i2*i2 + i3*i3 - 1, 2);
-            g0 = 6.*i1*a - 2.*i1*i3*i3*i3;
-            g1 = (27./2)*i2*a - (9./100.)*i2*i3*i3*i3;
-            g2 = 6.*i3*a - 3.*i1*i1*i3*i3 - (27./200.)*i2*i2*i3*i3;
+            g0 = -6.*i1*a + 2.*i1*i3*i3*i3;
+            g1 = -(27./2)*i2*a + (9./100.)*i2*i3*i3*i3;
+            g2 = -6.*i3*a + 3.*i1*i1*i3*i3 + (27./200.)*i2*i2*i3*i3;
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
