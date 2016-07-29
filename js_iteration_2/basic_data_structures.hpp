@@ -51,6 +51,11 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 
 typedef array1d::index  index_t;
 
+typedef short int bool_t;
+
+const bool_t b_true = 1;
+const bool_t b_false = 0;
+
 //typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
 

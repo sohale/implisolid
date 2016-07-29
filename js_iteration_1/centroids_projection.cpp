@@ -50,10 +50,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
-  std::vector<int> active_indices;
+  vectorized_scalar active_indices;
 
-  for (int i=0; i<n; i++){
-    active_indices.push_back(i);
+  for (int i=0; i< n; i++){
+    active_indices[i] = i;
   }
 
   int active_count = n;
@@ -65,11 +65,11 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   vectorized_scalar v_mid;
   vectorized_scalar abs_;
 
-  std::vector<int> indices_boundary;
-  std::vector<int> indices_outside;
-  std::vector<int> indices_inside;
-  std::vector<int> indices_eitherside;
-  std::vector<int> which_zeroed;
+  boost::multi_array<int, 1> indices_boundary;
+  boost::multi_array<int, 1> indices_outside;
+  boost::multi_array<int, 1> indices_inside;
+  boost::multi_array<int, 1> indices_eitherside;
+  boost::multi_array<int, 1> which_zeroed;
 
   int iteration = 1;
  // loop
@@ -83,44 +83,52 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     object->eval_implicit(x_mid, &v_mid);
 
+    int i_b = 0;
+    int i_e = 0;
+    int i_i = 0;
+    int i_o = 0;
     for (int i=0; i<active_count; i++){
       abs_[i] = ABS(v_mid[i]);
       if(abs_[i] <= ROOT_TOLERANCE){
-        indices_boundary.push_back(i);
+        indices_boundary[i_b] = i;
+        i_b ++;
       }
       else{
-        indices_eitherside.push_back(i);
+        indices_eitherside[i_e] = i;
+        i_e ++;
       }
       if(v_mid[i] < - ROOT_TOLERANCE){
-        indices_outside.push_back(i);
+        indices_outside[i_o] = i;
+        i_o ++;
       }
       if(v_mid[i] > ROOT_TOLERANCE){
-        indices_inside.push_back(i);
+        indices_inside[i_i] = i;
+        i_i ++;
       }
 
     }
 
-    for (int i=0; i<indices_boundary.size(); i++){
-      which_zeroed.push_back(active_indices[indices_boundary[i]]);
+    for (int i=0; i<indices_boundary.shape()[0]; i++){
+      which_zeroed[i] = (active_indices[indices_boundary[i]]);
     }
 
-    int found_count = indices_boundary.size();
+    int found_count = indices_boundary.shape()[0];
     solved_count += found_count;
 
-    for (int i=0; i<which_zeroed.size(); i++){
+    for (int i=0; i<which_zeroed.shape()[0]; i++){
       res_x_arr[which_zeroed[i]][0] = x_mid[indices_boundary[i]][0];
       res_x_arr[which_zeroed[i]][1] = x_mid[indices_boundary[i]][1];
       res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
     }
 
-    for (int i=0; i<indices_inside.size(); i++){
+    for (int i=0; i<indices_inside.shape()[0]; i++){
       v2[indices_inside[i]] = v_mid[indices_inside[i]];
       x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
       x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
       x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
     }
 
-    for (int i=0; i<indices_outside.size(); i++){
+    for (int i=0; i<indices_outside.shape()[0]; i++){
       v1[indices_outside[i]] = v_mid[indices_outside[i]];
       x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
       x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
@@ -128,11 +136,13 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     }
 
     //next round
-    active_indices.clear();
 
-    for (int i=0; i<indices_eitherside.size(); i++){
-      active_indices.push_back(indices_eitherside[i]);
+
+    for (int i=0; i<indices_eitherside.shape()[0]; i++){
+      active_indices[i] = indices_eitherside[i];
     }
+
+    active_indices.resize(boost::extents[indices_eitherside.shape()[0]]);
 
     active_count = active_count - found_count;
 
@@ -151,15 +161,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       x2_arr[i][2] = x2_arr[indices_eitherside[i]][2];
     }
 
-    if (active_indices.size() == 0){
+    if (active_indices.shape()[0] == 0){
       break;
     }
 
-    indices_boundary.clear();
-    indices_outside.clear();
-    indices_inside.clear();
-    indices_eitherside.clear();
-    which_zeroed.clear();
   }
 
 }
