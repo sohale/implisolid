@@ -211,7 +211,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   REAL step_size = max_dist;
 
-  std::vector<int> alpha_list;
+  boost::multi_array<int, 1> alpha_list;
 
   while(step_size > 0.001){
     step_size = step_size*0.5;
@@ -220,8 +220,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
     for (int i=1; i< max_step+1; i+=2){
       REAL alpha = float(i)*step_size;
-      alpha_list.push_back(alpha/average_edge);
-      alpha_list.push_back(-alpha/average_edge);
+      alpha_list[i] = alpha/average_edge;
+      alpha_list[i+1] = -alpha/average_edge;
     }
   }
 
@@ -260,7 +260,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   int counter = -1;
 
-  for (int i=0; i< alpha_list.size(); i++){
+  for (int i=0; i< alpha_list.shape()[0]; i++){
     counter += 1;
     for (int j=0; j<n; j++){
       x1_half[j][0] = centroids[j][0] + (max_dist*alpha_list[i])*dx0_c_grad[j][0];
