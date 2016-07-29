@@ -180,7 +180,8 @@ var ImplicitService = function(){
         _expect(bb["zmin"], "boundingbox has null");
         _expect(bb["zmax"], "boundingbox has null");
 
-        var mc_properties = {resolution: 28, box: bb, ignore_root_matrix: ignore_root_matrix};
+        var mc_res = CONFIG.implisolid.default_mc_resolution;
+        var mc_properties = {resolution: mc_res, box: bb, ignore_root_matrix: ignore_root_matrix};
 
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));
