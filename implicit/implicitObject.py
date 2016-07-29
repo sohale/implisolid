@@ -11,6 +11,9 @@ from mayavi import mlab
     File: ImplicitObject.py
     Description: Defines primitives as implicit functions
     and csg operations (Rvachev functions)
+
+    Implementation Details:
+        The classes defined here, depend on  SymPy and Numexpr for symbolic and fast calculations.
 """
 
 
@@ -23,7 +26,7 @@ class ImplicitFunction(Function):
         ARGS:
 
         1. f n c _ e x p r e s s i o n:  is an expression (string or python expression )
-        that representats an implicit unction
+        that represents an implicit function
 
         example: my_implicit_fnc = ImplicitFunction('1-x**2 - y**2 -z**2')
 
@@ -169,6 +172,7 @@ class UnitSphere(Object3D):
 class UnitCube(Object3D):
 
     """ A unit cube """
+    #   Implementation Detail: This is a supercube, constructed by using high powers ^20 - ^100
 
     def __init__(self, sideLen=1):
         super(UnitCube, self).__init__(bound_dim=2.2 * sideLen)     # set the bound_dim a bit more than twice the side length
