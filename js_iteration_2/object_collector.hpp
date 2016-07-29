@@ -25,6 +25,8 @@ void gc_objects() {
        counter++;
    }
 
-   std::cout << std::endl << std::flush;
-   std::cout << counter << " garbages collected. " << garbage_collector.size()<< std::endl << std::flush;
+    if (false) {
+        std::cout << std::endl << std::flush;
+        std::cout << counter << " garbages collected. " << garbage_collector.size()<< std::endl << std::flush;
+    }
 }

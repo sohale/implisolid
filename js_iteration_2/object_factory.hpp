@@ -116,7 +116,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     implicit_function* object;
 
     if (name == "implicit_double_mushroom"){
-        std::cout << "implicit_double_mushroom case " << std::endl;
+        // std::cout << "implicit_double_mushroom case " << std::endl;
         // object = new mp5_implicit::double_mushroom(0.9, 0.4 ,0.4 , 1/0.2 );
         implicit_function* dm = new mp5_implicit::double_mushroom(0.9, 0.4/2, 0.4/2, 1/0.2 );
 
