@@ -44,7 +44,7 @@ function copy_Uint32Array_preallocated(src, min_prealloc_size)  {
     if(min_prealloc_size % 1 !== 0) console.error("min_prealloc_size must be integer: " + min_prealloc_size);
     var len_bytes = Math.max(min_prealloc_size*TYPE_SIZE, src.byteLength);
     var dst = new ArrayBuffer(len_bytes);
-    console.log("dst[0] : " + dst[0]);
+    // console.log("dst[0] : " + dst[0]);  // output:  undefined
     var r = new Uint32Array(dst);
     r.set(new Uint32Array(src));
     return r;
@@ -93,10 +93,10 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
             console.error("faces.length, verts.length == 0");
         }
 
-        console.log("verts : "+ min_verts_capacity + " faces : "+ faces_capacity);
+        // console.log("min capacity for verts : "+ min_verts_capacity + " faces : "+ faces_capacity);
         var padded_faces, padded_verts;
         if(pre_allocate){
-            console.log("Allocating separate space for verts,faces.");
+            // console.log("Allocating separate space for verts,faces.");
             padded_faces = copy_Uint32Array_preallocated(faces, faces_capacity*3);
             padded_verts = copy_Float32Array_preallocated(verts, min_verts_capacity*3);
         }
