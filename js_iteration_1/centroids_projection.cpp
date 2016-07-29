@@ -190,8 +190,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   verts_t g_a;
   compute_centroid_gradient(centroids, g_a, object);
 
-  boost::array<int, 3> dx0_c_grad_shape = {n,3};
-  boost::multi_array<REAL, 2> dx0_c_grad(dx0_c_grad_shape);
+  boost::array<int, 3> vector_shape = {n,3};
+  boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
 
   for (int i=0; i<fc_a.shape()[0]; i++){
     if (fc_a[i] > ROOT_TOLERANCE ){
@@ -235,6 +235,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::array<int, 3> xa4_shape = {n,3};
   boost::multi_array<REAL, 2> xa4(xa4_shape);
 
+  boost::array<int, 1> bool_shape  = {n};
+
   vectorized_scalar f_a;
   vectorized_scalar signs_a;
 
@@ -243,24 +245,18 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<int, 1> active_indices;
   boost::multi_array<int, 1> still_nonsuccess_indices;
 
-  // std::vector<int> success0;
-  // std::vector<int> success;
-  // std::vector<int> active_indices;
 
   for (int i=0; i<n; i++){
     active_indices[i] = i;
   }
 
   int active_count = n;
-//  std::vector<int> still_nonsuccess_indices = active_indices;
 
   still_nonsuccess_indices = active_indices;
 
   boost::multi_array<bool_t, 1> already_success;
   boost::multi_array<bool_t, 1> new_success_indices;
-  //
-  // std::vector<int> new_success_indices;
-  // std::vector<int> already_success;
+
 
   for (int i=0; i<n; i++){
     already_success[i] = b_false;
@@ -313,7 +309,6 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       success[active_indices[j]] = success0[j];
     }
 
-    // still_nonsuccess_indices.clear();
     still_nonsuccess_indices.resize(boost::extents[0]);
 
     int n_s = 0;
@@ -366,44 +361,47 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   object->eval_implicit(xa2, &f2);
 
-  std::vector<int> zeros2_bool;
-  std::vector<int> zeros1_bool;
-  std::vector<int> zeros1or2;
-  std::vector<int> relevants_bool;
 
+  boost::multi_array<bool_t, 1> zeros2_bool(bool_shape);
+  boost::multi_array<bool_t, 1> zeros1_bool(bool_shape);
+  boost::multi_array<bool_t, 1> zeros1or2(bool_shape);
+  boost::multi_array<int, 1> relevants_bool;
+
+  int r_b;
   for (int i=0; i<n; i++){
 
     if (ABS(f2[i])<= ROOT_TOLERANCE){
-      zeros2_bool.push_back(1);
+      zeros2_bool[i] = b_true;
     }
     else{
-      zeros2_bool.push_back(0);
+      zeros2_bool[i] = b_false;
     }
 
     if (ABS(f1[i])<= ROOT_TOLERANCE){
-      zeros1_bool.push_back(1);
+      zeros1_bool[i] = b_true;
       best_result_x[i][0] = centroids[i][0];
       best_result_x[i][1] = centroids[i][1];
       best_result_x[i][2] = centroids[i][2];
     }
     else{
-      zeros1_bool.push_back(0);
+      zeros1_bool[i] = b_false;
     }
 
-    if (zeros2_bool[i] == 1 || zeros1_bool[i] == 1 ){
-      zeros1or2.push_back(1);
+    if (zeros2_bool[i] == b_true || zeros1_bool[i] == b_true ){
+      zeros1or2[i] = b_true;
     }
     else{
-      zeros1or2.push_back(0);
+      zeros1or2[i] = b_false;
     }
 
-    if (already_success[i] == 1 && zeros1or2[i] == 0 ){
-      relevants_bool.push_back(i);
+    if (already_success[i] == b_true && zeros1or2[i] == b_true ){
+      relevants_bool[r_b] = i;
+      r_b ++;
     }
 
   }
 
-  int m = relevants_bool.size();
+  int m = relevants_bool.shape()[0];
 
   boost::array<int, 3> x1_relevant_shape = {m,3};
   boost::multi_array<REAL, 2> x1_relevant(x1_relevant_shape);
