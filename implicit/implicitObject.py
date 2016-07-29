@@ -14,6 +14,24 @@ from mayavi import mlab
 
     Implementation Details:
         The classes defined here, depend on  SymPy and Numexpr for symbolic and fast calculations.
+
+
+    Usage:
+            To use this file, first you will have to import it.
+
+            Example:
+                    from implicitObject import Heart
+
+                    # Init new obj
+                    new_obj = Heart()
+
+                    # Marching Cubes it
+                    new_obj.build_marching_cubes()
+
+                    # Show it!
+
+                    new_obj.show(representation="surface") or new_obj.show() which uses wireframe representation as a default.
+
 """
 
 
@@ -83,12 +101,13 @@ class Object3D(object):
         self.faces = None
         self.bound_dim = bound_dim
 
-    def show(self):
+    def show(self, representation="wireframe"):
         """
-
         This function shows the triangular_mesh of 3D objects, and the
         helping axes .
 
+        OPTIONS:
+            representation="wireframe" || "surface" , default is wireframe
         """
         mlab.figure()
         (RANGE_MIN, RANGE_MAX) = (-5, 5)
@@ -110,7 +129,7 @@ class Object3D(object):
         mlab.triangular_mesh([vert[0] for vert in self.vertices],
                              [vert[1] for vert in self.vertices],
                              [vert[2] for vert in self.vertices],
-                             self.faces, representation="wireframe")
+                             self.faces, representation=representation)
         mlab.show()
         #opacity = 0.2 #0.1
 
