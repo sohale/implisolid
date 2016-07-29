@@ -41,9 +41,11 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 
 // vectorized bisection
 void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
+
   // initilization step
   int n = x1_arr.shape()[0];
 
+  // implicit function of the two arrays
   vectorized_scalar v1;
   vectorized_scalar v2;
 
@@ -62,9 +64,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   boost::array<int, 3> x_mid_shape = {n,3};
   boost::multi_array<REAL, 2> x_mid(x_mid_shape);
 
-  vectorized_scalar v_mid;
-  vectorized_scalar abs_;
+  vectorized_scalar v_mid; // implicit function for x_mid
+  vectorized_scalar abs_; // absolute value of the implicit function
 
+  // array of indices
   boost::multi_array<int, 1> indices_boundary;
   boost::multi_array<int, 1> indices_outside;
   boost::multi_array<int, 1> indices_inside;
@@ -72,9 +75,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   boost::multi_array<int, 1> which_zeroed;
 
   int iteration = 1;
+
  // loop
   while (true){
-
+    //mean of (x1,x2)
     for (int i=0; i<active_count; i++){
       x_mid[i][0] = (x1_arr[i][0]+ x2_arr[i][0])/2.;
       x_mid[i][1] = (x1_arr[i][1]+ x2_arr[i][1])/2.;
@@ -83,6 +87,8 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     object->eval_implicit(x_mid, &v_mid);
 
+
+    // imcrementing the size of the indices arrays
     int i_b = 0;
     int i_e = 0;
     int i_i = 0;
@@ -121,6 +127,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
     }
 
+    // changing the values of x2 and x1
     for (int i=0; i<indices_inside.shape()[0]; i++){
       v2[indices_inside[i]] = v_mid[indices_inside[i]];
       x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
@@ -175,6 +182,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
 // main function
 void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge){
+  // intilization, objects creation
   REAL min_gradient_len = 0.000001;
   int max_iter = 20;
 
@@ -234,13 +242,14 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<REAL, 2> x1_half(vector_shape);
   boost::multi_array<REAL, 2> xa4(vector_shape);
 
-
-
   vectorized_scalar f_a;
   vectorized_scalar signs_a;
 
+  // boolean
   boost::multi_array<bool_t, 1> success0;
   boost::multi_array<bool_t, 1> success;
+
+  // indices arrays
   boost::multi_array<int, 1> active_indices;
   boost::multi_array<int, 1> still_nonsuccess_indices;
 
@@ -264,6 +273,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   int counter = -1;
 
+  // main part of the algorithm
   for (int i=0; i< alpha_list.shape()[0]; i++){
     counter += 1;
     for (int j=0; j<n; j++){
