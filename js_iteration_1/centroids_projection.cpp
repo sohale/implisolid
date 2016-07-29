@@ -137,12 +137,16 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     //next round
 
-
     for (int i=0; i<indices_eitherside.shape()[0]; i++){
       active_indices[i] = indices_eitherside[i];
     }
 
-    active_indices.resize(boost::extents[indices_eitherside.shape()[0]]);
+    indices_boundary.resize(boost::extents[i_b]);
+    indices_eitherside.resize(boost::extents[i_e]);
+    indices_outside.resize(boost::extents[i_o]);
+    indices_inside.resize(boost::extents[i_i]);
+    which_zeroed.resize(boost::extents[i_e]);
+    active_indices.resize(boost::extents[i_e]);
 
     active_count = active_count - found_count;
 
