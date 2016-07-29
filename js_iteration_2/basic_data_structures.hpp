@@ -316,7 +316,17 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
 }
 
 
-/* Makes a copy and applied the matrix. To be called inside the eval_implicit() and eval_gradient() */
+/**
+ * Function: prepare_inner_vectors
+ *
+ * Usage:  vectorized_vect x = prepare_inner_vectors(this->inv_transf_matrix, x)
+ *
+ * Description:
+ * 				This function is used in eval_gradient and eval_implicit of an object
+ * 				and it simply creates a copy of the input x, and then applies the object inverse transform matrix.
+ */
+
+
 vectorized_vect prepare_inner_vectors(REAL* inv_transf_matrix, const vectorized_vect& x) {
     //my_assert(assert_implicit_function_io(x, *f_output), "");
     //my_assert(this->integrity_invariant(), ""); // fixme: has problems
