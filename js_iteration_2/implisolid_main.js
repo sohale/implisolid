@@ -194,7 +194,7 @@ var ImplicitService = function(){
         _expect(bb["zmax"], "boundingbox has null");
 
         var mc_res = CONFIG.implisolid.default_mc_resolution;
-        var mc_properties = {resolution: mc_res, box: bb, ignore_root_matrix: ignore_root_matrix};
+        var mc_properties = {resolution: getResolution(bb), box: bb, ignore_root_matrix: ignore_root_matrix};
 
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));
@@ -213,6 +213,19 @@ function _on_cpp_loaded() {
     assert = _assert_000;
 };
 
+function getResolution(bb){
+    const max_value = 40;
+    const min_value = 14;
+    const factor = CONFIG.implisolid.default_mc_resolution;
+    var max_length = Math.max(bb["xmax"] - bb["xmin"], bb["ymax"] - bb["ymin"], bb["zmax"] - bb["zmin"]);
+    var tmp =  Math.min(max_value,max_length*factor);
+    return  Math.floor(Math.max(tmp,min_value));
+
+    // 1 -> 28
+    // 2 -> 48
+
+
+}
 
 /* Put the following in the HTML
 <script>
