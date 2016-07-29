@@ -50,7 +50,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
-  vectorized_scalar active_indices;
+  boost::multi_array<int, 1> active_indices;
 
   for (int i=0; i< n; i++){
     active_indices[i] = i;
@@ -211,7 +211,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   REAL step_size = max_dist;
 
-  boost::multi_array<int, 1> alpha_list;
+  vectorized_scalar alpha_list;
 
   while(step_size > 0.001){
     step_size = step_size*0.5;
@@ -238,23 +238,32 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   vectorized_scalar f_a;
   vectorized_scalar signs_a;
 
-  std::vector<int> success0;
-  std::vector<int> success;
+  boost::multi_array<bool_t, 1> success0;
+  boost::multi_array<bool_t, 1> success;
+  boost::multi_array<int, 1> active_indices;
+  boost::multi_array<int, 1> still_nonsuccess_indices;
 
-  std::vector<int> active_indices;
+  // std::vector<int> success0;
+  // std::vector<int> success;
+  // std::vector<int> active_indices;
 
   for (int i=0; i<n; i++){
-    active_indices.push_back(i);
+    active_indices[i] = i;
   }
 
   int active_count = n;
-  std::vector<int> still_nonsuccess_indices = active_indices;
+//  std::vector<int> still_nonsuccess_indices = active_indices;
 
-  std::vector<int> new_success_indices;
-  std::vector<int> already_success;
+  still_nonsuccess_indices = active_indices;
+
+  boost::multi_array<bool_t, 1> already_success;
+  boost::multi_array<bool_t, 1> new_success_indices;
+  //
+  // std::vector<int> new_success_indices;
+  // std::vector<int> already_success;
 
   for (int i=0; i<n; i++){
-    already_success.push_back(0);
+    already_success[i] = b_false;
   }
 
 
@@ -270,7 +279,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
     active_indices = still_nonsuccess_indices;
 
-    for (int j=0; j<active_indices.size(); j++){
+    for (int j=0; j<active_indices.shape()[0]; j++){
       xa4[j][0] = x1_half[active_indices[j]][0];
       xa4[j][1] = x1_half[active_indices[j]][1];
       xa4[j][2] = x1_half[active_indices[j]][2];
@@ -289,33 +298,38 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
         signs_a[j] = 0.;
       }
 
-      success.push_back(0);
+      success[i] = b_false;
 
       if(signs_a[j] * signs_c[active_indices[j]] <=0){
-        success0.push_back(1);
+        success0[i] = b_true;
       }
       else{
-        success0.push_back(0);
+        success0[i] = b_false;
       }
 
     }
 
-    for (int j=0; j< active_indices.size(); j++){
+    for (int j=0; j< active_indices.shape()[0]; j++){
       success[active_indices[j]] = success0[j];
     }
 
-    still_nonsuccess_indices.clear();
+    // still_nonsuccess_indices.clear();
+    still_nonsuccess_indices.resize(boost::extents[0]);
 
+    int n_s = 0;
+    int s_n_s = 0;
     for (int j=0; j<n; j++){
       if (success[j] == 1 and already_success[j] == 0){
-        new_success_indices.push_back(j);
+        new_success_indices[n_s] = j;
+        n_s ++;
       }
       else{
-        still_nonsuccess_indices.push_back(j);
+        still_nonsuccess_indices[s_n_s] = j;
+        s_n_s ++;
       }
     }
 
-    for (int j=0; j< new_success_indices.size(); j++){
+    for (int j=0; j< new_success_indices.shape()[0]; j++){
       best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
       best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
       best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
@@ -327,13 +341,13 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       }
     }
 
-    if (still_nonsuccess_indices.size() == 0){
+    if (still_nonsuccess_indices.shape()[0] == 0){
       break;
     }
 
   }
 
-  for (int i=0; i<still_nonsuccess_indices.size(); i++){
+  for (int i=0; i<still_nonsuccess_indices.shape()[0]; i++){
     best_result_x[still_nonsuccess_indices[i]][0] = centroids[still_nonsuccess_indices[i]][0];
     best_result_x[still_nonsuccess_indices[i]][1] = centroids[still_nonsuccess_indices[i]][1];
     best_result_x[still_nonsuccess_indices[i]][2] = centroids[still_nonsuccess_indices[i]][2];
