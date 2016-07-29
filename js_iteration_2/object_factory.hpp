@@ -85,7 +85,7 @@ void copy_eye(REAL matrix12[12]){
 }
 
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
-    std::cout << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
+    // std::cout << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
     //std::cout << "############Name : " << name << std::endl;

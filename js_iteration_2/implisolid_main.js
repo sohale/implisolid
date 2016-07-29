@@ -25,7 +25,20 @@ function init(service) {
     service.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
     service.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
 
-    service.about = Module.cwrap('about', null, []);
+    if (Module["_about"]) {
+        service.about = Module.cwrap('about', null, []);
+    } else {
+        service.about = "C++ method problem: no about()";
+        console.error("C++ method problem: a correct version not found");
+    }
+    /*
+    try {
+        service.about = Module.cwrap('about', null, []);
+    } catch(err) {
+        service.about = "C++ method problem";
+        console.log("C++ method problem: not found");
+    }
+    */
 
     service.init = function(){ service.needsFinish = false; }
     service.finish_with = function (){

@@ -16,7 +16,7 @@ void gc_objects() {
    while (!garbage_collector.empty()) {
 
         mp5_implicit::implicit_function* e = garbage_collector.back(); // garbage_collector.front()
-       if (true) {
+       if (false) {
            std::cout << "delete(" << e << typeid(*e).name() << ")   "; // << std::endl << std::flush;
        }
 
