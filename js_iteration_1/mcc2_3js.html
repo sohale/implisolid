@@ -69,7 +69,7 @@ Based on MCC1
 
         newProducer.set_object = Module.cwrap('set_object', null, ['string', 'number']);
         newProducer.unset_object = Module.cwrap('unset_object', null, []);
-        newProducer.set_x = Module.cwrap('set_x', null, ['number', 'number']);
+        newProducer.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);
         newProducer.unset_x = Module.cwrap('unset_x', null, []);
         newProducer.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
         newProducer.get_values_ptr = Module.cwrap('get_values_ptr', 'number', []);
@@ -97,7 +97,8 @@ Based on MCC1
             var nverts = float32Array.length / 3;
             var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
             Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
-            this.set_x(verts_space, nverts);
+            var result = this.set_x(verts_space, nverts);
+            console.log("result: "+result);
             Module._free( verts_space );
 
         }

@@ -16,7 +16,7 @@ function init(service) {
 
     service.set_object = Module.cwrap('set_object', null, ['string', 'number']);
     service.unset_object = Module.cwrap('unset_object', null, []);
-    service.set_x = Module.cwrap('set_x', null, ['number', 'number']);  // sends the x points for evaluation of implicit or gradient
+    service.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);  // sends the x points for evaluation of implicit or gradient
     service.unset_x = Module.cwrap('unset_x', null, []);
     service.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
     service.get_values_ptr = Module.cwrap('get_values_ptr', 'number', []);
@@ -56,7 +56,8 @@ function init(service) {
         var nverts = float32Array.length / 3;
         var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
         Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
-        this.set_x(verts_space, nverts);
+        var result = this.set_x(verts_space, nverts);
+        console.log("result: "+result);
         Module._free( verts_space );
 
     }
@@ -214,6 +215,7 @@ function _on_cpp_loaded() {
 };
 
 function getResolution(bb){
+    return CONFIG.implisolid.default_mc_resolution;
     const max_value = 40;
     const min_value = 14;
     const factor = CONFIG.implisolid.default_mc_resolution;

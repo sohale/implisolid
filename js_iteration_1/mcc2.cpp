@@ -247,7 +247,7 @@ extern "C" {
     void set_object(const char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
     void unset_object();
 
-    void set_x(void* verts, int n);   // sets last_x, a multi_array.
+    bool set_x(void* verts, int n);   // sets last_x, a multi_array.
     void unset_x();
 
     void calculate_implicit_values();  // multi_array or vector that has a .data().  // calculate v_results from  last_object.eval_implicit()
@@ -600,14 +600,14 @@ void unset_object() {
     current_object = NULL;
 }
 
-void set_x(void* verts, int n) {
+bool set_x(void* verts, int n) {
     if(current_x != NULL){
         std::cout << "Error: You set() before unset()ing the previous set()." << std::endl;
-        return;
+        return false;
     }
     if( n < 0 || n >= 10000) {
         std::cout << "Error: n is outside [0, 10000]." << std::endl;
-        return;
+        return false;
     }
 
     current_x = new vectorized_vect( shape_t{n, 3} );
@@ -630,6 +630,7 @@ void set_x(void* verts, int n) {
     current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
     //std::cout << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
     current_grad = new vectorized_vect( shape_t{n, 3}  );
+    return true;
 }
 void unset_x() {
     if(current_x == NULL){
