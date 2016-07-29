@@ -191,6 +191,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   compute_centroid_gradient(centroids, g_a, object);
 
   boost::array<int, 3> vector_shape = {n,3};
+  boost::array<int, 1> scalar_shape  = {n};
+
   boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
 
   for (int i=0; i<fc_a.shape()[0]; i++){
@@ -226,16 +228,13 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   }
 
   //THE algorithm
-  boost::array<int, 3> best_result_x_shape = {n,3};
-  boost::multi_array<REAL, 2> best_result_x(best_result_x_shape);
 
-  boost::array<int, 3> x1_half_shape = {n,3};
-  boost::multi_array<REAL, 2> x1_half(x1_half_shape);
+ //array definition
+  boost::multi_array<REAL, 2> best_result_x(vector_shape);
+  boost::multi_array<REAL, 2> x1_half(vector_shape);
+  boost::multi_array<REAL, 2> xa4(vector_shape);
 
-  boost::array<int, 3> xa4_shape = {n,3};
-  boost::multi_array<REAL, 2> xa4(xa4_shape);
 
-  boost::array<int, 1> bool_shape  = {n};
 
   vectorized_scalar f_a;
   vectorized_scalar signs_a;
@@ -348,9 +347,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     best_result_x[still_nonsuccess_indices[i]][2] = centroids[still_nonsuccess_indices[i]][2];
   }
 
-  boost::array<int, 3> xa1_shape = {n,3};
-  boost::multi_array<REAL, 2> xa1(xa1_shape);
-  boost::multi_array<REAL, 2> xa2(xa1_shape);
+  boost::multi_array<REAL, 2> xa1(vector_shape);
+  boost::multi_array<REAL, 2> xa2(vector_shape);
 
   vectorized_scalar f1;
   vectorized_scalar f2;
@@ -362,9 +360,9 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   object->eval_implicit(xa2, &f2);
 
 
-  boost::multi_array<bool_t, 1> zeros2_bool(bool_shape);
-  boost::multi_array<bool_t, 1> zeros1_bool(bool_shape);
-  boost::multi_array<bool_t, 1> zeros1or2(bool_shape);
+  boost::multi_array<bool_t, 1> zeros2_bool(scalar_shape);
+  boost::multi_array<bool_t, 1> zeros1_bool(scalar_shape);
+  boost::multi_array<bool_t, 1> zeros1or2(scalar_shape);
   boost::multi_array<int, 1> relevants_bool;
 
   int r_b;
