@@ -182,9 +182,17 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
         object = new mp5_implicit::scone(matrix12);
         register_new_object(object);
-    }
+    }else if(name == "iheart" ){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
 
-    else if (name == "Union") {
+        object = new mp5_implicit::heart(matrix12);
+        register_new_object(object);
+
+    }else if (name == "Union") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
