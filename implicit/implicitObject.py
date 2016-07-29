@@ -7,6 +7,12 @@ from vtk_mc import vtk_mc
 from clean_code.mc_utils import _prepare_grid, make_grid
 from mayavi import mlab
 
+"""
+    File: ImplicitObject.py
+    Description: Defines primitives as implicit functions
+    and csg operations (Rvachev functions)
+"""
+
 
 class ImplicitFunction(Function):
     # Does it need to inherit Function?
@@ -61,7 +67,9 @@ class ImplicitFunction(Function):
 
 
 class Object3D(object):
+
     """ Base class to inherit from for all objects"""
+
     def __init__(self, bound_dim=2):
         """
             bound_dim:  an indicator of the size of the object to be used for the marching cubes bounds
@@ -146,7 +154,9 @@ class Object3D(object):
 
 
 class UnitSphere(Object3D):
+
     """ A unit sphere  """
+
     def __init__(self, radius=1, center=(0, 0, 0)):
         super(UnitSphere, self).__init__(bound_dim=2.2 * radius)    # set the bound_dim a bit more than the diameter
         # x,y,z = sp.symbols('x y z')
@@ -157,7 +167,9 @@ class UnitSphere(Object3D):
 
 
 class UnitCube(Object3D):
+
     """ A unit cube """
+
     def __init__(self, sideLen=1):
         super(UnitCube, self).__init__(bound_dim=2.2 * sideLen)     # set the bound_dim a bit more than twice the side length
         x, y, z = symbols('x y z')
@@ -165,7 +177,9 @@ class UnitCube(Object3D):
 
 
 class Cone(Object3D):
+
     """ Cone implicit function """
+
     def __init__(self, c=1, z0=0):
         super(Cone, self).__init__(bound_dim=4)     # set the bound_dim a bit more than twice the side length
         x, y, z = symbols('x y z')
@@ -173,7 +187,9 @@ class Cone(Object3D):
 
 
 class Torus(Object3D):
+
     """ A torus primitive """
+
     def __init__(self):
         super(Torus, self).__init__(bound_dim=2.2)
         x, y, z = symbols('x y z')
@@ -220,7 +236,7 @@ class Intersection(Object3D):
 
     """ Rvachev intersection """
     def __init__(self, obj1, obj2):
-        super(Intersection, self).__init__(bound_dim=4)   # bound_dim needs to be coming from somewhere, for now set a default=10
+        super(Intersection, self).__init__(bound_dim=4)   # bound_dim needs to be extracted from somewhere that makes sense, for now set a default=10
         x, y, z = symbols('x y z')
         self.function = ImplicitFunction("{expr1} + {expr2} - ({expr1}**(2) + {expr2}**2)**(1/2.)".format(expr1=obj1.function.formula, expr2=obj2.function.formula))
 
