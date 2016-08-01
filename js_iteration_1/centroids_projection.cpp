@@ -489,6 +489,37 @@ std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& ver
   return neighbour_faces_of_vertex;
 }
 
+void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b){
+
+    int m = nai.size();
+
+    boost::array<int, 2> center_array_shape = {m,3};
+    boost::multi_array<REAL, 2> center_array(center_array_shape);
+    boost::multi_array<REAL, 2> normals(center_array_shape);
+
+    for (int i=0; i<m; i++){
+
+      normals[i][0] = centroid_gradients[nai[i]][0];
+      normals[i][1] = centroid_gradients[nai[i]][1];
+      normals[i][2] = centroid_gradients[nai[i]][2];
+
+      center_array[i][0] = centroids[nai[i]][0];
+      center_array[i][1] = centroids[nai[i]][1];
+      center_array[i][2] = centroids[nai[i]][2];
+    }
+
+    // n_i = normals[:, :, np.newaxis]
+    // p_i = center_array[:, :, np.newaxis]
+    //
+    // A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
+    //
+    // for i in range(normals.shape[0]):
+    //
+    //     nnt = np.dot(n_i[i], np.transpose(n_i[i]))
+    //
+    //     b += -np.dot(nnt, p_i[i])
+
+}
 
 void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
