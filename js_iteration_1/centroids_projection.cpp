@@ -547,14 +547,14 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
   compute_centroids(faces, verts, centroids);
 
   set_centers_on_surface(object, centroids, average_edge);
-  //
-  // std::vector< std::vector<int>> vertex_neighbours_list;
-  // vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
-  //
-  // verts_t centroid_gradients;
-  // compute_centroid_gradient(centroids, centroid_gradients, object);
-  //
-  // vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
-  //
+
+  std::vector< std::vector<int>> vertex_neighbours_list;
+  vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
+
+  boost::multi_array<REAL, 2> centroid_gradients(centroids_shape);
+  compute_centroid_gradient(centroids, centroid_gradients, object);
+
+  vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
+
 
 }
