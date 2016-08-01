@@ -29,21 +29,26 @@ public:
       this->rz = rz;
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
-      this->transf_matrix[0]=1;
-      this->transf_matrix[5]=1;
-      this->transf_matrix[10]=1;
-      this->transf_matrix[15]=1;
-      this->inv_transf_matrix[0]=1;
-      this->inv_transf_matrix[5]=1;
-      this->inv_transf_matrix[10]=1;
-      this->inv_transf_matrix[15]=1;
+
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
+      for (int i=0; i<12; i++){
+        if(i==0 || i==5 || i==10){
+          this->transf_matrix[i] = 1;
+          this->inv_transf_matrix[i] = 1;
+        }
+        else{
+          this->transf_matrix[i] = 0;
+          this->inv_transf_matrix[i] = 0;
+        }
+      }
     }
 
     torus(REAL matrix12[12]){
         this->r = 4.;
-        this->rx = 0.1;
-        this->ry = 0.1;
-        this->rz = 0.1;
+        this->rx = 0.2;
+        this->ry = 0.2;
+        this->rz = 0.2;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -106,11 +111,11 @@ public:
             REAL y = (*i)[1];
             REAL z = (*i)[2];
 
-            REAL a = std::pow(100*x*x + 100*y*y, 0.5);
+            REAL a = std::pow(x*x/(rx*rx) + y*y/(ry*ry), 0.5);
 
-            REAL gx = (200 * x / a) * (4 - a);
-            REAL gy = (200 * y / a) * (4 - a);
-            REAL gz = -200 * z;
+            REAL gx = (2 * x /(rx*rx*a)) * (r - a);
+            REAL gy = (2 * y / (ry*ry*a)) * (r - a);
+            REAL gz = -2*z/(rz*rz);
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*gx + this->inv_transf_matrix[4]*gy + this->inv_transf_matrix[8]*gz;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*gx + this->inv_transf_matrix[5]*gy + this->inv_transf_matrix[9]*gz;

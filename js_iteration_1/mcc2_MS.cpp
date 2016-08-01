@@ -198,7 +198,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &segg; // super egg !
     }
     else if (name == "torus"){
-      torus Tor(2.,0.2,0.2,0.2);
+      torus Tor(4.,0.2,0.2,0.2);
       object = &Tor; // super egg !
     }
     else if (name == "honey_comb"){
