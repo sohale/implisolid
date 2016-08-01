@@ -41,7 +41,8 @@ Based on MCC1
         newProducer.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
-        newProducer.about = Module.cwrap('about', null, []);
+        // newProducer.about = Module.cwrap('about', null, []);
+          // this is used for version purposes in the current html file
 
         newProducer.init = function(){ newProducer.needsFinish = false; }
         newProducer.finish_with = function (){

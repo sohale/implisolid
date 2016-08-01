@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "heart";
+    string name = "torus";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -196,6 +196,10 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     else if (name == "egg"){
       egg segg(0.3, 0.4, 0.5, 0.2, 0.1, 0.3);
       object = &segg; // super egg !
+    }
+    else if (name == "torus"){
+      torus Tor(2.,0.2,0.2,0.2);
+      object = &Tor; // super egg !
     }
     else if (name == "honey_comb"){
       honey_comb honey_comb(0.5, 30., 1.);
@@ -305,7 +309,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
      vertex_resampling(object, f_argument, c, *(_state.mc));
     }
 
-    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+    // centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

@@ -8,6 +8,7 @@
  */
 
 #pragma once
+#include "basic_data_structures.hpp"
 // #include "basic_data_structures.hpp"
 
 /* part of the namespace mp5_implicit */
@@ -20,6 +21,23 @@ protected:
     // what else should be on protected ?
 
 public:
+
+    torus(REAL r, REAL rx, REAL ry, REAL rz){
+      this->r = r;
+      this->rx = rx;
+      this->ry = ry;
+      this->rz = rz;
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
+      this->transf_matrix[0]=1;
+      this->transf_matrix[5]=1;
+      this->transf_matrix[10]=1;
+      this->transf_matrix[15]=1;
+      this->inv_transf_matrix[0]=1;
+      this->inv_transf_matrix[5]=1;
+      this->inv_transf_matrix[10]=1;
+      this->inv_transf_matrix[15]=1;
+    }
 
     torus(REAL matrix12[12]){
         this->r = 4.;
