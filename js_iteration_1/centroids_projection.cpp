@@ -46,13 +46,14 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   int n = x1_arr.shape()[0];
 
   // implicit function of the two arrays
-  vectorized_scalar v1;
-  vectorized_scalar v2;
+  boost::array<int, 1> v1_shape = {n};
+  vectorized_scalar v1(v1_shape);
+  vectorized_scalar v2(v1_shape);
 
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
-  boost::multi_array<int, 1> active_indices;
+  boost::multi_array<int, 1> active_indices(v1_shape);
 
   for (int i=0; i< n; i++){
     active_indices[i] = i;
@@ -61,18 +62,18 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   int active_count = n;
   int solved_count = 0;
 
-  boost::array<int, 3> x_mid_shape = {n,3};
+  boost::array<int, 2> x_mid_shape = {n,3};
   boost::multi_array<REAL, 2> x_mid(x_mid_shape);
 
-  vectorized_scalar v_mid; // implicit function for x_mid
-  vectorized_scalar abs_; // absolute value of the implicit function
+  vectorized_scalar v_mid(v1_shape); // implicit function for x_mid
+  vectorized_scalar abs_(v1_shape); // absolute value of the implicit function
 
   // array of indices
-  boost::multi_array<int, 1> indices_boundary;
-  boost::multi_array<int, 1> indices_outside;
-  boost::multi_array<int, 1> indices_inside;
-  boost::multi_array<int, 1> indices_eitherside;
-  boost::multi_array<int, 1> which_zeroed;
+  boost::multi_array<int, 1> indices_boundary(v1_shape);
+  boost::multi_array<int, 1> indices_outside(v1_shape);
+  boost::multi_array<int, 1> indices_inside(v1_shape);
+  boost::multi_array<int, 1> indices_eitherside(v1_shape);
+  boost::multi_array<int, 1> which_zeroed(v1_shape);
 
   int iteration = 1;
 
@@ -114,28 +115,28 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     }
 
-    for (int i=0; i<indices_boundary.shape()[0]; i++){
+    for (int i=0; i<i_b; i++){
       which_zeroed[i] = (active_indices[indices_boundary[i]]);
     }
 
-    int found_count = indices_boundary.shape()[0];
+    int found_count = i_b;
     solved_count += found_count;
 
-    for (int i=0; i<which_zeroed.shape()[0]; i++){
+    for (int i=0; i<i_b; i++){
       res_x_arr[which_zeroed[i]][0] = x_mid[indices_boundary[i]][0];
       res_x_arr[which_zeroed[i]][1] = x_mid[indices_boundary[i]][1];
       res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
     }
 
     // changing the values of x2 and x1
-    for (int i=0; i<indices_inside.shape()[0]; i++){
+    for (int i=0; i<i_i; i++){
       v2[indices_inside[i]] = v_mid[indices_inside[i]];
       x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
       x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
       x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
     }
 
-    for (int i=0; i<indices_outside.shape()[0]; i++){
+    for (int i=0; i<i_o; i++){
       v1[indices_outside[i]] = v_mid[indices_outside[i]];
       x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
       x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
@@ -144,7 +145,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     //next round
 
-    for (int i=0; i<indices_eitherside.shape()[0]; i++){
+    for (int i=0; i<i_e; i++){
       active_indices[i] = indices_eitherside[i];
     }
 
@@ -188,18 +189,20 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   REAL max_dist = average_edge;
 
-  vectorized_scalar fc_a;
-  vectorized_scalar signs_c;
+  int n = centroids.shape()[0];
+  boost::array<int, 1> scalar_shape = {n};
 
-  int n = fc_a.shape()[0];
+  vectorized_scalar fc_a(scalar_shape);
+  vectorized_scalar signs_c(scalar_shape);
 
   object->eval_implicit(centroids, &fc_a);
 
-  verts_t g_a;
+  boost::array<int, 2> g_a_shape = { n , 3 };
+  boost::multi_array<REAL, 2> g_a(g_a_shape);
+
   compute_centroid_gradient(centroids, g_a, object);
 
-  boost::array<int, 3> vector_shape = {n,3};
-  boost::array<int, 1> scalar_shape  = {n};
+  boost::array<int, 2> vector_shape = {n,3};
 
   boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
 
@@ -221,7 +224,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   REAL step_size = max_dist;
 
-  vectorized_scalar alpha_list;
+  vectorized_scalar alpha_list(scalar_shape);
 
   while(step_size > 0.001){
     step_size = step_size*0.5;
@@ -242,16 +245,16 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<REAL, 2> x1_half(vector_shape);
   boost::multi_array<REAL, 2> xa4(vector_shape);
 
-  vectorized_scalar f_a;
-  vectorized_scalar signs_a;
+  vectorized_scalar f_a(scalar_shape);
+  vectorized_scalar signs_a(scalar_shape);
 
   // boolean
-  boost::multi_array<bool_t, 1> success0;
-  boost::multi_array<bool_t, 1> success;
+  boost::multi_array<bool_t, 1> success0(scalar_shape);
+  boost::multi_array<bool_t, 1> success(scalar_shape);
 
   // indices arrays
-  boost::multi_array<int, 1> active_indices;
-  boost::multi_array<int, 1> still_nonsuccess_indices;
+  boost::multi_array<int, 1> active_indices(scalar_shape);
+  boost::multi_array<int, 1> still_nonsuccess_indices(scalar_shape);
 
 
   for (int i=0; i<n; i++){
@@ -262,18 +265,17 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   still_nonsuccess_indices = active_indices;
 
-  boost::multi_array<bool_t, 1> already_success;
-  boost::multi_array<bool_t, 1> new_success_indices;
+  boost::multi_array<bool_t, 1> already_success(scalar_shape);
+  boost::multi_array<bool_t, 1> new_success_indices(scalar_shape);
 
 
   for (int i=0; i<n; i++){
     already_success[i] = b_false;
   }
 
-
   int counter = -1;
 
-  // main part of the algorithm
+  // main part of the algor
   for (int i=0; i< alpha_list.shape()[0]; i++){
     counter += 1;
     for (int j=0; j<n; j++){
@@ -318,7 +320,6 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       success[active_indices[j]] = success0[j];
     }
 
-    still_nonsuccess_indices.resize(boost::extents[0]);
 
     int n_s = 0;
     int s_n_s = 0;
@@ -345,7 +346,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       }
     }
 
-    if (still_nonsuccess_indices.shape()[0] == 0){
+    if (s_n_s == 0){
       break;
     }
 
@@ -360,15 +361,14 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<REAL, 2> xa1(vector_shape);
   boost::multi_array<REAL, 2> xa2(vector_shape);
 
-  vectorized_scalar f1;
-  vectorized_scalar f2;
+  vectorized_scalar f1(scalar_shape);
+  vectorized_scalar f2(scalar_shape);
   f1 = fc_a;
 
   xa1 = centroids;
   xa2 = best_result_x;
 
   object->eval_implicit(xa2, &f2);
-
 
   boost::multi_array<bool_t, 1> zeros2_bool(scalar_shape);
   boost::multi_array<bool_t, 1> zeros1_bool(scalar_shape);
@@ -411,12 +411,13 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   int m = relevants_bool.shape()[0];
 
-  boost::array<int, 3> x1_relevant_shape = {m,3};
+  boost::array<int, 2> x1_relevant_shape = {m,3};
+  boost::array<int, 1> f1_relevant_shape = {m};
   boost::multi_array<REAL, 2> x1_relevant(x1_relevant_shape);
   boost::multi_array<REAL, 2> x2_relevant(x1_relevant_shape);
 
-  vectorized_scalar f1_relevants;
-  vectorized_scalar f2_relevants;
+  vectorized_scalar f1_relevants(f1_relevant_shape);
+  vectorized_scalar f2_relevants(f1_relevant_shape);
 
   for (int i=0; i<m; i++){
     x1_relevant[i][0] = centroids[relevants_bool[i]][0];
@@ -540,18 +541,20 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
   REAL average_edge;
   average_edge = compute_average_edge_length(faces,  verts);
 
-  verts_t centroids;
+  boost::array<int, 2> centroids_shape = { (int)result_faces.size()/3 , 3 };
+  boost::multi_array<REAL, 2> centroids(centroids_shape);
+
   compute_centroids(faces, verts, centroids);
 
   set_centers_on_surface(object, centroids, average_edge);
-
-  std::vector< std::vector<int>> vertex_neighbours_list;
-  vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
-
-  verts_t centroid_gradients;
-  compute_centroid_gradient(centroids, centroid_gradients, object);
-
-  vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
-
+  //
+  // std::vector< std::vector<int>> vertex_neighbours_list;
+  // vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
+  //
+  // verts_t centroid_gradients;
+  // compute_centroid_gradient(centroids, centroid_gradients, object);
+  //
+  // vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
+  //
 
 }

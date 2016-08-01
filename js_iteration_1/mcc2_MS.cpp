@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "torus";
+    string name = "sphere";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -309,7 +309,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
      vertex_resampling(object, f_argument, c, *(_state.mc));
     }
 
-    // centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;
