@@ -536,6 +536,7 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
 
 }
 
+
 void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
   gradou->eval_gradient(centroids, &centroid_normals_normalized);
@@ -551,7 +552,7 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 }
 
 
-void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t& centroid_gradients){
+void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>>& vertex_neighbours_list, verts_t& centroid_gradients){
 
   int nverts = verts->shape()[0];
 
@@ -562,12 +563,44 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
   boost::multi_array<int, 1> result_vertex_ranks(result_vertex_ranks_shape);
 
   boost::array<int, 2> A_shape = { 3 , 3 };
+
   verts_t A(A_shape);
+  verts_t u(A_shape);
+  verts_t s(A_shape);
+  verts_t v(A_shape);
 
   boost::array<int, 2> b_shape = { 3 , 1 };
   vectorized_scalar b(b_shape);
 
+  for (int vi=0; vi<nverts; vi++){
+
+    std::vector<int> nlist;
+    for (int i=0; i< vertex_neighbours_list[vi].size(); i++){
+      nlist.push_back(vertex_neighbours_list[vi][i]);
+    }
+
+    get_A_b(nlist, centroids, centroid_gradients, &A, &b);
+    SVD(A, u, s, v);
+
+    REAL tau = 680.;
+    int rank = 0;
+    if (s[1][1]/s[0][0] < 1./tau){
+      s[1][1] = 0.;
+    }
+    else{
+      rank ++;
+    }
+
+    if (s[2][2]/s[0][0] < 1./tau){
+      s[2][2] = 0.;
+    }
+    else{
+      rank ++;
+    }
+
+  }
 }
+
 
 void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces){
 
