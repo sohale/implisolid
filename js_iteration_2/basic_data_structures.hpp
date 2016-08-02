@@ -16,6 +16,7 @@
 #include "boost/numeric/ublas/matrix.hpp"
 #include "boost/numeric/ublas/lu.hpp"
 #include "boost/numeric/ublas/io.hpp"
+#include "svd.cpp"
 
 
 
@@ -317,6 +318,40 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
 
 
 /**
+ * Function: SVD
+ * Usage:
+ * ---------------------------------------
+ * Desc:
+ *
+ * Notes:
+ */
+
+void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
+  
+  ublas::matrix < float > QQL(3,3);
+  ublas::matrix < float > QQW(3,3);
+  ublas::matrix < float > QQR(3,3);
+  ublas::matrix < float > in(3,3);
+
+  for(int i=0; i<3; i++){
+    for(int j=0; j<3; j++){
+      in(i,j)= A[i][j];
+    }
+  }
+
+  svd(in, QQL, QQW, QQR);
+
+  for(int i=0; i<3; i++){
+    for(int j=0; j<3; j++){
+      u[i][j]= QQL(i,j);
+      s[i][j]= QQW(i,j);
+      v[i][j]= QQR(i,j);
+    }
+  }
+
+}
+
+/**
  * Function: prepare_inner_vectors
  *
  * Usage:  vectorized_vect x = prepare_inner_vectors(this->inv_transf_matrix, x)
@@ -354,7 +389,7 @@ namespace mp5_implicit {
 
 }
 
-/*
+/*,
 ================================================================
 =           Configuration Parameters                           =
 ================================================================
