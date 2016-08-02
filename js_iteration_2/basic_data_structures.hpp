@@ -17,13 +17,14 @@
 #include "boost/numeric/ublas/matrix.hpp"
 #include "boost/numeric/ublas/lu.hpp"
 #include "boost/numeric/ublas/io.hpp"
-/*
+
 #include "svd.cpp"
-*/
+
 
 
 using namespace boost::numeric::ublas;
 using namespace std;
+
 
 //#include "boost/assert.hpp"
 
@@ -330,13 +331,13 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
  *
  * Notes:
  */
-/*
+
 void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
 
-  ublas::matrix < float > QQL(3,3);
-  ublas::matrix < float > QQW(3,3);
-  ublas::matrix < float > QQR(3,3);
-  ublas::matrix < float > in(3,3);
+  boost::numeric::ublas::matrix < float > QQL(3,3);
+  boost::numeric::ublas::matrix < float > QQW(3,3);
+  boost::numeric::ublas::matrix < float > QQR(3,3);
+  boost::numeric::ublas::matrix < float > in(3,3);
 
   for(int i=0; i<3; i++){
     for(int j=0; j<3; j++){
@@ -355,7 +356,7 @@ void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
   }
 
 }
-*/
+
 
 /**
  * Function: prepare_inner_vectors

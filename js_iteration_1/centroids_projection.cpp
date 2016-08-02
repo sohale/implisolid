@@ -4,6 +4,7 @@
 #include <math.h>
 #include <cassert>
 #include <map>
+
 // #include <vector>
 #include <string>
 #include <tuple>
@@ -556,11 +557,6 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
 
   int nverts = verts->shape()[0];
 
-  boost::array<int, 2> new_verts_shape = { nverts , 3 };
-  verts_t new_verts(new_verts_shape);
-
-  boost::array<int, 1> result_vertex_ranks_shape = { nverts };
-  boost::multi_array<int, 1> result_vertex_ranks(result_vertex_ranks_shape);
 
   boost::array<int, 2> A_shape = { 3 , 3 };
 
@@ -571,6 +567,9 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
 
   boost::array<int, 2> b_shape = { 3 , 1 };
   vectorized_scalar b(b_shape);
+  vectorized_scalar y(b_shape);
+  vectorized_scalar utb(b_shape);
+  vectorized_scalar new_x(b_shape);
 
   for (int vi=0; vi<nverts; vi++){
 
@@ -598,7 +597,32 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
       rank ++;
     }
 
+    y[0] = v[0][0]*(*verts)[vi][0] + v[0][1]*(*verts)[vi][1] + v[0][2]*(*verts)[vi][2];
+    y[1] = v[1][0]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[1][2]*(*verts)[vi][2];
+    y[2] = v[2][0]*(*verts)[vi][0] + v[2][1]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
+
+    utb[0] = - u[0][0]*b[0] - u[1][0]*b[1] - u[2][0]*b[2];
+    utb[1] = - u[0][1]*b[0] - u[1][1]*b[1] - u[2][1]*b[2];
+    utb[2] = - u[0][2]*b[0] - u[1][2]*b[1] - u[2][2]*b[2];
+
+    for (int i=0; i<rank; i++){
+      y[i] = utb[i]/s[i][i];
+    }
+
+    new_x[0] = v[0][0]*y[0] + v[1][0]*y[1] + v[2][0]*y[2];
+    new_x[1] = v[0][1]*y[0] + v[1][1]*y[1] + v[2][1]*y[2];
+    new_x[2] = v[0][2]*y[0] + v[1][2]*y[1] + v[2][2]*y[2];
+
+    //
+    // if (s[0][0] < 0.000001){
+    //   result_vertex_ranks[vi] = 0;
+    // }
+    (*verts)[vi][0] = new_x[0];
+    (*verts)[vi][1] = new_x[1];
+    (*verts)[vi][2] = new_x[2];
   }
+
+
 }
 
 
