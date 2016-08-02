@@ -508,16 +508,31 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
       center_array[i][2] = centroids[nai[i]][2];
     }
 
-    // n_i = normals[:, :, np.newaxis]
-    // p_i = center_array[:, :, np.newaxis]
-    //
-    // A = np.dot(np.reshape(n_i, (normals.shape[0], 3)).T, np.reshape(n_i, (normals.shape[0], 3)))
-    //
-    // for i in range(normals.shape[0]):
-    //
-    //     nnt = np.dot(n_i[i], np.transpose(n_i[i]))
-    //
-    //     b += -np.dot(nnt, p_i[i])
+    for (int j=0; j<m; j++){
+
+      REAL a00 = normals[j][0]*normals[j][0];
+      REAL a01 = normals[j][0]*normals[j][1];
+      REAL a02 = normals[j][0]*normals[j][2];
+      REAL a11 = normals[j][1]*normals[j][1];
+      REAL a12 = normals[j][1]*normals[j][2];
+      REAL a22 = normals[j][2]*normals[j][2];
+
+      (*A)[0][0] += a00;
+      (*A)[0][1] += a01;
+      (*A)[0][2] += a02;
+      (*A)[1][1] += a11;
+      (*A)[1][2] += a12;
+      (*A)[2][2] += a22;
+
+      (*b)[0] += a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];
+      (*b)[1] += a01*center_array[j][0] + a11*center_array[j][1] + a12*center_array[j][2];
+      (*b)[2] += a02*center_array[j][0] + a12*center_array[j][1] + a22*center_array[j][2];
+
+    }
+
+    (*A)[1][0] = (*A)[0][1];
+    (*A)[2][0] = (*A)[0][2];
+    (*A)[2][1] = (*A)[1][2];
 
 }
 
@@ -537,6 +552,12 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 
 
 void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t& centroid_gradients){
+
+  boost::array<int, 2> A_shape = { 3 , 3 };
+  verts_t A(A_shape);
+
+  boost::array<int, 2> b_shape = { 3 , 1 };
+  vectorized_scalar b(b_shape);
 
 }
 
