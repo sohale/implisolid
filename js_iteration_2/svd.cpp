@@ -212,7 +212,7 @@ svd_qr_shift(ublas::matrix < float >&u,
 	int n = q.size();
 	int m = u.size1();
 
-	std::cout << u.size1() << " " << u.size2() << "\n";
+//	std::cout << u.size1() << " " << u.size2() << "\n";
 
 	bool goto_test_conv = false;
 
@@ -380,8 +380,6 @@ svd(ublas::matrix < float >&A,
 	// std::cout << QQR << std::endl;
 
 	svd_qr_shift(QQL, QQR, d, s);
-
-	std::cout << "Sigmas: " << d << "\n";
 
 	QQW.clear();
 

@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "sphere";
+    string name = "double_mushroom";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -210,14 +210,14 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &sphere;
     }
     else if (name == "cube"){
-      cube cube(0.2, 0.2, 0.2);
+      cube cube(0.6, 0.6, 0.6);
       boost::array<int, 2> direction_shape = { 1, 3 };
       boost::multi_array<REAL, 2> direction(direction_shape);
       direction[0][0] = 0.;
       direction[0][1] = 0.0;
       direction[0][2] = 0.3;
 
-      cube.rotate(2., direction);
+    //  cube.rotate(2., direction);
       object = &cube;
     }
     else if (name == "super_bowl"){
@@ -309,7 +309,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
      vertex_resampling(object, f_argument, c, *(_state.mc));
     }
 
-    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+  //  centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
     if(VERBOSE){
         std::cout << resolution << " " << time << std::endl;

@@ -644,6 +644,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
       verts[output_verts][2] = (*i);
   }
 
+
   int output_faces=0;
   auto i_f = result_faces.begin();
   auto e_f = result_faces.end();
@@ -673,5 +674,10 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
   vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
+  for (int i=0; i<verts.shape()[0]; i++) {
+    result_verts[i*3+0] = verts[i][0];
+    result_verts[i*3+1] = verts[i][1];
+    result_verts[i*3+2] = verts[i][2];
+  }
 
 }
