@@ -553,7 +553,7 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 
 void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t& centroid_gradients){
 
-  int nverts = verts.shape()[0];
+  int nverts = verts->shape()[0];
 
   boost::array<int, 2> new_verts_shape = { nverts , 3 };
   verts_t new_verts(new_verts_shape);

@@ -52,6 +52,9 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 
 typedef array1d::index  index_t;
 
+typedef boost::multi_array<REAL, 2> verts_t;
+typedef boost::multi_array<int, 2> faces_t;
+
 typedef short int bool_t;
 
 const bool_t b_true = 1;
@@ -327,7 +330,7 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
  */
 
 void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
-  
+
   ublas::matrix < float > QQL(3,3);
   ublas::matrix < float > QQW(3,3);
   ublas::matrix < float > QQR(3,3);

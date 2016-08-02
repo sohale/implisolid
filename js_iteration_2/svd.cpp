@@ -409,51 +409,51 @@ bool check_bidiag(ublas::matrix < float >&A)
 	return true;
 }
 
-int main()
-{
-	ublas::matrix < float > in;
-
-	std::fstream f;
-	f.open("data/wiki.example", std::fstream::in);
-	f >> in;
-	f.close();
-
-//  srand((unsigned int)time(0));
-//	random_fill(in, 250, 150);
-
-	ublas::matrix < float > ref = in;
-
-	pretty_print("Input:", in);
-
-#ifdef DEBUG
-	std::cout << in << "\n";
-#endif
-	ublas::matrix < float > QQL;
-    ublas::matrix < float > QQW;
-	ublas::matrix < float > QQR;
-
-    svd(in, QQL, QQW, QQR);
-
-	// std::cout << in << "\n";
-	ublas::matrix < float > result;
-
-#ifdef CHECK_RESULT
-	// std::cout << "QL: " << QQL << "\n";
- //    std::cout << "QW: " << QQW << "\n";
-	// std::cout << "QR: " << QQR << "\n";
-	// std::cout << "A:: " << in << "\n";
-
-    result = ublas::prod(QQW, trans(QQR));
-	result = ublas::prod(QQL, result);
+// int main()
+// {
+// 	ublas::matrix < float > in;
+//
+// 	std::fstream f;
+// 	f.open("data/wiki.example", std::fstream::in);
+// 	f >> in;
+// 	f.close();
+//
+// //  srand((unsigned int)time(0));
+// //	random_fill(in, 250, 150);
+//
+// 	ublas::matrix < float > ref = in;
+//
+// 	pretty_print("Input:", in);
+//
+// #ifdef DEBUG
+// 	std::cout << in << "\n";
+// #endif
+// 	ublas::matrix < float > QQL;
+//     ublas::matrix < float > QQW;
+// 	ublas::matrix < float > QQR;
+//
+//     svd(in, QQL, QQW, QQR);
+//
+// 	// std::cout << in << "\n";
+// 	ublas::matrix < float > result;
+//
+// #ifdef CHECK_RESULT
+// 	// std::cout << "QL: " << QQL << "\n";
+//  //    std::cout << "QW: " << QQW << "\n";
+// 	// std::cout << "QR: " << QQR << "\n";
+// 	// std::cout << "A:: " << in << "\n";
+//
+//     result = ublas::prod(QQW, trans(QQR));
+// 	result = ublas::prod(QQL, result);
 
 	// std::cout << result << "\n";
-#endif
-
-	pretty_print("Bidiag:", in);
-
-
-	std::cout << "DIFF    = " << matrix_compare(result, ref) << "\n";
-	std::cout << "Is bidiag " << check_bidiag(in) << "\n";
-
-	return 0;
-}
+// #endif
+//
+// 	pretty_print("Bidiag:", in);
+//
+//
+// 	std::cout << "DIFF    = " << matrix_compare(result, ref) << "\n";
+// 	std::cout << "Is bidiag " << check_bidiag(in) << "\n";
+//
+// 	return 0;
+// }
