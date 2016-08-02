@@ -13,11 +13,13 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include <math.h>
+
 #include "boost/numeric/ublas/matrix.hpp"
 #include "boost/numeric/ublas/lu.hpp"
 #include "boost/numeric/ublas/io.hpp"
+/*
 #include "svd.cpp"
-
+*/
 
 
 using namespace boost::numeric::ublas;
@@ -328,7 +330,7 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
  *
  * Notes:
  */
-
+/*
 void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
 
   ublas::matrix < float > QQL(3,3);
@@ -353,6 +355,7 @@ void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
   }
 
 }
+*/
 
 /**
  * Function: prepare_inner_vectors
