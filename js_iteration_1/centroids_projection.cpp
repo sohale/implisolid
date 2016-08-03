@@ -200,7 +200,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   boost::array<int, 2> g_a_shape = { n , 3 };
   boost::multi_array<REAL, 2> g_a(g_a_shape);
-
+  // applying the centroid gradient
   compute_centroid_gradient(centroids, g_a, object);
 
   boost::array<int, 2> vector_shape = {n,3};
@@ -490,6 +490,7 @@ std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& ver
   return neighbour_faces_of_vertex;
 }
 
+//get the matrix A and b used in vertex_apply_qem
 void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b){
 
     int m = nai.size();
@@ -579,7 +580,7 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
     }
 
     get_A_b(nlist, centroids, centroid_gradients, &A, &b);
-    SVD(A, u, s, v);
+    SVD(A, u, s, v); // the SVD
 
     REAL tau = 680.;
     int rank = 0;
@@ -613,10 +614,7 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
     new_x[1] = v[0][1]*y[0] + v[1][1]*y[1] + v[2][1]*y[2];
     new_x[2] = v[0][2]*y[0] + v[1][2]*y[1] + v[2][2]*y[2];
 
-    //
-    // if (s[0][0] < 0.000001){
-    //   result_vertex_ranks[vi] = 0;
-    // }
+
     (*verts)[vi][0] = new_x[0];
     (*verts)[vi][1] = new_x[1];
     (*verts)[vi][2] = new_x[2];
