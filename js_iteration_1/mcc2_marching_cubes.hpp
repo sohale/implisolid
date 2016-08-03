@@ -152,7 +152,7 @@ MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_
     this->enableColors = enableColors;
 
     //if(VERBOSE)
-    //    std::cout << resolution << " init"<< std::endl;
+    //    loger << resolution << " init"<< std::endl;
 
     this->init( box);
 
@@ -227,8 +227,8 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         // //array_shape_t  field_shape = {{ (int)this->size3, }};
         //
         //
-        // std::cout << "trouble begins" << std::endl;
-        // std::cout << (int)this->size3 << std::endl;
+        // loger << "trouble begins" << std::endl;
+        // loger << (int)this->size3 << std::endl;
         //
         // //this->field = array1d( field_shape );
         // this->field = array1d( field_shape );
@@ -311,14 +311,14 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 MarchingCubes::~MarchingCubes() //deconstructor
 {
     //if(VERBOSE)
-    //    std::cout << "Destructor: ~MarchingCubes" << std::endl;
+    //    loger << "Destructor: ~MarchingCubes" << std::endl;
 
     if ( this->enableUvs )
     {
         if(this->uvQueue){
             delete this->uvQueue;
             this->uvQueue = 0;
-            //std::cout << "delete this->uvQueue" << std::endl;
+            //loger << "delete this->uvQueue" << std::endl;
         }
     }
     if ( this->enableColors )
@@ -327,7 +327,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
         {
             delete this->colorQueue;
             this->colorQueue = 0;
-            //std::cout << "delete this->colorQueue" << std::endl;
+            //loger << "delete this->colorQueue" << std::endl;
         }
     }
 }
@@ -349,7 +349,7 @@ inline void MarchingCubes:: VIntX(
     REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
-    //std::cout << "VIntXX" << std::endl;
+    //loger << "VIntXX" << std::endl;
 
     // pout is vlist_buffer
     // nout is nlist_buffer
@@ -372,22 +372,22 @@ inline void MarchingCubes:: VIntX(
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q + 5 ], mu );
     }
 
-    //std::cout << "here2-a" << std::endl;
+    //loger << "here2-a" << std::endl;
 
     //offsetdiv3
     index3_t e3x = ijk*3;
-    //std::cout << "here2-b" << std::endl;
+    //loger << "here2-b" << std::endl;
 
     //very short
     //int offset333 = offset/3;
     //e3out[offset333] = e3x;
     e3out[offset/3] = e3x;
-    //std::cout << "here2-c" << std::endl;
+    //loger << "here2-c" << std::endl;
 
 }
 
 inline void fp(){
-    std::cout << "it";
+    loger << "it";
 }
 //(void*()) fpp = fp;
 void (*fpp)() = fp;
@@ -397,7 +397,7 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
 {
     //(*fpp)();
 
-    //std::cout << "VIntYY" << std::endl;
+    //loger << "VIntYY" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& normal_cache = this->normal_cache;
@@ -414,22 +414,22 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
     }
 
-    //std::cout << "here2-a" << std::endl;
+    //loger << "here2-a" << std::endl;
 
     index3_t e3x = ijk*3+1;
-    //std::cout << "here2-b" << std::endl;
+    //loger << "here2-b" << std::endl;
 
-    //std::cout << "e3out.size()" << e3out.size() << std::endl;
+    //loger << "e3out.size()" << e3out.size() << std::endl;
 
     e3out[offset/3] = e3x;
-    //std::cout << "here2-c" << std::endl;
+    //loger << "here2-c" << std::endl;
 }
 
 inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
 
-    //std::cout << "VIntZZ" << std::endl;
+    //loger << "VIntZZ" << std::endl;
 
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& normal_cache = this->normal_cache;
@@ -452,7 +452,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
 
 inline void MarchingCubes::compNorm( index_t q ) {
         if(!MarchingCubes::ENABLE_NORMALS){
-            std::cout << "This should not hapepn.";
+            loger << "This should not hapepn.";
             return;
         }
         index_t q3 = q * 3;
@@ -519,7 +519,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
-    //std::cout  << cubeindex << " ";
+    //loger  << cubeindex << " ";
 
     REAL dx = this->deltax;
     REAL dy = this->deltay;
@@ -533,7 +533,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     //TODO: PUT A VLAUE HERE
     index_t ijk = q;
 
-    //std::cout << "here1" << std::endl;
+    //loger << "here1" << std::endl;
 
     // top of the cube
 
@@ -651,7 +651,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
 
-    //std::cout << "here3" << std::endl;
+    //loger << "here3" << std::endl;
 
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
@@ -678,7 +678,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     return numtris;
 }
 
-#define DEBUG_PA001(positionQueue , c)   {std::cout << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
+#define DEBUG_PA001(positionQueue , c)   {loger << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
 
 /////////////////////////////////////
 // Immediate-render mode simulator
@@ -716,7 +716,7 @@ void MarchingCubes::posnormtriv(
 
 
     //DEBUG_PA001(pos__vlist, o3);
-    //std::cout << "[" << o3 << "] ";
+    //loger << "[" << o3 << "] ";
 
     if(MarchingCubes::ENABLE_NORMALS){
         // normals
@@ -793,15 +793,15 @@ void MarchingCubes::sow() {
     /*
     typedef array1d::iterator  b_it;
     for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-        std::cout << *b << " ";
-    std::cout << std::endl;
+        loger << *b << " ";
+    loger << std::endl;
     */
-    //std::cout << "Sowing the seeds of love. " << this->queue_counter << std::endl;
+    //loger << "Sowing the seeds of love. " << this->queue_counter << std::endl;
 
 
-    //this->flush_geometry_queue(std::cout, resultqueue_faces_start, result_normals,  result_verts, result_faces);
+    //this->flush_geometry_queue(loger, resultqueue_faces_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
+    this->flush_geometry_queue(loger, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
 }
 
 void MarchingCubes::begin_queue() {
@@ -977,7 +977,7 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
         }
     }
     /*
-    std::cout << "seal_exterior "
+    loger << "seal_exterior "
         << field[0]  << ","
         << field[yd]  << ","
         << field[yd+zd]  << ";"
@@ -1161,11 +1161,11 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
                 /*
                 only prints zeros
-                std::cout << "************************" << std::endl;
+                loger << "************************" << std::endl;
                 typedef array1d::iterator  b_it;
                 for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-                    std::cout << *b << " ";
-                std::cout << std::endl;
+                    loger << *b << " ";
+                loger << std::endl;
                 */
 
             }
@@ -1743,17 +1743,17 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 
     // Why not directly write back an array into the "index" and other geometry arrays? (i.e. doing part of the making of geometry on C++ side)
     if(REPORT_STATS){
-    std::cout << "flush_geometry_queue(): " ;
+    loger << "flush_geometry_queue(): " ;
     int mapctr = 0;
     for (auto& kv_pair: e3map){
         if(0)
-            std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+            loger << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
     }
-    std::cout << " e3Map: " << mapctr;
-    std::cout << " Faces: " << faces3.size()/3;
-    std::cout << " Verts: " << verts3.size()/3;
-    std::cout << std::endl;
+    loger << " e3Map: " << mapctr;
+    loger << " Faces: " << faces3.size()/3;
+    loger << " Verts: " << verts3.size()/3;
+    loger << std::endl;
     }
 }
 

@@ -10,7 +10,7 @@ protected:
 
 public:
     unit_sphere(REAL radius){
-        //std::cout << "ctor sphere" << std::endl;
+        //loger << "ctor sphere" << std::endl;
         this->r = radius;
         this->x = 0.;
         this->y = 0.;
@@ -31,7 +31,7 @@ public:
     }
 
     unit_sphere(REAL radius, REAL center_x, REAL center_y, REAL center_z){
-        //std::cout << "ctor sphere" << std::endl;
+        //loger << "ctor sphere" << std::endl;
         this->r = radius;
         this->x = center_x;
         this->y = center_y;

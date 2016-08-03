@@ -42,7 +42,7 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     */
     if(name == "meta_balls"){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
-        std::cout << " META BALLS r : " << r << std::endl;
+        loger << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
         register_new_object(object);
     }
@@ -56,7 +56,7 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     }
     */
     else {
-        std::cout << "Error! You must enter a valid name " <<  name << "! So I made a sphere!" << std::endl;
+        loger << "Error! You must enter a valid name " <<  name << "! So I made a sphere!" << std::endl;
         //object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
         object = new mp5_implicit::unit_sphere(1000.);
         register_new_object(object);
@@ -72,7 +72,7 @@ void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
         for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
 
             REAL x = element.second.get_value<REAL>();
-            //std::cout << "matrix value : " << x << std::endl;
+            //loger << "matrix value : " << x << std::endl;
             matrix12[i] = x;
             i++;
         }
@@ -85,15 +85,15 @@ void copy_eye(REAL matrix12[12]){
 }
 
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
-    // std::cout << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
+    // loger << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
-    //std::cout << "############Name : " << name << std::endl;
+    //loger << "############Name : " << name << std::endl;
     //REAL zmax = shapeparams_dict.get<REAL>("box.zmax",NaN);
     // int resolution = shapeparams_dict.get<int>("resolution",-1);
 
     // if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ){
-    //     std::cout << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
+    //     loger << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
     //     xmin = -1;
     //     xmax = 1;
     //     ymin = -1;
@@ -116,7 +116,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     implicit_function* object;
 
     if (name == "implicit_double_mushroom"){
-        // std::cout << "implicit_double_mushroom case " << std::endl;
+        // loger << "implicit_double_mushroom case " << std::endl;
         // object = new mp5_implicit::double_mushroom(0.9, 0.4 ,0.4 , 1/0.2 );
         implicit_function* dm = new mp5_implicit::double_mushroom(0.9, 0.4/2, 0.4/2, 1/0.2 );
 
@@ -132,10 +132,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     }
     else
     /*if (name == "simple_sphere"){
-        //std::cout << "******************* simple_sphere case " << std::endl;
+        //loger << "******************* simple_sphere case " << std::endl;
         REAL radius = shapeparams_dict.get<REAL>("radius");
         object = new mp5_implicit::unit_sphere(radius);
-        std::cout << "radius " << radius << std::endl;
+        loger << "radius " << radius << std::endl;
         register_new_object(object);
     }
     else*/
@@ -222,7 +222,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 implicit_function * b = object_factory(element.second, use_metaball, false);
 
                 //The following always prints an empty line:
-                //std::cout << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
+                //loger << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
 
                 //a = new mp5_implicit::CrispUnion(*a, *b);
                 // register_new_object(a);
@@ -238,11 +238,11 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 register_new_object(o_plain);
             }
 
-            //std::cout << "##### " << element.second.get_child("type") << std::endl;
+            //loger << "##### " << element.second.get_child("type") << std::endl;
             //i++;
         }
         a = o_matrix;
-        //std::cout  << "#####" << shapeparams_dict.get<string>("children") << std::endl;
+        //loger  << "#####" << shapeparams_dict.get<string>("children") << std::endl;
         //implicit_function * a = object_factory();
         //implicit_function * b;
 
@@ -265,7 +265,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 a = object_factory(element.second, use_metaball, false);
             }else{
                 if(count > 1){
-                    std::cout << "An CrispIntersection should have only 2 child" << std::endl;
+                    loger << "An CrispIntersection should have only 2 child" << std::endl;
                     break;
                 }
                 b = object_factory(element.second, use_metaball, false);
@@ -273,7 +273,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
             }
             count++;
             if (count > 2) {
-                std::cout << "Error: Intersection cannot be applied to more than two objects." << std::endl;
+                loger << "Error: Intersection cannot be applied to more than two objects." << std::endl;
             }
         }
 
@@ -301,7 +301,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
                 a = object_factory(element.second, use_metaball, false);
             }else{
                 if(count > 1){
-                    std::cout << "An CrispSubstraction should have only 2 child" << std::endl;
+                    loger << "An CrispSubstraction should have only 2 child" << std::endl;
                     break;
                 }
                 b = object_factory(element.second, use_metaball, false);
@@ -309,7 +309,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
             }
             count++;
             if (count > 2) {
-                std::cout << "Error: Intersection cannot be applied to more than two objects." << std::endl;
+                loger << "Error: Intersection cannot be applied to more than two objects." << std::endl;
             }
 
         }
@@ -326,7 +326,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         // if(name=="meta_balls")
         REAL f_argument = shapeparams_dict.get<REAL>("time", NaN);
 
-        std::cout << "otherwise " << "you asked for " << name << std::endl;
+        loger << "otherwise " << "you asked for " << name << std::endl;
         object = object_factory_simple(f_argument, name);
 
     }
@@ -351,13 +351,13 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
 /*
     std::string name = std::string(obj_name);
-    std::cout << "Name : " << name << std::endl;
+    loger << "Name : " << name << std::endl;
 
     REAL f_argument = time;
 
     implicit_function* object = object_factory_simple(f_argument, name);
 */
-    //std::cout << "############################" << shape_parameters_json << std::endl;
+    //loger << "############################" << shape_parameters_json << std::endl;
     std::stringstream shape_json_stream;
     shape_json_stream << shape_parameters_json ;
 

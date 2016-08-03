@@ -51,7 +51,7 @@ vectorized_vect  xx = vectorized_vect(x3s);
 
 
 bool assertion_side_effect() {
-    std::cout << "Side effect: Assertions are activated." << std::endl;
+    loger << "Side effect: Assertions are activated." << std::endl;
     return true;
 }
 
@@ -67,14 +67,14 @@ void test_sphere_one_point(){
     //s.implicit_func(x, f);
     s.eval_implicit(x, &f);
 
-    std::cout << f[0] << std::endl;
+    loger << f[0] << std::endl;
 
     implicit_function* s2 = new unit_sphere(2.0);
     s2->eval_implicit(x, &f);
 
-    std::cout << f[0] << std::endl;
+    loger << f[0] << std::endl;
 
-    std::cout << "going to delete" << std::endl;
+    loger << "going to delete" << std::endl;
 
     delete s2;
 
@@ -116,21 +116,21 @@ void test_three_types_of_return_alloc() {
     const int nsize = 10000;
     const int REPEATS = 100;
 
-    std::cout << "make_empty_x";
+    loger << "make_empty_x";
     timer t1;
     for(int i=0;i<REPEATS;i++) {
         boost::multi_array<REAL, 2>  x = make_empty_x(nsize);
     }
     t1.stop();
 
-    std::cout << "make_empty_x_2";
+    loger << "make_empty_x_2";
     timer t3;
     for(int i=0;i<REPEATS;i++) {
         boost::multi_array<REAL, 2>  x= make_empty_x_2(nsize);
     }
     t3.stop();
 
-    std::cout << "make_empty_x_inplace";
+    loger << "make_empty_x_inplace";
     timer t2;
     for(int i=0;i<REPEATS;i++) {
         boost::multi_array<REAL, 2>  x= make_empty_x(nsize);
@@ -185,7 +185,7 @@ void test_memoryleak_sphere(){
 
     s.eval_implicit(x, &f);
 
-    std::cout << f[0] << std::endl;
+    loger << f[0] << std::endl;
 
     timer t;
     for(int i=0;i<1000*10;i++){
@@ -219,5 +219,5 @@ int main() {
 
     test_memoryleak_sphere();
 
-    std::cout << "Good bye." << std::endl;
+    loger << "Good bye." << std::endl;
 }

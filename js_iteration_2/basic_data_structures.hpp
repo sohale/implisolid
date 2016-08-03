@@ -89,6 +89,7 @@ typedef boost::multi_array<REAL, 1>  vectorized_scalar;
 
 typedef boost::multi_array<REAL, 2>  vectorized_vect;
 
+auto& loger = std::cerr;
 
 #include ".//my_assert.hpp"
 

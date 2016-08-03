@@ -68,7 +68,7 @@ int main() {
   mcc2_MS::vertex_resampling(object, f_argument, c, *(_state.mc));
 
    }
-    std::cout << "main();" << std::endl;
+    loger << "main();" << std::endl;
 
     return 0;
 }

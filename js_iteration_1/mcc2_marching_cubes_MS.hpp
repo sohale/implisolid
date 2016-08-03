@@ -116,7 +116,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, REAL size, bool enableUvs=false,
     this->enableColors = enableColors;
 
     if(VERBOSE)
-        std::cout << resolution << " init"<< std::endl;
+        loger << resolution << " init"<< std::endl;
 
     this->init( resolution, size*(2.0 / (REAL)resolution) );
 
@@ -182,7 +182,7 @@ void MarchingCubes::init( dim_t resolution, REAL delta) {
 MarchingCubes::~MarchingCubes()
 {
     if(VERBOSE)
-        std::cout << "Destructor: ~MarchingCubes" << std::endl;
+        loger << "Destructor: ~MarchingCubes" << std::endl;
 
     if ( this->enableUvs )
     {
@@ -386,7 +386,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     return numtris;
 }
 
-#define DEBUG_PA001(positionQueue , c)   {std::cout << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
+#define DEBUG_PA001(positionQueue , c)   {loger << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
 
 /////////////////////////////////////
 // Immediate-render mode simulator
@@ -464,7 +464,7 @@ void MarchingCubes::posnormtriv(
 
 void MarchingCubes::sow() {
 
-    this->flush_geometry_queue(std::cout, this->resultqueue_faces_start, this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
+    this->flush_geometry_queue(loger, this->resultqueue_faces_start, this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
 }
 
 void MarchingCubes::begin_queue() {
@@ -1141,16 +1141,16 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& marching_cube_
     this->queue_counter = 0;
 
     if(REPORT_STATS){
-    std::cout << "flush_geometry_queue(): " ;
+    loger << "flush_geometry_queue(): " ;
     int mapctr = 0;
     for (auto& kv_pair: e3map){
         if(0)
-            std::cout << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+            loger << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
     }
-    std::cout << " e3Map: " << mapctr;
-    std::cout << " Faces: " << faces3.size()/3;
-    std::cout << " Verts: " << verts3.size()/3;
-    std::cout << std::endl;
+    loger << " e3Map: " << mapctr;
+    loger << " Faces: " << faces3.size()/3;
+    loger << " Verts: " << verts3.size()/3;
+    loger << std::endl;
     }
 }
