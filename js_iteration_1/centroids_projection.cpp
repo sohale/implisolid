@@ -325,7 +325,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     int n_s = 0;
     int s_n_s = 0;
     for (int j=0; j<n; j++){
-      if (success[j] == 1 and already_success[j] == 0){
+      if (success[j] == b_true and already_success[j] == b_false){
         new_success_indices[n_s] = j;
         n_s ++;
       }
@@ -342,8 +342,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
 
     for (int j=0; j<n; j++){
-      if(success[j] == 1 || already_success[j] == 1){
-        already_success[j] = 1;
+      if(success[j] == b_true || already_success[j] == b_true){
+        already_success[j] = b_true;
       }
     }
 
@@ -374,7 +374,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<bool_t, 1> zeros2_bool(scalar_shape);
   boost::multi_array<bool_t, 1> zeros1_bool(scalar_shape);
   boost::multi_array<bool_t, 1> zeros1or2(scalar_shape);
-  boost::multi_array<int, 1> relevants_bool;
+  boost::multi_array<int, 1> relevants_bool(scalar_shape);
 
   int r_b;
   for (int i=0; i<n; i++){
@@ -403,14 +403,18 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       zeros1or2[i] = b_false;
     }
 
-    if (already_success[i] == b_true && zeros1or2[i] == b_true ){
+    if (already_success[i] == b_false && zeros1or2[i] == b_false ){
       relevants_bool[r_b] = i;
       r_b ++;
     }
 
   }
 
+  relevants_bool.resize(boost::extents[r_b]);
+
   int m = relevants_bool.shape()[0];
+
+  cout << m << endl;
 
   boost::array<int, 2> x1_relevant_shape = {m,3};
   boost::array<int, 1> f1_relevant_shape = {m};
