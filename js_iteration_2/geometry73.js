@@ -386,7 +386,8 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
 
     };
 
-    this.get_minz = function(matrix) {
+    this.get_minz = function(matrix, shape) {
+        // shape is not needed really.
         return +1;
     }
 
