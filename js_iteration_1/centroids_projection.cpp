@@ -227,16 +227,19 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   vectorized_scalar alpha_list(scalar_shape);
 
+  int iter = 0;
   while(step_size > 0.001){
+
     step_size = step_size*0.5;
     int max_step;
     max_step = min(max_iter, int(floor(max_dist/ABS(step_size)+0.001)));
 
     for (int i=1; i< max_step+1; i+=2){
       REAL alpha = float(i)*step_size;
-      alpha_list[i] = alpha/average_edge;
-      alpha_list[i+1] = -alpha/average_edge;
+      alpha_list[i + iter] = alpha/average_edge;
+      alpha_list[i + iter +1] = -alpha/average_edge;
     }
+    iter += max_step;
   }
 
   //THE algorithm
