@@ -275,7 +275,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   }
 
   int counter = -1;
-
+  int s_n_s = 0;
   // main part of the algor
   for (int i=0; i< alpha_list.shape()[0]; i++){
     counter += 1;
@@ -323,9 +323,9 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
 
     int n_s = 0;
-    int s_n_s = 0;
+    s_n_s = 0;
     for (int j=0; j<n; j++){
-      if (success[j] == b_true and already_success[j] == b_false){
+      if (success[j] == b_true && already_success[j] == b_false){
         new_success_indices[n_s] = j;
         n_s ++;
       }
@@ -335,7 +335,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       }
     }
 
-    for (int j=0; j< new_success_indices.shape()[0]; j++){
+    for (int j=0; j< n_s; j++){
+      cout << n_s << endl;
       best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
       best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
       best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
@@ -351,9 +352,11 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       break;
     }
 
+    active_indices.resize(boost::extents[s_n_s]);
+    still_nonsuccess_indices.resize(boost::extents[s_n_s]);
   }
 
-  for (int i=0; i<still_nonsuccess_indices.shape()[0]; i++){
+  for (int i=0; i<s_n_s; i++){
     best_result_x[still_nonsuccess_indices[i]][0] = centroids[still_nonsuccess_indices[i]][0];
     best_result_x[still_nonsuccess_indices[i]][1] = centroids[still_nonsuccess_indices[i]][1];
     best_result_x[still_nonsuccess_indices[i]][2] = centroids[still_nonsuccess_indices[i]][2];
