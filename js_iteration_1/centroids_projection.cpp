@@ -421,7 +421,6 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   boost::multi_array<REAL, 2> x1_relevant(x1_relevant_shape);
   boost::multi_array<REAL, 2> x2_relevant(x1_relevant_shape);
 
-  vectorized_scalar f1_relevants(f1_relevant_shape);
   vectorized_scalar f2_relevants(f1_relevant_shape);
 
   for (int i=0; i<m; i++){
@@ -434,7 +433,6 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     x2_relevant[i][2] = best_result_x[relevants_bool[i]][2];
   }
 
-  object->eval_implicit(x1_relevant, &f1_relevants);
   object->eval_implicit(x2_relevant, &f2_relevants);
 
   verts_t temp;
