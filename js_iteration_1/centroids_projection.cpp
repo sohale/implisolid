@@ -443,20 +443,21 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   object->eval_implicit(x2_relevant, &f2_relevants);
 
-  verts_t temp;
+  REAL temp0;
+  REAL temp1;
+  REAL temp2;
+
   for (int i=0; i<m; i++){
-    int k = 0;
     if (f2_relevants[i] < -ROOT_TOLERANCE){
-      temp[k][0] = x2_relevant[i][0];
-      temp[k][1] = x2_relevant[i][1];
-      temp[k][2] = x2_relevant[i][2];
-      k += 1;
+      temp0 = x2_relevant[i][0];
+      temp1 = x2_relevant[i][1];
+      temp2 = x2_relevant[i][2];
       x2_relevant[i][0] = x1_relevant[i][0];
       x2_relevant[i][1] = x1_relevant[i][1];
       x2_relevant[i][2] = x1_relevant[i][2];
-      x1_relevant[i][0] = temp[k][0];
-      x1_relevant[i][1] = temp[k][1];
-      x1_relevant[i][2] = temp[k][2];
+      x1_relevant[i][0] = temp0;
+      x1_relevant[i][1] = temp1;
+      x1_relevant[i][2] = temp2;
     }
 
 
