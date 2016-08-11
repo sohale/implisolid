@@ -189,7 +189,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   int max_iter = 20;
 
   REAL max_dist = average_edge;
-
+  std::cout << "Manzai1" << std::endl;
   int n = centroids.shape()[0];
   boost::array<int, 1> scalar_shape = {n};
 
@@ -285,9 +285,9 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   for (int i=0; i< alpha_list.shape()[0]; i++){
     counter += 1;
     for (int j=0; j<n; j++){
-      x1_half[j][0] = centroids[j][0] + (max_dist*alpha_list[i])*dx0_c_grad[j][0];
-      x1_half[j][1] = centroids[j][1] + (max_dist*alpha_list[i])*dx0_c_grad[j][1];
-      x1_half[j][2] = centroids[j][2] + (max_dist*alpha_list[i])*dx0_c_grad[j][2];
+      x1_half[j][0] = centroids[j][0] + 10*(max_dist*alpha_list[i])*dx0_c_grad[j][0];
+      x1_half[j][1] = centroids[j][1] + 10*(max_dist*alpha_list[i])*dx0_c_grad[j][1];
+      x1_half[j][2] = centroids[j][2] + 10*(max_dist*alpha_list[i])*dx0_c_grad[j][2];
     }
 
     active_indices = still_nonsuccess_indices;
@@ -297,10 +297,10 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       xa4[j][1] = x1_half[active_indices[j]][1];
       xa4[j][2] = x1_half[active_indices[j]][2];
     }
-
+    std::cout << "Manzai2" << std::endl;
     object->eval_implicit(xa4, &f_a);
 
-    for (int j=0; j<f_a.shape()[0]; j++){
+    for (int j=0; j<active_indices.shape()[0]; j++){
       if (f_a[j] > ROOT_TOLERANCE ){
         signs_a[j] = +1.;
       }
@@ -329,7 +329,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
     int n_s = 0;
     s_n_s = 0;
-    for (int j=0; j<n; j++){
+    for (int j=0; j<active_indices.shape()[0]; j++){
       if (success[j] == b_true && already_success[j] == b_false){
         new_success_indices[n_s] = j;
         n_s ++;
@@ -348,7 +348,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
 
     for (int j=0; j<n; j++){
-      if(success[j] == b_true || already_success[j] == b_true){
+      if(success[j] == b_true){
         already_success[j] = b_true;
       }
     }
@@ -360,6 +360,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     active_indices.resize(boost::extents[s_n_s]);
     still_nonsuccess_indices.resize(boost::extents[s_n_s]);
   }
+  std::cout << "Manzai 3" << std::endl;
 
   for (int i=0; i<s_n_s; i++){
     best_result_x[still_nonsuccess_indices[i]][0] = centroids[still_nonsuccess_indices[i]][0];
@@ -417,7 +418,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
 
   }
-
+  std::cout << "test" << std::endl;
   relevants_bool.resize(boost::extents[r_b]);
 
   int m = relevants_bool.shape()[0];
@@ -463,6 +464,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   }
 
+  std::cout << "Manzai style" << std::endl;
   boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
   // calling the vectorized bisection
   bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);

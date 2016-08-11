@@ -181,7 +181,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
       //********this should become an input of build geometry (and so be set in the html file)*******
-      REAL grid_real_size = 1.5 ;
+      REAL grid_real_size = 1. ; // do not change this
 
 
       // f_argument is made to always be between 0. and 1.
@@ -206,7 +206,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &honey_comb; // super egg !
     }
     else if (name == "sphere"){
-      unit_sphere sphere(f_argument, 0.2, 0.1, 0.3);
+      unit_sphere sphere(f_argument);
       object = &sphere;
     }
     else if (name == "cube"){
@@ -308,6 +308,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     for (int i=0; i<3; i++){
      vertex_resampling(object, f_argument, c, *(_state.mc));
     }
+
 
     centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
