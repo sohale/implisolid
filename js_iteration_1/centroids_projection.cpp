@@ -242,6 +242,8 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     iter += max_step;
   }
 
+  alpha_list.resize(boost::extents[iter]);
+
   //THE algorithm
 
  //array definition
@@ -409,7 +411,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       zeros1or2[i] = b_false;
     }
 
-    if (already_success[i] == b_false && zeros1or2[i] == b_false ){
+    if (already_success[i] == b_true && zeros1or2[i] == b_false ){
       relevants_bool[r_b] = i;
       r_b ++;
     }
