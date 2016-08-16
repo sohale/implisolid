@@ -538,9 +538,9 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
       (*A)[1][2] += a12;
       (*A)[2][2] += a22;
 
-      (*b)[0] += a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];
-      (*b)[1] += a01*center_array[j][0] + a11*center_array[j][1] + a12*center_array[j][2];
-      (*b)[2] += a02*center_array[j][0] + a12*center_array[j][1] + a22*center_array[j][2];
+      (*b)[0] -= a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];
+      (*b)[1] -= a01*center_array[j][0] + a11*center_array[j][1] + a12*center_array[j][2];
+      (*b)[2] -= a02*center_array[j][0] + a12*center_array[j][1] + a22*center_array[j][2];
 
     }
 
@@ -566,7 +566,7 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 }
 
 
-void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::vector< std::vector<int>>& vertex_neighbours_list, verts_t& centroid_gradients){
+void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t centroid_gradients){
 
   int nverts = verts->shape()[0];
 
@@ -595,16 +595,16 @@ void vertex_apply_qem(verts_t* verts, faces_t& faces, verts_t& centroids, std::v
     SVD(A, u, s, v); // the SVD
 
     REAL tau = 680.;
-    int rank = 0;
+    int rank = 1;
     if (s[1][1]/s[0][0] < 1./tau){
-      s[1][1] = 0.;
+      s[1][1] = 0.;//useless ?
     }
     else{
       rank ++;
     }
 
     if (s[2][2]/s[0][0] < 1./tau){
-      s[2][2] = 0.;
+      s[2][2] = 0.;//useless ?
     }
     else{
       rank ++;
