@@ -181,6 +181,8 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     }
 
     if (active_indices.shape()[0] == 0){
+      cout << "projection treated this much points" << endl;
+      cout << solved_count << endl;
       break;
     }
 
@@ -522,14 +524,34 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
       center_array[i][2] = centroids[nai[i]][2];
     }
 
+    REAL a00;
+    REAL a01;
+    REAL a02;
+    REAL a11;
+    REAL a12;
+    REAL a22;
+
+    (*A)[0][0] =0;
+    (*A)[0][1] =0;
+    (*A)[0][2] =0;
+    (*A)[1][1] =0;
+    (*A)[1][2] =0;
+    (*A)[2][2] =0;
+    (*A)[1][0] =0;
+    (*A)[2][0] =0;
+    (*A)[2][1] =0;
+
+    (*b)[0] =0;
+    (*b)[1] =0;
+    (*b)[2] =0;
     for (int j=0; j<m; j++){
 
-      REAL a00 = normals[j][0]*normals[j][0];
-      REAL a01 = normals[j][0]*normals[j][1];
-      REAL a02 = normals[j][0]*normals[j][2];
-      REAL a11 = normals[j][1]*normals[j][1];
-      REAL a12 = normals[j][1]*normals[j][2];
-      REAL a22 = normals[j][2]*normals[j][2];
+      a00 = normals[j][0]*normals[j][0];
+      a01 = normals[j][0]*normals[j][1];
+      a02 = normals[j][0]*normals[j][2];
+      a11 = normals[j][1]*normals[j][1];
+      a12 = normals[j][1]*normals[j][2];
+      a22 = normals[j][2]*normals[j][2];
 
       (*A)[0][0] += a00;
       (*A)[0][1] += a01;
@@ -537,16 +559,16 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
       (*A)[1][1] += a11;
       (*A)[1][2] += a12;
       (*A)[2][2] += a22;
-
+      (*A)[1][0] += a01;
+      (*A)[2][0] += a02;
+      (*A)[2][1] += a12;
       (*b)[0] -= a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];
       (*b)[1] -= a01*center_array[j][0] + a11*center_array[j][1] + a12*center_array[j][2];
       (*b)[2] -= a02*center_array[j][0] + a12*center_array[j][1] + a22*center_array[j][2];
 
     }
 
-    (*A)[1][0] = (*A)[0][1];
-    (*A)[2][0] = (*A)[0][2];
-    (*A)[2][1] = (*A)[1][2];
+
 
 }
 
@@ -573,10 +595,7 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
 
   boost::array<int, 2> A_shape = { 3 , 3 };
 
-  verts_t A(A_shape);
-  verts_t u(A_shape);
-  verts_t s(A_shape);
-  verts_t v(A_shape);
+
 
   boost::array<int, 2> b_shape = { 3 , 1 };
   vectorized_scalar b(b_shape);
@@ -585,7 +604,10 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
   vectorized_scalar new_x(b_shape);
 
   for (int vi=0; vi<nverts; vi++){
-
+    verts_t A(A_shape);
+    verts_t u(A_shape);
+    verts_t s(A_shape);
+    verts_t v(A_shape);
     std::vector<int> nlist;
     for (int i=0; i< vertex_neighbours_list[vi].size(); i++){
       nlist.push_back(vertex_neighbours_list[vi][i]);
@@ -594,46 +616,10 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
     get_A_b(nlist, centroids, centroid_gradients, &A, &b);
     SVD(A, u, s, v); // the SVD
 
-    //in python the SVD values are sorted by the svd function, this is a possible workaround
+    //in python the SVD values of s are sorted by the svd function, this is a possible workaround
     // (we may need to keep the A=u*s*v equality, which is done this way)
 
     REAL maxi = max(s[0][0], max(s[1][1],s[2][2]));
-
-    // REAL mini = min(s[0][0], min(s[1][1],s[2][2]));
-    // REAL mid;
-    // for(int i = 0;i<3; i++){
-    //   if(s[i][i] != maxi && s[i][i] != mini){
-    //     mid=s[i][i];
-    //   }
-    // }
-    // s[0][0]= maxi;
-    // s[1][1]= mid;
-    // s[2][2]= mini;
-
-    cout << "u" << endl;
-    cout << u[0][0] << endl;
-    cout << u[0][1] << endl;
-    cout << u[0][2] << endl;
-    cout << u[1][0] << endl;
-    cout << u[1][1] << endl;
-    cout << u[1][2] << endl;
-    cout << u[2][0] << endl;
-    cout << u[2][1] << endl;
-    cout << u[2][2] << endl;
-
-
-    cout << "v" << endl;
-    cout << v[0][0] << endl;
-    cout << v[0][1] << endl;
-    cout << v[0][2] << endl;
-    cout << v[1][0] << endl;
-    cout << v[1][1] << endl;
-    cout << v[1][2] << endl;
-    cout << v[2][0] << endl;
-    cout << v[2][1] << endl;
-    cout << v[2][2] << endl;
-
-
 
     REAL tau = 680;
     int rank = 0;
