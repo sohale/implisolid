@@ -51,6 +51,9 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
   vectorized_scalar v1(v1_shape);
   vectorized_scalar v2(v1_shape);
 
+
+
+
   object->eval_implicit(x1_arr, &v1);
   object->eval_implicit(x2_arr, &v2);
 
@@ -80,6 +83,8 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
  // loop
   while (true){
+    cout << indices_inside.shape()[0] << endl;
+    cout << indices_outside.shape()[0] << endl;
     //mean of (x1,x2)
     for (int i=0; i<active_count; i++){
       x_mid[i][0] = (x1_arr[i][0]+ x2_arr[i][0])/2.;
@@ -98,18 +103,22 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     for (int i=0; i<active_count; i++){
       abs_[i] = ABS(v_mid[i]);
       if(abs_[i] <= ROOT_TOLERANCE){
+
         indices_boundary[i_b] = i;
         i_b ++;
       }
       else{
+
         indices_eitherside[i_e] = i;
         i_e ++;
       }
       if(v_mid[i] < - ROOT_TOLERANCE){
+
         indices_outside[i_o] = i;
         i_o ++;
       }
       if(v_mid[i] > ROOT_TOLERANCE){
+
         indices_inside[i_i] = i;
         i_i ++;
       }
@@ -150,10 +159,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       active_indices[i] = indices_eitherside[i];
     }
 
-    indices_boundary.resize(boost::extents[i_b]);
+    indices_boundary.resize(boost::extents[i_e]);
     indices_eitherside.resize(boost::extents[i_e]);
-    indices_outside.resize(boost::extents[i_o]);
-    indices_inside.resize(boost::extents[i_i]);
+    indices_outside.resize(boost::extents[i_e]);
+    indices_inside.resize(boost::extents[i_e]);
     which_zeroed.resize(boost::extents[i_e]);
     active_indices.resize(boost::extents[i_e]);
 
@@ -669,13 +678,18 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
   compute_centroids(faces, verts, centroids);
 
   set_centers_on_surface(object, centroids, average_edge);
-
+cout << "set_centers done " << endl;
   std::vector< std::vector<int>> vertex_neighbours_list;
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
   boost::multi_array<REAL, 2> centroid_gradients(centroids_shape);
+for (int i = 0 ; i<10 ; i++){
+  cout << centroids[i][0] << endl;
+  cout << centroids[i][1] << endl;
+  cout << centroids[i][2] << endl;
+}
   compute_centroid_gradient(centroids, centroid_gradients, object);
-
+cout << "centroids gradient computed" << endl;
   vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
   for (int i=0; i<verts.shape()[0]; i++) {
