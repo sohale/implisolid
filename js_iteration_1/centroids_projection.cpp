@@ -594,17 +594,64 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
     get_A_b(nlist, centroids, centroid_gradients, &A, &b);
     SVD(A, u, s, v); // the SVD
 
-    REAL tau = 680.;
-    int rank = 1;
-    if (s[1][1]/s[0][0] < 1./tau){
-      s[1][1] = 0.;//useless ?
+    //in python the SVD values are sorted by the svd function, this is a possible workaround
+    // (we may need to keep the A=u*s*v equality, which is done this way)
+
+    REAL maxi = max(s[0][0], max(s[1][1],s[2][2]));
+
+    // REAL mini = min(s[0][0], min(s[1][1],s[2][2]));
+    // REAL mid;
+    // for(int i = 0;i<3; i++){
+    //   if(s[i][i] != maxi && s[i][i] != mini){
+    //     mid=s[i][i];
+    //   }
+    // }
+    // s[0][0]= maxi;
+    // s[1][1]= mid;
+    // s[2][2]= mini;
+
+    cout << "u" << endl;
+    cout << u[0][0] << endl;
+    cout << u[0][1] << endl;
+    cout << u[0][2] << endl;
+    cout << u[1][0] << endl;
+    cout << u[1][1] << endl;
+    cout << u[1][2] << endl;
+    cout << u[2][0] << endl;
+    cout << u[2][1] << endl;
+    cout << u[2][2] << endl;
+
+
+    cout << "v" << endl;
+    cout << v[0][0] << endl;
+    cout << v[0][1] << endl;
+    cout << v[0][2] << endl;
+    cout << v[1][0] << endl;
+    cout << v[1][1] << endl;
+    cout << v[1][2] << endl;
+    cout << v[2][0] << endl;
+    cout << v[2][1] << endl;
+    cout << v[2][2] << endl;
+
+
+
+    REAL tau = 680;
+    int rank = 0;
+    if (s[0][0]/maxi < 1./tau){
+      s[0][0] = 0.;
+    }
+    else{
+      rank ++;
+    }
+    if (s[1][1]/maxi < 1./tau){
+      s[1][1] = 0.;
     }
     else{
       rank ++;
     }
 
-    if (s[2][2]/s[0][0] < 1./tau){
-      s[2][2] = 0.;//useless ?
+    if (s[2][2]/maxi < 1./tau){
+      s[2][2] = 0.;
     }
     else{
       rank ++;
@@ -614,12 +661,19 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
     y[1] = v[1][0]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[1][2]*(*verts)[vi][2];
     y[2] = v[2][0]*(*verts)[vi][0] + v[2][1]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
 
+
+
     utb[0] = - u[0][0]*b[0] - u[1][0]*b[1] - u[2][0]*b[2];
     utb[1] = - u[0][1]*b[0] - u[1][1]*b[1] - u[2][1]*b[2];
     utb[2] = - u[0][2]*b[0] - u[1][2]*b[1] - u[2][2]*b[2];
 
     for (int i=0; i<rank; i++){
-      y[i] = utb[i]/s[i][i];
+      if(s[i][i]!=0){
+        y[i] = utb[i]/s[i][i];
+      }
+      else{
+        rank++;
+      }
     }
 
     new_x[0] = v[0][0]*y[0] + v[1][0]*y[1] + v[2][0]*y[2];
@@ -675,14 +729,14 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
   compute_centroids(faces, verts, centroids);
 
   set_centers_on_surface(object, centroids, average_edge);
-cout << "set_centers done " << endl;
+
   std::vector< std::vector<int>> vertex_neighbours_list;
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
   boost::multi_array<REAL, 2> centroid_gradients(centroids_shape);
 
   compute_centroid_gradient(centroids, centroid_gradients, object);
-cout << "centroids gradient computed" << endl;
+
   vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
   for (int i=0; i<verts.shape()[0]; i++) {
