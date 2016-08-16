@@ -48,14 +48,11 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
   // implicit function of the two arrays
   boost::array<int, 1> v1_shape = {n};
-  vectorized_scalar v1(v1_shape);
-  vectorized_scalar v2(v1_shape);
+  // vectorized_scalar v1(v1_shape);
+  // vectorized_scalar v2(v1_shape);
 
-
-
-
-  object->eval_implicit(x1_arr, &v1);
-  object->eval_implicit(x2_arr, &v2);
+  // object->eval_implicit(x1_arr, &v1);
+  // object->eval_implicit(x2_arr, &v2);
 
   boost::multi_array<int, 1> active_indices(v1_shape);
 
@@ -83,8 +80,6 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
  // loop
   while (true){
-    cout << indices_inside.shape()[0] << endl;
-    cout << indices_outside.shape()[0] << endl;
     //mean of (x1,x2)
     for (int i=0; i<active_count; i++){
       x_mid[i][0] = (x1_arr[i][0]+ x2_arr[i][0])/2.;
@@ -136,18 +131,20 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       res_x_arr[which_zeroed[i]][0] = x_mid[indices_boundary[i]][0];
       res_x_arr[which_zeroed[i]][1] = x_mid[indices_boundary[i]][1];
       res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
+
     }
+
 
     // changing the values of x2 and x1
     for (int i=0; i<i_i; i++){
-      v2[indices_inside[i]] = v_mid[indices_inside[i]];
+      // v2[indices_inside[i]] = v_mid[indices_inside[i]];
       x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
       x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
       x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
     }
 
     for (int i=0; i<i_o; i++){
-      v1[indices_outside[i]] = v_mid[indices_outside[i]];
+      // v1[indices_outside[i]] = v_mid[indices_outside[i]];
       x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
       x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
       x1_arr[indices_outside[i]][2] = x_mid[indices_outside[i]][2];
@@ -156,7 +153,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     //next round
 
     for (int i=0; i<i_e; i++){
-      active_indices[i] = indices_eitherside[i];
+      active_indices[i] = active_indices[indices_eitherside[i]];
     }
 
     indices_boundary.resize(boost::extents[i_e]);
@@ -171,8 +168,8 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     iteration += 1;
 
     for(int i=0; i<active_count; i++){
-      v1[i] = v1[indices_eitherside[i]];
-      v2[i] = v2[indices_eitherside[i]];
+      // v1[i] = v1[indices_eitherside[i]];
+      // v2[i] = v2[indices_eitherside[i]];
 
       x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
       x1_arr[i][1] = x1_arr[indices_eitherside[i]][1];
@@ -683,11 +680,7 @@ cout << "set_centers done " << endl;
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
   boost::multi_array<REAL, 2> centroid_gradients(centroids_shape);
-for (int i = 0 ; i<10 ; i++){
-  cout << centroids[i][0] << endl;
-  cout << centroids[i][1] << endl;
-  cout << centroids[i][2] << endl;
-}
+
   compute_centroid_gradient(centroids, centroid_gradients, object);
 cout << "centroids gradient computed" << endl;
   vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
