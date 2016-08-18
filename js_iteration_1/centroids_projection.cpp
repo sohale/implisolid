@@ -180,7 +180,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
       x2_arr[i][2] = x2_arr[indices_eitherside[i]][2];
     }
 
-    if (active_indices.shape()[0] == 0){
+    if (active_indices.shape()[0] == 0 || iteration==10){
       cout << "projection treated this much points" << endl;
       cout << solved_count << endl;
       break;
@@ -602,16 +602,17 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
   vectorized_scalar y(b_shape);
   vectorized_scalar utb(b_shape);
   vectorized_scalar new_x(b_shape);
-
+  verts_t u(A_shape);
+  verts_t s(A_shape);
+  verts_t v(A_shape);
+  verts_t A(A_shape);
   for (int vi=0; vi<nverts; vi++){
-    verts_t A(A_shape);
-    verts_t u(A_shape);
-    verts_t s(A_shape);
-    verts_t v(A_shape);
+
     std::vector<int> nlist;
     for (int i=0; i< vertex_neighbours_list[vi].size(); i++){
       nlist.push_back(vertex_neighbours_list[vi][i]);
     }
+
 
     get_A_b(nlist, centroids, centroid_gradients, &A, &b);
     SVD(A, u, s, v); // the SVD
@@ -643,9 +644,9 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
       rank ++;
     }
 
-    y[0] = v[0][0]*(*verts)[vi][0] + v[0][1]*(*verts)[vi][1] + v[0][2]*(*verts)[vi][2];
-    y[1] = v[1][0]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[1][2]*(*verts)[vi][2];
-    y[2] = v[2][0]*(*verts)[vi][0] + v[2][1]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
+    y[0] = v[0][0]*(*verts)[vi][0] + v[1][0]*(*verts)[vi][1] + v[2][0]*(*verts)[vi][2];
+    y[1] = v[0][1]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[2][1]*(*verts)[vi][2];
+    y[2] = v[0][2]*(*verts)[vi][0] + v[1][2]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
 
 
 
@@ -662,9 +663,9 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
       }
     }
 
-    new_x[0] = v[0][0]*y[0] + v[1][0]*y[1] + v[2][0]*y[2];
-    new_x[1] = v[0][1]*y[0] + v[1][1]*y[1] + v[2][1]*y[2];
-    new_x[2] = v[0][2]*y[0] + v[1][2]*y[1] + v[2][2]*y[2];
+    new_x[0] = v[0][0]*y[0] + v[0][1]*y[1] + v[0][2]*y[2];
+    new_x[1] = v[1][0]*y[0] + v[1][1]*y[1] + v[1][2]*y[2];
+    new_x[2] = v[2][0]*y[0] + v[2][1]*y[1] + v[2][2]*y[2];
 
 
     (*verts)[vi][0] = new_x[0];
