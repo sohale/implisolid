@@ -41,7 +41,7 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 // vectorized bisection
-void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE){
+void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE,boost::multi_array<bool, 1>& treated){
 
   // initilization step
   int n = x1_arr.shape()[0];
@@ -58,6 +58,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
   for (int i=0; i< n; i++){
     active_indices[i] = i;
+    treated[i] = false;
   }
 
   int active_count = n;
@@ -122,6 +123,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
     for (int i=0; i<i_b; i++){
       which_zeroed[i] = (active_indices[indices_boundary[i]]);
+      treated[active_indices[indices_boundary[i]]]=true;
     }
 
     int found_count = i_b;
@@ -191,7 +193,7 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 }
 
 // main function
-void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge){
+void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge,boost::multi_array<bool, 1>& treated){
   // intilization, objects creation
   REAL min_gradient_len = 0.000001;
   int max_iter = 20;
@@ -468,7 +470,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
   // calling the vectorized bisection
-  bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);
+  bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE, treated);
 
   //changing the values of the centroids
   for (int i=0; i<m; i++){
@@ -588,7 +590,7 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
 }
 
 
-void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t centroid_gradients){
+void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t centroid_gradients,boost::multi_array<bool, 1>& treated){
 
   int nverts = verts->shape()[0];
 
@@ -613,6 +615,25 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
       nlist.push_back(vertex_neighbours_list[vi][i]);
     }
 
+    bool skip = false;
+    for (int g = 0; g < vertex_neighbours_list[vi].size()-1; g++){
+      if(!treated[vertex_neighbours_list[vi][g]]){
+
+        skip = true;
+      }
+      for (int g1 = g+1 ; g1 < vertex_neighbours_list[vi].size()-1; g1++){
+      if((abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][0]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][0])) < 0.000001)
+    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][1]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][1])) < 0.000001)
+    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][2]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][2])) < 0.000001))
+    skip = true;}
+    }
+
+
+
+    if(skip){
+              cout<<vi<<endl;
+      continue;
+    }
 
     get_A_b(nlist, centroids, centroid_gradients, &A, &b);
     SVD(A, u, s, v); // the SVD
@@ -714,8 +735,9 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
   boost::multi_array<REAL, 2> centroids(centroids_shape);
 
   compute_centroids(faces, verts, centroids);
-
-  set_centers_on_surface(object, centroids, average_edge);
+  boost::array<int, 1> treated_shape = {int(result_faces.size())};
+  boost::multi_array<bool, 1> treated(treated_shape);
+  set_centers_on_surface(object, centroids, average_edge,treated);
 
   std::vector< std::vector<int>> vertex_neighbours_list;
   vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
@@ -724,7 +746,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
   compute_centroid_gradient(centroids, centroid_gradients, object);
 
-  vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
+  vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
 
   for (int i=0; i<verts.shape()[0]; i++) {
     result_verts[i*3+0] = verts[i][0];

@@ -38,18 +38,12 @@ public:
         for (int i=0; i<18; i++){
           this->p[i] = 0;
         }
-        this->p[0] = size_x;
-        this->p[1] = size_x/2.;
-
-        this->p[3] = -size_x;
-        this->p[4] = -size_x/2.;
-
-        this->p[8] = size_y/2.;
-        this->p[7] = size_y;
-        this->p[10] = -size_y;
-        this->p[11] = -size_y/2.;
-        this->p[14] = size_z;
-        this->p[17] = -size_z;
+        this->p[0] = 0.5;
+        this->p[3] = -0.5;
+        this->p[7] = 0.5;
+        this->p[10] = -0.5;
+        this->p[14] = 0.5;
+        this->p[17] = -0.5;
 
         // REAL m = 50.;
         // this->p[0] = cos(1.*M_PI/5.)/m;

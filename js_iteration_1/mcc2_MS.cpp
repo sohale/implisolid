@@ -173,7 +173,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    string name = "sphere";
+    string name = "cube";
     _state.mc = new MarchingCubes(resolution, mc_size, enableUvs, enableColors);
 
     _state.mc -> isolation = 0.0;
@@ -198,7 +198,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       object = &segg; // super egg !
     }
     else if (name == "torus"){
-      torus Tor(4.,0.2,0.2,0.2);
+      torus Tor(2.,0.2,0.2,0.2);
       object = &Tor; // super egg !
     }
     else if (name == "honey_comb"){
@@ -311,6 +311,13 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
     centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+
+    for (int i=0; i<3; i++){
+     vertex_resampling(object, f_argument, c, *(_state.mc));
+    }
+
+    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+
 
     if(VERBOSE){
         loger << resolution << " " << time << std::endl;
