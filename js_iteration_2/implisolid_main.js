@@ -95,7 +95,7 @@ var ImplicitService = function(){
         var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
         var allocate_buffers = true;
-        var geom = new LiveBufferGeometry71(verts, faces, allocate_buffers);
+        var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
 
         // Set the normals
         var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.

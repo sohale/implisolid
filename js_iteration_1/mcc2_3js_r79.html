@@ -16,37 +16,141 @@
 <body>
 <canvas id="my_canvas"></canvas>
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js"></script>
-<!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script-->
+
+<!--
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js">
+</script> -->
+<!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js">
+</script-->
+<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js">
+</script>-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
+</script>
+
+
 <!-- <script type="text/javascript" src="./three-r77.js"></script> -->
 
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
 -->
 <!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
 -->
+
+<script>
+    function assert(cond, message) {
+        if (!cond) {
+            console.error(message);
+            throw new Exception("assert ", message);
+        }
+    }
+    function _expect(cond, message) {
+        if (!cond) {
+            console.error(message);
+        }
+    }
+</script>
+
+<script>
+/**  Asynchronously does a series of calls to the function  update_mc(). */
+var call_multiple_times = function(newPolygonizer, update_callback) {
+    // private:
+    var last_active = 0;
+    var intervals_counter = 0;
+
+    function _call_multiple_times(newPolygonizer, update_callback) {
+        /** Asynchronously does a series of calls to the function  update_callback().
+        Previous name: update_mc_mul tiple() */
+        var BURST_COUNT = 50;
+        var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
+            // Works well on too small values (Semaphore).
+            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
+        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
+        var burst_counter = 0;
+
+        intervals_counter++;
+        if(intervals_counter>1) //dont start if there is already one running
+        {
+            intervals_counter--;
+            return;
+        }
+        last_active = setInterval (
+            function()
+            {
+                if(!last_active)
+                    console.error("!last_active");
+
+                burst_counter++; // mc_icounter
+
+                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
+                {
+
+                    if(already_busy_doing_it<1) //removable
+                    {
+                        already_busy_doing_it++;
+
+                        update_callback(newPolygonizer, 0.2/10.*5 /5.);
+
+                        if(already_busy_doing_it>1)
+                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
+                        if(!last_active)
+                            console.error("!last_active");
+                        already_busy_doing_it--;
+                    }else{
+                        console.log("hit");
+                    }
+                }
+                else
+                {
+                    // The interval has finished its job. Time to go.
+                    if(!last_active)
+                        console.error("!last_active");
+                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
+                    intervals_counter--; // Allow next one in future
+                    burst_counter = 0;
+                    last_active = 0;
+                }
+            },
+            INTERVAL_MSEC
+        );
+    }
+    return _call_multiple_times;
+}();
+
+</script>
+
 <!--script type="text/javascript" src="./ww_geometry77.js"></script-->
-<script type="text/javascript" src="./geometry77.js"></script>
+<script type="text/javascript" src="../js_iteration_2/geometry79.js"></script>
+<!--<script type="text/javascript" src="../js_iteration_2/geometry73.js"></script>-->
 
+<!--
 <script type="text/javascript" src="./controls/OrbitControls.js"></script>
+-->
+<script>
+THREE.OrbitControls = function() {
+    this.target = new THREE.Vector3();
+    this.addEventListener = function(){};
+}
+</script>
 
-<script type="text/javascript" src="../js_iteration_2/bbox_calculations.js"></script>
+<!-- <script type="text/javascript" src="../js_iteration_2/bbox_calculations.js"></script> -->
 
 <!--<body>-->
-Based on MCC1
+This file uses ImpliSolid's Gemetry. (unlike <a href="mcc2_3js.html">mcc2_3js.html</a>)
 
 <br>
 
 <script>
     'use strict';
 
+    const THREEJS_R71 = "r71";
+    const THREEJS_R77 = "r77";
+    const THREEJS_R79 = "r79";
 
-    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needsFinish
-    // Exported
+    const threejs_rev = THREEJS_R79;
 
     var produce_object;
     var main;
 
-    //var newProducer;
     function init_polygonizer()
     {
         //too late for pre-run
@@ -96,10 +200,11 @@ Based on MCC1
         newProducer.set_vect = function (float32Array){
             if (float32Array.length % 3 != 0) {console.error("bad input array");};
             var nverts = float32Array.length / 3;
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
             var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
             Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
             var result = this.set_x(verts_space, nverts);
-            console.log("result: "+result);
+            console.log("set_x() result: "+result);
             Module._free( verts_space );
 
         }
@@ -118,292 +223,20 @@ Based on MCC1
     //'use strict';
 
     //Version 1 has flaws: _free()s before returning the verts.
-    var CALL_VERSION = 2; //1 or 2
+    //var CALL_VERSION = 2; //1 or 2
     const VERBOSE = false;
 
-    var WIREFRAME = false;
-
-
-    //const DBLFLOAT_SIZE = 8;
-    const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
-    const _INT_SIZE = 4;
-    //int:4, float: 4, long: 4
+    //todo: reaplce _FLOAT_SIZE with Float32Array.
+    //const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
+    //const _INT_SIZE = 4;
 
     var global_time = 0;
 
-    /* old style. This leaves memory footprints (memory leak) */
-    function do_vf_old(subjective_time)
-    {
-
-        //var max_verts = 40000;  // *2
-        //var max_faces = 15000;  //*5
-
-        var max_verts = 16000;  // *2
-        var max_faces = 13000;  //*5
-        var verts_address = Module._malloc(_FLOAT_SIZE*3*max_verts);
-        var nv_address = Module._malloc(_INT_SIZE*1);
-        var faces_address = Module._malloc(_INT_SIZE*3*max_faces)
-        var nf_address = Module._malloc(_INT_SIZE*1);
-        //todo: how to make sure enough space is allocated.
-
-
-        /* ************************* */
-        /*   Call C++                */
-        produce_object(verts_address, nv_address, faces_address, nf_address, subjective_time);
-        /* ************************* */
-
-        //Module.HEAPF64 is a Float64Array
-        var nverts = Module.HEAPU32[nv_address/_INT_SIZE];
-        var nfaces = Module.HEAPU32[nf_address/_INT_SIZE];
-        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-        //what if there is not enough memory?
-
-        //         var result_faces = new Float32Array(dataHeap.buffer, dataHeap.byteOffset, data.length);
-        //verts_address is byteOffset?
-
-        //second attemtps: (still has problems)
-        var result_verts = new Float32Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + verts_address, 3*nverts * _FLOAT_SIZE);
-
-        //Thisrd solution:
-        //http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html
-
-        var h_len = (Module.HEAPF32.length);
-        var v_end=(verts_address/_FLOAT_SIZE + 3*nverts);
-        var f_end = (faces_address/_INT_SIZE + 3*nfaces);
-        if(h_len <= v_end || h_len <= f_end)
-            console.error("Insufficient heap: "+(h_len - v_end)+ " , "+(h_len - f_end));
-        else
-            console.info("Heap size OK.");
-
-        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
-
-        //console.log("subarray");
-        //console.log(verts.subarray(verts.length-100, verts.length));
-
-        // ****************************
-        // The actual leak was here !
-        // ****************************
-        //freeing resources
-        //also see http://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
-        Module._free(verts_address);
-        Module._free(nv_address);
-        Module._free(faces_address);
-        Module._free(nf_address);
-
-        //BUG! Accessed (returned) after "_Free"ing.
-        // FIXME: FREED before actually copying
-
-        //console.log(Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*2));
-        //console.log(result_verts.subarray(0, 3*2));
-
-        if(VERBOSE){
-            console.log("nverts : "+ nverts);
-            console.log("nfaces : "+ nfaces);
-        }
-
-        return [verts, faces];
-        //return [result_verts, faces];
-    }
-
-//    //third way:
-//    function     vf(){
-//            //function _produce_object($verts,$nv,$faces,$nf,$time){}
-//
-//  // $verts = $verts|0;
-//  // $nv = $nv|0;
-//  // $faces = $faces|0;
-//  // $nf = $nf|0;
-//  // $time = +$time;
-//  //$254 = $verts..
-//  //HEAPF32[$254>>2] = $251;
-//  //
-//    }
-function make_geometry_oldold(subjective_time, re_allocate_buffers)
-{
-
-    var startTime = new Date();
-    //new Date().getTime()
-
-    vf = do_vf_old(subjective_time);
-    v = vf[0];
-    f = vf[1];
-
-
-    //This is not used
-    //return new MyGeometry(v, f);
-    var geom = new MyBufferGeometry77(v, f, re_allocate_buffers);
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    //console.log("TIME: "+timeDiff+ " msec.");
-    report_time(timeDiff);
-
-    return geom;
-
-    //This is not used
-}
 
 
 
 'use strict';
 
-/**  Asynchronously does a series of calls to the function  update_mc(). */
-var call_multiple_times = function() {
-    // private:
-    var last_active = 0;
-    var intervals_counter = 0;
-
-    function _call_multiple_times(newPolygonizer, update_mc) {
-        /** Asynchronously does a series of calls to the function  update_mc().
-        Previous name: update_mc_mul tiple() */
-        var BURST_COUNT = 50;
-        var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
-            // Works well on too small values (Semaphore).
-            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
-
-        //var mc_icounter=0;
-        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
-        var burst_counter = 0;
-
-        //already_busy_doing_it level1: right now.
-        //already_busy_doing_it: interval (level 2)
-
-        intervals_counter++;
-        if(intervals_counter>1) //dont start if there is already one running
-        {
-            intervals_counter--;
-            return;
-        }
-        last_active = setInterval (
-            function()
-            {
-                /*
-                var ls="";
-                for (var lft=0;lft<100;lft++){
-                    ls+=" ";
-                }
-                console.log(ls.slice(1));
-                console.log("1msec");
-                return;
-                */
-                if(!last_active)
-                    console.error("!last_active");
-
-                burst_counter++; // mc_icounter
-
-                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
-                {
-
-                    if(already_busy_doing_it<1) //removable
-                    {
-                        already_busy_doing_it++;
-
-                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
-
-                        if(already_busy_doing_it>1)
-                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
-                        if(!last_active)
-                            console.error("!last_active");
-                        already_busy_doing_it--;
-                    }else{
-                        console.log("hit");
-                    }
-                }
-                else
-                {
-                    // The interval has finished its job. Time to go.
-                    if(!last_active)
-                        console.error("!last_active");
-                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
-                    intervals_counter--; // Allow next one in future
-                    burst_counter = 0;
-                    last_active = 0;
-                }
-            },
-            INTERVAL_MSEC
-        );
-    }
-    return _call_multiple_times;
-}();
-
-/*
-// MyLiveUpdatableGeometry
-LiveGeometry = function () {
-    //material_wireframe = ...;
-    THREE.THREE.ImmediateRenderObject.call( this, material_wireframe );
-    this.setVF = function(verts, faces){
-    }
-};
-LiveGeometry.prototype = Object.create( THREE.Geometry.prototype );
-LiveGeometry.prototype.constructor = LiveGeometry;
-*/
-
-
-// Keep this method, although it is not used.
-function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
-{
-    var startTime = new Date();
-
-    //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-    //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
-    newPolygonizer.build_geometry( shape_json , polygonization_json);
-    //implicit_double_mushroom center will be zero.
-
-    var nverts = newPolygonizer.get_v_size();
-    var nfaces = newPolygonizer.get_f_size();
-    if(VERBOSE){
-        console.log(nverts);
-    }
-
-    var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
-    var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
-
-    newPolygonizer.get_v(verts_address, nverts);
-    newPolygonizer.get_f(faces_address, nfaces);
-
-    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-    //console.log(verts);
-    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-    /*
-    if(!reusable_geometry){
-        //var geom = new MyGeometry(verts, faces);
-        //var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
-
-        //best so far:
-        var geom = new WGeometry77(verts, faces);
-
-        //var geom = UpdatableGeometry77(verts, faces);
-    }else{
-        geom = reusable_geometry;
-        reusable_geometry.update(verts, faces);
-    }
-    */
-
-    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);  //weird results. But much faster.
-
-    // Now you can free the resources.
-
-    Module._free(verts_address);
-    Module._free(faces_address);
-
-    //d(1);
-    newPolygonizer.finish_geometry();
-    newPolygonizer.needsFinish = false;
-
-    if(VERBOSE){
-        console.log("nverts : "+ nverts);
-        console.log("nfaces : "+ nfaces);
-    }
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    //console.log("TIME: "+timeDiff);
-    report_time(timeDiff);
-
-    return geom;
-}
 
 function setShapeMatrix2Eye(shape_matrix) {
     for(var ii=0; ii<16; ii++) {
@@ -425,19 +258,20 @@ const ARROWS_COUNT = 20;
 
 var global_mp5 = "***";
 
-function provide_input (subjective_time, update_mode) {
-    // update_mode: 0 => init
-    // update_mode: 1 => update
-    // update_mode: 2 => deprecated (used in make_geometry_old1() )
+function provide_input (subjective_time, is_update_mode) {
+    // is_update_mode: 0 => init
+    // is_update_mode: 1 => update
+    // is_update_mode: 2 => deprecated (used in make_geometry_old1() )
 
     // asked for:
     var shape_json, polygonization_json;
+    const DONT_CHANGE = false;  // was true
 
-    if(1 || update_mode == 0) {
+    if(DONT_CHANGE || is_update_mode == 0) {
         var r = subjective_time;
 
         var mp5_json_0 = JSON.stringify({
-            type: "egg",
+            type: "ellipsoid",
             //radius: subjective_time,
             matrix:[
                 r, 0,0, x0,
@@ -448,7 +282,7 @@ function provide_input (subjective_time, update_mode) {
         //global_mp5 = mp5_json_0;
 
 
-        if(update_mode == 0) {
+        if(is_update_mode == 0) {
             var sz = 1.;
         } else {
             var sz = r;
@@ -490,9 +324,6 @@ function provide_input (subjective_time, update_mode) {
         });
 
 
-
-
-
         shape_json = mp5_json;
         polygonization_json = mc_properties_json;
 
@@ -501,20 +332,21 @@ function provide_input (subjective_time, update_mode) {
     }
 
     //Alternatively, use a growing sphere only.
-    if(update_mode == 1 || update_mode == 2) {
+    if(is_update_mode == 1 || is_update_mode == 2) {
         //d("2   G.");
         var x0=0, y0=0, z0=0;
-        const BB_SIZE = 1;
+        const BB_SIZE = 9;
 
-        var r = subjective_time;
+        var r = subjective_time * 5;
         //var BB_SIZE = 6.;
         var mc_properties_json = JSON.stringify({
             resolution: 28,
-            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE}
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            ignore_root_matrix: false,
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
         var mp5_json = JSON.stringify({
-            type: "egg",
+            type: "ellipsoid",
             //radius: r, //boudbl_mushroom only
             matrix:[
                 r, 0,0, x0,
@@ -522,7 +354,6 @@ function provide_input (subjective_time, update_mode) {
                 0,0, r, z0,
                 0,0,0,   1]
         });
-
 
         shape_json = mp5_json;
         polygonization_json = mc_properties_json;
@@ -534,7 +365,7 @@ function provide_input (subjective_time, update_mode) {
     }
 
     /*
-    if(update_mode == 2) {
+    if(is_update_mode == 2) {
         //not used anymore
         //console.log(newPolygonizer);
         //d("2   G..");
@@ -615,14 +446,28 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     var faces_address = newPolygonizer.get_f_ptr();
     //no need to free anymore!
 
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
     //verts[2] -= 0.1;
     //verts[2 + nverts*3-3] += 0.3;
 
     //var geom = new WGeometry77(verts, faces);
-    var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
+    //var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
+    if(threejs_rev === THREEJS_R71) {
+        var geom = new LiveBufferGeometry71(verts, faces, re_allocate_buffers);
+    } else if(threejs_rev === THREEJS_R77) {
+        var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
+    } else if(threejs_rev === THREEJS_R79) {
+        //LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacity_, min_verts_capacity_)
+        var min_faces_capacity_ = 0, min_verts_capacity_ = 0;
+        var geom = new LiveBufferGeometry79(
+            verts, faces,
+            re_allocate_buffers,
+            min_faces_capacity_, min_verts_capacity_);
+    }
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -669,7 +514,8 @@ function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, ge
     }finally {
     }
 
-    geometry. update_geometry (newPolygonizer);
+    var ignore_normals = false
+    geometry. update_geometry (newPolygonizer, ignore_normals);
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
@@ -717,26 +563,32 @@ function make_multiple_arrows(n) {
     return arrowHelpers;
 }
 
-function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
+function update_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
     /**
      * Update the arrow parameters
     */
 
-    var vlist = [];
+    var vlist = new Float32Array(n*3);
     for(var i=0;i<n;i++) {
         var x = MESH_SCALE*10 * (Math.random()*2 - 1.);
         var y = MESH_SCALE*10 * (Math.random()*2 - 1.);
         var z = MESH_SCALE*10 * (Math.random()*2 - 1.);
-        vlist.push(x);
+        /*vlist.push(x);
         vlist.push(y);
-        vlist.push(z);
+        vlist.push(z);*/
+        vlist[i*3+0] = x;
+        vlist[i*3+1] = y;
+        vlist[i*3+2] = z;
     }
     //var _verts = new Float32Array([x, y, z]);
-    var _verts = new Float32Array(vlist);
+    //var _verts = new Float32Array(vlist);
+    var _verts = vlist;
+    assert(_verts instanceof Float32Array);
 
     newPolygonizer.set_object(mp5_str, ignore_root_matrix);
     newPolygonizer.set_vect(_verts);
     newPolygonizer.calculate_implicit_gradients();
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
     var ptr = newPolygonizer.get_gradients_ptr();
     var ptr_len = newPolygonizer.get_gradients_size();
     var g = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
@@ -833,22 +685,13 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     var geometry = null;
     //geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    /*
     if(CALL_VERSION==1){
-        //geometry = make_geometry_oldold(global_time);
-        geometry = make_geometry_oldold(shape_json, polygonization_json);
+        //geometry = make_geometry_oldold(shape_json, polygonization_json);
     }
-    else{
-        /*
-            for make_geometry_old1() only:
-            var tuple = provide_input(subjective_time, 2);
-            shape_json = tuple[0];
-            polygonization_json = tuple[1];
-
-            // //geometry = make_geometry_old1(newPolygonizer, global_time, polygonization_json, null);
-
-            geometry = make_geometry_old1(newPolygonizer, shape_json,  null);         //keep this comment
-        */
-        //geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
+    else
+    */
+    {
         geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, true);
     }
     //last_geometry = geometry;
@@ -1000,18 +843,14 @@ function update_mc(newPolygonizer, delta_t){
         update_reused_geometry(newPolygonizer, shape_json, polygonization_json, geometry);
     }
     else {
+        /*
         if(CALL_VERSION==1){
-            //geometry = make_geometry_oldold(global_time);
-            geometry = make_geometry_oldold(shape_json, polygonization_json);
-
+            //geometry = make_geometry_oldold(shape_json, polygonization_json);
         }
-        else{
+        else
+        */
+        {
             //reused_last_geom = null;
-            //geometry = make_geometry_new2(newPolygonizer, global_time, reused_last_geom, false);
-
-            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
-
-            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
             geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, false);  //FALSE??
         }
     };
@@ -1029,8 +868,7 @@ function update_mc(newPolygonizer, delta_t){
     "";
     */
     var ignore_root_matrix = false;
-    //change_arrow(global_arrow, newPolygonizer, global_mp5);
-    change_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
+    update_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
 
 
     if(!EVEN_REUSE_MESH_OBJECT){
@@ -1099,8 +937,10 @@ function look_nice(scene){
         _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
         _geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
     }
-    var grid_lines = new THREE.LineSegments( _geometry, line_material );
-    scene.add( grid_lines );
+    if(threejs_rev != THREEJS_R71) {
+        var grid_lines = new THREE.LineSegments( _geometry, line_material );
+        scene.add( grid_lines );
+    }
 
     // Materials
     var texture = new THREE.Texture( generateTexture() );
@@ -1113,7 +953,7 @@ function look_nice(scene){
     //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
     materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
-    materials.push( new THREE.MeshNormalMaterial( { shading: THREE.SmoothShading,
+    materials.push( new THREE.MeshNormalMaterial( { color: 0x00dd00,  shading: THREE.SmoothShading,
         //opacity:0.5,  transparent: true, side:THREE.DoubleSide
     } ));
     materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );

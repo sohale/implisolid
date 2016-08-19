@@ -165,7 +165,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     else
     if (name == "iellipsoid" || name == "ellipsoid" ){
         REAL matrix12[12];
-        getMatrix12(matrix12,shapeparams_dict);
+        getMatrix12(matrix12, shapeparams_dict);
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
