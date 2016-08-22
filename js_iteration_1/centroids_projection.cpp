@@ -547,7 +547,7 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
     (*b)[1] =0;
     (*b)[2] =0;
     for (int j=0; j<m; j++){
-
+    /* the matrix is symmetric so we dont need to compute all 9 elements*/
       a00 = normals[j][0]*normals[j][0];
       a01 = normals[j][0]*normals[j][1];
       a02 = normals[j][0]*normals[j][2];
@@ -558,10 +558,10 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
       (*A)[0][0] += a00;
       (*A)[0][1] += a01;
       (*A)[0][2] += a02;
+      (*A)[1][0] += a01;
       (*A)[1][1] += a11;
       (*A)[1][2] += a12;
       (*A)[2][2] += a22;
-      (*A)[1][0] += a01;
       (*A)[2][0] += a02;
       (*A)[2][1] += a12;
       (*b)[0] -= a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];

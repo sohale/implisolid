@@ -1,4 +1,4 @@
-# from ipdb import set_trace
+from ipdb import set_trace
 import profile_support
 from vtk_mc import vtk_mc
 
@@ -9,7 +9,7 @@ import numpy as np
 from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized, normalize_vector4_vectorized
 
 mesh_correction = False
-writing_test_file = True
+writing_test_file = False
 B = 1000000L
 
 
@@ -238,7 +238,7 @@ def vertex_resampling(vertex, faceslist_neighbours_of_vertex, faces_of_faces, ce
 
 
     umbrella_faces = faceslist_neighbours_of_vertex[1]  # A list of facets: The indices of faces that vertex vertex_index belongs to.
-    sys.stderr.write("umbrella_faces: ", umbrella_faces)
+    sys.stderr.write("umbrella_faces: " + str(umbrella_faces))
     # wa = np.zeros()
     # w_list = []
     # for i_faces in umbrella_faces:
@@ -427,7 +427,6 @@ def compute_average_edge_length(vertex, faces):
 
 
 def get_A_b(nlist_numpy, centroids, centroids_gradients, qem_origin):
-
     nai = nlist_numpy
 
     center_array = centroids[nai, :]
@@ -726,14 +725,12 @@ def vertex_apply_qem3(vertex, faces, centroids, vertex_neighbours_list, centroid
     result_vertex_ranks = np.zeros((nvert,), dtype=int)
     assert vertex.shape == (nvert, 3)
     new_vertex = np.zeros((nvert, 3))
-
     for vertex_id in range(nvert):
 
         vi = vertex_id
         nlist = vertex_neighbours_list[vertex_id]
         nai = np.array(nlist)
         qem_origin = vertex[vertex_id, :].reshape(3, 1)*0
-
         A, b = get_A_b(nai, centroids, centroids_gradients, qem_origin)
         u, s, v = np.linalg.svd(A)
         assert np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))
@@ -1211,7 +1208,6 @@ def compute_facets_curvatures_vectorized(vertex, faces, iobj):
 
         mmt_norm = np.linalg.norm(mmt, axis=2, keepdims=True)
         mmt_norm[mmt_norm < 0.00001] = 1.
-        import ipdb; ipdb.set_trace()
         mmt_hat = mmt / mmt_norm ; del mmt; del mmt_norm
 
         n_norm = np.linalg.norm(face_normals, axis=1)
@@ -1636,7 +1632,7 @@ def demo_combination_plus_qem():
     curvature_epsilon = 1. / 1000.  # a>eps  1/a > 1/eps = 2000
     # curvature_epsilon = 1. / 10000.
     VERTEX_RELAXATION_ITERATIONS_COUNT = 3
-
+    # set_trace()
     NUMBER_OF_ITERATION_GLOBAL = 2
 
     from example_objects import make_example_vectorized
@@ -1689,7 +1685,7 @@ def demo_combination_plus_qem():
             old_vertex = vertex
             vertex, faces_not_used, centroids = process2_vertex_resampling_relaxation(vertex, faces, iobj)
             if (writing_test_file):
-                f_out = open("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo.txt", "w")
+                f_out = open("data_algo.txt", "w+")
                 f_out.write("0ld vertex :" + '\n')
                 for i in range(old_vertex.shape[0]):
                     f_out.write(str(old_vertex[i, :]) + '\n')

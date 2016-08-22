@@ -20,7 +20,6 @@ def make_neighbour_faces_of_vertex(faces):
             else:
                 assert fi not in neighbour_faces_of_vertex[v1]
                 neighbour_faces_of_vertex[v1].append(fi)
-
     return neighbour_faces_of_vertex
 
 
@@ -152,7 +151,7 @@ def make_edge_lookup_sparse(faces):
     assert nfaces % 2 == 0
     num_edges = nfaces * 3 / 2
     if True:    # VERBOSE:
-        sys.stderr.write("nfaces= ", nfaces, "num_edges:", num_edges)
+        sys.stderr.write("nfaces= " + str(nfaces) + " num_edges:" + str(num_edges))
 
     edges_of_faces = np.zeros((nfaces, 3), dtype=np.int) - 1
     faces_of_edges = np.zeros((num_edges, 2), dtype=np.int) - 1
