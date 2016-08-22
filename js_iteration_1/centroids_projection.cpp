@@ -516,14 +516,14 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
     boost::multi_array<REAL, 2> normals(center_array_shape);
 
     for (int i=0; i<m; i++){
+        vindex_t cn = nai[i];
+        normals[i][0] = centroid_gradients[cn][0];
+        normals[i][1] = centroid_gradients[cn][1];
+        normals[i][2] = centroid_gradients[cn][2];
 
-      normals[i][0] = centroid_gradients[nai[i]][0];
-      normals[i][1] = centroid_gradients[nai[i]][1];
-      normals[i][2] = centroid_gradients[nai[i]][2];
-
-      center_array[i][0] = centroids[nai[i]][0];
-      center_array[i][1] = centroids[nai[i]][1];
-      center_array[i][2] = centroids[nai[i]][2];
+        center_array[i][0] = centroids[cn][0];
+        center_array[i][1] = centroids[cn][1];
+        center_array[i][2] = centroids[cn][2];
     }
 
     REAL a00;
@@ -533,40 +533,46 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
     REAL a12;
     REAL a22;
 
-    (*A)[0][0] =0;
-    (*A)[0][1] =0;
-    (*A)[0][2] =0;
-    (*A)[1][1] =0;
-    (*A)[1][2] =0;
-    (*A)[2][2] =0;
-    (*A)[1][0] =0;
-    (*A)[2][0] =0;
-    (*A)[2][1] =0;
+    (*A)[0][0] = 0;
+    (*A)[0][1] = 0;
+    (*A)[0][2] = 0;
+    (*A)[1][1] = 0;
+    (*A)[1][2] = 0;
+    (*A)[2][2] = 0;
+    (*A)[1][0] = 0;
+    (*A)[2][0] = 0;
+    (*A)[2][1] = 0;
 
-    (*b)[0] =0;
-    (*b)[1] =0;
-    (*b)[2] =0;
+    (*b)[0] = 0;
+    (*b)[1] = 0;
+    (*b)[2] = 0;
     for (int j=0; j<m; j++){
-    /* the matrix is symmetric so we dont need to compute all 9 elements*/
-      a00 = normals[j][0]*normals[j][0];
-      a01 = normals[j][0]*normals[j][1];
-      a02 = normals[j][0]*normals[j][2];
-      a11 = normals[j][1]*normals[j][1];
-      a12 = normals[j][1]*normals[j][2];
-      a22 = normals[j][2]*normals[j][2];
+        /* the matrix is symmetric so we dont need to compute all 9 elements*/
+        /* A = dot(normals, normals.T) */
+        a00 = normals[j][0] * normals[j][0];
+        a01 = normals[j][0] * normals[j][1];
+        a02 = normals[j][0] * normals[j][2];
+        a11 = normals[j][1] * normals[j][1];
+        a12 = normals[j][1] * normals[j][2];
+        a22 = normals[j][2] * normals[j][2];
 
-      (*A)[0][0] += a00;
-      (*A)[0][1] += a01;
-      (*A)[0][2] += a02;
-      (*A)[1][0] += a01;
-      (*A)[1][1] += a11;
-      (*A)[1][2] += a12;
-      (*A)[2][2] += a22;
-      (*A)[2][0] += a02;
-      (*A)[2][1] += a12;
-      (*b)[0] -= a00*center_array[j][0] + a01*center_array[j][1] + a02*center_array[j][2];
-      (*b)[1] -= a01*center_array[j][0] + a11*center_array[j][1] + a12*center_array[j][2];
-      (*b)[2] -= a02*center_array[j][0] + a12*center_array[j][1] + a22*center_array[j][2];
+        (*A)[0][0] += a00;
+        (*A)[0][1] += a01;
+        (*A)[0][2] += a02;
+        (*A)[1][0] += a01;
+        (*A)[1][1] += a11;
+        (*A)[1][2] += a12;
+        (*A)[2][2] += a22;
+        (*A)[2][0] += a02;
+        (*A)[2][1] += a12;
+
+        REAL cx = center_array[j][0];
+        REAL cy = center_array[j][1];
+        REAL cz = center_array[j][2];
+
+        (*b)[0] -= a00 * cx + a01 * cy + a02 * cz;
+        (*b)[1] -= a01 * cx + a11 * cy + a12 * cz;
+        (*b)[2] -= a02 * cx + a12 * cy + a22 * cz;
 
     }
 

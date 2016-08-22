@@ -55,8 +55,10 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 
 typedef array1d::index  index_t;
 
+/* define types for vertices, faces and indexes of them */
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;
+typedef verts_t::index vindex_t;
 
 typedef short int bool_t;
 
