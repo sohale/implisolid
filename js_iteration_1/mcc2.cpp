@@ -32,6 +32,7 @@ Todo:
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
+
 #include "../js_iteration_2/object_collector.hpp"
 
 #include "../js_iteration_2/vertex_resampling.cpp"
@@ -564,6 +565,7 @@ void about() {
 
 
 #include "../js_iteration_2/basic_data_structures.hpp"
+#include "centroids_projection.cpp"
 
 typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
