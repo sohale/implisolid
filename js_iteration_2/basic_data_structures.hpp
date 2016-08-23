@@ -28,6 +28,14 @@ using namespace std;
 
 //#include "boost/assert.hpp"
 
+#ifdef NDEBUG
+    #define NO_ASSERT true
+#else
+    #define ASSERT_USED true
+#endif
+
+
+
 //namespace implicit {
 
 
@@ -58,7 +66,10 @@ typedef array1d::index  index_t;
 /* define types for vertices, faces and indexes of them */
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;
+
 typedef verts_t::index vindex_t;
+//typedef verts_t::size_type vindex_t;
+
 
 typedef short int bool_t;
 
@@ -337,10 +348,10 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
 
 void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
 
-  boost::numeric::ublas::matrix < float > QQL(3,3);
-  boost::numeric::ublas::matrix < float > QQW(3,3);
-  boost::numeric::ublas::matrix < float > QQR(3,3);
-  boost::numeric::ublas::matrix < float > in(3,3);
+  boost::numeric::ublas::matrix < REAL > QQL(3,3);
+  boost::numeric::ublas::matrix < REAL > QQW(3,3);
+  boost::numeric::ublas::matrix < REAL > QQR(3,3);
+  boost::numeric::ublas::matrix < REAL > in(3,3);
 
   for(int i=0; i<3; i++){
     for(int j=0; j<3; j++){

@@ -41,24 +41,51 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 // vectorized bisection
-void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, verts_t& x1_arr, verts_t& x2_arr, REAL ROOT_TOLERANCE,boost::multi_array<bool, 1>& treated){
+void bisection(
+    mp5_implicit::implicit_function* object,
+    verts_t& res_x_arr,
+    verts_t& x1_arr,
+    verts_t& x2_arr,
+    REAL ROOT_TOLERANCE,
+    boost::multi_array<bool, 1>& treated) {
 
   // initilization step
-  int n = x1_arr.shape()[0];
+    int n = x1_arr.shape()[0];
+    assert(x2_arr.shape[0] == n);
+    assert(x1_arr.shape[1] == 3);
+    assert(x2_arr.shape[1] == 3);
+
+    assert(res_x_arr.shape[0] == n);
+    assert(res_x_arr.shape[1] == 3);
 
   // implicit function of the two arrays
   boost::array<int, 1> v1_shape = {n};
-  // vectorized_scalar v1(v1_shape);
-  // vectorized_scalar v2(v1_shape);
 
-  // object->eval_implicit(x1_arr, &v1);
-  // object->eval_implicit(x2_arr, &v2);
+  #if ASSERT_USED
+      vectorized_scalar v1_arr(v1_shape);   // todo: rename to v1
+      vectorized_scalar v2_arr(v1_shape);
+
+      object->eval_implicit(x1_arr, &v1_arr);
+      object->eval_implicit(x2_arr, &v2_arr);
+
+
+      for (int i=0; i< n; i++) {
+          res_x_arr[i][0] = -10000.0;
+          res_x_arr[i][1] = -10000.0;
+          res_x_arr[i][2] = -10000.0;
+      }
+
+  #endif
 
   boost::multi_array<int, 1> active_indices(v1_shape);
 
-  for (int i=0; i< n; i++){
-    active_indices[i] = i;
-    treated[i] = false;
+  for (int i=0; i< n; i++) {
+      active_indices[i] = i;
+  }
+  int active_indices_size = n;
+
+  for (int i=0; i< n; i++) {
+      treated[i] = false;
   }
 
   int active_count = n;
@@ -66,87 +93,168 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
 
   boost::array<int, 2> x_mid_shape = {n,3};
   boost::multi_array<REAL, 2> x_mid(x_mid_shape);
+  /*
+    #if ASSERT_USED
+        for (int i = 0; i < n; i++) {
+            for (int d = 0; d < 3; d++) {
+                x_mid[i][d] = 1.0;
+            }
+        }
+    #endif
+    */
 
   vectorized_scalar v_mid(v1_shape); // implicit function for x_mid
+  /*
+    #if ASSERT_USED
+        for (int i = 0; i < n; i++) {
+            v_mid[i] = 0.0;
+        }
+    #endif
+    */
+
   vectorized_scalar abs_(v1_shape); // absolute value of the implicit function
 
+
   // array of indices
-  boost::multi_array<int, 1> indices_boundary(v1_shape);
-  boost::multi_array<int, 1> indices_outside(v1_shape);
-  boost::multi_array<int, 1> indices_inside(v1_shape);
-  boost::multi_array<int, 1> indices_eitherside(v1_shape);
-  boost::multi_array<int, 1> which_zeroed(v1_shape);
+  boost::multi_array<vindex_t, 1> indices_boundary(v1_shape);
+  boost::multi_array<vindex_t, 1> indices_outside(v1_shape);
+  boost::multi_array<vindex_t, 1> indices_inside(v1_shape);
+  boost::multi_array<vindex_t, 1> indices_eitherside(v1_shape);
+  boost::multi_array<vindex_t, 1> which_zeroed(v1_shape);
 
   int iteration = 1;
 
  // loop
-  while (true){
+  while (true) {
+
+    #if ASSERT_USED
+        bool assert1 = true;
+        for (int i=0; i < active_count; i++) {
+            auto s1 = my_sign(v1_arr[i], ROOT_TOLERANCE);
+            auto s2 = my_sign(v2_arr[i], ROOT_TOLERANCE);
+            // assert( s1* s2 < 0 - EPS);
+            bool ok = ( s1* s2 < 0 - EPS);
+            assert1 = assert1 && ok;
+        }
+        assert(assert1);
+
+        bool assert2 = true;
+        for (int i=0; i < active_count; i++) {
+            bool ok = v1_arr[i] < 0 - ROOT_TOLERANCE;
+            assert2 = assert2 && ok;
+        }
+        assert(assert2);
+
+        assert(active_count <= n);
+    #endif
+
     //mean of (x1,x2)
     for (int i=0; i<active_count; i++){
-      x_mid[i][0] = (x1_arr[i][0]+ x2_arr[i][0])/2.;
-      x_mid[i][1] = (x1_arr[i][1]+ x2_arr[i][1])/2.;
-      x_mid[i][2] = (x1_arr[i][2]+ x2_arr[i][2])/2.;
+      x_mid[i][0] = (x1_arr[i][0] + x2_arr[i][0]) / 2.;
+      x_mid[i][1] = (x1_arr[i][1] + x2_arr[i][1]) / 2.;
+      x_mid[i][2] = (x1_arr[i][2] + x2_arr[i][2]) / 2.;
     }
 
-    object->eval_implicit(x_mid, &v_mid);
+    // *************************************
+    // Fix me
+    object->eval_implicit(x_mid, &v_mid); // no. only first ones**
+    //
+    // *************************************
 
+    assert( active_indices_size == active_count);
+
+    for (int i=0; i<active_count; i++){
+        abs_[i] = ABS(v_mid[i]);
+    }
+    // int abs_size = active_count;
 
     // imcrementing the size of the indices arrays
-    int i_b = 0;
-    int i_e = 0;
-    int i_i = 0;
-    int i_o = 0;
-    for (int i=0; i<active_count; i++){
-      abs_[i] = ABS(v_mid[i]);
+    int indices_boundary_size = 0;
+    for (int i=0; i < active_count; i++){
       if(abs_[i] <= ROOT_TOLERANCE){
-
-        indices_boundary[i_b] = i;
-        i_b ++;
+        indices_boundary[indices_boundary_size] = i;
+        indices_boundary_size ++;
       }
-      else{
+    }
 
+    int i_e = 0;
+    for (int i=0; i < active_count; i++){
+      if(abs_[i] > ROOT_TOLERANCE){
         indices_eitherside[i_e] = i;
         i_e ++;
       }
-      if(v_mid[i] < - ROOT_TOLERANCE){
+    }
+    int indices_eitherside_size = i_e;
 
+    int i_o = 0;
+    for (int i=0; i < active_count; i++){
+      if(v_mid[i] < -ROOT_TOLERANCE){
         indices_outside[i_o] = i;
         i_o ++;
       }
-      if(v_mid[i] > ROOT_TOLERANCE){
+    }
+    int indices_outside_size = i_o;
 
+    int i_i = 0;
+    for (int i=0; i<active_count; i++){
+      if(v_mid[i] > +ROOT_TOLERANCE){
         indices_inside[i_i] = i;
         i_i ++;
       }
-
     }
+    int indices_inside_size = i_i;
 
-    for (int i=0; i<i_b; i++){
-      which_zeroed[i] = (active_indices[indices_boundary[i]]);
+    assert(indices_boundary_size + indices_inside_size + indices_outside_size == active_count);
+    assert(indices_eitherside_size + indices_boundary_size == active_count);
+
+////////////////
+    // which_zeroed = active_indices[indices_boundary]
+    for (int i = 0; i < indices_boundary_size; ++i){
+      which_zeroed[i] = active_indices[indices_boundary[i]];
       treated[active_indices[indices_boundary[i]]]=true;
     }
+    const int which_zeroed_size = indices_boundary_size;
 
-    int found_count = i_b;
+    int found_count = indices_boundary_size;
     solved_count += found_count;
 
-    for (int i=0; i<i_b; i++){
-      res_x_arr[which_zeroed[i]][0] = x_mid[indices_boundary[i]][0];
-      res_x_arr[which_zeroed[i]][1] = x_mid[indices_boundary[i]][1];
-      res_x_arr[which_zeroed[i]][2] = x_mid[indices_boundary[i]][2];
+    assert(active_count - found_count + solved_count == n);
 
+    // copy into the result, the x_mid that solved the equation.
+    for (int i = 0; i < indices_boundary_size; ++i) {
+      int w = which_zeroed[i];
+      int b = indices_boundary[i];
+      res_x_arr[w][0] = x_mid[b][0];
+      res_x_arr[w][1] = x_mid[b][1];
+      res_x_arr[w][2] = x_mid[b][2];
     }
 
+    #if ASSERT_USED
+    {
+        bool assertok = true;
+        for (int i = 0; i < indices_boundary_size; ++i) {
+            bool ok = indices_boundary[i] < active_count;
+            assertok = assertok && ok;
+        }
+        assert(assertok);
+    }
+    #endif
+    //******************
 
     // changing the values of x2 and x1
     for (int i=0; i<i_i; i++){
-      // v2[indices_inside[i]] = v_mid[indices_inside[i]];
+      #if ASSERT_USED
+          v2_arr[indices_inside[i]] = v_mid[indices_inside[i]];
+      #endif
       x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
       x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
       x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
     }
 
     for (int i=0; i<i_o; i++){
-      // v1[indices_outside[i]] = v_mid[indices_outside[i]];
+      #if ASSERT_USED
+          v1_arr[indices_outside[i]] = v_mid[indices_outside[i]];
+      #endif
       x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
       x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
       x1_arr[indices_outside[i]][2] = x_mid[indices_outside[i]][2];
@@ -170,8 +278,10 @@ void bisection(mp5_implicit::implicit_function* object, verts_t& res_x_arr, vert
     iteration += 1;
 
     for(int i=0; i<active_count; i++){
-      // v1[i] = v1[indices_eitherside[i]];
-      // v2[i] = v2[indices_eitherside[i]];
+      #if ASSERT_USED
+         v1_arr[i] = v1_arr[indices_eitherside[i]];
+         v2_arr[i] = v2_arr[indices_eitherside[i]];
+      #endif
 
       x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
       x1_arr[i][1] = x1_arr[indices_eitherside[i]][1];
