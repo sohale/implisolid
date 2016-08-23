@@ -40,6 +40,45 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
   }
 }
 
+inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
+//     return np.sign(v) * (np.abs(v) > ROOT_TOLERANCE)
+  /*
+    return
+      (v > 0) ?
+      (+1) * (v > ROOT_TOLERANCE) :
+      (v < 0 ) ?
+      (-1) * (-v > ROOT_TOLERANCE) :
+      //(v==0)
+      0.0; //(0) * (v > ROOT_TOLERANCE);
+  */
+      /*
+      REAL sgn = (v > 0) ? +1.0 : (v < 0)? -1.0 : 0.0;
+      REAL vabs = (v > 0) ? v : (-v);
+      //bool (v >= 0) ? (v > ROOT_TOLERANCE) : (-v > ROOT_TOLERANCE);
+      REAL (vabs > ROOT_TOLERANCE) ? +1 : -1;
+      return (v > 0) ? sgn
+      */
+    /*
+    REAL r;
+    if ( v > +ROOT_TOLERANCE ) {
+        r = +1;
+    } else if ( v < -ROOT_TOLERANCE ) {
+        r = -1;
+    } else {
+        r = 0.0;
+    }
+    return r;
+    */
+    return
+        ( v > +ROOT_TOLERANCE )?
+            (+1) :
+        ( v < -ROOT_TOLERANCE )?
+            (-1)
+        :
+            (0.0)
+        ;
+}
+
 // vectorized bisection
 void bisection(
     mp5_implicit::implicit_function* object,
@@ -51,12 +90,12 @@ void bisection(
 
   // initilization step
     int n = x1_arr.shape()[0];
-    assert(x2_arr.shape[0] == n);
-    assert(x1_arr.shape[1] == 3);
-    assert(x2_arr.shape[1] == 3);
+    assert(x2_arr.shape()[0] == n);
+    assert(x1_arr.shape()[1] == 3);
+    assert(x2_arr.shape()[1] == 3);
 
-    assert(res_x_arr.shape[0] == n);
-    assert(res_x_arr.shape[1] == 3);
+    assert(res_x_arr.shape()[0] == n);
+    assert(res_x_arr.shape()[1] == 3);
 
   // implicit function of the two arrays
   boost::array<int, 1> v1_shape = {n};
