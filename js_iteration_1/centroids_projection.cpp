@@ -744,26 +744,71 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
     }
 }
 
+/*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)  
+    
+    Description: 
+        This function follows the projection finding and applies the QEM process, to an array of verts, 
+        in order to update them and get new ones, more accurate.
+    
+    Implementation Details:
+        So, the main parameter we are interested in
+        changing is verts, others are declared as const.  
+    
+    Parameters: 
+      verts: 
+          mesh vertices of the current shape, mutable and updated inside this function
+      
+      faces: 
+          mesh faces (or triangles) of the current shape, immutable for this function   
+      
+      centroids: 
+          the centroids of the mesh, immutable 
 
-void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vector< std::vector<int>> vertex_neighbours_list, verts_t centroid_gradients,boost::multi_array<bool, 1>& treated){
+      vertex_neighbours_list: 
+          Holds neighbouring faces/triangles for all the vertices.  
+          
+      
+      centroids_gradients: 
+          The gradient of the implicit function of the current shape for 
+          all the centroids. 
 
-  int nverts = verts->shape()[0];
+      treated: 
+          A list of flags that indicates the process is complete for every index 
+ */    
+
+void vertex_apply_qem(
+    verts_t* verts, const faces_t faces,
+    const verts_t centroids, 
+    const std::vector< std::vector<int>> vertex_neighbours_list,
+    const verts_t centroid_gradients,
+    const boost::multi_array<bool, 1>& treated)
+  {
+
+    assert (verts != nullptr);
+
+    /* The next asserts have no significance in C++, only Python */
+    
+    /* assert centroids is not None */
+    /* assert vertex_neighbours_list is not None */
+    /* assert centroids_gradients is not None */
+
+    int nverts = verts->shape()[0];
+    /* assert nvert = len(vertex_neighbours_list) */
+
+    boost::array<int, 2> A_shape = { 3 , 3 };
 
 
-  boost::array<int, 2> A_shape = { 3 , 3 };
 
-
-
-  boost::array<int, 2> b_shape = { 3 , 1 };
-  vectorized_scalar b(b_shape);
-  vectorized_scalar y(b_shape);
-  vectorized_scalar utb(b_shape);
-  vectorized_scalar new_x(b_shape);
-  verts_t u(A_shape);
-  verts_t s(A_shape);
-  verts_t v(A_shape);
-  verts_t A(A_shape);
-  for (int vi=0; vi<nverts; vi++){
+    boost::array<int, 2> b_shape = { 3 , 1 };
+    vectorized_scalar b(b_shape);
+    vectorized_scalar y(b_shape);
+    vectorized_scalar utb(b_shape);
+    vectorized_scalar new_x(b_shape);
+    verts_t u(A_shape);
+    verts_t s(A_shape);
+    verts_t v(A_shape);
+    verts_t A(A_shape);
+    for (int vi=0; vi<nverts; vi++){
 
     std::vector<int> nlist;
     for (int i=0; i< vertex_neighbours_list[vi].size(); i++){
@@ -795,6 +840,9 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
 
     //in python the SVD values of s are sorted by the svd function, this is a possible workaround
     // (we may need to keep the A=u*s*v equality, which is done this way)
+    // assert(np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))) validation assert, 
+    // also note that u and v are supposed to be unitary 
+    // so we can add: assert(u.T = u^-1) and assert(v.T == v^-1)
 
     REAL maxi = max(s[0][0], max(s[1][1],s[2][2]));
 
@@ -820,6 +868,7 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
       rank ++;
     }
 
+    // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
     y[0] = v[0][0]*(*verts)[vi][0] + v[1][0]*(*verts)[vi][1] + v[2][0]*(*verts)[vi][2];
     y[1] = v[0][1]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[2][1]*(*verts)[vi][2];
     y[2] = v[0][2]*(*verts)[vi][0] + v[1][2]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
@@ -847,7 +896,7 @@ void vertex_apply_qem(verts_t* verts, faces_t faces, verts_t centroids, std::vec
     (*verts)[vi][0] = new_x[0];
     (*verts)[vi][1] = new_x[1];
     (*verts)[vi][2] = new_x[2];
-  }
+    }
 
 
 }
