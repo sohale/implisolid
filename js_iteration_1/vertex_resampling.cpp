@@ -33,9 +33,14 @@ typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
-REAL norm_2(REAL x, REAL y, REAL z){
+inline REAL norm_2(REAL x, REAL y, REAL z){
   REAL norm = sqrt(x*x + y*y + z*z);
   return norm;
+}
+
+inline REAL norm_2_squared(REAL x, REAL y, REAL z){
+  REAL norms = x*x + y*y + z*z;
+  return norms;
 }
 
 void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){

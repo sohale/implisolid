@@ -429,5 +429,23 @@ namespace mp5_implicit {
 const REAL ROOT_TOLERANCE = 0.001;  //
 const REAL MIN_PRINTABLE_LENGTH = 0.01;  //
 
+/*
+//namespace mp5_implicit {
+struct CONFIG {
 
+    struct polygonizer{
+        static REAL ROOT_TOLERANCE = 0.001;  //
+        static REAL MIN_PRINTABLE_LENGTH = 0.01;  //
+
+        struct center_projection{
+            //set_centers_on_surface
+            static REAL min_gradient_len = 0.000001;  // Gradients smaller than this are considered zero.
+            static int max_iter = 20;
+            static bool USE_MESH_NORMALS = true;
+            static bool EXTREME_ALPHA = false;  // Whether use alpha that exceeeds max_dim
+        };
+    };
+};
+//}
+*/
 #endif // IMPLICIT_BASIC_DATASTRUCTURES_HPP

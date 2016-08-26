@@ -79,7 +79,96 @@ inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
         ;
 }
 
-// vectorized bisection
+template<typename T>
+void here(T arg) {
+    std::cout << arg << std::endl << std::flush;
+}
+
+inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign) {
+    assert(sign == +1 || sign == -1); // || sign == 0.0);
+
+    cout << "test_points_sign" << endl;
+
+    int n = x_vectorized.shape()[0];
+    //int n = v_arr.size(); //[0];
+    boost::array<int, 1> v1_shape = {n};
+    vectorized_scalar v_arr(v1_shape); //x_vectorized.shape());
+
+    object.eval_implicit(x_vectorized, &v_arr);
+
+    //int n = v_arr.size(); //[0];
+    bool everything_alright = true;
+    for (int i=0; i < n; i++) {
+        auto s1 = my_sign(v_arr[i], ROOT_TOLERANCE);
+        bool ok = ( s1 * sign >  0 + 0.0001);
+        if (!ok) {
+          cout <<  v_arr[i] << " " << s1 << " " << sign << " :" << i << endl;
+        }
+        everything_alright = everything_alright && ok;
+    }
+    cout << "bool" << everything_alright << endl;
+    return everything_alright;
+};
+
+inline bool test_if_points_are_inside(verts_t& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
+    return test_points_sign(x2_vectorized, object, ROOT_TOLERANCE, +1);
+};
+inline bool test_if_points_are_outside(verts_t& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
+    return test_points_sign(x1_vectorized, object, ROOT_TOLERANCE, -1);
+};
+
+
+inline void check_bisection_input_signs(
+    vectorized_scalar& v1_arr,
+    vectorized_scalar& v2_arr,
+    REAL ROOT_TOLERANCE,
+    int n,
+    int active_count,
+    int iteration
+  ) {
+    #if ASSERT_USED
+        here("a1. iteration"+std::to_string(iteration));
+
+        bool assert1 = true;
+        for (int i=0; i < active_count; i++) {
+            auto s1 = my_sign(v1_arr[i], ROOT_TOLERANCE);
+            auto s2 = my_sign(v2_arr[i], ROOT_TOLERANCE);
+            // assert( s1* s2 < 0 - EPS);
+            bool ok = ( s1* s2 < 0 - EPS);
+            //if (!ok) {
+            //    std::cout << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
+            //}
+            assert1 = assert1 && ok;
+        }
+        if (!assert1) cout << "";
+        assert(assert1);
+
+        here("a2");
+
+        bool assert2 = true;
+        for (int i=0; i < active_count; i++) {
+            bool ok = v1_arr[i] < 0 - ROOT_TOLERANCE;
+            assert2 = assert2 && ok;
+        }
+        here("a3");
+
+        assert(assert2);
+        here("a4");
+
+        assert(active_count <= n);
+        here("a5");
+
+        assert(true);
+    #endif
+}
+
+/*
+    vectorized bisection.
+    x1_arr: points outside
+    x2_arr: points inside
+
+    All x1 must be strictly outside, and x2 must be inside the solid.
+*/
 void bisection(
     mp5_implicit::implicit_function* object,
     verts_t& res_x_arr,
@@ -165,27 +254,15 @@ void bisection(
 
  // loop
   while (true) {
+    here("start");
 
+    /* Checks if all v1 and v2 have opposite signs and are not zero*/
     #if ASSERT_USED
-        bool assert1 = true;
-        for (int i=0; i < active_count; i++) {
-            auto s1 = my_sign(v1_arr[i], ROOT_TOLERANCE);
-            auto s2 = my_sign(v2_arr[i], ROOT_TOLERANCE);
-            // assert( s1* s2 < 0 - EPS);
-            bool ok = ( s1* s2 < 0 - EPS);
-            assert1 = assert1 && ok;
-        }
-        assert(assert1);
 
-        bool assert2 = true;
-        for (int i=0; i < active_count; i++) {
-            bool ok = v1_arr[i] < 0 - ROOT_TOLERANCE;
-            assert2 = assert2 && ok;
-        }
-        assert(assert2);
-
-        assert(active_count <= n);
+    check_bisection_input_signs( v1_arr, v2_arr, ROOT_TOLERANCE, n, active_count, iteration);
     #endif
+
+    here("2");
 
     //mean of (x1,x2)
     for (int i=0; i<active_count; i++){
@@ -194,18 +271,27 @@ void bisection(
       x_mid[i][2] = (x1_arr[i][2] + x2_arr[i][2]) / 2.;
     }
 
+    here("3");
+
     // *************************************
     // Fix me
     object->eval_implicit(x_mid, &v_mid); // no. only first ones**
     //
     // *************************************
 
+    here("4");
+
     assert( active_indices_size == active_count);
+
+
+    here("5");
 
     for (int i=0; i<active_count; i++){
         abs_[i] = ABS(v_mid[i]);
     }
     // int abs_size = active_count;
+
+    here("6");
 
     // imcrementing the size of the indices arrays
     int indices_boundary_size = 0;
@@ -215,6 +301,8 @@ void bisection(
         indices_boundary_size ++;
       }
     }
+
+    here("7");
 
     int i_e = 0;
     for (int i=0; i < active_count; i++){
@@ -243,8 +331,15 @@ void bisection(
     }
     int indices_inside_size = i_i;
 
+    here("8");
+
     assert(indices_boundary_size + indices_inside_size + indices_outside_size == active_count);
+
+    here("9");
+
     assert(indices_eitherside_size + indices_boundary_size == active_count);
+
+    here("10");
 
 ////////////////
     // which_zeroed = active_indices[indices_boundary]
@@ -268,6 +363,7 @@ void bisection(
       res_x_arr[w][2] = x_mid[b][2];
     }
 
+    // assert indices_boundary[:] < active_count
     #if ASSERT_USED
     {
         bool assertok = true;
@@ -278,7 +374,9 @@ void bisection(
         assert(assertok);
     }
     #endif
-    //******************
+    //**********************************************
+    //* Code review of "bisection" done up to here *
+    //**********************************************
 
     // changing the values of x2 and x1
     for (int i=0; i<i_i; i++){
@@ -341,30 +439,70 @@ void bisection(
 
 }
 
+
 // main function
-void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& centroids, const REAL average_edge,boost::multi_array<bool, 1>& treated){
+void  set_centers_on_surface(
+    mp5_implicit::implicit_function* object,
+    verts_t& centroids,
+    const REAL average_edge,
+    boost::multi_array<bool, 1>& treated) {
+
   // intilization, objects creation
-  REAL min_gradient_len = 0.000001;
-  int max_iter = 20;
+
+  constexpr REAL min_gradient_len = 0.000001;  // Gradients smaller than this are considered zero.
+  constexpr int max_iter = 20;
+  constexpr bool USE_MESH_NORMALS = true;
+  constexpr bool EXTREME_ALPHA = false;
+
+  const verts_t& x = centroids;
 
   REAL max_dist = average_edge;
+
   int n = centroids.shape()[0];
   boost::array<int, 1> scalar_shape = {n};
+  //auto scalar_shape = boost::extents[n];
 
   vectorized_scalar fc_a(scalar_shape);
-  vectorized_scalar signs_c(scalar_shape);
-
   object->eval_implicit(centroids, &fc_a);
 
   boost::array<int, 2> g_a_shape = { n , 3 };
   boost::multi_array<REAL, 2> g_a(g_a_shape);
   // applying the centroid gradient
-  compute_centroid_gradient(centroids, g_a, object);
 
-  boost::array<int, 2> vector_shape = {n,3};
+  /*compute_centroid_gradient(x, g_a, object);
+  Compute the gradients, and normalise them.
+  */
+  // now g_a --> g_direction
+  {
+  constexpr REAL MIN_NORM = 1.0;  // An absolute value: not good.
+  object->eval_gradient(x, &g_a);
+  for(int i = 0, e = g_a.shape()[0]; i < e; i++) {
+      REAL norm = norm_2(g_a[i][0], g_a[i][1], g_a[i][2]);
+      if (norm < min_gradient_len) {
+          norm = MIN_NORM;
+      }
+      REAL factor = 1.0 / norm;
+      g_a[i][0]=g_a[i][0] / norm;
+      g_a[i][1]=g_a[i][1] / norm;
+      g_a[i][2]=g_a[i][2] / norm;
+      #if ASSERT_USED
+          for(int j = 0; j < 3; j++){
+              assert(g_a[i][j] <= 1.);
+              assert(g_a[i][j] >= -1.);
+          }
+      #endif
+  }
+  }
+  const auto& g_direction_a = g_a;
+  //g_a = delete;
+  //delete g_a ;
+  //delte g_a
+  //int g_a;
+  //void qq;
 
-  boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
 
+
+  vectorized_scalar signs_c(scalar_shape);
   for (int i=0; i<fc_a.shape()[0]; i++){
     if (fc_a[i] > ROOT_TOLERANCE ){
       signs_c[i] = +1.;
@@ -375,11 +513,21 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     else{
       signs_c[i] = 0.;
     }
+  }
 
+  boost::array<int, 2> vector_shape = {n,3};
+  boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
+
+  for (int i=0; i<fc_a.shape()[0]; i++){
     dx0_c_grad[i][0] = g_a[i][0]*signs_c[i];
     dx0_c_grad[i][1] = g_a[i][1]*signs_c[i];
     dx0_c_grad[i][2] = g_a[i][2]*signs_c[i];
   }
+
+
+
+
+
 
   REAL step_size = max_dist;
 
@@ -399,6 +547,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     }
     iter += max_step;
   }
+
 
   alpha_list.resize(boost::extents[iter]);
 
@@ -422,7 +571,7 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
 
   for (int i=0; i<n; i++){
-    active_indices[i] = i;
+      active_indices[i] = i;
   }
 
   int active_count = n;
@@ -509,40 +658,68 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
         already_success[j] = b_true;
       }
     }
+    /* Code that is Different to bisection_vectorized5_()
+
+    */
+
+    /*
+    // MOVED BELOW
+
+    if (s_n_s == 0){
+      break;
+    }
+    */
+
+    active_indices.resize(boost::extents[s_n_s]);
+    still_nonsuccess_indices.resize(boost::extents[s_n_s]);
 
     if (s_n_s == 0){
       break;
     }
 
-    active_indices.resize(boost::extents[s_n_s]);
-    still_nonsuccess_indices.resize(boost::extents[s_n_s]);
   }
 
-  for (int i=0; i<s_n_s; i++){
-    best_result_x[still_nonsuccess_indices[i]][0] = centroids[still_nonsuccess_indices[i]][0];
-    best_result_x[still_nonsuccess_indices[i]][1] = centroids[still_nonsuccess_indices[i]][1];
-    best_result_x[still_nonsuccess_indices[i]][2] = centroids[still_nonsuccess_indices[i]][2];
-  }
+/////////////////////////////////////////////////////////////////////////////////////
 
-  boost::multi_array<REAL, 2> xa1(vector_shape);
-  boost::multi_array<REAL, 2> xa2(vector_shape);
+  //todo: still_nonsuccess_indices__effective_size
+  assert( s_n_s == still_nonsuccess_indices.size());
 
-  vectorized_scalar f1(scalar_shape);
+    for (int i=0; i < s_n_s; i++) {
+        auto k = still_nonsuccess_indices[i];
+        best_result_x[k][0] = centroids[k][0];
+        best_result_x[k][1] = centroids[k][1];
+        best_result_x[k][2] = centroids[k][2];
+    }
+
+
+  //vectorized_scalar f1(scalar_shape);
+  const auto & f1 = fc_a;
+
+  //boost::multi_array<REAL, 2> xa1(vector_shape);
+  //boost::multi_array<REAL, 2> xa2(vector_shape);
+  const auto & xa1 = centroids;  // = x0_v3
+  const auto & xa2 = best_result_x;
+
+  //todo: assert f1 == F(xa1)
+
   vectorized_scalar f2(scalar_shape);
-  f1 = fc_a;
-
-  xa1 = centroids;
-  xa2 = best_result_x;
-
   object->eval_implicit(xa2, &f2);
 
   boost::multi_array<bool_t, 1> zeros2_bool(scalar_shape);
   boost::multi_array<bool_t, 1> zeros1_bool(scalar_shape);
   boost::multi_array<bool_t, 1> zeros1or2(scalar_shape);
-  boost::multi_array<int, 1> relevants_bool(scalar_shape);
+  boost::multi_array<int, 1> relevants_bool_indices(scalar_shape);
 
-  int r_b;
-  for (int i=0; i<n; i++){
+  cout << "3" << endl;
+
+
+
+  //****************************
+  // UP TO HERE
+
+  for (int i=0; i < n; i++) {
+    zeros2_bool[i] = ABS(f2[i])<= ROOT_TOLERANCE;
+    /*
 
     if (ABS(f2[i])<= ROOT_TOLERANCE){
       zeros2_bool[i] = b_true;
@@ -550,33 +727,128 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
     else{
       zeros2_bool[i] = b_false;
     }
+    */
+  }
 
+  for (int i=0; i < n; i++) {
+    zeros1_bool[i] = ABS(f1[i]) <= ROOT_TOLERANCE;
+    /*
     if (ABS(f1[i])<= ROOT_TOLERANCE){
       zeros1_bool[i] = b_true;
+    }
+    else{
+      zeros1_bool[i] = b_false;
+    }
+    */
+  }
+
+  // best_result_x = x0_v3[zeros1_bool]
+  for (int i=0; i < n; i++) {
+    //if (ABS(f1[i])<= ROOT_TOLERANCE) {
+    if (zeros1_bool[i]) {
       best_result_x[i][0] = centroids[i][0];
       best_result_x[i][1] = centroids[i][1];
       best_result_x[i][2] = centroids[i][2];
     }
     else{
-      zeros1_bool[i] = b_false;
     }
+  }
 
-    if (zeros2_bool[i] == b_true || zeros1_bool[i] == b_true ){
+
+    for (int i=0; i < n; i++) {
+        zeros1or2[i] = zeros2_bool[i] || zeros1_bool[i];
+    /*
+    if (zeros2_bool[i] || zeros1_bool[i] ){
       zeros1or2[i] = b_true;
     }
     else{
       zeros1or2[i] = b_false;
     }
-
-    if (already_success[i] == b_true && zeros1or2[i] == b_false ){
-      relevants_bool[r_b] = i;
-      r_b ++;
+    */
     }
 
+  // bug fixed. Initialisation was missing.
+  int r_b = 0;
+  for (int i=0; i < n; i++) {
+      if (already_success[i] && zeros1or2[i] ) {
+          relevants_bool_indices[r_b] = i;
+          r_b ++;
+      }
   }
-  relevants_bool.resize(boost::extents[r_b]);
 
-  int m = relevants_bool.shape()[0];
+  #if ASSERT_USED
+  {
+    assert(scalar_shape[0] == n);
+    vectorized_scalar f_(scalar_shape);
+    object->eval_implicit(best_result_x, &f_);
+    bool everything_alright = true;
+    assert(zeros1or2.size() == n);
+    for(int i = 0, e = zeros1or2.size(); i < e; ++i) {
+        if (zeros1or2[i]) {
+            bool ok = f_[i] <= ROOT_TOLERANCE; //f(best_result_x[i]);
+            everything_alright = everything_alright && ok;
+        }
+    }
+  }
+  #endif
+
+  int relevants_bool_indices_size = r_b;
+  relevants_bool_indices.resize(boost::extents[r_b]);
+  int m = relevants_bool_indices.shape()[0];
+  assert(m == r_b);
+
+  // template<>
+  // void lookup_<func>(f1, zeros1or2)
+  #if ASSERT_USED
+  {
+    bool everything_alright = true;
+    for(int i = 0, e = zeros1or2.size(); i < e; ++i) {
+        int j = zeros1or2[i];
+        bool ok = ABS(f1[j]) <= ROOT_TOLERANCE;
+        everything_alright = everything_alright && ok;
+    }
+  }
+  #endif
+
+  //check all are non-zero
+  #if ASSERT_USED
+  {
+    bool everything_alright = true;
+    for(int i = 0, e = relevants_bool_indices.size(); i < e; ++i) {
+        int j = relevants_bool_indices[i];
+        bool ok = ABS(f1[j]) > ROOT_TOLERANCE;
+        everything_alright = everything_alright && ok;
+    }
+  }
+  #endif
+
+
+
+  // Check if all x1 & x2 points have srinctly opposite signs (i.e. non zero)
+  #if ASSERT_USED
+  {
+
+    /*
+    int n_ = x_vectorized.shape()[0];
+    boost::array<int, 1> v1_shape = {n_};
+    vectorized_scalar v_arr(v1_shape); //x_vectorized.shape());
+    */
+
+    // object.eval_implicit(x1111, &f1);
+
+    bool everything_alright = true;
+    for(int i = 0, e = relevants_bool_indices.size(); i < e; ++i) {
+        int j = relevants_bool_indices[i];
+        auto s1 = my_sign(f1[j], ROOT_TOLERANCE);
+        auto s2 = my_sign(f2[j], ROOT_TOLERANCE);
+        bool ok = (s1 * s2 < 0);
+        everything_alright = everything_alright && ok;
+    }
+  }
+  #endif
+
+  // define and assign x2_relevant and x1_relevant.
+  // input: centroids, best_result_x
 
   boost::array<int, 2> x1_relevant_shape = {m,3};
   boost::array<int, 1> f1_relevant_shape = {m};
@@ -585,24 +857,94 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
 
   vectorized_scalar f2_relevants(f1_relevant_shape);
 
-  for (int i=0; i<m; i++){
-    x1_relevant[i][0] = centroids[relevants_bool[i]][0];
-    x1_relevant[i][1] = centroids[relevants_bool[i]][1];
-    x1_relevant[i][2] = centroids[relevants_bool[i]][2];
+  assert(m == x1_relevant_shape[0]);
+  assert(x1_relevant.shape()[0] == m);
 
-    x2_relevant[i][0] = best_result_x[relevants_bool[i]][0];
-    x2_relevant[i][1] = best_result_x[relevants_bool[i]][1];
-    x2_relevant[i][2] = best_result_x[relevants_bool[i]][2];
+  for (int i=0; i<m; i++){
+    x1_relevant[i][0] = centroids[relevants_bool_indices[i]][0];
+    x1_relevant[i][1] = centroids[relevants_bool_indices[i]][1];
+    x1_relevant[i][2] = centroids[relevants_bool_indices[i]][2];
+
+    x2_relevant[i][0] = best_result_x[relevants_bool_indices[i]][0];
+    x2_relevant[i][1] = best_result_x[relevants_bool_indices[i]][1];
+    x2_relevant[i][2] = best_result_x[relevants_bool_indices[i]][2];
+
+
+    assert("problem");
+    //if (0)
+    assert( //"problem" &&
+      !(
+        x1_relevant[i][0] == x2_relevant[i][0]
+        &&
+        x1_relevant[i][1] == x2_relevant[i][1]
+        &&
+        x1_relevant[i][2] == x2_relevant[i][2]
+    ));
   }
+  cout << "x1x2" << endl;
+
+  // Now we have x1_relevant and x2_relevant which have the same size.
 
   object->eval_implicit(x2_relevant, &f2_relevants);
 
+  // Check the signs are opposite
+  #if ASSERT_USED
+      vectorized_scalar f1_relevants(f1_relevant_shape);
+      // object->eval_implicit(x2_relevant, &f1_relevants_);
+      object->eval_implicit(x1_relevant, &f1_relevants);
+
+      cout << x1_relevant.shape()[0] << " " << x1_relevant.shape()[1] << " " << x1_relevant.shape() << "  ,  " <<
+          " " << x2_relevant.shape()[0] << " " << x2_relevant.shape()[1] << " " <<
+          x2_relevant.shape()[0]<<"/"<<x2_relevant.shape()[1]<<"/"<<x2_relevant.shape()[2]<<"/"<<x2_relevant.shape()[3]<<"/"<<x2_relevant.shape()[4]<<"/"<<x2_relevant.shape()[5]<<"/"<<x2_relevant.shape()[6]<<"/"<<x2_relevant.shape()[7]
+          << "  " <<
+          x1_relevant.shape()[0]<<"/"<<x1_relevant.shape()[1]<<"/"<<x1_relevant.shape()[2]<<"/"<<x1_relevant.shape()[3]<<"/"<<x1_relevant.shape()[4]<<"/"<<x1_relevant.shape()[5]<<"/"<<x1_relevant.shape()[6]<<"/"<<x1_relevant.shape()[7]
+          << endl;
+      cout << "fff" << endl;
+      //fails: assert( x1_relevant.shape() == x2_relevant.shape() );
+      //assert( x1_relevant.shape() == x2_relevant.shape() );
+      assert( x1_relevant.shape()[0] == x2_relevant.shape()[0] );
+      assert( x1_relevant.shape()[1] == x2_relevant.shape()[1] );
+
+      cout << "ggg" << endl;
+      cout << f1_relevants.size() << " " << f2_relevants.size() << endl;
+      assert( f1_relevants.size() == f2_relevants.size() );
+      cout << "hhh" << endl;
+
+      //assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
+
+      for (int i=0; i<m; i++) {
+          REAL mult = f2_relevants[i] * f1_relevants[i];
+          if (!  (mult <= - ROOT_TOLERANCE*ROOT_TOLERANCE )) {
+              cout << mult <<" = " << f2_relevants[i] << " * " << f1_relevants[i] << " tol=" << ROOT_TOLERANCE << "[" << i << "]"<< endl;
+          }
+          //if (0)
+          assert( mult <= - ROOT_TOLERANCE*ROOT_TOLERANCE );
+      }
+  #endif
+
+  // Swap
+  /*
   REAL temp0;
   REAL temp1;
   REAL temp2;
+  */
 
+  cout << "m=" << m << endl;
+  int ctr=0;
   for (int i=0; i<m; i++){
-    if (f2_relevants[i] < -ROOT_TOLERANCE){
+    // If x2 is inside, swap it. => x1 has to be outside.
+    if (f2_relevants[i] < -ROOT_TOLERANCE) {
+      // ****************************
+      // problem: sometimes they are exactly equal!!
+      //if(ctr<10) cout << x2_relevant[i][0] << ", " << x1_relevant[i][0] << " <-> ";
+      std::swap(x2_relevant[i][0], x1_relevant[i][0]);
+      std::swap(x2_relevant[i][1], x1_relevant[i][1]);
+      std::swap(x2_relevant[i][2], x1_relevant[i][2]);
+      //if(ctr<10) cout << x2_relevant[i][0] << ", " << x1_relevant[i][0] << endl;
+
+      ctr++;
+
+      /*
       temp0 = x2_relevant[i][0];
       temp1 = x2_relevant[i][1];
       temp2 = x2_relevant[i][2];
@@ -612,24 +954,58 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
       x1_relevant[i][0] = temp0;
       x1_relevant[i][1] = temp1;
       x1_relevant[i][2] = temp2;
+      */
     }
 
-
   }
+  cout << "swapped: " << ctr << endl;
+
+  if(1){
+  assert(test_if_points_are_inside(x2_relevant, *object, ROOT_TOLERANCE));
+  assert(test_if_points_are_outside(x1_relevant, *object, ROOT_TOLERANCE));
+  }
+
+
 
   boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
   // calling the vectorized bisection
   bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE, treated);
+  // x1_relevant: outside, x2_relevant: inside
+
+
+  #if ASSERT_USED
+      // bool evaluate_and_assert_sign<0>(x_bisect, *object);
+      /*
+      boost::array<int, 2> x1_relevant_shape = {m,3};
+      boost::array<int, 1> f1_relevant_shape = {m};
+      */
+      const vectorized_scalar::size_type nn = x_bisect.shape()[0];
+      vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
+      object->eval_implicit(x_bisect, &f);
+
+      bool ok = true;
+      for (int i = 0; i < m; i++) {
+          ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+      }
+      assert(ok);
+  #endif
+
+
+
+
+  assert(relevants_bool_indices.size() == x_bisect.shape()[0]);
 
   //changing the values of the centroids
+  assert(m == relevants_bool_indices.size());
   for (int i=0; i<m; i++){
-    centroids[relevants_bool[i]][0] = x_bisect[i][0];
-    centroids[relevants_bool[i]][1] = x_bisect[i][1];
-    centroids[relevants_bool[i]][2] = x_bisect[i][2];
+    centroids[relevants_bool_indices[i]][0] = x_bisect[i][0];
+    centroids[relevants_bool_indices[i]][1] = x_bisect[i][1];
+    centroids[relevants_bool_indices[i]][2] = x_bisect[i][2];
   }
 
+  assert(n == zeros1or2.size());
   for (int i=0; i<n; i++){
-    if (zeros1or2[i] == 1){
+    if (zeros1or2[i]){
       centroids[i][0] = best_result_x[i][0];
       centroids[i][1] = best_result_x[i][1];
       centroids[i][2] = best_result_x[i][2];
@@ -637,6 +1013,32 @@ void  set_centers_on_surface(mp5_implicit::implicit_function* object, verts_t& c
   }
 
 }
+
+/*
+//template <typename T>
+inline void assign_selected(T& a, const T& b, bool[] bool_arr, int n) {
+    for (int i=0; i<n; i++){
+    if (bool_arr[i]){
+      a[i][0] = b[i][0];
+      a[i][1] = b[i][1];
+      a[i][2] = b[i][2];
+    }
+  }
+}
+
+assign_fancy_indexes(centroids, x_bisect, relevants_bool_indices)
+inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
+    for (int i=0; i<m; i++){
+    if (bool_arr[i]){
+      a[f[i]][0] = b[i][0];
+      a[f[i]][1] = b[i][1];
+      a[f[i]][2] = b[i][2];
+    }
+  }
+}
+
+*/
+
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& verts, const faces_t& faces){
   int nt = faces.shape()[0];
@@ -744,41 +1146,42 @@ void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_norma
     }
 }
 
-/*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)  
-    
-    Description: 
-        This function follows the projection finding and applies the QEM process, to an array of verts, 
+
+/*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)
+
+    Description:
+        This function follows the projection finding and applies the QEM process, to an array of verts,
         in order to update them and get new ones, more accurate.
-    
+
     Implementation Details:
         So, the main parameter we are interested in
-        changing is verts, others are declared as const.  
-    
-    Parameters: 
-      verts: 
+        changing is verts, others are declared as const.
+
+    Parameters:
+      verts:
           mesh vertices of the current shape, mutable and updated inside this function
-      
-      faces: 
-          mesh faces (or triangles) of the current shape, immutable for this function   
-      
-      centroids: 
-          the centroids of the mesh, immutable 
 
-      vertex_neighbours_list: 
-          Holds neighbouring faces/triangles for all the vertices.  
-          
-      
-      centroids_gradients: 
-          The gradient of the implicit function of the current shape for 
-          all the centroids. 
+      faces:
+          mesh faces (or triangles) of the current shape, immutable for this function
 
-      treated: 
-          A list of flags that indicates the process is complete for every index 
- */    
+      centroids:
+          the centroids of the mesh, immutable
+
+      vertex_neighbours_list:
+          Holds neighbouring faces/triangles for all the vertices.
+
+
+      centroids_gradients:
+          The gradient of the implicit function of the current shape for
+          all the centroids.
+
+      treated:
+          A list of flags that indicates the process is complete for every index
+ */
 
 void vertex_apply_qem(
     verts_t* verts, const faces_t faces,
-    const verts_t centroids, 
+    const verts_t centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
     const verts_t centroid_gradients,
     const boost::multi_array<bool, 1>& treated)
@@ -787,7 +1190,7 @@ void vertex_apply_qem(
     assert (verts != nullptr);
 
     /* The next asserts have no significance in C++, only Python */
-    
+
     /* assert centroids is not None */
     /* assert vertex_neighbours_list is not None */
     /* assert centroids_gradients is not None */
@@ -840,8 +1243,8 @@ void vertex_apply_qem(
 
     //in python the SVD values of s are sorted by the svd function, this is a possible workaround
     // (we may need to keep the A=u*s*v equality, which is done this way)
-    // assert(np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))) validation assert, 
-    // also note that u and v are supposed to be unitary 
+    // assert(np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))) validation assert,
+    // also note that u and v are supposed to be unitary
     // so we can add: assert(u.T = u^-1) and assert(v.T == v^-1)
 
     REAL maxi = max(s[0][0], max(s[1][1],s[2][2]));
