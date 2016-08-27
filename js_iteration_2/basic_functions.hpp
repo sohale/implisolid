@@ -8,7 +8,7 @@ inline REAL norm_squared(REAL x, REAL y, REAL z){
     return x*x + y*y + z*z;
 }
 
-inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
+inline REAL my_sign(REAL v) {
    return
         ( v > +ROOT_TOLERANCE )?
             (+1) :

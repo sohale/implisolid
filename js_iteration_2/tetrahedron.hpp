@@ -196,6 +196,10 @@ public:
         auto i = x.begin();
         auto e = x.end();
 
+        REAL i1;
+        REAL i2;
+        REAL i3;
+
         for(; i < e; i++, output_ctr++) {
         i1 = (*i)[0];
         i2 = (*i)[1];
