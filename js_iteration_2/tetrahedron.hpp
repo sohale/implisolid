@@ -89,32 +89,36 @@ public:
 
         // calculate sign of each plane
 
-        REAL plane_1_sign = my_sign(
+        REAL plane_1_sign = sign(
         this->p[0][0] * p_c[3][0] +
         this->p[0][1] * p_c[3][1] +
         this->p[0][2] * p_c[3][2] +
-        this->p[0][3]
+        this->p[0][3],
+        ROOT_TOLERANCE
         );
 
-        REAL plane_2_sign = my_sign(
+        REAL plane_2_sign = sign(
         this->p[1][0] * p_c[0][0] +
         this->p[1][1] * p_c[0][1] +
         this->p[1][2] * p_c[0][2] +
-        this->p[1][3]
+        this->p[1][3],
+        ROOT_TOLERANCE
         );
 
-        REAL plane_3_sign = my_sign(
+        REAL plane_3_sign = sign(
         this->p[2][0] * p_c[1][0] +
         this->p[2][1] * p_c[1][1] +
         this->p[2][2] * p_c[1][2] +
-        this->p[2][3]
+        this->p[2][3],
+        ROOT_TOLERANCE
         );
 
-        REAL plane_4_sign = my_sign(
+        REAL plane_4_sign = sign(
         this->p[3][0] * p_c[2][0] +
         this->p[3][1] * p_c[2][1] +
         this->p[3][2] * p_c[2][2] +
-        this->p[3][3]
+        this->p[3][3],
+        ROOT_TOLERANCE
         );
 
         // apply sign to each plane
