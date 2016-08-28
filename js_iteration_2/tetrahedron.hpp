@@ -32,10 +32,9 @@ protected:
         d = x1 * y3 * z2 - x1 * y2 * z3 + x2 * y1 * z3 - x2 * y3 * z1 - x3 * y1 * z2 + x3 * y2 * z1;
     }
 
-public:
-
-    tetrahedron(std::vector<boost::array<REAL,3>> points, REAL matrix12[12]) {
+    void tetrahedronConstructor(std::vector<boost::array<REAL,3>> points, REAL matrix12[12]) {
         // we need to apply matrix to all 4 points
+        loger << "We are in (real) tetrahedron constructor" << std::endl;
 
         vectorized_vect p_c{boost::extents[4][3]};
 
@@ -55,8 +54,52 @@ public:
         p_c[3][1] = points[3][1];
         p_c[3][2] = points[3][2];
 
+        loger << "Point 1" << std::endl;
+        loger << "x " << p_c[0][0] << std::endl;
+        loger << "y " << p_c[0][1] << std::endl;
+        loger << "z " << p_c[0][2] << std::endl;
+
+        loger << "Point 2" << std::endl;
+        loger << "x " << p_c[1][0] << std::endl;
+        loger << "y " << p_c[1][1] << std::endl;
+        loger << "z " << p_c[1][2] << std::endl;
+
+        loger << "Point 3" << std::endl;
+        loger << "x " << p_c[2][0] << std::endl;
+        loger << "y " << p_c[2][1] << std::endl;
+        loger << "z " << p_c[2][2] << std::endl;
+
+        loger << "Point 4" << std::endl;
+        loger << "x " << p_c[3][0] << std::endl;
+        loger << "y " << p_c[3][1] << std::endl;
+        loger << "z " << p_c[3][2] << std::endl;
+
+
         //apply matrix to points
         matrix_vector_product(matrix12, p_c);
+
+        loger << "Point after matrix applying" << std::endl;
+
+
+        loger << "Point 1" << std::endl;
+        loger << "x " << p_c[0][0] << std::endl;
+        loger << "y " << p_c[0][1] << std::endl;
+        loger << "z " << p_c[0][2] << std::endl;
+
+        loger << "Point 2" << std::endl;
+        loger << "x " << p_c[1][0] << std::endl;
+        loger << "y " << p_c[1][1] << std::endl;
+        loger << "z " << p_c[1][2] << std::endl;
+
+        loger << "Point 3" << std::endl;
+        loger << "x " << p_c[2][0] << std::endl;
+        loger << "y " << p_c[2][1] << std::endl;
+        loger << "z " << p_c[2][2] << std::endl;
+
+        loger << "Point 4" << std::endl;
+        loger << "x " << p_c[3][0] << std::endl;
+        loger << "y " << p_c[3][1] << std::endl;
+        loger << "z " << p_c[3][2] << std::endl;
 
         // calculate plane coefficients
         // first plane, based on points: 1, 2, 3
@@ -86,6 +129,33 @@ public:
         p_c[1][0], p_c[1][1], p_c[1][2],
         p_c[3][0], p_c[3][1], p_c[3][2],
         this->p[3][0], this->p[3][1], this->p[3][2], this->p[3][3]);
+
+        loger << "Plane 1" << std::endl;
+        loger << "a "  << this->p[0][0] << std::endl;
+        loger << "b "  << this->p[0][1] << std::endl;
+        loger << "c "  << this->p[0][2] << std::endl;
+        loger << "d "  << this->p[0][3] << std::endl;
+
+        loger << "Plane 2" << std::endl;
+        loger << "a "  << this->p[1][0] << std::endl;
+        loger << "b "  << this->p[1][1] << std::endl;
+        loger << "c "  << this->p[1][2] << std::endl;
+        loger << "d "  << this->p[1][3] << std::endl;
+
+
+        loger << "Plane 3" << std::endl;
+        loger << "a "  << this->p[2][0] << std::endl;
+        loger << "b "  << this->p[2][1] << std::endl;
+        loger << "c "  << this->p[2][2] << std::endl;
+        loger << "d "  << this->p[2][3] << std::endl;
+
+
+        loger << "Plane 4" << std::endl;
+        loger << "a "  << this->p[3][0] << std::endl;
+        loger << "b "  << this->p[3][1] << std::endl;
+        loger << "c "  << this->p[3][2] << std::endl;
+        loger << "d "  << this->p[3][3] << std::endl;
+
 
         // calculate sign of each plane
 
@@ -121,6 +191,19 @@ public:
         ROOT_TOLERANCE
         );
 
+        loger << "Plane 1 sign:" << std::endl;
+        loger << "sign "  << plane_1_sign << std::endl;
+
+        loger << "Plane 2 sign:" << std::endl;
+        loger << "sign "  << plane_2_sign << std::endl;
+
+        loger << "Plane 3 sign:" << std::endl;
+        loger << "sign "  << plane_3_sign << std::endl;
+
+        loger << "Plane 4 sign:" << std::endl;
+        loger << "sign "  << plane_4_sign << std::endl;
+
+
         // apply sign to each plane
 
         this->p[0][0] = plane_1_sign * this->p[0][0];
@@ -143,28 +226,68 @@ public:
         this->p[3][2] = plane_4_sign * this->p[3][2];
         this->p[3][3] = plane_4_sign * this->p[3][3];
 
+
+        loger << "Plane after applying sign" << std::endl;
+
+        loger << "Plane 1" << std::endl;
+        loger << "a "  << this->p[0][0] << std::endl;
+        loger << "b "  << this->p[0][1] << std::endl;
+        loger << "c "  << this->p[0][2] << std::endl;
+        loger << "d "  << this->p[0][3] << std::endl;
+
+        loger << "Plane 2" << std::endl;
+        loger << "a "  << this->p[1][0] << std::endl;
+        loger << "b "  << this->p[1][1] << std::endl;
+        loger << "c "  << this->p[1][2] << std::endl;
+        loger << "d "  << this->p[1][3] << std::endl;
+
+
+        loger << "Plane 3" << std::endl;
+        loger << "a "  << this->p[2][0] << std::endl;
+        loger << "b "  << this->p[2][1] << std::endl;
+        loger << "c "  << this->p[2][2] << std::endl;
+        loger << "d "  << this->p[2][3] << std::endl;
+
+
+        loger << "Plane 4" << std::endl;
+        loger << "a "  << this->p[3][0] << std::endl;
+        loger << "b "  << this->p[3][1] << std::endl;
+        loger << "c "  << this->p[3][2] << std::endl;
+        loger << "d "  << this->p[3][3] << std::endl;
+
+
+    }
+
+public:
+
+    tetrahedron(std::vector<boost::array<REAL,3>> points, REAL matrix12[12]) {
+        this->tetrahedronConstructor(points, matrix12);
+
     }
 
     //constructor for testing
     tetrahedron(REAL matrix12[12]) {
         std::vector<boost::array<REAL,3>> points;
+        loger << "We are in tetrahedron constructor" << std::endl;
+
 
         boost::array<REAL,3> p1;
         boost::array<REAL,3> p2;
         boost::array<REAL,3> p3;
         boost::array<REAL,3> p4;
 
-        p1[0] = 5.; p1[1] = 2.; p1[2] = 2.;
-        p2[0] = 3.; p2[1] = 2.; p2[2] = 1.;
-        p3[0] = 1.; p3[1] = 2.; p3[2] = 3.;
-        p4[0] = 1.; p4[1] = 4.; p4[2] = 5.;
+        p1[0] = 0.; p1[1] = 0.; p1[2] = 10.;
+        p2[0] = 0.; p2[1] = 0.; p2[2] = 0.;
+        p3[0] = 0.; p3[1] = 10.; p3[2] = 0.;
+        p4[0] = 10.; p4[1] = 0.; p4[2] = 0.;
 
         points.push_back(p1);
         points.push_back(p2);
         points.push_back(p3);
         points.push_back(p4);
 
-        tetrahedron(points, matrix12);
+        this->tetrahedronConstructor(points, matrix12);
+        
     }
 
     virtual void eval_implicit(const vectorized_vect & x, vectorized_scalar * f_output) const {

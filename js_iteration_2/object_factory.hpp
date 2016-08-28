@@ -104,6 +104,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     // }
 
 
+    loger << "We are in object object_factory" << std::endl;
+    loger << "Name:" << name << std::endl;
 
 
     if(name=="meta_balls"){
@@ -205,8 +207,11 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     }
     else
     if (name == "tetrahedron"){
+        loger << "We are in case tetrahedron" << std::endl;
+
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
+        
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
