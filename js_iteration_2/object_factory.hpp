@@ -83,11 +83,9 @@ void getCorners(std::vector<boost::array<REAL,3>>& corners, const pt::ptree& sha
     int i = 0;
     for (const pt::ptree::value_type &element : shapeparams_dict.get_child("corners")) {
         int j = 0;
-        loger << "New corner : " << i << std::endl;
         for (const pt::ptree::value_type &cell : element.second)
         {
             corners[i][j] = cell.second.get_value<REAL>();
-            loger << "matrix value : " << corners[i][j] << std::endl;
             j++;
         }
         i++;
@@ -119,10 +117,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     //     zmax = 1;
     //     resolution = 28;
     // }
-
-
-    loger << "We are in object object_factory" << std::endl;
-    loger << "Name:" << name << std::endl;
 
 
     if(name=="meta_balls"){
@@ -224,7 +218,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     }
     else
     if (name == "tetrahedron"){
-        loger << "We are in case tetrahedron with points" << std::endl;
 
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
@@ -236,19 +229,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
             copy_eye(matrix12);
         }
         object = new mp5_implicit::tetrahedron(corners, matrix12);
-        register_new_object(object);
-    }
-    else
-    if (name == "tetrahedron_default"){
-        loger << "We are in case tetrahedron(default)" << std::endl;
-
-        REAL matrix12[12];
-        getMatrix12(matrix12, shapeparams_dict);
-        
-        if(ignore_root_matrix) {
-            copy_eye(matrix12);
-        }
-        object = new mp5_implicit::tetrahedron(matrix12);
         register_new_object(object);
     }
     else if (name == "Union") {
