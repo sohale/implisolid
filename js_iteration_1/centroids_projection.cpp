@@ -440,6 +440,52 @@ void bisection(
 }
 
 
+std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL unit_of_length, REAL min_step_size, REAL max_dist, int max_iter, bool EXTREME_ALPHA) {
+    // Prepare a list of step sizes.
+    //vectorized_scalar alpha_list(scalar_shape);
+    std::vector<REAL> alpha_list;
+    REAL step_size = initial_step_size;
+    // int iter = 0;
+    assert(step_size > min_step_size);
+    while(step_size > min_step_size){
+
+        step_size = step_size * 0.5;
+        // maximum number of steps to pave max_dist with the stepsize, if not limited by max_iter.
+        int total_steps = (int)(std::floor(max_dist / std::abs(step_size)+0.001));
+        int max_steps = min(max_iter, total_steps);
+
+        for (int i=1; i < max_steps + 1; i += 2){
+            REAL alpha = ((REAL)i) * step_size;
+            alpha_list.push_back(alpha / unit_of_length);
+            alpha_list.push_back(-alpha / unit_of_length);
+            /*
+            alpha_list[i + iter] = alpha/unit_of_length;
+            alpha_list[i + iter +1] = -alpha/unit_of_length;
+            */
+        }
+        /*
+        iter += max_steps;
+        */
+    }
+    //alpha_list.resize(boost::extents[iter]);
+    //However, the following violates the max_dim condision, which is necessary. Caused problems.
+    if (EXTREME_ALPHA) {
+        std::vector<REAL> more_alphas{+1, -1, +1.5, -1.5, +2, -2};
+        alpha_list.insert(std::end(alpha_list), std::begin(more_alphas), std::end(more_alphas));
+        //alpha_list.append(+1);
+    }
+
+    // todo: D.R.Y.
+    //if (VERBOSE)
+    std::clog << "Alphas: ";
+    for (std::vector<REAL>::iterator i = std::begin(alpha_list), e=std::end(alpha_list); i < e; ++i) {
+        std::clog << *i << " ";
+    }
+    std::clog << std::endl;
+
+    return alpha_list;
+}
+
 // main function
 void  set_centers_on_surface(
     mp5_implicit::implicit_function* object,
@@ -452,7 +498,7 @@ void  set_centers_on_surface(
   constexpr REAL min_gradient_len = 0.000001;  // Gradients smaller than this are considered zero.
   constexpr int max_iter = 20;
   constexpr bool USE_MESH_NORMALS = true;
-  constexpr bool EXTREME_ALPHA = false;
+  constexpr bool EXTREME_ALPHA = false;  // keep false
 
   const verts_t& x = centroids;
 
@@ -493,63 +539,57 @@ void  set_centers_on_surface(
       #endif
   }
   }
-  const auto& g_direction_a = g_a;
+
+  // Elements will be modified
+  auto& g_direction_a = g_a;
   //g_a = delete;
   //delete g_a ;
   //delte g_a
   //int g_a;
   //void qq;
 
+  //todo: remove: negative_f_c
 
 
   vectorized_scalar signs_c(scalar_shape);
   for (int i=0; i<fc_a.shape()[0]; i++){
     if (fc_a[i] > ROOT_TOLERANCE ){
-      signs_c[i] = +1.;
+      signs_c[i] = +1.0;
     }
     else if(fc_a[i] < -ROOT_TOLERANCE){
-      signs_c[i] = -1.;
+      signs_c[i] = -1.0;
     }
     else{
-      signs_c[i] = 0.;
+      signs_c[i] = 0.0;
     }
   }
 
+  assert(g_direction_a.shape()[0] == fc_a.shape()[0]);
+
+  for(int i = 0, e = g_direction_a.shape()[0]; i < e; i++) {
+      if (signs_c[i] < 0.0) {
+          // i.e., if fc_a[i] < -ROOT_TOLERANCE
+          g_direction_a[i][0] = - g_direction_a[i][0];
+          g_direction_a[i][1] = - g_direction_a[i][1];
+          g_direction_a[i][2] = - g_direction_a[i][2];
+      }
+  }
+
+
+  // Move toward surface: If inside (the f value is positive) move outwards (oppoosite the -gradient), and if outside, move inwards (+gradient).
   boost::array<int, 2> vector_shape = {n,3};
   boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
 
   for (int i=0; i<fc_a.shape()[0]; i++){
-    dx0_c_grad[i][0] = g_a[i][0]*signs_c[i];
-    dx0_c_grad[i][1] = g_a[i][1]*signs_c[i];
-    dx0_c_grad[i][2] = g_a[i][2]*signs_c[i];
+    // Bug fixed: negative sign missing.
+    dx0_c_grad[i][0] = - g_direction_a[i][0]*signs_c[i];
+    dx0_c_grad[i][1] = - g_direction_a[i][1]*signs_c[i];
+    dx0_c_grad[i][2] = - g_direction_a[i][2]*signs_c[i];
   }
 
-
-
-
-
-
-  REAL step_size = max_dist;
-
-  vectorized_scalar alpha_list(scalar_shape);
-
-  int iter = 0;
-  while(step_size > 0.001){
-
-    step_size = step_size*0.5;
-    int max_step;
-    max_step = min(max_iter, int(floor(max_dist/ABS(step_size)+0.001)));
-
-    for (int i=1; i< max_step+1; i+=2){
-      REAL alpha = float(i)*step_size;
-      alpha_list[i + iter] = alpha/average_edge;
-      alpha_list[i + iter +1] = -alpha/average_edge;
-    }
-    iter += max_step;
-  }
-
-
-  alpha_list.resize(boost::extents[iter]);
+  // stepsize happens to be equal to the max_dist.
+  REAL initial_step_size = max_dist * 1.0;
+  std::vector<REAL> alpha_list = make_alpha_list(initial_step_size, average_edge, 0.001, max_dist, max_iter, EXTREME_ALPHA);
 
   //THE algorithm
 
@@ -589,7 +629,7 @@ void  set_centers_on_surface(
   int counter = -1;
   int s_n_s = 0;
   // main part of the algor
-  for (int i=0; i< alpha_list.shape()[0]; i++){
+  for (int i=0; i< alpha_list.size(); i++){
     counter += 1;
 
     for (int j=0; j<n; j++){
