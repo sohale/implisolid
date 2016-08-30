@@ -23,7 +23,7 @@ protected:
         const REAL x1, const REAL y1, const REAL z1,
         const REAL x2, const REAL y2, const REAL z2,
         const REAL x3, const REAL y3, const REAL z3,
-        REAL& a, REAL& b, REAL& c, REAL& d) {
+        REAL& a, REAL& b, REAL& c, REAL& d) const {
         a = y1 * z2 - y1 * z3 - y2 * z1 + y2 * z3 + y3 * z1 - y3 * z2;
         b = x1 * z3 - x1 * z2 + x2 * z1 - x2 * z3 - x3 * z1 + x3 * z2;
         c = x1 * y2 - x1 * y3 - x2 * y1 + x2 * y3 + x3 * y1 - x3 * y2;
@@ -63,7 +63,7 @@ protected:
 
 
         // apply matrix to points
-        matrix_vector_product(matrix12, this->points);
+        matrix_vector_product(matrix12, this->p);
 
         loger << "Point after matrix applying" << std::endl;
 
@@ -88,7 +88,7 @@ protected:
         loger << "z " << this->p[3][2] << std::endl;  
     }
 
-    vectorized_vect getPlanes() {
+    vectorized_vect getPlanes() const {
         vectorized_vect planes{boost::extents[4][4]};
 
         // first plane, based on points: 1, 2, 3
@@ -281,7 +281,7 @@ public:
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
-        vectorized_vect planes = this->getPlanes();
+        vectorized_vect planes = getPlanes();
 
         int output_ctr = 0;
 
@@ -316,7 +316,7 @@ public:
         REAL i2;
         REAL i3;
 
-        vectorized_vect planes = this->getPlanes();
+        vectorized_vect planes = getPlanes();
 
         for(; i < e; i++, output_ctr++) {
         i1 = (*i)[0];

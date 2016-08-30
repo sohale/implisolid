@@ -84,7 +84,7 @@ void getCorners(std::vector<boost::array<REAL,3>>& corners, const pt::ptree& sha
     for (const pt::ptree::value_type &element : shapeparams_dict.get_child("corners")) {
         int j = 0;
         loger << "New corner : " << i << std::endl;
-        for (pt::ptree::value_type &cell : element.second)
+        for (const pt::ptree::value_type &cell : element.second)
         {
             corners[i][j] = cell.second.get_value<REAL>();
             loger << "matrix value : " << corners[i][j] << std::endl;
