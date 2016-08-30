@@ -419,7 +419,7 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
     } else {
         REAL d = 0;
         for (int i=0; i<verts.shape()[0]; i++) {
-            // loger << "result_verts  = new_verts: " <<result_verts[i*3+0] << " = " << new_verts[i][0] << std::endl;
+            // std::clog << "result_verts  = new_verts: " <<result_verts[i*3+0] << " = " << new_verts[i][0] << std::endl;
           for(int j=0;j<3;j++) {
               d += std::abs( result_verts[i*3+j] - new_verts[i][j]);
           }
@@ -427,7 +427,7 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
             result_verts[i*3+1] = new_verts[i][1];
             result_verts[i*3+2] = new_verts[i][2];
         }
-        loger << "<d> = " <<  d/((REAL)(verts.shape()[0]))/3 << std::endl;
+        std::clog << "<d> = " <<  d/((REAL)(verts.shape()[0]))/3 << std::endl;
 
    }
 

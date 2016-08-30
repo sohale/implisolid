@@ -188,7 +188,7 @@ MarchingCubes::MarchingCubes( dim_t resolution, bool enableUvs=false, bool enabl
     this->enableColors = enableColors;
 
     if(VERBOSE)
-        loger << resolution << " init"<< std::endl;
+        std::clog << resolution << " init"<< std::endl;
 
     this->init( resolution );
 
@@ -247,8 +247,8 @@ void MarchingCubes::init( dim_t resolution ) {
         // //array_shape_t  field_shape = {{ (int)this->size3, }};
         //
         //
-        // loger << "trouble begins" << std::endl;
-        // loger << (int)this->size3 << std::endl;
+        // std::clog << "trouble begins" << std::endl;
+        // std::clog << (int)this->size3 << std::endl;
         //
         // //this->field = array1d( field_shape );
         // this->field = array1d( field_shape );
@@ -326,14 +326,14 @@ void MarchingCubes::init( dim_t resolution ) {
 MarchingCubes::~MarchingCubes() //deconstructor
 {
     if(VERBOSE)
-        loger << "Destructor: ~MarchingCubes" << std::endl;
+        std::clog << "Destructor: ~MarchingCubes" << std::endl;
 
     if ( this->enableUvs )
     {
         if(this->uvQueue){
             delete this->uvQueue;
             this->uvQueue = 0;
-            //loger << "delete this->uvQueue" << std::endl;
+            //std::clog << "delete this->uvQueue" << std::endl;
         }
     }
     if ( this->enableColors )
@@ -342,7 +342,7 @@ MarchingCubes::~MarchingCubes() //deconstructor
         {
             delete this->colorQueue;
             this->colorQueue = 0;
-            //loger << "delete this->colorQueue" << std::endl;
+            //std::clog << "delete this->colorQueue" << std::endl;
         }
     }
 }
@@ -470,7 +470,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     int bits = mc_edge_lookup_table[ cubeindex ];
     if ( bits == 0x00 ) return 0;
 
-    //loger  << cubeindex << " ";
+    //std::clog  << cubeindex << " ";
 
     REAL d = this->delta,
         fx2 = fx + d,
@@ -594,7 +594,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
     return numtris;
 }
 
-#define DEBUG_PA001(positionQueue , c)   {loger << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
+#define DEBUG_PA001(positionQueue , c)   {std::clog << " >" << positionQueue[ (c) ] << positionQueue[ (c) + 1 ] <<    positionQueue[ (c) + 2 ] << "< ";}
 
 /////////////////////////////////////
 // Immediate-render mode simulator
@@ -625,7 +625,7 @@ void MarchingCubes::posnormtriv(
 
 
     //DEBUG_PA001(pos__vlist, o3);
-    //loger << "[" << o3 << "] ";
+    //std::clog << "[" << o3 << "] ";
 
     // normals
 
@@ -701,15 +701,15 @@ void MarchingCubes::sow() {
     /*
     typedef array1d::iterator  b_it;
     for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-        loger << *b << " ";
-    loger << std::endl;
+        std::clog << *b << " ";
+    std::clog << std::endl;
     */
-    //loger << "Sowing the seeds of love. " << this->queue_counter << std::endl;
+    //std::clog << "Sowing the seeds of love. " << this->queue_counter << std::endl;
 
 
-    //this->flush_geometry(loger, result_normals_start, result_normals,  result_verts, result_faces);
+    //this->flush_geometry(std::clog, result_normals_start, result_normals,  result_verts, result_faces);
 
-    this->flush_geometry(loger, this->result_normals_start, this->result_normals,  this->result_verts, this->result_faces);
+    this->flush_geometry(std::clog, this->result_normals_start, this->result_normals,  this->result_verts, this->result_faces);
 }
 
 void MarchingCubes::begin_queue() {
@@ -946,11 +946,11 @@ void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
 
                 /*
                 only prints zeros
-                loger << "************************" << std::endl;
+                std::clog << "************************" << std::endl;
                 typedef array1d::iterator  b_it;
                 for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
-                    loger << *b << " ";
-                loger << std::endl;
+                    std::clog << *b << " ";
+                std::clog << std::endl;
                 */
 
             }
@@ -1504,13 +1504,13 @@ void build_vf(
     //MarchingCubes& object = mc;
     //mc.addBall(0.5, 0.5, 0.5, strength, subtract);
 
-    //mc.flush_geometry(loger, mc.result_normals_start, mc.result_normals, verts3, faces3);
+    //mc.flush_geometry(std::clog, mc.result_normals_start, mc.result_normals, verts3, faces3);
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
 
     if(VERBOSE)
-        loger << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+        std::clog << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     //verts3.resize(0);
     //faces3.resize(0);
@@ -1606,7 +1606,7 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     bool enableColors = true;
 
     if(VERBOSE)
-        loger << "Leak-free (old version)" << std::endl;
+        std::clog << "Leak-free (old version)" << std::endl;
 
 
     MarchingCubes mc(resolution, enableUvs, enableColors);
@@ -1640,7 +1640,7 @@ void produce_object(REAL* verts, int *nv, int* faces, int *nf, REAL time){
     //mc.result_faces.resize(100);
 
     if(VERBOSE)
-        loger << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+        std::clog << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     *nv = mc.result_verts.size()/3;
     *nf = mc.result_faces.size()/3;
@@ -1706,11 +1706,11 @@ state_t _state;
 //_state.mc = 0;
 
 void check_state() {
-    if(!_state.active) loger << "Error: not active.";
+    if(!_state.active) std::clog << "Error: not active.";
 }
 void check_state_null() {
     if(_state.active)
-        loger << "Error: should not be active.";
+        std::clog << "Error: should not be active.";
 }
 
 void build_geometry(int resolution, REAL time){
@@ -1721,11 +1721,11 @@ void build_geometry(int resolution, REAL time){
     bool enableUvs = true;
     bool enableColors = true;
 
-    //loger << "Leak-free : new" << std::endl;
+    //std::clog << "Leak-free : new" << std::endl;
 
     //MarchingCubes mc(resolution, enableUvs, enableColors);
     _state.mc = new MarchingCubes(resolution, enableUvs, enableColors);
-    //loger << "constructor called." << std::endl;
+    //std::clog << "constructor called." << std::endl;
 
     _state.mc -> isolation = 80.0/4;
 
@@ -1739,20 +1739,20 @@ void build_geometry(int resolution, REAL time){
         REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
         _state.mc->addBall(ballx, bally, ballz, strength, subtract);
     }
-    //loger << "balls added." << std::endl;
+    //std::clog << "balls added." << std::endl;
 
     const callback_t renderCallback;
     _state.mc->render_geometry(renderCallback);
-    //loger << "MC executed" << std::endl;
+    //std::clog << "MC executed" << std::endl;
 
     if(VERBOSE){
-        loger << resolution << " " << time << std::endl;
-        loger << _state.mc << std::endl;
+        std::clog << resolution << " " << time << std::endl;
+        std::clog << _state.mc << std::endl;
     }
     _state.active = true;
 
     check_state();
-    //loger << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
+    //std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
 }
 int get_f_size() {
     check_state();
@@ -1774,7 +1774,7 @@ void get_v(REAL* v_out, int vcount){
         }
     }
     //assert nf*3 == ctr;
-    if(vcount*3 != ctr)  loger << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
+    if(vcount*3 != ctr)  std::clog << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
 }
 
 void get_f(int* f_out, int fcount){
@@ -1787,7 +1787,7 @@ void get_f(int* f_out, int fcount){
             ctr++;
         }
     }
-    if(fcount*3 != ctr)  loger << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
+    if(fcount*3 != ctr)  std::clog << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
 };
 //int get_v_size(){};
 //int get_f_size(){};
@@ -1832,7 +1832,7 @@ int main() {
     MarchingCubes& object = mc;
 
     //int normals_start = 0;
-    mc.flush_geometry(loger, mc.result_normals_start, mc.result_normals, verts3, faces3);
+    mc.flush_geometry(std::clog, mc.result_normals_start, mc.result_normals, verts3, faces3);
 
     t.stop();
 

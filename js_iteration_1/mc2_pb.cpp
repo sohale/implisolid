@@ -634,9 +634,9 @@ vector<TRIANGLE> make_grid()
 
     cout << endl;
     cout << endl;
-    loger << "size: "     <<  result_triangles.size()     << '\n';
-    loger << "capacity: " <<  result_triangles.capacity() << '\n';
-    loger << "max_size: " <<  result_triangles.max_size() << '\n';
+    std::clog << "size: "     <<  result_triangles.size()     << '\n';
+    std::clog << "capacity: " <<  result_triangles.capacity() << '\n';
+    std::clog << "max_size: " <<  result_triangles.max_size() << '\n';
 
 
     //todo: send proper message if empty.
@@ -1108,9 +1108,9 @@ int main0()
     cout << "number of triangles: " << ta.size();
     cout << endl;
 
-    loger << "size: "     <<  ta.size()     << '\n';
-    loger << "capacity: " <<  ta.capacity() << '\n';
-    loger << "max_size: " <<  ta.max_size() << '\n';
+    std::clog << "size: "     <<  ta.size()     << '\n';
+    std::clog << "capacity: " <<  ta.capacity() << '\n';
+    std::clog << "max_size: " <<  ta.max_size() << '\n';
 
     //very inefficient
     vf_t vf = vector_to_vertsfaces(ta);

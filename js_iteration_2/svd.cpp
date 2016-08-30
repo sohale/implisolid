@@ -134,10 +134,10 @@ householder(ublas::matrix < float >&A,
 	float x_norm = norm_ublas(x);
 	float alpha = sign(x(start)) * x_norm;
 
-	// loger << column << " " <<  start << " x = " << x(start) << "\n";
+	// std::clog << column << " " <<  start << " x = " << x(start) << "\n";
 #ifdef DEBUG
-	loger << "||x|| = " << x_norm << "\n";
-	loger << "alpha = " << alpha << "\n";
+	std::clog << "||x|| = " << x_norm << "\n";
+	std::clog << "alpha = " << alpha << "\n";
 #endif
 
 	ublas::vector<float> v = x;
@@ -146,7 +146,7 @@ householder(ublas::matrix < float >&A,
 	normalize_ublas(v);
 
 #ifdef DEBUG
-	loger << "v = " << v << "\n";
+	std::clog << "v = " << v << "\n";
 #endif
 
 	ublas::matrix < float > Q;
@@ -161,7 +161,7 @@ householder(ublas::matrix < float >&A,
 		}
 	}
 
-	loger << "Q  = " << Q << "\n";
+	std::clog << "Q  = " << Q << "\n";
 #endif
 
 	if (column) {
@@ -212,12 +212,12 @@ svd_qr_shift(ublas::matrix < float >&u,
 	int n = q.size();
 	int m = u.size1();
 
-//	loger << u.size1() << " " << u.size2() << "\n";
+//	std::clog << u.size1() << " " << u.size2() << "\n";
 
 	bool goto_test_conv = false;
 
 	for (int k = n - 1; k >= 0; k--) {
-		//loger << "U = " << u << std::endl;
+		//std::clog << "U = " << u << std::endl;
 
 		for (int iter = 0; iter < ITER_MAX; iter++) {
 			// test for split
@@ -373,11 +373,11 @@ svd(ublas::matrix < float >&A,
 			s(i + 1) = A(i, i + 1);
 	}
 
-	// loger << d << "\n";
-	// loger << s << "\n";
+	// std::clog << d << "\n";
+	// std::clog << s << "\n";
 
-	// loger << QQL << std::endl;
-	// loger << QQR << std::endl;
+	// std::clog << QQL << std::endl;
+	// std::clog << QQR << std::endl;
 
 	svd_qr_shift(QQL, QQR, d, s);
 
@@ -424,7 +424,7 @@ bool check_bidiag(ublas::matrix < float >&A)
 // 	pretty_print("Input:", in);
 //
 // #ifdef DEBUG
-// 	loger << in << "\n";
+// 	std::clog << in << "\n";
 // #endif
 // 	ublas::matrix < float > QQL;
 //     ublas::matrix < float > QQW;
@@ -432,26 +432,26 @@ bool check_bidiag(ublas::matrix < float >&A)
 //
 //     svd(in, QQL, QQW, QQR);
 //
-// 	// loger << in << "\n";
+// 	// std::clog << in << "\n";
 // 	ublas::matrix < float > result;
 //
 // #ifdef CHECK_RESULT
-// 	// loger << "QL: " << QQL << "\n";
-//  //    loger << "QW: " << QQW << "\n";
-// 	// loger << "QR: " << QQR << "\n";
-// 	// loger << "A:: " << in << "\n";
+// 	// std::clog << "QL: " << QQL << "\n";
+//  //    std::clog << "QW: " << QQW << "\n";
+// 	// std::clog << "QR: " << QQR << "\n";
+// 	// std::clog << "A:: " << in << "\n";
 //
 //     result = ublas::prod(QQW, trans(QQR));
 // 	result = ublas::prod(QQL, result);
 
-	// loger << result << "\n";
+	// std::clog << result << "\n";
 // #endif
 //
 // 	pretty_print("Bidiag:", in);
 //
 //
-// 	loger << "DIFF    = " << matrix_compare(result, ref) << "\n";
-// 	loger << "Is bidiag " << check_bidiag(in) << "\n";
+// 	std::clog << "DIFF    = " << matrix_compare(result, ref) << "\n";
+// 	std::clog << "Is bidiag " << check_bidiag(in) << "\n";
 //
 // 	return 0;
 // }

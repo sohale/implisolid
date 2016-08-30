@@ -30,8 +30,8 @@ void
 test_crisp_subtract_performance(const int nr_points)
 {
 	int nr_chunks=1;
-	loger << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-	loger << "Number of points: "  << nr_points << "t" << "Number of chunks: " << ( nr_chunks ? nr_chunks: 1 ) <<std::endl;
+	std::clog << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+	std::clog << "Number of points: "  << nr_points << "t" << "Number of chunks: " << ( nr_chunks ? nr_chunks: 1 ) <<std::endl;
 	auto sf = make_shape_1d(nr_points); //  Create the shape of the output
 	vectorized_scalar f = vectorized_scalar(sf);
 
@@ -86,7 +86,7 @@ test_crisp_subtract_performance(const int nr_points)
 void
 test_crisp_subtract_performance_in_chunks(const int nr_points, const int nr_chunks)
 {
-	loger << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+	std::clog << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
  	int i = 0; // Loop counter
 	int chunk_size = nr_points / nr_chunks;
 
@@ -115,7 +115,7 @@ test_crisp_subtract_performance_in_chunks(const int nr_points, const int nr_chun
 		crs.eval_implicit(x, &f);
 	}
 	t1.stop();
-	loger << "Number of points: "  << nr_points << "\t" << "Number of chunks: \
+	std::clog << "Number of points: "  << nr_points << "\t" << "Number of chunks: \
 	 " << nr_chunks << "\t" << std::endl;
 }
 
@@ -142,7 +142,7 @@ test_crisp_subtract_performance_in_chunks(const int nr_points, const int nr_chun
 void
 test_mp5_object(int nr_points) {
 
-	loger << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+	std::clog << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
 	std::string str_json = "{\"printerSettings\":{\"name\":\"test\",\"layerThickness\":0.2,\"emptyLayer\":0,\"infillSpace\":4,\"topThickness\":0.6,\"paramSamples\":75,\"speedRate\":1000,\"circleSpeedRate\":1000,\"temperature\":220,\"inAirSpeed\":7000,\"flowRate\":0.035,\"criticalLength\":35,\"retractionSpeed\":2400,\"retractionLength\":5,\"shellNumber\":3,\"material\":\"PLA 2.85mm\",\"autoZScar\":true,\"zScarGap\":0.5,\"critLayerTime\":6,\"filamentDiameter\":2.85},\"mp5-version\":\"0.3\",\"root\":{\"type\":\"root\",\"children\":[{\"type\":\"Difference\",\"protected\":false,\"children\":[{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.7675997200783986,\"y\":0.03892568708507049,\"z\":0.1754374135888661},\"matrix\":[42.583184547062736,0,0,0,0,49.55270399250958,0,0,0,0,10,0,0,0,0,1],\"index\":652818},{\"type\":\"Difference\",\"protected\":false,\"children\":[{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.8122645344236872,\"y\":0.657334404743416,\"z\":0.7357336310755096},\"matrix\":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],\"index\":1272174},{\"type\":\"cylinder\",\"displayColor\":{\"x\":0.11421729990684737,\"y\":0.07562705374348999,\"z\":0.6324600862122098},\"matrix\":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],\"index\":2463576}],\"initialSize\":{\"x\":1,\"y\":1,\"z\":1},\"displayColor\":{\"x\":0.6627450980392157,\"y\":0.4549019607843137,\"z\":0.7215686274509804},\"matrix\":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],\"index\":413872}],\"initialSize\":{\"x\":1,\"y\":1,\"z\":1},\"displayColor\":{\"x\":0.5529411764705883,\"y\":0.06666666666666667,\"z\":0.11764705882352941},\"matrix\":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],\"index\":6565922}]}}";
 	bool use_metaball = false, ignore_root_matrix = true;
 

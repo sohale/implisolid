@@ -17,7 +17,7 @@ void gc_objects() {
 
         mp5_implicit::implicit_function* e = garbage_collector.back(); // garbage_collector.front()
        if (false) {
-           loger << "delete(" << e << typeid(*e).name() << ")   "; // << std::endl << std::flush;
+           std::clog << "delete(" << e << typeid(*e).name() << ")   "; // << std::endl << std::flush;
        }
 
        garbage_collector.pop_back();
@@ -26,7 +26,7 @@ void gc_objects() {
    }
 
     if (false) {
-        loger << std::endl << std::flush;
-        loger << counter << " garbages collected. " << garbage_collector.size()<< std::endl << std::flush;
+        std::clog << std::endl << std::flush;
+        std::clog << counter << " garbages collected. " << garbage_collector.size()<< std::endl << std::flush;
     }
 }

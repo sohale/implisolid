@@ -6,7 +6,7 @@
 #include "my_assert.hpp"
 
 inline bool assert_implicit_function_io(const vectorized_vect& x, const vectorized_scalar& output){
-    //loger << x.shape()[1] << " " << x.shape()[0] << " " << output->shape()[0] << std::endl;
+    //std::clog << x.shape()[1] << " " << x.shape()[0] << " " << output->shape()[0] << std::endl;
 
     //my_assert(x.shape()[1] == 3, "Size should be N x 3. Not " ); //+ x.shape()[1]);
     my_assert(x.shape()[1] == 3, ""); //, "Size should be N x 3. Not " << x.shape()[1]);

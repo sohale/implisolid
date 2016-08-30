@@ -197,9 +197,9 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxEgg) {
         mp5_implicit::bounding_box realBox = {10,-10,10,-10,10,-10};
         calculate_real_bounding_box(realBox);
 
-        //loger << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
+        //std::clog << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
 
-        //loger << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
+        //std::clog << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
 
         // //check min and max
         EXPECT_GE(realBox.xmin-randomInnerBox.xmin,-BB_TOLERANCE);
@@ -232,9 +232,9 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxSimpleSphere) {
         build_geometry( mp5,  strdup(mc_params_json.str().c_str()) );
         calculate_real_bounding_box(realBox);
 
-        //loger << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
+        //std::clog << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
 
-        //loger << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
+        //std::clog << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
 
         // //check min and max
         EXPECT_GE(realBox.xmin, randomInnerBox.xmin - BB_TOLERANCE);
@@ -268,9 +268,9 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxDoubleMushroom) {
         mp5_implicit::bounding_box realBox = {10,-10,10,-10,10,-10};
         calculate_real_bounding_box(realBox);
 
-        //loger << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
+        //std::clog << " random : {\"resolution\":28,\"box\":{\"xmin\":" << randomInnerBox.xmin << ",\"xmax\":" << randomInnerBox.xmax << ",\"ymin\":" << randomInnerBox.ymin << ",\"ymax\":" << randomInnerBox.ymax << ",\"zmin\":" << randomInnerBox.zmin << ",\"zmax\":" << randomInnerBox.zmax << "}}" << std::endl;
 
-        //loger << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
+        //std::clog << " real : {\"resolution\":28,\"box\":{\"xmin\":" << realBox.xmin << ",\"xmax\":" << realBox.xmax << ",\"ymin\":" << realBox.ymin << ",\"ymax\":" << realBox.ymax << ",\"zmin\":" << realBox.zmin << ",\"zmax\":" << realBox.zmax << "}}" << std::endl;
 
         // //check min and max
         EXPECT_GE(realBox.xmin-randomInnerBox.xmin,-BB_TOLERANCE);
@@ -290,6 +290,6 @@ TEST(MarchingCubesBoundingBox, RandomBoundingBoxDoubleMushroom) {
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    loger << "Good bye." << std::endl;
+    std::clog << "Good bye." << std::endl;
     return RUN_ALL_TESTS();
 }

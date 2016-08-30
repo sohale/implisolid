@@ -158,11 +158,11 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
 }
 
 void check_state() {
-    if(!_state.active) loger << "Error: not active.";
+    if(!_state.active) std::clog << "Error: not active.";
 }
 void check_state_null() {
     if(_state.active)
-        loger << "Error: should not be active.";
+        std::clog << "Error: should not be active.";
 }
 
 void build_geometry(int resolution, REAL mc_size, REAL time){
@@ -299,7 +299,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     int mapctr = 0;
     for (auto& kv_pair: _state.mc->result_e3map){
         if(0)
-            loger << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+            std::clog << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
       }
     }
@@ -320,8 +320,8 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
 
     if(VERBOSE){
-        loger << resolution << " " << time << std::endl;
-        loger << _state.mc << std::endl;
+        std::clog << resolution << " " << time << std::endl;
+        std::clog << _state.mc << std::endl;
     }
     _state.active = true;
 
@@ -347,7 +347,7 @@ void get_v(REAL* v_out, int vcount){
         }
     }
 
-    if(vcount*3 != ctr)  loger << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
+    if(vcount*3 != ctr)  std::clog << "sizes dont match: " << (float)ctr/3. << " " << vcount << std::endl;
 }
 
 void get_f(int* f_out, int fcount){
@@ -361,7 +361,7 @@ void get_f(int* f_out, int fcount){
             ctr++;
         }
     }
-    if(fcount*3 != ctr)  loger << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
+    if(fcount*3 != ctr)  std::clog << "sizes dont match: " << (float)ctr/3. << " " << fcount << std::endl;
 
 };
 
@@ -379,7 +379,7 @@ void* get_f_ptr(){
 void finish_geometry() {
     check_state();
     if(_state.mc == 0){
-        loger << "Error: finish_geometry() before producing the shape()" << std::endl;
+        std::clog << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
     if(!_state.active){
 
@@ -421,7 +421,7 @@ int main() {
   //   _state.mc->vertex_resampling(name, f_argument);
   //
   //  }
-  //   loger << "main();" << std::endl;
+  //   std::clog << "main();" << std::endl;
 
     return 0;
 }

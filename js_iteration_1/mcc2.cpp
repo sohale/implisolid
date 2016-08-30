@@ -127,13 +127,13 @@ void build_vf(
     // MarchingCubes& object = mc;
     // mc.addBall(0.5, 0.5, 0.5, strength, subtract, 1);
 
-    // mc.flush_geometry_queue(loger, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
+    // mc.flush_geometry_queue(std::clog, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
 
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
 
     if (VERBOSE)
-        loger << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+        std::clog << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     // verts3.resize(0);
     // faces3.resize(0);
@@ -152,7 +152,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     mp5_implicit::bounding_box box = {0, 3, 0, 3, 0, 3};
 
     if (VERBOSE)
-        loger << "Leak-free (old version)" << std::endl;
+        std::clog << "Leak-free (old version)" << std::endl;
 
 
     MarchingCubes mc(resolution, box, enableUvs, enableColors);
@@ -177,12 +177,12 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     const callback_t renderCallback;
     mc.render_geometry(renderCallback);
 
-    loger << "map2" << std::endl;
+    std::clog << "map2" << std::endl;
 
     // mc.result_faces.resize(100);
 
     if (VERBOSE)
-        loger << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
+        std::clog << "MC:: v,f: " << mc.result_verts.size() << " " << mc.result_faces.size() << std::endl;
 
     *nv = mc.result_verts.size()/3;
     *nf = mc.result_faces.size()/3;
@@ -282,14 +282,14 @@ state_t _state;
 
 bool check_state() {
     if (!_state.active) {
-        loger << "Error: There are no allocated geometry resources to deallocate.";
+        std::clog << "Error: There are no allocated geometry resources to deallocate.";
         return false;
     }
     return true;
 }
 bool check_state_null() {
     if (_state.active) {
-        loger << "Error: There are non-deallocated geometry resources. Call finit_geometry() first. Not doing anything.";
+        std::clog << "Error: There are non-deallocated geometry resources. Call finit_geometry() first. Not doing anything.";
         return false;
     }
     return true;
@@ -329,7 +329,7 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     int resolution = mcparams_dict.get<int>("resolution", -1);
 
     if ( isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ) {
-        loger << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
+        std::clog << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
         xmin = -1;
         xmax = 1;
         ymin = -1;
@@ -338,20 +338,20 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
         zmax = 1;
         resolution = 28;
     }
-    // loger << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
+    // std::clog << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
 
 
     /*}catch(pt::json_parser::json_parser_error parse_exception){
-        loger << "parse_exception"<< std::endl ;
+        std::clog << "parse_exception"<< std::endl ;
 
     }catch(pt::ptree_bad_data bad_data_exception){
-        loger << "bad_data_exception"<< std::endl ;
+        std::clog << "bad_data_exception"<< std::endl ;
 
     }catch(pt::ptree_bad_path bad_path_exception){1
-        loger << "bad_path_exception" << std::endl ;
+        std::clog << "bad_path_exception" << std::endl ;
 
     }catch(...){
-        loger << "other_exception" << std::endl ;
+        std::clog << "other_exception" << std::endl ;
     }*/
 
 
@@ -374,9 +374,9 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
     if (!check_state_null())
         return;
-    // loger << "In build_geometry obj_name : " << obj_name << std::endl;
-    // loger << "Mc_params : " << mc_parameters_json << endl;
-    // loger << "shape_json : " << shape_parameters_json << endl;
+    // std::clog << "In build_geometry obj_name : " << obj_name << std::endl;
+    // std::clog << "Mc_params : " << mc_parameters_json << endl;
+    // std::clog << "shape_json : " << shape_parameters_json << endl;
 
     mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
 
@@ -388,7 +388,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
 
-    // loger << "Leak-free : new" << std::endl;
+    // std::clog << "Leak-free : new" << std::endl;
 
     // dim_t resolution = 28;
     bool enableUvs = true;
@@ -396,7 +396,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // MarchingCubes mc(resolution, enableUvs, enableColors);
     _state.mc = new MarchingCubes(mc_settings_from_json.resolution, mc_settings_from_json.box, enableUvs, enableColors);
-    // loger << "constructor called. " << _state.mc << std::endl;
+    // std::clog << "constructor called. " << _state.mc << std::endl;
 
     _state.mc -> isolation = 80.0/4*0;
 
@@ -418,27 +418,27 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     _state.mc->seal_exterior(-10000000.0);
 
-    // loger << "balls added." << std::endl;
+    // std::clog << "balls added." << std::endl;
 
     const callback_t renderCallback;
     _state.mc->render_geometry(renderCallback);
-    // loger << "MC executed" << std::endl;
+    // std::clog << "MC executed" << std::endl;
 
-    // loger << "map4" << std::endl;
+    // std::clog << "map4" << std::endl;
 
     if (REPORT_STATS) {
     int mapctr = 0;
     for (auto& kv_pair : _state.mc->result_e3map) {
         if (0)
-            loger << " [" << kv_pair.first << ':' << kv_pair.second << ']';
+            std::clog << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
     }
     /*
-    loger << "build_geometry(): ";
-    loger << " e3Map: " << mapctr;
-    loger << " Faces: " << _state.mc->result_faces.size()/3;
-    loger << " Verts: " << _state.mc->result_verts.size()/3;
-    loger << std::endl;
+    std::clog << "build_geometry(): ";
+    std::clog << " e3Map: " << mapctr;
+    std::clog << " Faces: " << _state.mc->result_faces.size()/3;
+    std::clog << " Verts: " << _state.mc->result_verts.size()/3;
+    std::clog << std::endl;
     */
     }
 
@@ -458,7 +458,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     _state.active = true;
 
     check_state();
-    // loger << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
+    // std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
 }
 int get_f_size() {
     if (!check_state()) return -1;
@@ -479,13 +479,13 @@ void get_v(REAL* v_out, int vcount) {
         for (int di=0; di < 3; di++) {
             v_out[ctr] = *(it + di);
             // if(ctr<3*3*3)
-            //    loger << v_out[ctr] << " ";
+            //    std::clog << v_out[ctr] << " ";
             ctr++;
         }
     }
-    // loger << std::endl;
+    // std::clog << std::endl;
     // assert nf*3 == ctr;
-    if (vcount*3 != ctr)  loger << "sizes dont match: " << static_cast<float>(ctr)/3. << " " << vcount << std::endl;
+    if (vcount*3 != ctr)  std::clog << "sizes dont match: " << static_cast<float>(ctr)/3. << " " << vcount << std::endl;
 }
 
 
@@ -499,12 +499,12 @@ void get_f(int* f_out, int fcount) {
         for (int di=0; di < 3; di++) {
             f_out[ctr] = *(it + di);
             // if(ctr<3*3*3)
-            //    loger << f_out[ctr] << " ";
+            //    std::clog << f_out[ctr] << " ";
             ctr++;
         }
     }
-    if (fcount*3 != ctr)  loger << "sizes dont match: " << static_cast<float>(ctr)/3. << " " << fcount << std::endl;
-    // loger << std::endl;
+    if (fcount*3 != ctr)  std::clog << "sizes dont match: " << static_cast<float>(ctr)/3. << " " << fcount << std::endl;
+    // std::clog << std::endl;
 }
 
 
@@ -538,9 +538,9 @@ void finish_geometry() {
         std::cerr << "Error: finish_geometry() before producing the shape()" << std::endl;
     }
     if (!_state.active) {
-        // loger << "Cannot finish_geometry() while still active." << std::endl;
+        // std::clog << "Cannot finish_geometry() while still active." << std::endl;
     } else {
-        // loger << "_state.active " << _state.active << "  _state.mc " << _state.mc << std::endl;
+        // std::clog << "_state.active " << _state.active << "  _state.mc " << _state.mc << std::endl;
     }
     // Dos not cause an exception if null. But it causes exception.
     delete _state.mc;
@@ -550,8 +550,8 @@ void finish_geometry() {
 
 // information
 void about() {
-    loger << "Build 1" << std::endl;
-    loger << __DATE__ << " " << __TIME__ << std::endl;
+    std::clog << "Build 1" << std::endl;
+    std::clog << __DATE__ << " " << __TIME__ << std::endl;
 }
 
 
@@ -578,21 +578,21 @@ vectorized_scalar* current_f = NULL;
 
 void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     if(current_object != NULL){
-        loger << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
+        std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;
     }
 
-    //loger << "before: current_object " << current_object << std::endl;
+    //std::clog << "before: current_object " << current_object << std::endl;
 
     std::string str = std::string(shape_parameters_json);
     bool dummy;
     current_object = object_factory(str , dummy, ignore_root_matrix);
 
-    //loger << "after: current_object " << current_object << std::endl;
+    //std::clog << "after: current_object " << current_object << std::endl;
 }
 void unset_object() {
     if(current_object == NULL){
-        loger << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
+        std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;
     }
 
@@ -604,11 +604,11 @@ void unset_object() {
 
 bool set_x(void* verts, int n) {
     if(current_x != NULL){
-        loger << "Error: You set() before unset()ing the previous set()." << std::endl;
+        std::clog << "Error: You set() before unset()ing the previous set()." << std::endl;
         return false;
     }
     if( n < 0 || n >= 10000) {
-        loger << "Error: n is outside [0, 10000]." << std::endl;
+        std::clog << "Error: n is outside [0, 10000]." << std::endl;
         return false;
     }
 
@@ -620,7 +620,7 @@ bool set_x(void* verts, int n) {
         (*current_x)[i][2] = real_verts[i*3 + 2];
         /*
         if(i < 10) {
-            loger
+            std::clog
                 << (*current_x)[i][0] << " "
                 << (*current_x)[i][1] << " "
                 << (*current_x)[i][2] << " "
@@ -628,15 +628,15 @@ bool set_x(void* verts, int n) {
         }
         */
     }
-    //loger << std::endl;
+    //std::clog << std::endl;
     current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
-    //loger << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
+    //std::clog << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
     current_grad = new vectorized_vect( shape_t{n, 3}  );
     return true;
 }
 void unset_x() {
     if(current_x == NULL){
-        loger << "Error: You cannot unset() before a set()." << std::endl;
+        std::clog << "Error: You cannot unset() before a set()." << std::endl;
         return;
     }
 
@@ -651,7 +651,7 @@ void unset_x() {
 
 void calculate_implicit_values() {
     if(current_x == NULL || current_f == NULL || current_object == NULL) {
-        loger << "Error: You need to set_x() and set_object() first." << std::endl;
+        std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return;
     }
 
@@ -666,7 +666,7 @@ int get_values_size() {
 
 void calculate_implicit_gradients(bool normalize_and_invert) {
     if(current_x == NULL || current_grad == NULL || current_object == NULL) {
-        loger << "Error: You need to set_x() and set_object() first." << std::endl;
+        std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return;
     }
 
@@ -693,7 +693,7 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
 
 
     /*
-    loger << "calculated grad: "
+    std::clog << "calculated grad: "
         << (*current_grad)[0][0] << " "
         << (*current_grad)[0][1] << " "
         << (*current_grad)[0][2] << " "
@@ -707,11 +707,11 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
 }
 void* get_gradients_ptr() {
     if(current_x == NULL || current_f == NULL || current_object == NULL) {
-        loger << "Error: You need to set_x() and set_object() first." << std::endl;
+        std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return NULL;
     }
     /*
-    loger << "current_grad: "
+    std::clog << "current_grad: "
         << (*current_grad)[0][0] << " "
         << (*current_grad)[0][1] << " "
         << (*current_grad)[0][2] << " "
@@ -721,7 +721,7 @@ void* get_gradients_ptr() {
 }
 int get_gradients_size() {
     if(current_x == NULL || current_f == NULL || current_object == NULL) {
-        loger << "Error: You need to set_x() and set_object() first." << std::endl;
+        std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return 0;
     }
 
@@ -767,7 +767,7 @@ int main() {
     MarchingCubes& object = mc;
 
     // int normals_start = 0;
-    mc.flush_geometry_queue(loger, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
+    mc.flush_geometry_queue(std::clog, mc.resultqueue_faces_start, mc.result_normals, verts3, faces3);
 
     t.stop();
 
@@ -790,7 +790,7 @@ int main() {
 
     t.stop();
 
-    loger << "main();" << std::endl;
+    std::clog << "main();" << std::endl;
     return 0;
 }
 */
