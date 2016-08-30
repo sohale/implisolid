@@ -18,8 +18,6 @@ Copyright 2016 MyMiniFactory Ltd.
 using namespace std;
 using namespace mp5_implicit;
 
-#define ASSERTS 1
-
 REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
     int nfaces = faces.shape()[0];
     REAL edge_length;
@@ -85,13 +83,13 @@ inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
 
 template<typename T>
 void here(T arg) {
-    std::cout << arg << std::endl << std::flush;
+    std::clog << arg << std::endl << std::flush;
 }
 
 inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign) {
     assert(sign == +1 || sign == -1); // || sign == 0.0);
 
-    cout << "test_points_sign" << endl;
+    clog << "test_points_sign" << endl;
 
     int n = x_vectorized.shape()[0];
     // int n = v_arr.size(); //[0];
@@ -106,11 +104,11 @@ inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit
         auto s1 = my_sign(v_arr[i], ROOT_TOLERANCE);
         bool ok = (s1 * sign >  0 + 0.0001);
         if (!ok) {
-            cout <<  v_arr[i] << " " << s1 << " " << sign << " :" << i << endl;
+            clog <<  v_arr[i] << " " << s1 << " " << sign << " :" << i << endl;
         }
         everything_alright = everything_alright && ok;
     }
-    cout << "bool" << everything_alright << endl;
+    clog << "bool" << everything_alright << endl;
     return everything_alright;
 }
 
@@ -140,11 +138,11 @@ inline void check_bisection_input_signs(
             // assert(s1* s2 < 0 - EPS);
             bool ok = (s1* s2 < 0 - EPS);
             // if (!ok) {
-            //     std::cout << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
+            //     std::clog << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
             // }
             assert1 = assert1 && ok;
         }
-        if (!assert1) cout << "";
+        if (!assert1) clog << "";
         assert(assert1);
 
         here("a2");
@@ -434,8 +432,8 @@ void bisection(
         }
 
         if (active_indices.shape()[0] == 0 || iteration==10) {
-            cout << "projection treated this much points" << endl;
-            cout << solved_count << endl;
+            clog << "projection treated this much points" << endl;
+            clog << solved_count << endl;
             break;
         }
 
@@ -750,7 +748,7 @@ void  set_centers_on_surface(
     boost::multi_array<bool_t, 1> zeros1or2(scalar_shape);
     boost::multi_array<int, 1> relevants_bool_indices(scalar_shape);
 
-    cout << "3" << endl;
+    clog << "3" << endl;
 
 
 
@@ -917,7 +915,7 @@ void  set_centers_on_surface(
               x1_relevant[i][2] == x2_relevant[i][2]
           ));
     }
-    cout << "x1x2" << endl;
+    clog << "x1x2" << endl;
 
     // Now we have x1_relevant and x2_relevant which have the same size.
 
@@ -929,29 +927,29 @@ void  set_centers_on_surface(
         // object->eval_implicit(x2_relevant, &f1_relevants_);
         object->eval_implicit(x1_relevant, &f1_relevants);
 
-        cout << x1_relevant.shape()[0] << " " << x1_relevant.shape()[1] << " " << x1_relevant.shape() << "  ,  " <<
+        clog << x1_relevant.shape()[0] << " " << x1_relevant.shape()[1] << " " << x1_relevant.shape() << "  ,  " <<
             " " << x2_relevant.shape()[0] << " " << x2_relevant.shape()[1] << " " <<
             x2_relevant.shape()[0]<<"/"<<x2_relevant.shape()[1]<<"/"<<x2_relevant.shape()[2]<<"/"<<x2_relevant.shape()[3]<<"/"<<x2_relevant.shape()[4]<<"/"<<x2_relevant.shape()[5]<<"/"<<x2_relevant.shape()[6]<<"/"<<x2_relevant.shape()[7]
             << "  " <<
             x1_relevant.shape()[0]<<"/"<<x1_relevant.shape()[1]<<"/"<<x1_relevant.shape()[2]<<"/"<<x1_relevant.shape()[3]<<"/"<<x1_relevant.shape()[4]<<"/"<<x1_relevant.shape()[5]<<"/"<<x1_relevant.shape()[6]<<"/"<<x1_relevant.shape()[7]
             << endl;
-        cout << "fff" << endl;
+        clog << "fff" << endl;
         // fails: assert(x1_relevant.shape() == x2_relevant.shape());
         // assert(x1_relevant.shape() == x2_relevant.shape());
         assert(x1_relevant.shape()[0] == x2_relevant.shape()[0]);
         assert(x1_relevant.shape()[1] == x2_relevant.shape()[1]);
 
-        cout << "ggg" << endl;
-        cout << f1_relevants.size() << " " << f2_relevants.size() << endl;
+        clog << "ggg" << endl;
+        clog << f1_relevants.size() << " " << f2_relevants.size() << endl;
         assert(f1_relevants.size() == f2_relevants.size());
-        cout << "hhh" << endl;
+        clog << "hhh" << endl;
 
         // assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
 
         for (int i=0; i < m; i++) {
             REAL mult = f2_relevants[i] * f1_relevants[i];
             if (!  (mult <= - ROOT_TOLERANCE*ROOT_TOLERANCE)) {
-                cout << mult <<" = " << f2_relevants[i] << " * " << f1_relevants[i] << " tol=" << ROOT_TOLERANCE << "[" << i << "]"<< endl;
+                clog << mult <<" = " << f2_relevants[i] << " * " << f1_relevants[i] << " tol=" << ROOT_TOLERANCE << "[" << i << "]"<< endl;
             }
             // if (0)
             assert(mult <= - ROOT_TOLERANCE*ROOT_TOLERANCE);
@@ -965,18 +963,18 @@ void  set_centers_on_surface(
     REAL temp2;
     */
 
-    cout << "m=" << m << endl;
+    clog << "m=" << m << endl;
     int ctr = 0;
     for (int i=0; i < m; i++) {
         // If x2 is inside, swap it. => x1 has to be outside.
         if (f2_relevants[i] < -ROOT_TOLERANCE) {
             // ****************************
             // problem: sometimes they are exactly equal!!
-            // if (ctr<10) cout << x2_relevant[i][0] << ", " << x1_relevant[i][0] << " <-> ";
+            // if (ctr<10) clog << x2_relevant[i][0] << ", " << x1_relevant[i][0] << " <-> ";
             std::swap(x2_relevant[i][0], x1_relevant[i][0]);
             std::swap(x2_relevant[i][1], x1_relevant[i][1]);
             std::swap(x2_relevant[i][2], x1_relevant[i][2]);
-            // if (ctr<10) cout << x2_relevant[i][0] << ", " << x1_relevant[i][0] << endl;
+            // if (ctr<10) clog << x2_relevant[i][0] << ", " << x1_relevant[i][0] << endl;
 
             ctr++;
 
@@ -1260,7 +1258,7 @@ void vertex_apply_qem(
 
 
     if (skip) {
-        cout << vi << endl;
+        clog << vi << endl;
         continue;
     }
 

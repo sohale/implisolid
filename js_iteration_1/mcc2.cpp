@@ -729,9 +729,17 @@ int get_gradients_size() {
 }
 
 
+int main(int argc, char **argv) {
+    std::clog.tie (&cerr);
+    clog << "clog" << std::endl;
+    cout << "cout" << std::endl;
+    cerr << "cerr" << std::endl;
+}
+
+/*
 #include "timer.hpp"
 
-/*int main() {
+int main() {
 
     timer t;
     t.stop();

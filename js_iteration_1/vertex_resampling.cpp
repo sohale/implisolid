@@ -12,8 +12,6 @@
 using namespace std;
 using namespace mp5_implicit;
 
-#define ASSERTS 1
-//#define VERBOSE  1
 typedef float REAL;
 typedef struct {
    REAL x, y, z;
