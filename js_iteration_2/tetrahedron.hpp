@@ -215,8 +215,26 @@ public:
     }
 
     virtual mp5_implicit::bounding_box get_boundingbox() const {
-        // testing, not implemented yet
-        return mp5_implicit::bounding_box{-4, 4, -4, 4, -4,4};
+
+        REAL maxX = this->p[0][0];
+        REAL minX = this->p[0][0];
+        REAL maxY = this->p[0][1];
+        REAL minY = this->p[0][1];
+        REAL maxZ = this->p[0][2];
+        REAL minZ = this->p[0][2];
+
+        for (int i = 1; i < 4; i++) {
+            maxX = this->p[i][0] > maxX ? this->p[i][0] : maxX;
+            minX = this->p[i][0] < minX ? this->p[i][0] : minX;
+
+            maxY = this->p[i][1] > maxY ? this->p[i][1] : maxY;
+            minY = this->p[i][1] < minY ? this->p[i][1] : minY;
+
+            maxZ = this->p[i][2] > maxZ ? this->p[i][2] : maxZ;
+            minZ = this->p[i][2] < minZ ? this->p[i][2] : minZ;
+        }
+
+        return mp5_implicit::bounding_box{minX, maxX, minY, maxY, minZ, maxZ};
     }
 
 };
