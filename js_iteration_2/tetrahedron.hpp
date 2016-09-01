@@ -261,6 +261,8 @@ public:
                 planes[i][2] * planes[i][2]
             );
 
+            d = d < 0 ? -d : d;
+
             if (d < MIN_PRINTABLE_LENGTH) {
                 loger << " Point " << i + 1 << " are too close to opposite plane :" << d << std::endl;
 
