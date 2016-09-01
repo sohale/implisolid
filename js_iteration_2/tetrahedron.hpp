@@ -35,35 +35,35 @@ protected:
     vectorized_vect getPlanes() const {
         vectorized_vect planes{boost::extents[4][4]};
 
-        // first plane, based on points: 1, 2, 3
+        // first plane, based on points: 2, 3, 4
         this->calculatePlaneCoefficients(
-            this->p[0][0], this->p[0][1], this->p[0][2],
             this->p[1][0], this->p[1][1], this->p[1][2],
             this->p[2][0], this->p[2][1], this->p[2][2],
+            this->p[3][0], this->p[3][1], this->p[3][2],
             planes[0][0], planes[0][1], planes[0][2], planes[0][3]
         );
 
-        // second plane, based on points: 2, 3, 4
+        // second plane, based on points: 1, 3, 4
         this->calculatePlaneCoefficients(
-            this->p[1][0], this->p[1][1], this->p[1][2],
+            this->p[0][0], this->p[0][1], this->p[0][2],
             this->p[2][0], this->p[2][1], this->p[2][2],
             this->p[3][0], this->p[3][1], this->p[3][2],
             planes[1][0], planes[1][1], planes[1][2], planes[1][3]
         );
 
-        // third plane, based on points: 1, 3, 4
-        this->calculatePlaneCoefficients(
-            this->p[0][0], this->p[0][1], this->p[0][2],
-            this->p[2][0], this->p[2][1], this->p[2][2],
-            this->p[3][0], this->p[3][1], this->p[3][2],
-            planes[2][0], planes[2][1], planes[2][2], planes[2][3]
-        );
-
-        // fourth plane, based on points: 1, 2, 4
+        // third plane, based on points: 1, 2, 4
         this->calculatePlaneCoefficients(
             this->p[0][0], this->p[0][1], this->p[0][2],
             this->p[1][0], this->p[1][1], this->p[1][2],
             this->p[3][0], this->p[3][1], this->p[3][2],
+            planes[2][0], planes[2][1], planes[2][2], planes[2][3]
+        );
+
+        // fourth plane, based on points: 1, 2, 3
+        this->calculatePlaneCoefficients(
+            this->p[0][0], this->p[0][1], this->p[0][2],
+            this->p[1][0], this->p[1][1], this->p[1][2],
+            this->p[2][0], this->p[2][1], this->p[2][2],
             planes[3][0], planes[3][1], planes[3][2], planes[3][3]
         );
 
@@ -207,11 +207,68 @@ public:
     }
 
     bool integrity_invariant() const {
-        /// this function should make sure all of p points are separate and have at least  a minimum distance.
-        /*
-            Note: currently not implemented
-        */
-        return true;
+
+        bool integrity = true;
+
+        int i;
+        int j;
+
+        REAL d;
+
+        // check if the points are not too close to each other
+
+        for (i = 0; i < 3 & integrity; i++) {
+            for (j = i + 1; j < 4 & integrity; j++) {
+                d = sqrt(
+                    (this->p[i][0] - this->p[j][0]) * (this->p[i][0] - this->p[j][0]) +
+                    (this->p[i][1] - this->p[j][1]) * (this->p[i][1] - this->p[j][1]) +
+                    (this->p[i][2] - this->p[j][2]) * (this->p[i][2] - this->p[j][2])
+                );
+
+                if (d < MIN_PRINTABLE_LENGTH) {
+                    loger << " Points are too close: " << d << std::endl;
+
+                    loger << "( " << this->p[i][0] << ", " << this->p[i][1] << ", "  << this->p[i][1] << " )"<< std::endl;
+                    loger << "( " << this->p[j][0] << ", " << this->p[j][1] << ", "  << this->p[j][1] << " )"<< std::endl;
+
+                    integrity = false;
+                }
+            }
+        }
+
+        if (!integrity) 
+            return integrity;
+
+        // TODO: check if we can build plane through each 3 points
+
+        // check if distance from each point to opposite face is not too small
+        // because first plane is based at points 2, 3, 4, second at 1,3,4 etc
+        // we use it, so index of plane, is the index of the point which is not at that plane
+
+        // d = (a * x0 + b * y0 + c * z0 + d) / sqrt(a * a + b * b + c * c)
+
+        planes = getPlanes();
+
+        for (i = 0; i < 4 & integrity; i++) {
+            d = planes[i][0] * this->p[i][0] + 
+                planes[i][1] * this->p[i][1] + 
+                planes[i][2] * this->p[i][2] + 
+                planes[i][3];
+
+            d /= sqrt(
+                planes[i][0] * planes[i][0] +
+                planes[i][1] * planes[i][1] +
+                planes[i][2] * planes[i][2]
+            );
+
+            if (d < MIN_PRINTABLE_LENGTH) {
+                loger << " Point " << i + 1 << " are too close to opposite plane :" << d << std::endl;
+
+                integrity = false;
+            }
+        }
+
+        return integrity;
     }
 
     virtual mp5_implicit::bounding_box get_boundingbox() const {
