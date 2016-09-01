@@ -239,7 +239,49 @@ public:
         if (!integrity) 
             return integrity;
 
-        // TODO: check if we can build plane through each 3 points
+        // check if we can build plane through each 3 points
+        // Task: we have 3 points, A, B, C. Check if the are at the same line
+        // Solution: use cross product of AB x AC, compare to (0,0,0), if positive => then 
+        // they are in one line
+
+        // Cross product formula : U x V = (u2*v3 - u3*v2, u3*v1 - u1*v3, u1*v2 - u2*v1) 
+        int i_1;
+        int i_2;
+        int i_3;
+
+        boost::array<REAL, 3> u;
+        boost::array<REAL, 3> v;
+
+
+        for (i = 0; i < 4 & integrity; i++) {
+            // get indexes of 3 points, that should make a plane
+            i_1 = (i + 1) % 4;
+            i_2 = (i + 2) % 4;
+            i_3 = (i + 3) % 4;
+
+            u[0] = this->p[i_2][0] - this->p[i_1][0];
+            u[1] = this->p[i_2][1] - this->p[i_1][1];
+            u[2] = this->p[i_2][2] - this->p[i_1][2];
+
+            v[0] = this->p[i_3][0] - this->p[i_1][0];
+            v[1] = this->p[i_3][1] - this->p[i_1][1];
+            v[2] = this->p[i_3][2] - this->p[i_1][2];
+
+            d = sqrt(
+                (u[1] * v[2] - u[2] * v[1]) * (u[1] * v[2] - u[2] * v[1]) +
+                (u[2] * v[0] - u[0] * v[2]) * (u[2] * v[0] - u[0] * v[2]) +
+                (u[0] * v[1] - u[1] * v[0]) * (u[0] * v[1] - u[1] * v[0])
+            );
+
+            if (d < MIN_PRINTABLE_LENGTH) {
+                loger << " Points: " << i_1 << ", " << i_2 << ", "<< i_3 << " cannot make a plane :" << d << std::endl;
+
+                integrity = false;
+            }
+        }
+
+        if (!integrity) 
+            return integrity;
 
         // check if distance from each point to opposite face is not too small
         // because first plane is based at points 2, 3, 4, second at 1,3,4 etc
