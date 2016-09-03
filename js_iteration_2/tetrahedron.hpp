@@ -340,3 +340,41 @@ public:
 
 };
 }
+/*
+ FAILED TESTS:
+
+1) points are too close
+
+var mp5_json_tetrahedron = {
+            type: "tetrahedron",
+            corners: [[0, 0, 0],[0, 0, 0],[10, 1, 0],[1,1,10]],
+            matrix:[
+                1, 0,0, 0,
+                0,1, 0, 0,
+                0,0,1,  0,
+                0,0,0,   1]
+        };
+
+2) cannot make plane based at points 1,3,4
+
+var mp5_json_tetrahedron = {
+            type: "tetrahedron",
+            corners: [[0, 0, 0],[0, 0, 10],[10, 0, 0],[0.1,0,0]],
+            matrix:[
+                1, 0,0, 0,
+                0,1, 0, 0,
+                0,0,1,  0,
+                0,0,0,   1]
+        };
+
+3) point 1 are too close to opposite plane
+var mp5_json_tetrahedron = {
+            type: "tetrahedron",
+            corners: [[0, 0, 0],[0, 0, 0.01],[0, 10, 0],[5,5,0.1]],
+            matrix:[
+                1, 0,0, 0,
+                0,1, 0, 0,
+                0,0,1,  0,
+                0,0,0,   1]
+        };
+*/
