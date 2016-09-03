@@ -70,33 +70,33 @@ protected:
         // calculate sign of each plane
 
         REAL plane_1_sign = sign(
-            planes[0][0] * this->p[3][0] +
-            planes[0][1] * this->p[3][1] +
-            planes[0][2] * this->p[3][2] +
+            planes[0][0] * this->p[0][0] +
+            planes[0][1] * this->p[0][1] +
+            planes[0][2] * this->p[0][2] +
             planes[0][3],
             ROOT_TOLERANCE
         );
 
         REAL plane_2_sign = sign(
-            planes[1][0] * this->p[0][0] +
-            planes[1][1] * this->p[0][1] +
-            planes[1][2] * this->p[0][2] +
+            planes[1][0] * this->p[1][0] +
+            planes[1][1] * this->p[1][1] +
+            planes[1][2] * this->p[1][2] +
             planes[1][3],
             ROOT_TOLERANCE
         );
 
         REAL plane_3_sign = sign(
-            planes[2][0] * this->p[1][0] +
-            planes[2][1] * this->p[1][1] +
-            planes[2][2] * this->p[1][2] +
+            planes[2][0] * this->p[2][0] +
+            planes[2][1] * this->p[2][1] +
+            planes[2][2] * this->p[2][2] +
             planes[2][3],
             ROOT_TOLERANCE
         );
 
         REAL plane_4_sign = sign(
-            planes[3][0] * this->p[2][0] +
-            planes[3][1] * this->p[2][1] +
-            planes[3][2] * this->p[2][2] +
+            planes[3][0] * this->p[3][0] +
+            planes[3][1] * this->p[3][1] +
+            planes[3][2] * this->p[3][2] +
             planes[3][3],
             ROOT_TOLERANCE
         );
@@ -217,8 +217,8 @@ public:
 
         // check if the points are not too close to each other
 
-        for (i = 0; i < 3 & integrity; i++) {
-            for (j = i + 1; j < 4 & integrity; j++) {
+        for (i = 0; i < 3 && integrity; i++) {
+            for (j = i + 1; j < 4 && integrity; j++) {
                 d = sqrt(
                     (this->p[i][0] - this->p[j][0]) * (this->p[i][0] - this->p[j][0]) +
                     (this->p[i][1] - this->p[j][1]) * (this->p[i][1] - this->p[j][1]) +
@@ -228,8 +228,8 @@ public:
                 if (d < MIN_PRINTABLE_LENGTH) {
                     loger << " Points are too close: " << d << std::endl;
 
-                    loger << "( " << this->p[i][0] << ", " << this->p[i][1] << ", "  << this->p[i][1] << " )"<< std::endl;
-                    loger << "( " << this->p[j][0] << ", " << this->p[j][1] << ", "  << this->p[j][1] << " )"<< std::endl;
+                    loger << "( " << this->p[i][0] << ", " << this->p[i][1] << ", "  << this->p[i][2] << " )"<< std::endl;
+                    loger << "( " << this->p[j][0] << ", " << this->p[j][1] << ", "  << this->p[j][2] << " )"<< std::endl;
 
                     integrity = false;
                 }
@@ -253,7 +253,7 @@ public:
         boost::array<REAL, 3> v;
 
 
-        for (i = 0; i < 4 & integrity; i++) {
+        for (i = 0; i < 4 && integrity; i++) {
             // get indexes of 3 points, that should make a plane
             i_1 = (i + 1) % 4;
             i_2 = (i + 2) % 4;
@@ -289,9 +289,9 @@ public:
 
         // d = (a * x0 + b * y0 + c * z0 + d) / sqrt(a * a + b * b + c * c)
 
-        planes = getPlanes();
+        vectorized_vect planes = getPlanes();
 
-        for (i = 0; i < 4 & integrity; i++) {
+        for (i = 0; i < 4 && integrity; i++) {
             d = planes[i][0] * this->p[i][0] + 
                 planes[i][1] * this->p[i][1] + 
                 planes[i][2] * this->p[i][2] + 
