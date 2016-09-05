@@ -71,7 +71,7 @@ inline bool sizes_are_equal(const verts_t & A, const verts_t & B) {
     return A.shape()[0] == B.shape()[0]  && A.shape()[1] == B.shape()[1];
 }
 
-inline bool sizes_are_equal(const  & A, const faces_t & B) {
+inline bool sizes_are_equal(const verts_t & A, const faces_t & B) {
     return A.shape()[0] == B.shape()[0]  && A.shape()[1] == B.shape()[1];
 }
 

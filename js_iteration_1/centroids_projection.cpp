@@ -198,7 +198,7 @@ void  set_centers_on_surface(
       const REAL average_edge,
       //nones_map
       const verts_t & mesh_normals,
-      boost::multi_array<bool, 1>& treated) {
+      vectorized_bool& treated) {
 
     // intilization, objects creation
 
@@ -1233,7 +1233,7 @@ void vertex_apply_qem(
     const verts_t centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
     const verts_t centroid_gradients,
-    const boost::multi_array<bool, 1>& treated)
+    const vectorized_bool& treated)
 {
     assert (verts != nullptr);
     /* The next asserts have no significance in C++, only Python */
@@ -1378,12 +1378,16 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     REAL average_edge;
     average_edge = compute_average_edge_length(faces,  verts);
 
-    boost::array<unsigned int, 2> centroids_shape = { result_faces.size()/3 , 3 };
+    vectorized_vect_shape  centroids_shape = { static_cast<vectorized_vect::index>(result_faces.size()/3) , 3 };
     vectorized_vect centroids(centroids_shape);
 
     compute_centroids(faces, verts, centroids);
-    boost::array<unsigned int, 1> treated_shape = {result_faces.size()};
-    boost::multi_array<bool, 1> treated(treated_shape);
+    vectorized_bool_shape  treated_shape = {static_cast<vectorized_vect::index>(result_faces.size())};
+    vectorized_bool  treated(treated_shape);
+    // IS this necessary? It was missing.
+    for (auto it = treated.begin(), e=treated.end(); it != e; ++it) {
+        *it = b_false;
+    }
     /*
     verts_t mesh_normals(centroids_shape);
     std::clog << "Error: mesh_normals is not initialised" << endl;

@@ -90,6 +90,7 @@ typedef array1d::index  vertex_t;
  */
 
 typedef boost::multi_array<REAL, 1>  vectorized_scalar;
+typedef boost::array<int, 1>  vectorized_scalar_shape;
 
 /** Implementation Note
  * Data type: vectorized_vect
@@ -102,7 +103,15 @@ typedef boost::multi_array<REAL, 1>  vectorized_scalar;
 
 typedef boost::multi_array<REAL, 2>  vectorized_vect;
 
-typedef boost::array<int, 2>  vectorized_vect_shape;
+typedef boost::array<vectorized_vect::index, 2>  vectorized_vect_shape;
+//typedef boost::array<int, 2>  vectorized_vect_shape;
+// boost::array<unsigned int, 2>
+
+
+// boost::multi_array<bool, 1>
+typedef boost::multi_array<bool_t, 1>  vectorized_bool;
+//typedef boost::array<unsigned int, 1>  vectorized_bool_shape;
+typedef boost::array<vectorized_bool::index, 1>  vectorized_bool_shape;
 
 // auto& loger = std::cerr;
 

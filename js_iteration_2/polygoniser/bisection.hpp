@@ -97,7 +97,7 @@ void bisection(
     verts_t& x1_arr,
     verts_t& x2_arr,
     REAL ROOT_TOLERANCE,
-    boost::multi_array<bool, 1>& treated) {
+    vectorized_bool& treated) {
 
     // initilization step
     int n = x1_arr.shape()[0];
