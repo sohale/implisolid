@@ -191,13 +191,153 @@ std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL unit_of_length, R
     return alpha_list;
 }
 
+/* creates a bundle of directions on surface, one for each centroid. */
+void create_directions_bundle(
+    //inputs
+    const int iter_type, const vectorized_vect & dx0_c_grad, const std::vector<REAL>& alpha_list_full,
+    const vectorized_vect   & directions_basedon_gradient, const vectorized_vect   & facet_normals_directions,
+    //outputs
+    verts_t & dxc_output, std::string & name_output, std::vector<REAL> & alpha_list_output
+) {
+    /*
+        soetimes alpha_list_output is not changed. It assumes that it has been changes in previous iterations and  has a correct value. Hence, does nto need update.
+        The size of dxc_output is automatically checked (because of boost/STL) in statement: dxc_output = directions_basedon_gradient.
+    */
+
+
+    std::vector<REAL> alpha_list1_10 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+10);
+    std::vector<REAL> alpha_list0 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+1);
+
+    int n = dx0_c_grad.shape()[0];
+    boost::array<int, 2> vector_shape = {n, 3};
+    assert( dx0_c_grad.shape()[0] == n);
+    assert( directions_basedon_gradient.shape()[0] == n);
+    assert( facet_normals_directions.shape()[0] == n);
+    assert( dxc_output.shape()[0] == n);
+
+    if (iter_type == 0) {
+        /*
+            Examine the directions based on gradients (gradient-normals).
+        */
+        name_output = "implicit normals toward surface";
+        dxc_output = directions_basedon_gradient;
+        alpha_list_output = alpha_list_full;  // copy
+
+    } else if (iter_type == 1) {
+        /*
+            Examine directions based on mesh (mesh-normals).
+        */
+        name_output = "mesh normals";
+        dxc_output = facet_normals_directions; // copy
+        alpha_list_output = alpha_list1_10;
+
+    } else if (iter_type == 2) {
+        /*
+            Examine a direction (III) (almost-) perpendicular to both directions in part I and II.
+            Find any direction perpendicular to the gradient-normals.
+            This is created by adding some random direction to the gradient-normals
+            and cross-product-ing it with the mesh normals. (Why mesh-normals?).
+            The result will be perpendicular to both direction I and direction II.
+        */
+        name_output = "...2";
+        int count = directions_basedon_gradient.shape()[0];
+        REAL R = 0.000001; // too small
+        //REAL R = 0.001;
+        verts_t perturb = vectorised_algorithms::make_random_pm1(count, 3, R);
+        vectorised_algorithms::add_inplace(perturb, directions_basedon_gradient);
+        verts_t z = verts_t(vector_shape);
+        assert(assert_are_normalised(facet_normals_directions) && "*mesh normals*");
+
+        vectorised_algorithms::cross_product(facet_normals_directions, perturb, z);
+        print_vector("**meshnormals", facet_normals_directions, 10);
+        print_vector("**perturb", perturb, 10);
+        print_vector("*z", z, 10);
+        vectorised_algorithms::normalize_1111(z);
+        print_vector("*z normalized", z, 10);
+        /*
+        #if ASSERT_USED
+        vectorised_algorithms::assert_are_normalised(z);
+        #endif
+        */
+        assert(assert_are_normalised(z) && "1");
+
+        clog <<
+            dxc_output.shape()[0] << " x " << dxc_output.shape()[1] << dxc_output.shape()[2] <<
+            "  =?=  " <<
+            facet_normals_directions.shape()[0] << " x " << facet_normals_directions.shape()[1] << facet_normals_directions.shape()[2] <<
+            std::endl;
+
+        assert(dxc_output.shape()[0] == facet_normals_directions.shape()[0]); // remove this and make it inplace directly in dxc_output. or return using move constructor.
+        // assert(dxc_output.shape() == facet_normals_directions.shape());  // FAILS?!!! yes. Becasue these are pointers.
+        assert( vectorised_algorithms::sizes_are_equal(dxc_output, facet_normals_directions) );
+        dxc_output = facet_normals_directions; // copy. checks size.
+        alpha_list_output = alpha_list1_10;
+
+        // static auto last_dxc = dxc_output;
+
+    } else if (iter_type == 3) {
+        /*
+        Direction IV:
+        Find the normals based on III & II. The result will not be direction I.
+        Reason: (?).
+        */
+        int count = directions_basedon_gradient.shape()[0];
+        //facet_normals_directions: should be (already) normalised, but allowing some to have zero length
+        //missing = indices_of_zero_normals(facet_normals_directions);
+        verts_t mesh_normals_modifiable = facet_normals_directions;
+        replace_zero_normals_with_gaussian_random(mesh_normals_modifiable);
+        verts_t z2 = verts_t(vector_shape);
+        assert(z2.shape()[0] == mesh_normals_modifiable.shape()[0]);
+        assert(z2.shape()[1] == mesh_normals_modifiable.shape()[1]);
+        //z = ???????????????????
+        //set_vector_from(z, dxc_output); // last dxc_output
+        //verts_t z = dxc_output;  // copy
+        const verts_t& z = dxc_output; // last dxc_output
+        print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
+        print_vector("z", z, 10);
+        vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
+        print_vector("z2", z2, 10);
+        vectorised_algorithms::normalise_inplace(z2, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
+        print_vector("z2 after normalisation", z2, 10);
+        assert(assert_are_normalised(z2));
+        dxc_output = z2;  // copy
+        //alpha_list_output = same as before
+
+        //****
+
+
+    } else if (iter_type == 4 || iter_type == 5 || iter_type == 6) {
+        /*
+        Directions V, VI, VII: simply parallel to X,Y,Z axes.
+        */
+        int dimi = iter_type - 4;
+        if (dimi == 0) {
+            fill_vector(dxc_output, 1, 0, 0);
+        } else if (dimi == 1) {
+            fill_vector(dxc_output, 0, 1, 0);
+        } else if (dimi == 2) {
+            fill_vector(dxc_output, 0, 0, 1);
+        }
+        //alpha_list_output = same as before
+
+    } else {
+        cerr << "Error. incorrect direction type." << std::endl;
+        assert(0);
+    }
+    // dxc_output = direction
+
+    // (alpha_list_output, dxc_output) = directions(iter_type, directions_basedon_gradient, facet_normals_directions, ***);
+
+    assert(alpha_list_output.size() > 0);
+}
+
 // main function version v3s002
 void  set_centers_on_surface(
       mp5_implicit::implicit_function* object,
       verts_t& centroids,
       const REAL average_edge,
       //nones_map
-      const verts_t & mesh_normals,
+      const verts_t & facet_normals_directions,
       vectorized_bool& treated) {
 
     // intilization, objects creation
@@ -229,7 +369,7 @@ void  set_centers_on_surface(
     */
     // now g_a --> g_direction
     print_vector("g_a", g_a, 100);
-    mp5_implicit::vectorised_algorithms::normalise_inplace(g_a);
+    mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
     assert(assert_are_normalised(g_a) && "0");
 
 
@@ -258,27 +398,12 @@ void  set_centers_on_surface(
 
     // Elements will be modified
     auto& g_direction_a = g_a;
-    // g_a = delete;
-    // delete g_a ;
-    // delte g_a
-    // int g_a;
-    // void qq;
+    // how to undefine g_a here?
 
     // todo: remove: negative_f_c
 
     vectorized_scalar signs_c = get_signs(fc_a, ROOT_TOLERANCE);
-    /*
-    vectorized_scalar signs_c(scalar_shape);
-    for (int i=0; i < fc_a.shape()[0]; i++) {
-        if (fc_a[i] > ROOT_TOLERANCE) {
-            signs_c[i] = +1.0;
-        } else if (fc_a[i] < -ROOT_TOLERANCE) {
-            signs_c[i] = -1.0;
-        } else {
-            signs_c[i] = 0.0;
-        }
-    }
-    */
+
 
     assert(g_direction_a.shape()[0] == fc_a.shape()[0]);
 
@@ -290,7 +415,6 @@ void  set_centers_on_surface(
             g_direction_a[i][2] = - g_direction_a[i][2];
         }
     }
-
 
     /*
         dx0_c_grad: the DIRECTION that moves toward the surface, based on GRADIENTs. With the hope that the point and point+direction will be on two different sides of the solid.
@@ -306,13 +430,12 @@ void  set_centers_on_surface(
         dx0_c_grad[i][2] = - g_direction_a[i][2]*signs_c[i];
     }
 
-    const vectorized_vect   & dx0_c_grad_22 = dx0_c_grad;
+    // Problem: directions_basedon_gradient is basically EQUAL to "g_a"
+    const vectorized_vect   & directions_basedon_gradient = dx0_c_grad;
 
     // stepsize happens to be equal to the max_dist.
     REAL initial_step_size = max_dist * 1.0;
     std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, average_edge, 0.001, max_dist, max_iter, EXTREME_ALPHA);
-    std::vector<REAL> alpha_list1_10 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+10);
-    std::vector<REAL> alpha_list0 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+1);
 
     // THE algorithm
 
@@ -347,21 +470,21 @@ void  set_centers_on_surface(
 
     assert(USE_MESH_NORMALS);
     //if (USE_MESH_NORMALS) {  // true
-        verts_t  dx0c_mesh_normals = mesh_normals;
+        //const verts_t & facet_normals_directions = facet_normals_directions;
 
-        assert(assert_are_normalised(dx0c_mesh_normals));
+        assert(assert_are_normalised(facet_normals_directions));
         /*
         #ifdef ASSERT_USED
-        assert_are_normalised(dx0c_mesh_normals);
+        assert_are_normalised(facet_normals_directions);
         #endif
         */
 
         /*
-        // refactor: assert_normalised(dx0c_mesh_normals)
+        // refactor: assert_normalised(facet_normals_directions)
 
         #ifdef ASSERT_USED
-        for (vindex_t i = 0, e = dx0c_mesh_normals.shape()[0]; i < e; i++) {
-            REAL norm2 = norm_squared(dx0c_mesh_normals[i][0], dx0c_mesh_normals[i][1], dx0c_mesh_normals[i][2]);
+        for (vindex_t i = 0, e = facet_normals_directions.shape()[0]; i < e; i++) {
+            REAL norm2 = norm_squared(facet_normals_directions[i][0], facet_normals_directions[i][1], facet_normals_directions[i][2]);
             //assert(norm2 != 0.0);
             assert(std::abs(norm2 - 1.0) < mp5_implicit::vectorised_algorithms::ALL_CLOSE_EPS);
         }
@@ -407,120 +530,20 @@ refactor into functions
         verts_t dxc = verts_t(vector_shape);
         std::string name;
 
-        if (iter_type == 0) {
-            /*
-                Examine the directions based on gradients (gradient-normals).
-            */
-            name = "implicit normals toward surface";
-            dxc = dx0_c_grad;
-            alpha_list1 = alpha_list_full;  // copy
-
-        } else if (iter_type == 1) {
-            /*
-                Examine directions based on mesh (mesh-normals).
-            */
-            name = "mesh normals";
-            dxc = dx0c_mesh_normals; // copy
-            alpha_list1 = alpha_list1_10;
-
-        } else if (iter_type == 2) {
-            /*
-                Examine a direction (III) (almost-) perpendicular to both directions in part I and II.
-                Find any direction perpendicular to the gradient-normals.
-                This is created by adding some random direction to the gradient-normals
-                and cross-product-ing it with the mesh normals. (Why mesh-normals?).
-                The result will be perpendicular to both direction I and direction II.
-            */
-            name = "...2";
-            int count = dx0_c_grad.shape()[0];
-            REAL R = 0.000001; // too small
-            //REAL R = 0.001;
-            verts_t perturb = vectorised_algorithms::make_random_pm1(count, 3, R);
-            vectorised_algorithms::add_inplace(perturb, dx0_c_grad);
-            verts_t z = verts_t(vector_shape);
-            assert(assert_are_normalised(dx0c_mesh_normals) && "*mesh normals*");
-
-            vectorised_algorithms::cross_product(dx0c_mesh_normals, perturb, z);
-            print_vector("**meshnormals", dx0c_mesh_normals, 10);
-            print_vector("**perturb", perturb, 10);
-            print_vector("*z", z, 10);
-            vectorised_algorithms::normalize_1111(z);
-            print_vector("*z normalized", z, 10);
-            /*
-            #if ASSERT_USED
-            vectorised_algorithms::assert_are_normalised(z);
-            #endif
-            */
-            assert(assert_are_normalised(z) && "1");
-
-            clog <<
-                dxc.shape()[0] << " x " << dxc.shape()[1] << dxc.shape()[2] <<
-                "  =?=  " <<
-                dx0c_mesh_normals.shape()[0] << " x " << dx0c_mesh_normals.shape()[1] << dx0c_mesh_normals.shape()[2] <<
-                std::endl;
-
-            assert(dxc.shape()[0] == dx0c_mesh_normals.shape()[0]); // remove this and make it inplace directly in dxc. or return using move constructor.
-            // assert(dxc.shape() == dx0c_mesh_normals.shape());  // FAILS?!!! yes. Becasue these are pointers.
-            assert( vectorised_algorithms::sizes_are_equal(dxc, dx0c_mesh_normals) );
-            dxc = dx0c_mesh_normals; // copy. checks size.
-            alpha_list1 = alpha_list1_10;
-
-            // static auto last_dxc = dxc;
-
-        } else if (iter_type == 3) {
-            /*
-            Direction IV:
-            Find the normals based on III & II. The result will not be direction I.
-            Reason: (?).
-            */
-            int count = dx0_c_grad.shape()[0];
-            //mesh_normals: should be normalised but allowing some to have zero length
-            //missing = indices_of_zero_normals(mesh_normals);
-            verts_t mesh_normals_modifiable = mesh_normals;
-            replace_zero_normals_with_gaussian_random(mesh_normals_modifiable);
-            verts_t z2 = verts_t(vector_shape);
-            assert(z2.shape()[0] == mesh_normals_modifiable.shape()[0]);
-            assert(z2.shape()[1] == mesh_normals_modifiable.shape()[1]);
-            //z = ???????????????????
-            //set_vector_from(z, dxc); // last dxc
-            //verts_t z = dxc;  // copy
-            const verts_t& z = dxc; // last dxc
-            print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
-            print_vector("z", z, 10);
-            vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
-            print_vector("z2", z2, 10);
-            vectorised_algorithms::normalise_inplace(z2);
-            print_vector("z2 after normalisation", z2, 10);
-            assert(assert_are_normalised(z2));
-            dxc = z2;  // copy
-            //alpha_list1 = same as before
-
-            //****
-
-
-        } else if (iter_type == 4 || iter_type == 5 || iter_type == 6) {
-            /*
-            Directions V, VI, VII: simply parallel to X,Y,Z axes.
-            */
-            int dimi = iter_type - 4;
-            if (dimi == 0) {
-                fill_vector(dxc, 1, 0, 0);
-            } else if (dimi == 1) {
-                fill_vector(dxc, 0, 1, 0);
-            } else if (dimi == 2) {
-                fill_vector(dxc, 0, 0, 1);
-            }
-            //alpha_list1 = same as before
-
-        } else {
-            cerr << "Error. incorrect direction type." << std::endl;
-            assert(0);
-        }
-        // dxc = direction
-
-        // (alpha_list1, dxc) = directions(iter_type, dx0_c_grad, mesh_normals, ***);
+        /**********************
+        ***********************/
+        create_directions_bundle(
+            //inputs
+            iter_type, dx0_c_grad, alpha_list_full,
+            directions_basedon_gradient, facet_normals_directions,
+            // outputs
+            dxc, name, alpha_list1
+        );
 
         assert(alpha_list1.size() > 0);
+        /**********************
+        ***********************/
+
 
         // ********************
         //  ALPHA LOOP
@@ -811,6 +834,7 @@ refactor into functions
         */
     }
 
+    // todo: turn this into a canonical function
     // best_result_x = x0_v3[zeros1_bool]
     for (int i=0; i < n; i++) {
         // if (ABS(f1[i])<= ROOT_TOLERANCE) {

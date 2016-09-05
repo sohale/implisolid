@@ -16,8 +16,12 @@ inline REAL norm_2_squared(REAL x, REAL y, REAL z){
   return norms;
 }
 
+/*
+    Normalisation method 1:
+        Leave the vectors that are too small remain as they are.
 
-void normalise_inplace(verts_t& A) {
+*/
+void normalise_inplace(verts_t& A, REAL min_vector_len) {
     assert(A.shape()[1] == 3);
 
     for (int i = 0, e = A.shape()[0]; i < e; i++) {
@@ -25,7 +29,7 @@ void normalise_inplace(verts_t& A) {
         // constexpr REAL MIN_NORM = 1.0;  // norm of the gradients that are zero
         REAL debug_norm0 = norm;
         auto debug_A = A[i];
-        norm = (norm < mp5_implicit::CONFIG_C::center_projection::min_gradient_len)? norm: 1.0;
+        norm = (norm < min_vector_len)? norm: 1.0;
         REAL factor = 1.0 / norm;
         A[i][0]=A[i][0] * factor;
         A[i][1]=A[i][1] * factor;
@@ -42,6 +46,10 @@ void normalise_inplace(verts_t& A) {
     }
 }
 
+/*
+    Normalisation method 2:
+        Simply divide by norm. Perhaps it assumes that the length is neither zero nor near zero.
+*/
 void normalize_1111(verts_t & A) {
     for (int i = 0; i < A.shape()[0]; i++) {
         REAL norm = norm_2(A[i][0], A[i][1], A[i][2]);
@@ -54,7 +62,11 @@ void normalize_1111(verts_t & A) {
     }
 }
 
+/*
+    Normalisation method 3:
+        See randomized ones.
 
+*/
 
 
 
