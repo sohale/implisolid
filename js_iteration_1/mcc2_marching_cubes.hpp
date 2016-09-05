@@ -2,6 +2,7 @@
 
 
 #include "../js_iteration_2/basic_data_structures.hpp"
+#include "../js_iteration_2/basic_functions.hpp"
 #include "../js_iteration_2/implicit_function.hpp"
 
 REAL lerp(REAL a, REAL b, REAL t ) {
@@ -105,7 +106,7 @@ public:
     void seal_exterior(const REAL exterior_value = -100.);
     void subtract_dc(REAL dc_value);
 
-    boost::multi_array<REAL, 2> prepare_grid();
+    vectorized_vect  prepare_grid();
     //void eval_shape(const mp5_implicit::implicit_function& object, REAL mc_grid_real_size);
     void eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
@@ -1757,7 +1758,7 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
     }
 }
 
-boost::multi_array<REAL, 2>
+vectorized_vect
 MarchingCubes::prepare_grid() {
       int min_xi = 0;
       int max_xi = this->resolution;
@@ -1775,13 +1776,13 @@ MarchingCubes::prepare_grid() {
       REAL zfactor = wz /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
 
       boost::array<vectorized_vect::index, 2> grid_shape = {{ this->resolution*this->resolution*this->resolution , 3 }};
-      boost::multi_array<REAL, 2> grid(grid_shape);
+      vectorized_vect  grid(grid_shape);
 
       // Todo: write an iterator
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                  boost::multi_array<REAL, 2>::index  i = x + y*this->resolution + z*this->size2;
+                  vectorized_vect::index  i = x + y*this->resolution + z*this->size2;
                   grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->deltax;
                   grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->deltay;
                   grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->deltaz;

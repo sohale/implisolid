@@ -32,7 +32,20 @@ if [[ -n $EM_PREPARE ]]
 then
     echo ""
 else
-    echo "You need to first run \"source em_prepare.sh\""
+    echo "Error: You need to first run \"source em_prepare.sh\""
+    echo
+    exit 1;
+fi
+
+if [ ! -d "$GTEST_ROOT" ]; then
+    echo "Error: googletest directory not found at $GTEST_ROOT"
+    echo
+    exit 1;
+fi
+
+if [ ! -d "$BOOST_FOLDER" ]; then
+    echo "Error: Boost 1.61.0+ not found at $BOOST_FOLDER"
+    echo
     exit 1;
 fi
 
@@ -59,7 +72,7 @@ fi
 
 if [ $OPTIM -eq 1 ]; then
     echo " * * * Optimized Version  * * *  "
-      em++  -I $BOOST_FOLDER -s EXPORTED_FUNCTIONS="['_main' ]"  \
+    em++    -I $BOOST_FOLDER -s EXPORTED_FUNCTIONS="['_main' ]"  \
             -s NO_EXIT_RUNTIME=1                \
             -Winline    \
             -s TOTAL_MEMORY=301001000           \

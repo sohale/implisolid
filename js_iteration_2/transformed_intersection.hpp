@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "basic_data_structures.hpp"
+#include "basic_functions.hpp"
 #include "transformed.hpp"
 
 namespace mp5_implicit {

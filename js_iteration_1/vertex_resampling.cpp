@@ -9,8 +9,17 @@
 #include <tuple>
 #include <fstream>
 
+#include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
+
 using namespace std;
 using namespace mp5_implicit;
+
+using mp5_implicit::compute_centroid_gradient;
+using mp5_implicit::compute_centroids;
+using mp5_implicit::vectorised_algorithms::norm_2_squared;
+using mp5_implicit::vectorised_algorithms::norm_2;
+
+
 
 typedef float REAL;
 typedef struct {
@@ -31,43 +40,9 @@ typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
-inline REAL norm_2(REAL x, REAL y, REAL z){
-  REAL norm = sqrt(x*x + y*y + z*z);
-  return norm;
-}
-
-inline REAL norm_2_squared(REAL x, REAL y, REAL z){
-  REAL norms = x*x + y*y + z*z;
-  return norms;
-}
-
-void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
-  int nt = faces.shape()[0];
-  for (int j=0; j<nt; j++){
-    int f0 = faces[j][0];
-    int f1 = faces[j][1];
-    int f2 = faces[j][2];
-    for (int di=0; di<3; di++){
-        centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di])/3.;
-
-    }
-  }
-}
 
 
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou){
 
-  gradou->eval_gradient(centroids, &centroid_normals_normalized);
-    for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
-      REAL norm = norm_2(centroid_normals_normalized[i][0], centroid_normals_normalized[i][1], centroid_normals_normalized[i][2]);
-      assert(norm!=0.);
-      for(int j = 0; j < 3; j++){
-        centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
-        assert(centroid_normals_normalized[i][j] <= 1.);
-        assert(centroid_normals_normalized[i][j] >= -1.);
-      }
-    }
-}
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
   int nt = faces.shape()[0];
@@ -255,7 +230,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
   compute_centroids(faces, verts, centroids);
 
   boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
-  boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
+  vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
 
   compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 

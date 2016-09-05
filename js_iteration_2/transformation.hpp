@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic_data_structures.hpp"
+#include "basic_functions.hpp"
 
 
 class transformable_implicit_function : public mp5_implicit::implicit_function {

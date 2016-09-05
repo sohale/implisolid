@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../js_iteration_2/basic_data_structures.hpp"
+#include "../js_iteration_2/basic_functions.hpp"
 #include "../js_iteration_2/implicit_function.hpp"
 
 REAL lerp(REAL a, REAL b, REAL t ) {
@@ -559,7 +560,7 @@ void MarchingCubes::create_shape(implicit_function* object, REAL grid_real_size)
       int max_z = this->size;
 
       boost::array<int, 2> grid_shape = { this->size*this->size*this->size , 3 };
-      boost::multi_array<REAL, 2> grid(grid_shape);
+      vectorized_vect  grid(grid_shape);
 
       boost::array<int, 1> implicit_values_shape = { this->size*this->size*this->size };
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);

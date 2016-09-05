@@ -1,6 +1,9 @@
 /*
 Copyright 2016 MyMiniFactory Ltd.
+author: Marc, Solene, Sohail
 */
+#pragma once
+
 
 #include <iostream>
 #include <math.h>
@@ -15,16 +18,42 @@ Copyright 2016 MyMiniFactory Ltd.
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
+// #include "../js_iteration_2/basic_data_structures.hpp"
+
+#include "../js_iteration_2/vectorised_algorithms/make_random_pm1.hpp"
+#include "../js_iteration_2/vectorised_algorithms/add_inplace.hpp"
+#include "../js_iteration_2/vectorised_algorithms/cross_product.hpp"
+#include "../js_iteration_2/vectorised_algorithms/normalise_inplace.hpp"
+#include "../js_iteration_2/vectorised_algorithms/assert_are_normalised.hpp"
+using mp5_implicit::vectorised_algorithms::assert_are_normalised;
+#include "../js_iteration_2/vectorised_algorithms/misc.hpp"
+using mp5_implicit::vectorised_algorithms::replace_zero_normals_with_gaussian_random;
+using mp5_implicit::vectorised_algorithms::fill_vector;
+
+#include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
+using mp5_implicit::get_signs;
+using mp5_implicit::produce_facet_normals;
+
+using mp5_implicit::compute_centroid_gradient;
+
 using namespace std;
-using namespace mp5_implicit;
+
+namespace mp5_implicit {
+
+//#undef ASSERT_USED
+//#define ASSERT_USED 0
+//#define assert(x) {}
 
 REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
     int nfaces = faces.shape()[0];
     REAL edge_length;
     for (int j=0; j < nfaces; j++) {
-        edge_length += norm_2(verts[faces[j][0]][0] - verts[faces[j][1]][0], verts[faces[j][0]][1] - verts[faces[j][1]][1], verts[faces[j][0]][2] - verts[faces[j][1]][2]);
-        edge_length += norm_2(verts[faces[j][0]][0] - verts[faces[j][2]][0], verts[faces[j][0]][1] - verts[faces[j][2]][1], verts[faces[j][0]][2] - verts[faces[j][2]][2]);
-        edge_length += norm_2(verts[faces[j][2]][0] - verts[faces[j][1]][0], verts[faces[j][2]][1] - verts[faces[j][1]][1], verts[faces[j][2]][2] - verts[faces[j][1]][2]);
+        auto f0 = faces[j][0];
+        auto f1 = faces[j][1];
+        auto f2 = faces[j][2];
+        edge_length += norm_2(verts[f0][0] - verts[f1][0], verts[f0][1] - verts[f1][1], verts[f0][2] - verts[f1][2]);
+        edge_length += norm_2(verts[f0][0] - verts[f2][0], verts[f0][1] - verts[f2][1], verts[f0][2] - verts[f2][2]);
+        edge_length += norm_2(verts[f2][0] - verts[f1][0], verts[f2][1] - verts[f1][1], verts[f2][2] - verts[f1][2]);
     }
     return edge_length/(3.*nfaces);
 }
@@ -33,9 +62,9 @@ REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
 void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
     int nt = faces.shape()[0];
     for (int j=0; j < nt; j++) {
-        int f0 = faces[j][0];
-        int f1 = faces[j][1];
-        int f2 = faces[j][2];
+        auto f0 = faces[j][0];
+        auto f1 = faces[j][1];
+        auto f2 = faces[j][2];
         for (int di=0; di < 3; di++) {
                 centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di])/3.;
 
@@ -81,365 +110,37 @@ inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
             (0.0);
 }
 
-template<typename T>
-void here(T arg) {
-    std::clog << arg << std::endl << std::flush;
-}
 
-inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign) {
-    assert(sign == +1 || sign == -1); // || sign == 0.0);
-
-    clog << "test_points_sign" << endl;
-
-    int n = x_vectorized.shape()[0];
-    // int n = v_arr.size(); //[0];
-    boost::array<int, 1> v1_shape = {n};
-    vectorized_scalar v_arr(v1_shape);  // x_vectorized.shape());
-
-    object.eval_implicit(x_vectorized, &v_arr);
-
-    // int n = v_arr.size(); //[0];
-    bool everything_alright = true;
-    for (int i=0; i < n; i++) {
-        auto s1 = my_sign(v_arr[i], ROOT_TOLERANCE);
-        bool ok = (s1 * sign >  0 + 0.0001);
-        if (!ok) {
-            clog <<  v_arr[i] << " " << s1 << " " << sign << " :" << i << endl;
-        }
-        everything_alright = everything_alright && ok;
-    }
-    clog << "bool" << everything_alright << endl;
-    return everything_alright;
-}
-
-inline bool test_if_points_are_inside(verts_t& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
-    return test_points_sign(x2_vectorized, object, ROOT_TOLERANCE, +1);
-}
-inline bool test_if_points_are_outside(verts_t& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
-    return test_points_sign(x1_vectorized, object, ROOT_TOLERANCE, -1);
-}
-
-
-inline void check_bisection_input_signs(
-    vectorized_scalar& v1_arr,
-    vectorized_scalar& v2_arr,
-    REAL ROOT_TOLERANCE,
-    int n,
-    int active_count,
-    int iteration
-  ) {
-    #if ASSERT_USED
-        here("a1. iteration"+std::to_string(iteration));
-
-        bool assert1 = true;
-        for (int i=0; i < active_count; i++) {
-            auto s1 = my_sign(v1_arr[i], ROOT_TOLERANCE);
-            auto s2 = my_sign(v2_arr[i], ROOT_TOLERANCE);
-            // assert(s1* s2 < 0 - EPS);
-            bool ok = (s1* s2 < 0 - EPS);
-            // if (!ok) {
-            //     std::clog << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
-            // }
-            assert1 = assert1 && ok;
-        }
-        if (!assert1) clog << "";
-        assert(assert1);
-
-        here("a2");
-
-        bool assert2 = true;
-        for (int i=0; i < active_count; i++) {
-            bool ok = v1_arr[i] < 0 - ROOT_TOLERANCE;
-            assert2 = assert2 && ok;
-        }
-        here("a3");
-
-        assert(assert2);
-        here("a4");
-
-        assert(active_count <= n);
-        here("a5");
-
-        assert(true);
-    #endif
-}
+#include "../js_iteration_2/polygoniser/bisection.hpp"
 
 /*
-    vectorized bisection.
-    x1_arr: points outside
-    x2_arr: points inside
-
-    All x1 must be strictly outside, and x2 must be inside the solid.
-*/
-void bisection(
-    mp5_implicit::implicit_function* object,
-    verts_t& res_x_arr,
-    verts_t& x1_arr,
-    verts_t& x2_arr,
-    REAL ROOT_TOLERANCE,
-    boost::multi_array<bool, 1>& treated) {
-
-    // initilization step
-    int n = x1_arr.shape()[0];
-    assert(x2_arr.shape()[0] == n);
-    assert(x1_arr.shape()[1] == 3);
-    assert(x2_arr.shape()[1] == 3);
-
-    assert(res_x_arr.shape()[0] == n);
-    assert(res_x_arr.shape()[1] == 3);
-
-    // implicit function of the two arrays
-    boost::array<int, 1> v1_shape = {n};
-
-    #if ASSERT_USED
-        vectorized_scalar v1_arr(v1_shape);   // todo: rename to v1
-        vectorized_scalar v2_arr(v1_shape);
-
-        object->eval_implicit(x1_arr, &v1_arr);
-        object->eval_implicit(x2_arr, &v2_arr);
-
-
-        for (int i=0; i < n; i++) {
-            res_x_arr[i][0] = -10000.0;
-            res_x_arr[i][1] = -10000.0;
-            res_x_arr[i][2] = -10000.0;
-        }
-
-    #endif
-
-    boost::multi_array<int, 1> active_indices(v1_shape);
-
-    for (int i=0; i < n; i++) {
-        active_indices[i] = i;
-    }
-    int active_indices_size = n;
-
-    for (int i=0; i < n; i++) {
-        treated[i] = false;
+namespace mp5 {
+    int global_rng_seed = 12;
+};
+verts_t make_random_pm1(vindex_t n, int dims, REAL amplitude) {
+    //verts_t result {n, dims};
+    verts_t result {boost::extents[n][dims]};
+    //mt11213b r = boost::mt11213b();
+    int seed = mp5::global_rng_seed;
+    boost::random::mt11213b rngen(seed);
+    //boost::random::uniform_
+    boost::random::uniform_01<REAL> distr;
+    for (vindex_t i = 0; i < n; ++i) {
+        result[i][0] = distr(rngen) * amplitude;
+        result[i][1] = distr(rngen) * amplitude;
+        result[i][2] = distr(rngen) * amplitude;
     }
 
-    int active_count = n;
-    int solved_count = 0;
-
-    boost::array<int, 2> x_mid_shape = {n, 3};
-    boost::multi_array<REAL, 2> x_mid(x_mid_shape);
-    /*
-    #if ASSERT_USED
-        for (int i = 0; i < n; i++) {
-            for (int d = 0; d < 3; d++) {
-                x_mid[i][d] = 1.0;
-            }
-        }
-    #endif
-    */
-
-    vectorized_scalar v_mid(v1_shape); // implicit function for x_mid
-    /*
-    #if ASSERT_USED
-        for (int i = 0; i < n; i++) {
-            v_mid[i] = 0.0;
-        }
-    #endif
-    */
-
-    vectorized_scalar abs_(v1_shape); // absolute value of the implicit function
-
-
-    // array of indices
-    boost::multi_array<vindex_t, 1> indices_boundary(v1_shape);
-    boost::multi_array<vindex_t, 1> indices_outside(v1_shape);
-    boost::multi_array<vindex_t, 1> indices_inside(v1_shape);
-    boost::multi_array<vindex_t, 1> indices_eitherside(v1_shape);
-    boost::multi_array<vindex_t, 1> which_zeroed(v1_shape);
-
-    int iteration = 1;
-
-    // loop
-    while (true) {
-        here("start");
-
-        /* Checks if all v1 and v2 have opposite signs and are not zero*/
-        #if ASSERT_USED
-
-        check_bisection_input_signs(v1_arr, v2_arr, ROOT_TOLERANCE, n, active_count, iteration);
-        #endif
-
-        here("2");
-
-        // mean of (x1, x2)
-        for (int i=0; i < active_count; i++) {
-            x_mid[i][0] = (x1_arr[i][0] + x2_arr[i][0]) / 2.;
-            x_mid[i][1] = (x1_arr[i][1] + x2_arr[i][1]) / 2.;
-            x_mid[i][2] = (x1_arr[i][2] + x2_arr[i][2]) / 2.;
-        }
-
-        here("3");
-
-        // *************************************
-        // Fix me
-        object->eval_implicit(x_mid, &v_mid); // no. only first ones**
-        //
-        // *************************************
-
-        here("4");
-
-        assert(active_indices_size == active_count);
-
-
-        here("5");
-
-        for (int i=0; i < active_count; i++) {
-            abs_[i] = ABS(v_mid[i]);
-        }
-        // int abs_size = active_count;
-
-        here("6");
-
-        // imcrementing the size of the indices arrays
-        int indices_boundary_size = 0;
-        for (int i=0; i < active_count; i++) {
-            if (abs_[i] <= ROOT_TOLERANCE) {
-                indices_boundary[indices_boundary_size] = i;
-                indices_boundary_size ++;
-            }
-        }
-
-        here("7");
-
-        int i_e = 0;
-        for (int i=0; i < active_count; i++) {
-            if (abs_[i] > ROOT_TOLERANCE) {
-                indices_eitherside[i_e] = i;
-                i_e ++;
-            }
-        }
-        int indices_eitherside_size = i_e;
-
-        int i_o = 0;
-        for (int i=0; i < active_count; i++) {
-            if (v_mid[i] < -ROOT_TOLERANCE) {
-                indices_outside[i_o] = i;
-                i_o ++;
-            }
-        }
-        int indices_outside_size = i_o;
-
-        int i_i = 0;
-        for (int i=0; i < active_count; i++) {
-            if (v_mid[i] > +ROOT_TOLERANCE) {
-                indices_inside[i_i] = i;
-                i_i ++;
-            }
-        }
-        int indices_inside_size = i_i;
-
-        here("8");
-
-        assert(indices_boundary_size + indices_inside_size + indices_outside_size == active_count);
-
-        here("9");
-
-        assert(indices_eitherside_size + indices_boundary_size == active_count);
-
-        here("10");
-
-////////////////
-        // which_zeroed = active_indices[indices_boundary]
-        for (int i = 0; i < indices_boundary_size; ++i) {
-            which_zeroed[i] = active_indices[indices_boundary[i]];
-            treated[active_indices[indices_boundary[i]]]=true;
-        }
-        const int which_zeroed_size = indices_boundary_size;
-
-        int found_count = indices_boundary_size;
-        solved_count += found_count;
-
-        assert(active_count - found_count + solved_count == n);
-
-        // copy into the result, the x_mid that solved the equation.
-        for (int i = 0; i < indices_boundary_size; ++i) {
-            int w = which_zeroed[i];
-            int b = indices_boundary[i];
-            res_x_arr[w][0] = x_mid[b][0];
-            res_x_arr[w][1] = x_mid[b][1];
-            res_x_arr[w][2] = x_mid[b][2];
-        }
-
-        // assert indices_boundary[:] < active_count
-        #if ASSERT_USED
-        {
-            bool assertok = true;
-            for (int i = 0; i < indices_boundary_size; ++i) {
-                bool ok = indices_boundary[i] < active_count;
-                assertok = assertok && ok;
-            }
-            assert(assertok);
-        }
-        #endif
-        //**********************************************
-        //* Code review of "bisection" done up to here *
-        //**********************************************
-
-        // changing the values of x2 and x1
-        for (int i=0; i < i_i; i++) {
-            #if ASSERT_USED
-                    v2_arr[indices_inside[i]] = v_mid[indices_inside[i]];
-            #endif
-            x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
-            x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
-            x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
-        }
-
-        for (int i=0; i < i_o; i++) {
-            #if ASSERT_USED
-                v1_arr[indices_outside[i]] = v_mid[indices_outside[i]];
-            #endif
-            x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
-            x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
-            x1_arr[indices_outside[i]][2] = x_mid[indices_outside[i]][2];
-        }
-
-        // next round
-
-        for (int i=0; i < i_e; i++) {
-            active_indices[i] = active_indices[indices_eitherside[i]];
-        }
-
-        indices_boundary.resize(boost::extents[i_e]);
-        indices_eitherside.resize(boost::extents[i_e]);
-        indices_outside.resize(boost::extents[i_e]);
-        indices_inside.resize(boost::extents[i_e]);
-        which_zeroed.resize(boost::extents[i_e]);
-        active_indices.resize(boost::extents[i_e]);
-
-        active_count = active_count - found_count;
-
-        iteration += 1;
-
-        for (int i=0; i < active_count; i++) {
-            #if ASSERT_USED
-                v1_arr[i] = v1_arr[indices_eitherside[i]];
-                v2_arr[i] = v2_arr[indices_eitherside[i]];
-            #endif
-
-            x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
-            x1_arr[i][1] = x1_arr[indices_eitherside[i]][1];
-            x1_arr[i][2] = x1_arr[indices_eitherside[i]][2];
-
-            x2_arr[i][0] = x2_arr[indices_eitherside[i]][0];
-            x2_arr[i][1] = x2_arr[indices_eitherside[i]][1];
-            x2_arr[i][2] = x2_arr[indices_eitherside[i]][2];
-        }
-
-        if (active_indices.shape()[0] == 0 || iteration==10) {
-            clog << "projection treated this much points" << endl;
-            clog << solved_count << endl;
-            break;
-        }
-
+    for (vindex_t i = 0; i < 10; ++i) {
+        std::clog
+            << result[i][0]
+            << result[i][1]
+            << result[i][2]
+            << std::endl;
     }
-
+    return result;
 }
+*/
 
 
 std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL unit_of_length, REAL min_step_size, REAL max_dist, int max_iter, bool EXTREME_ALPHA) {
@@ -490,11 +191,13 @@ std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL unit_of_length, R
     return alpha_list;
 }
 
-// main function
+// main function version v3s002
 void  set_centers_on_surface(
       mp5_implicit::implicit_function* object,
       verts_t& centroids,
       const REAL average_edge,
+      //nones_map
+      const verts_t & mesh_normals,
       boost::multi_array<bool, 1>& treated) {
 
     // intilization, objects creation
@@ -515,14 +218,22 @@ void  set_centers_on_surface(
     vectorized_scalar fc_a(scalar_shape);
     object->eval_implicit(centroids, &fc_a);
 
+
     boost::array<int, 2> g_a_shape = { n , 3 };
-    boost::multi_array<REAL, 2> g_a(g_a_shape);
+    verts_t g_a(g_a_shape);
     // applying the centroid gradient
 
-    /*compute_centroid_gradient(x, g_a, object);
-    Compute the gradients, and normalise them.
+    compute_centroid_gradient(x, g_a, object);
+
+    /*Compute the gradients, and normalise them.
     */
     // now g_a --> g_direction
+    print_vector("g_a", g_a, 100);
+    mp5_implicit::vectorised_algorithms::normalise_inplace(g_a);
+    assert(assert_are_normalised(g_a) && "0");
+
+
+    /*
     {
     constexpr REAL MIN_NORM = 1.0;  // An absolute value: not good.
     object->eval_gradient(x, &g_a);
@@ -543,6 +254,7 @@ void  set_centers_on_surface(
         #endif
     }
     }
+    */
 
     // Elements will be modified
     auto& g_direction_a = g_a;
@@ -554,7 +266,8 @@ void  set_centers_on_surface(
 
     // todo: remove: negative_f_c
 
-
+    vectorized_scalar signs_c = get_signs(fc_a, ROOT_TOLERANCE);
+    /*
     vectorized_scalar signs_c(scalar_shape);
     for (int i=0; i < fc_a.shape()[0]; i++) {
         if (fc_a[i] > ROOT_TOLERANCE) {
@@ -565,6 +278,7 @@ void  set_centers_on_surface(
             signs_c[i] = 0.0;
         }
     }
+    */
 
     assert(g_direction_a.shape()[0] == fc_a.shape()[0]);
 
@@ -578,9 +292,12 @@ void  set_centers_on_surface(
     }
 
 
+    /*
+        dx0_c_grad: the DIRECTION that moves toward the surface, based on GRADIENTs. With the hope that the point and point+direction will be on two different sides of the solid.
+    */
     // Move toward surface: If inside (the f value is positive) move outwards (oppoosite the -gradient), and if outside, move inwards (+gradient).
     boost::array<int, 2> vector_shape = {n, 3};
-    boost::multi_array<REAL, 2> dx0_c_grad(vector_shape);
+    vectorized_vect  dx0_c_grad(vector_shape);
 
     for (int i=0; i < fc_a.shape()[0]; i++) {
         // Bug fixed: negative sign missing.
@@ -589,133 +306,449 @@ void  set_centers_on_surface(
         dx0_c_grad[i][2] = - g_direction_a[i][2]*signs_c[i];
     }
 
+    const vectorized_vect   & dx0_c_grad_22 = dx0_c_grad;
+
     // stepsize happens to be equal to the max_dist.
     REAL initial_step_size = max_dist * 1.0;
-    std::vector<REAL> alpha_list = make_alpha_list(initial_step_size, average_edge, 0.001, max_dist, max_iter, EXTREME_ALPHA);
+    std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, average_edge, 0.001, max_dist, max_iter, EXTREME_ALPHA);
+    std::vector<REAL> alpha_list1_10 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+10);
+    std::vector<REAL> alpha_list0 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+1);
 
     // THE algorithm
 
     // array definition
-    boost::multi_array<REAL, 2> best_result_x(vector_shape);
-    boost::multi_array<REAL, 2> x1_half(vector_shape);
-    boost::multi_array<REAL, 2> xa4(vector_shape);
+    assert(n == n);
+    vectorized_vect   best_result_x(vector_shape);
 
-    vectorized_scalar f_a(scalar_shape);
-    vectorized_scalar signs_a(scalar_shape);
-
-    // boolean
-    boost::multi_array<bool_t, 1> success0(scalar_shape);
-    boost::multi_array<bool_t, 1> success(scalar_shape);
-
-    // indices arrays
-    boost::multi_array<int, 1> active_indices(scalar_shape);
-    boost::multi_array<int, 1> still_nonsuccess_indices(scalar_shape);
-
-
+    boost::multi_array<vindex_t, 1> active_indices(scalar_shape);
     for (int i=0; i < n; i++) {
         active_indices[i] = i;
     }
 
     int active_count = n;
 
-    still_nonsuccess_indices = active_indices;
+    boost::multi_array<int, 1> still_nonsuccess_indices(scalar_shape);
+    int s_n_s = 0;
+    //TODO RENAME  s_n_s --->  still_nonsuccess_indices_size
+    still_nonsuccess_indices = active_indices;  // copy
+    assert(std::begin(still_nonsuccess_indices) != std::begin(active_indices));  // assure it's a copy
 
     boost::multi_array<bool_t, 1> already_success(scalar_shape);
-    boost::multi_array<bool_t, 1> new_success_indices(scalar_shape);
-
-
     for (int i=0; i < n; i++) {
         already_success[i] = b_false;
     }
 
-    int counter = -1;
-    int s_n_s = 0;
-    // main part of the algor
-    for (int i=0; i < alpha_list.size(); i++) {
-        counter += 1;
+    boost::multi_array<bool_t, 1> success(scalar_shape);
+    //boost::multi_array<bool_t, 1> already_success(scalar_shape);
+    for (int i=0; i < n; i++) {
+        success[i] = b_false;  // = already_success[i]
+    }
+    //already_success must be false here.
 
-        for (int j=0; j < n; j++) {
-            x1_half[j][0] = centroids[j][0] + (max_dist*alpha_list[i])*dx0_c_grad[j][0];
-            x1_half[j][1] = centroids[j][1] + (max_dist*alpha_list[i])*dx0_c_grad[j][1];
-            x1_half[j][2] = centroids[j][2] + (max_dist*alpha_list[i])*dx0_c_grad[j][2];
-        }
+    assert(USE_MESH_NORMALS);
+    //if (USE_MESH_NORMALS) {  // true
+        verts_t  dx0c_mesh_normals = mesh_normals;
 
-        active_indices = still_nonsuccess_indices;
-
-        for (int j=0; j < active_indices.shape()[0]; j++) {
-            xa4[j][0] = x1_half[active_indices[j]][0];
-            xa4[j][1] = x1_half[active_indices[j]][1];
-            xa4[j][2] = x1_half[active_indices[j]][2];
-        }
-        object->eval_implicit(xa4, &f_a);
-
-        for (int j=0; j < active_indices.shape()[0]; j++) {
-            if (f_a[j] > ROOT_TOLERANCE) {
-                signs_a[j] = +1.;
-            } else if (f_a[j] < -ROOT_TOLERANCE) {
-                signs_a[j] = -1.;
-            } else {
-                signs_a[j] = 0.;
-            }
-
-            success[j] = b_false;
-
-            if (signs_a[j] * signs_c[active_indices[j]] <=0) {
-                success0[j] = b_true;
-            } else {
-                success0[j] = b_false;
-            }
-
-        }
-
-        for (int j=0; j < active_indices.shape()[0]; j++) {
-            success[active_indices[j]] = success0[j];
-        }
-
-
-        int n_s = 0;
-        s_n_s = 0;
-        for (int j=0; j < active_indices.shape()[0]; j++) {
-            if (success[j] == b_true && already_success[j] == b_false) {
-                new_success_indices[n_s] = j;
-                n_s ++;
-            } else {
-                still_nonsuccess_indices[s_n_s] = j;
-                s_n_s ++;
-            }
-        }
-
-        for (int j=0; j < n_s; j++) {
-            best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
-            best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
-            best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
-        }
-
-        for (int j=0; j < n; j++) {
-            if (success[j] == b_true) {
-                already_success[j] = b_true;
-            }
-        }
-        /* Code that is Different to bisection_vectorized5_()
-
+        assert(assert_are_normalised(dx0c_mesh_normals));
+        /*
+        #ifdef ASSERT_USED
+        assert_are_normalised(dx0c_mesh_normals);
+        #endif
         */
 
         /*
-        // MOVED BELOW
+        // refactor: assert_normalised(dx0c_mesh_normals)
 
-        if (s_n_s == 0) {
-            break;
+        #ifdef ASSERT_USED
+        for (vindex_t i = 0, e = dx0c_mesh_normals.shape()[0]; i < e; i++) {
+            REAL norm2 = norm_squared(dx0c_mesh_normals[i][0], dx0c_mesh_normals[i][1], dx0c_mesh_normals[i][2]);
+            //assert(norm2 != 0.0);
+            assert(std::abs(norm2 - 1.0) < mp5_implicit::vectorised_algorithms::ALL_CLOSE_EPS);
         }
+        #endif
         */
+    //  }
 
-        active_indices.resize(boost::extents[s_n_s]);
-        still_nonsuccess_indices.resize(boost::extents[s_n_s]);
 
-        if (s_n_s == 0) {
-            break;
+/*
+*******************
+todo: these variables.
+make a loop
+refactor into functions
+*******************
+*/
+    vectorized_vect   xa4(vector_shape);
+/*
+    vectorized_vect x1_half(vector_shape);
+
+    vectorized_scalar f_a(scalar_shape);
+    vectorized_scalar signs_a(scalar_shape);
+
+    // boolean
+    boost::multi_array<bool_t, 1> success0(scalar_shape);
+
+    // indices arrays
+*/
+
+    std::vector<int> cases;
+    if (USE_MESH_NORMALS) {
+        cases = std::vector<int>{0, 1, 2, 3, 4, 5, 6};
+    } else {
+        cases = std::vector<int>{0};
+    }
+
+    // todo: move alpha_list here
+    for (auto iter_type : cases) {
+
+        std::vector<REAL> alpha_list1; // = std::vector<int>(alpha_list.begin(), alpha_list.begin());
+        // alpha_list0, alpha_list1_10, alpha_list_full
+
+        // always copy
+        verts_t dxc = verts_t(vector_shape);
+        std::string name;
+
+        if (iter_type == 0) {
+            /*
+                Examine the directions based on gradients (gradient-normals).
+            */
+            name = "implicit normals toward surface";
+            dxc = dx0_c_grad;
+            alpha_list1 = alpha_list_full;  // copy
+
+        } else if (iter_type == 1) {
+            /*
+                Examine directions based on mesh (mesh-normals).
+            */
+            name = "mesh normals";
+            dxc = dx0c_mesh_normals; // copy
+            alpha_list1 = alpha_list1_10;
+
+        } else if (iter_type == 2) {
+            /*
+                Examine a direction (III) (almost-) perpendicular to both directions in part I and II.
+                Find any direction perpendicular to the gradient-normals.
+                This is created by adding some random direction to the gradient-normals
+                and cross-product-ing it with the mesh normals. (Why mesh-normals?).
+                The result will be perpendicular to both direction I and direction II.
+            */
+            name = "...2";
+            int count = dx0_c_grad.shape()[0];
+            REAL R = 0.000001; // too small
+            //REAL R = 0.001;
+            verts_t perturb = vectorised_algorithms::make_random_pm1(count, 3, R);
+            vectorised_algorithms::add_inplace(perturb, dx0_c_grad);
+            verts_t z = verts_t(vector_shape);
+            assert(assert_are_normalised(dx0c_mesh_normals) && "*mesh normals*");
+
+            vectorised_algorithms::cross_product(dx0c_mesh_normals, perturb, z);
+            print_vector("**meshnormals", dx0c_mesh_normals, 10);
+            print_vector("**perturb", perturb, 10);
+            print_vector("*z", z, 10);
+            vectorised_algorithms::normalize_1111(z);
+            print_vector("*z normalized", z, 10);
+            /*
+            #if ASSERT_USED
+            vectorised_algorithms::assert_are_normalised(z);
+            #endif
+            */
+            assert(assert_are_normalised(z) && "1");
+
+            clog <<
+                dxc.shape()[0] << " x " << dxc.shape()[1] << dxc.shape()[2] <<
+                "  =?=  " <<
+                dx0c_mesh_normals.shape()[0] << " x " << dx0c_mesh_normals.shape()[1] << dx0c_mesh_normals.shape()[2] <<
+                std::endl;
+
+            assert(dxc.shape()[0] == dx0c_mesh_normals.shape()[0]); // remove this and make it inplace directly in dxc. or return using move constructor.
+            // assert(dxc.shape() == dx0c_mesh_normals.shape());  // FAILS?!!! yes. Becasue these are pointers.
+            assert( vectorised_algorithms::sizes_are_equal(dxc, dx0c_mesh_normals) );
+            dxc = dx0c_mesh_normals; // copy. checks size.
+            alpha_list1 = alpha_list1_10;
+
+            // static auto last_dxc = dxc;
+
+        } else if (iter_type == 3) {
+            /*
+            Direction IV:
+            Find the normals based on III & II. The result will not be direction I.
+            Reason: (?).
+            */
+            int count = dx0_c_grad.shape()[0];
+            //mesh_normals: should be normalised but allowing some to have zero length
+            //missing = indices_of_zero_normals(mesh_normals);
+            verts_t mesh_normals_modifiable = mesh_normals;
+            replace_zero_normals_with_gaussian_random(mesh_normals_modifiable);
+            verts_t z2 = verts_t(vector_shape);
+            assert(z2.shape()[0] == mesh_normals_modifiable.shape()[0]);
+            assert(z2.shape()[1] == mesh_normals_modifiable.shape()[1]);
+            //z = ???????????????????
+            //set_vector_from(z, dxc); // last dxc
+            //verts_t z = dxc;  // copy
+            const verts_t& z = dxc; // last dxc
+            print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
+            print_vector("z", z, 10);
+            vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
+            print_vector("z2", z2, 10);
+            vectorised_algorithms::normalise_inplace(z2);
+            print_vector("z2 after normalisation", z2, 10);
+            assert(assert_are_normalised(z2));
+            dxc = z2;  // copy
+            //alpha_list1 = same as before
+
+            //****
+
+
+        } else if (iter_type == 4 || iter_type == 5 || iter_type == 6) {
+            /*
+            Directions V, VI, VII: simply parallel to X,Y,Z axes.
+            */
+            int dimi = iter_type - 4;
+            if (dimi == 0) {
+                fill_vector(dxc, 1, 0, 0);
+            } else if (dimi == 1) {
+                fill_vector(dxc, 0, 1, 0);
+            } else if (dimi == 2) {
+                fill_vector(dxc, 0, 0, 1);
+            }
+            //alpha_list1 = same as before
+
+        } else {
+            cerr << "Error. incorrect direction type." << std::endl;
+            assert(0);
         }
+        // dxc = direction
+
+        // (alpha_list1, dxc) = directions(iter_type, dx0_c_grad, mesh_normals, ***);
+
+        assert(alpha_list1.size() > 0);
+
+        // ********************
+        //  ALPHA LOOP
+        // ********************
+        // input: dxc = direction at centroids
+
+        // ?
+        //int s_n_s = 0;
+
+        for (int i =0, counter = -1; i < alpha_list1.size(); i++) {
+            counter += 1;
+            assert(counter == i);
+
+            REAL alpha = alpha_list1[i];
+
+            ///////////// TODO: WE TO DEFINE THIS?
+            // moved outside
+            vectorized_vect  x1_half(vector_shape);
+            REAL c = (max_dist * alpha);
+            assert(centroids.shape()[0] == dxc.shape()[0]);
+
+            // todo: ONLY ACTIVE INDICES
+
+            // for (int j=0; j < n; j++) {
+            for (int j=0; j < centroids.shape()[0]; j++) {
+                x1_half[j][0] = centroids[j][0] + c * dxc[j][0];
+                x1_half[j][1] = centroids[j][1] + c * dxc[j][1];
+                x1_half[j][2] = centroids[j][2] + c * dxc[j][2];
+            }
+
+/*
+            ////////////// REPEATED CODE.
+            active_indices = still_nonsuccess_indices;
+            int still_nonsuccess_indices__effective_size = 0;
+            int active_indices_size = still_nonsuccess_indices__effective_size;
+*/
+            int ac = active_indices.shape()[0];
+            for (int j=0; j < ac; j++) {
+                xa4[j][0] = x1_half[active_indices[j]][0];
+                xa4[j][1] = x1_half[active_indices[j]][1];
+                xa4[j][2] = x1_half[active_indices[j]][2];
+            }
+            cout << "too many evaluations" << std::endl;
+            //object->eval_implicit(xa4.begin(), xa4.begin()+ac, f_a.begin());
+
+
+            ///////////// TODO: WE TO DEFINE THIS?
+            vectorized_scalar f_a(scalar_shape);
+            object->eval_implicit(xa4, &f_a);
+            clog << "Evaluating " << active_indices.shape()[0] << " points" << std::endl;
+
+            vectorized_scalar
+                signs_a = get_signs(f_a, ROOT_TOLERANCE);
+
+
+
+            // not checked
+            /*
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                success[j] = b_false;
+
+                if (signs_a[j] * signs_c[active_indices[j]] <=0) {
+                    success0[j] = b_true;
+                } else {
+                    success0[j] = b_false;
+                }
+
+            }
+
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                success[active_indices[j]] = success0[j];
+            }
+            */
+            // not checked
+            for (int j=0; j < success.shape()[0]; j++) {
+                success[j] = b_false;
+            }
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                success[active_indices[j]] = (signs_a[j] * signs_c[active_indices[j]]) <= 0;
+            }
+
+
+            // NOT CHECKED
+
+            boost::multi_array<bool_t, 1> new_success_indices(scalar_shape);
+
+            // NOT CHECKED
+
+            int n_s = 0;
+            s_n_s = 0;
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                if (success[j] == b_true && already_success[j] == b_false) {
+                    new_success_indices[n_s] = j;
+                    n_s ++;
+                }
+                //} else {
+                //    still_nonsuccess_indices[s_n_s] = j;
+                //    s_n_s ++;
+                //}
+
+                if (success[j] == b_false && already_success[j] == b_false) {
+                    still_nonsuccess_indices[s_n_s] = j;
+                    s_n_s ++;
+                }
+            }
+
+            for (int j=0; j < n_s; j++) {
+                // todo: re-factor
+                best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
+                best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
+                best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
+            }
+
+            for (int j=0; j < n; j++) {
+                if (success[j] == b_true) {
+                    already_success[j] = b_true;
+                }
+            }
+
+            // Code that is Different to bisection_vectorized5_()
+
+
+            // MOVED BELOW
+            //
+            // if (s_n_s == 0) {
+            //     break;
+            // }
+
+            active_indices.resize(boost::extents[s_n_s]);
+            still_nonsuccess_indices.resize(boost::extents[s_n_s]);
+
+            if (s_n_s == 0) {
+                break;
+            }
+
+
+
+        }
+
 
     }
+
+        //*********
+
+
+
+
+        // main part of the algor
+
+    /*
+        for (.....) {
+...
+
+
+
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                if (f_a[j] > ROOT_TOLERANCE) {
+                    signs_a[j] = +1.;
+                } else if (f_a[j] < -ROOT_TOLERANCE) {
+                    signs_a[j] = -1.;
+                } else {
+                    signs_a[j] = 0.;
+                }
+
+                success[j] = b_false;
+
+                if (signs_a[j] * signs_c[active_indices[j]] <=0) {
+                    success0[j] = b_true;
+                } else {
+                    success0[j] = b_false;
+                }
+
+            }
+
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                success[active_indices[j]] = success0[j];
+            }
+
+
+            int n_s = 0;
+            s_n_s = 0;
+            for (int j=0; j < active_indices.shape()[0]; j++) {
+                if (success[j] == b_true && already_success[j] == b_false) {
+                    new_success_indices[n_s] = j;
+                    n_s ++;
+                }
+                //} else {
+                //    still_nonsuccess_indices[s_n_s] = j;
+                //    s_n_s ++;
+                //}
+
+                if (success[j] == b_false && already_success[j] == b_false) {
+                    still_nonsuccess_indices[s_n_s] = j;
+                    s_n_s ++;
+                }
+            }
+
+            for (int j=0; j < n_s; j++) {
+                // todo: re-factor
+                best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
+                best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
+                best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
+            }
+
+            for (int j=0; j < n; j++) {
+                if (success[j] == b_true) {
+                    already_success[j] = b_true;
+                }
+            }
+
+            / Code that is Different to bisection_vectorized5_()
+
+
+            // MOVED BELOW
+            //
+            // if (s_n_s == 0) {
+            //     break;
+            // }
+
+            active_indices.resize(boost::extents[s_n_s]);
+            still_nonsuccess_indices.resize(boost::extents[s_n_s]);
+
+            if (s_n_s == 0) {
+                break;
+            }
+
+        }
+    */
 
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -733,8 +766,8 @@ void  set_centers_on_surface(
     // vectorized_scalar f1(scalar_shape);
     const auto & f1 = fc_a;
 
-    // boost::multi_array<REAL, 2> xa1(vector_shape);
-    // boost::multi_array<REAL, 2> xa2(vector_shape);
+    // vectorized_vect  xa1(vector_shape);
+    // vectorized_vect  xa2(vector_shape);
     const auto & xa1 = centroids;  // = x0_v3
     const auto & xa2 = best_result_x;
 
@@ -886,8 +919,8 @@ void  set_centers_on_surface(
 
     boost::array<int, 2> x1_relevant_shape = {m, 3};
     boost::array<int, 1> f1_relevant_shape = {m};
-    boost::multi_array<REAL, 2> x1_relevant(x1_relevant_shape);
-    boost::multi_array<REAL, 2> x2_relevant(x1_relevant_shape);
+    vectorized_vect  x1_relevant(x1_relevant_shape);
+    vectorized_vect  x2_relevant(x1_relevant_shape);
 
     vectorized_scalar f2_relevants(f1_relevant_shape);
 
@@ -998,7 +1031,7 @@ void  set_centers_on_surface(
         assert(test_if_points_are_outside(x1_relevant, *object, ROOT_TOLERANCE));
     #endif
 
-    boost::multi_array<REAL, 2> x_bisect(x1_relevant_shape);
+    vectorized_vect  x_bisect(x1_relevant_shape);
     // calling the vectorized bisection
     bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE, treated);
     // x1_relevant: outside, x2_relevant: inside
@@ -1094,8 +1127,8 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
     int m = nai.size();
 
     boost::array<int, 2> center_array_shape = {m, 3};
-    boost::multi_array<REAL, 2> center_array(center_array_shape);
-    boost::multi_array<REAL, 2> normals(center_array_shape);
+    vectorized_vect  center_array(center_array_shape);
+    vectorized_vect  normals(center_array_shape);
 
     for (int i=0; i < m; i++) {
         vindex_t cn = nai[i];
@@ -1161,19 +1194,6 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
 }
 
 
-void compute_centroid_gradient(const verts_t& centroids, verts_t& centroid_normals_normalized, implicit_function* gradou) {
-
-    gradou->eval_gradient(centroids, &centroid_normals_normalized);
-    for (int i = 0; i < centroid_normals_normalized.shape()[0]; i++) {
-        REAL norm = norm_2(centroid_normals_normalized[i][0], centroid_normals_normalized[i][1], centroid_normals_normalized[i][2]);
-        assert(norm != 0.);
-        for (int j = 0; j < 3; j++) {
-            centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
-            assert(centroid_normals_normalized[i][j] <= 1.);
-            assert(centroid_normals_normalized[i][j] >= -1.);
-        }
-    }
-}
 
 
 /*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)
@@ -1242,6 +1262,7 @@ void vertex_apply_qem(
             nlist.push_back(vertex_neighbours_list[vi][i]);
     }
 
+    std::clog << " remove 'treated' " << std::endl;
     bool skip = false;
     for (int g = 0; g < vertex_neighbours_list[vi].size()-1; g++) {
         if (!treated[vertex_neighbours_list[vi][g]]) {
@@ -1327,7 +1348,7 @@ void vertex_apply_qem(
 
 void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces) {
     boost::array<unsigned int, 2> verts_shape = { (unsigned int)result_verts.size()/3 , 3 };
-    boost::multi_array<REAL, 2> verts(verts_shape);
+    vectorized_vect  verts(verts_shape);
     boost::array<unsigned int, 2> faces_shape = { (unsigned int)result_faces.size()/3 , 3 };
     boost::multi_array<int, 2> faces(faces_shape);
 
@@ -1358,17 +1379,27 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     average_edge = compute_average_edge_length(faces,  verts);
 
     boost::array<unsigned int, 2> centroids_shape = { result_faces.size()/3 , 3 };
-    boost::multi_array<REAL, 2> centroids(centroids_shape);
+    vectorized_vect centroids(centroids_shape);
 
     compute_centroids(faces, verts, centroids);
     boost::array<unsigned int, 1> treated_shape = {result_faces.size()};
     boost::multi_array<bool, 1> treated(treated_shape);
-    set_centers_on_surface(object, centroids, average_edge, treated);
+    /*
+    verts_t mesh_normals(centroids_shape);
+    std::clog << "Error: mesh_normals is not initialised" << endl;
+    //todo: initialise mesh_normals
+
+    assert(assert_are_normalised(facet_normals));
+    mp5_implicit::set_centers_on_surface(object, centroids, average_edge, mesh_normals, treated);
+    */
+    verts_t facet_normals = produce_facet_normals(faces, verts, true);
+    assert(assert_are_normalised(facet_normals));
+    mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, treated);
 
     std::vector< std::vector<int>> vertex_neighbours_list;
     vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
-    boost::multi_array<REAL, 2> centroid_gradients(centroids_shape);
+    vectorized_vect  centroid_gradients(centroids_shape);
 
     compute_centroid_gradient(centroids, centroid_gradients, object);
 
@@ -1381,3 +1412,5 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     }
 
 }
+
+}  // namespace

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic_data_structures.hpp"
+#include "basic_functions.hpp"
 
 #include <iostream>
 #include "my_assert.hpp"
@@ -58,13 +59,8 @@ class TwistedObject::ImplicitObject(){
 #include "implicit_function.hpp"
 #include "transformation.hpp"
 
-inline REAL squared(REAL x){
-    return x*x;
-}
+#include "basic_functions.hpp"
 
-inline REAL norm_squared(REAL x, REAL y, REAL z){
-    return x*x + y*y + z*z;
-}
 
 //#include "unit_sphere.hpp"
 //

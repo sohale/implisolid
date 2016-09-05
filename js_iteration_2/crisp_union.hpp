@@ -2,6 +2,8 @@
 
 #include "implicit_function.hpp"
 #include "basic_data_structures.hpp"
+#include "basic_functions.hpp"
+
 
 /**
  * File: crisp_union.hpp

@@ -50,7 +50,7 @@ implicit_function * object;
 // else if (name == "cube"){
   cube cube(0.4, 0.4, 0.4);
   // boost::array<int, 2> direction_shape = { 1, 3 };
-  // boost::multi_array<REAL, 2> direction(direction_shape);
+  // vectorized_vect  direction(direction_shape);
   // direction[0][0] = 0.;
   // direction[0][1] = 0.3;
   // direction[0][2] = 0.3;
@@ -88,7 +88,7 @@ implicit_function * object;
 // }
 // else if (name == "egg_transform"){
 //   boost::array<int, 2> direction_shape = { 1, 3 };
-//   boost::multi_array<REAL, 2> direction(direction_shape);
+//   vectorized_vect  direction(direction_shape);
 //   direction[0][0] = 0.;
 //   direction[0][1] = 0.3;
 //   direction[0][2] = 0.3;
@@ -110,13 +110,13 @@ implicit_function * object;
 
 
 boost::array<int, 2> grid_shape = { 5*5*5 , 3 };
-boost::multi_array<REAL, 2> grid(grid_shape);
+vectorized_vect  grid(grid_shape);
 
 boost::array<int, 1> implicit_values_shape = { 5*5*5 };
 boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
 boost::array<int, 2> gradou_values_shape = { 5*5*5,3 };
-boost::multi_array<REAL, 2> gradou_values(gradou_values_shape);
+vectorized_vect  gradou_values(gradou_values_shape);
 
 for (int z = 0; z < 5; z++ ) {
     for (int y = 0; y < 5; y++ ) {

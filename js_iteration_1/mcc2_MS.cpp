@@ -56,13 +56,13 @@ state_t _state;
 void vertex_resampling(implicit_function* object, REAL f_argument,  float c, MarchingCubes& mc){
 
       boost::array<int, 2> verts_shape = { (int)mc.result_verts.size()/3 , 3 };
-      boost::multi_array<REAL, 2> verts(verts_shape);
+      vectorized_vect  verts(verts_shape);
 
       boost::array<int, 2> faces_shape = { (int)mc.result_faces.size()/3 , 3 };
       boost::multi_array<int, 2> faces(faces_shape);
 
-      boost::multi_array<REAL, 2> centroids (faces_shape);
-      boost::multi_array<REAL, 2> new_verts (verts_shape);
+      vectorized_vect  centroids (faces_shape);
+      vectorized_vect  new_verts (verts_shape);
 
       int output_verts=0;
       auto i = mc.result_verts.begin();
@@ -212,7 +212,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     else if (name == "cube"){
       cube cube(0.6, 0.6, 0.6);
       boost::array<int, 2> direction_shape = { 1, 3 };
-      boost::multi_array<REAL, 2> direction(direction_shape);
+      vectorized_vect  direction(direction_shape);
       direction[0][0] = 0.;
       direction[0][1] = 0.0;
       direction[0][2] = 0.3;
@@ -244,7 +244,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     }
     else if (name == "scylinder"){
       boost::array<int, 2> direction_shape = { 1, 3 };
-      boost::multi_array<REAL, 2> direction(direction_shape);
+      vectorized_vect  direction(direction_shape);
       direction[0][0] = 0.;
       direction[0][1] = 0.0;
       direction[0][2] = 0.3;
@@ -270,7 +270,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
     }
     else if (name == "egg_transform"){
       boost::array<int, 2> direction_shape = { 1, 3 };
-      boost::multi_array<REAL, 2> direction(direction_shape);
+      vectorized_vect  direction(direction_shape);
       direction[0][0] = 0.;
       direction[0][1] = 0.3;
       direction[0][2] = 0.3;

@@ -11,7 +11,7 @@ void immutable_test(const vectorized_vect& v){
 vectorized_vect make_test_vector(REAL x, REAL y, REAL z) {
     int nsize = 1;
     boost::array<int, 2> values_shape = {{ nsize, 3 }};
-    boost::multi_array<REAL, 2> values (values_shape);
+    vectorized_vect  values (values_shape);
     values[0][0] = x;
     values[0][1] = y;
     values[0][2] = z;
@@ -82,32 +82,32 @@ void test_sphere_one_point(){
 }
 
 
-boost::multi_array<REAL, 2>  make_empty_x(const int nsize){
+vectorized_vect  make_empty_x(const int nsize){
     auto sf = make_shape_1d(nsize);
     //vectorized_scalar  f = vectorized_scalar(sf);
 
     boost::array<int, 2> values_shape = {{ nsize, 3 }};
-    boost::multi_array<REAL, 2> values (values_shape);
-    return values;
+    vectorized_vect  vectors (values_shape);
+    return vectors;
 }
 
 //Don't do this. For educational purpose only. This will crash the system.
-boost::multi_array<REAL, 2>&  make_empty_x_2(const int nsize){
+vectorized_vect&  make_empty_x_2__dontuse(const int nsize){
     //primitives_test.cpp:100:12: warning: reference to stack memory associated with local variable 'values' returned [-Wreturn-stack-address]
     auto sf = make_shape_1d(nsize);
     //vectorized_scalar  f = vectorized_scalar(sf);
 
     boost::array<int, 2> values_shape = {{ nsize, 3 }};
-    boost::multi_array<REAL, 2> values (values_shape);
+    vectorized_vect  values (values_shape);
     return values;
 }
 
-void  make_empty_x_inplace(const int nsize, boost::multi_array<REAL, 2>& output){
+void  make_empty_x_inplace(const int nsize, vectorized_vect& output){
     auto sf = make_shape_1d(nsize);
     //vectorized_scalar  f = vectorized_scalar(sf);
 
     boost::array<int, 2> values_shape = {{ nsize, 3 }};
-    boost::multi_array<REAL, 2> values (values_shape);
+    vectorized_vect  values (values_shape);
     output = values;
 }
 
@@ -119,21 +119,21 @@ void test_three_types_of_return_alloc() {
     std::clog << "make_empty_x";
     timer t1;
     for(int i=0;i<REPEATS;i++) {
-        boost::multi_array<REAL, 2>  x = make_empty_x(nsize);
+        vectorized_vect  x = make_empty_x(nsize);
     }
     t1.stop();
 
     std::clog << "make_empty_x_2";
     timer t3;
     for(int i=0;i<REPEATS;i++) {
-        boost::multi_array<REAL, 2>  x= make_empty_x_2(nsize);
+        vectorized_vect   x= make_empty_x_2(nsize);
     }
     t3.stop();
 
     std::clog << "make_empty_x_inplace";
     timer t2;
     for(int i=0;i<REPEATS;i++) {
-        boost::multi_array<REAL, 2>  x= make_empty_x(nsize);
+        vectorized_vect   x= make_empty_x(nsize);
         //make_empty_x_inplace(nsize);
         make_empty_x_inplace(nsize, x);
     }

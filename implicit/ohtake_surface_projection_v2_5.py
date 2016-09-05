@@ -269,10 +269,13 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # Was left unnecessary testing !!
     TEST = not optimised_used()
 
+    # todo: move definition of alpha_list here
+
     #print "left(found)",
     #for it in [1, 0, 2, 3, 4,5,6] if USE_MESH_NORMALS else [0]:
     for it in [0, 1, 2, 3, 4,5,6] if USE_MESH_NORMALS else [0]:
 
+        # alpha_list1 = alpha_list[:10]  // Is this the default value?
         if it == 0:
             dxc = dx0_c_grad
             alpha_list1 = alpha_list

@@ -63,7 +63,7 @@ object = &cube;
 
 
 boost::array<int, 2> grid_shape = { 5*5*5 , 3 };
-boost::multi_array<REAL, 2> grid(grid_shape);
+vectorized_vect  grid(grid_shape);
 
 boost::array<int, 1> implicit_values_shape = { 5*5*5 };
 boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);

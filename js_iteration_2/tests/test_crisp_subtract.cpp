@@ -7,6 +7,7 @@
 
 #include "../primitives.cpp"
 #include "../basic_data_structures.hpp"
+#include "../basic_functions.hpp"
 #include "../crisp_subtract.hpp"
 #include "../unit_sphere.hpp"
 #include "gtest/gtest.h"

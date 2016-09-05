@@ -12,10 +12,18 @@
 
 #include "implicit_function.hpp"
 
+#include "implicit_vectorised_algorithms.hpp"
+using mp5_implicit::compute_centroids;
+using mp5_implicit::vectorised_algorithms::norm_2_squared;
+using mp5_implicit::vectorised_algorithms::norm_2;
+
 
 
 using namespace std;
 //using namespace mp5_implicit;
+
+using mp5_implicit::compute_centroid_gradient;
+
 
 typedef float REAL;
 typedef struct {
@@ -36,7 +44,9 @@ typedef std::vector<int> vector_int;
 typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
+// todo: move to basic functions
 
+/*
 REAL norm_2(REAL x, REAL y, REAL z){
   REAL norm = sqrt(x*x + y*y + z*z);
   return norm;
@@ -54,21 +64,7 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
     }
   }
 }
-
-
-void compute_centroid_gradient(verts_t& centroids, verts_t& centroid_normals_normalized, mp5_implicit::implicit_function* gradou){
-
-  gradou->eval_gradient(centroids, &centroid_normals_normalized);
-    for(int i = 0; i < centroid_normals_normalized.shape()[0]; i++){
-      REAL norm = norm_2(centroid_normals_normalized[i][0], centroid_normals_normalized[i][1], centroid_normals_normalized[i][2]);
-      assert(norm!=0.);
-      for(int j = 0; j < 3; j++){
-        centroid_normals_normalized[i][j]=centroid_normals_normalized[i][j]/norm;
-        assert(centroid_normals_normalized[i][j] <= 1.);
-        assert(centroid_normals_normalized[i][j] >= -1.);
-      }
-    }
-}
+*/
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
   int nt = faces.shape()[0];
@@ -266,7 +262,7 @@ void process2_vertex_resampling_relaxation(
     compute_centroids(faces, verts, centroids);
 
     boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
-    boost::multi_array<REAL, 2> centroid_normals_normalized(centroid_normals_normalized_shape);
+    vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
 
     compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
@@ -284,7 +280,7 @@ void process2_vertex_resampling_relaxation(
 void writing_test_file(
         string  output_file_name,
         std::vector<REAL>&result_verts, std::vector<int>&result_faces,
-        boost::multi_array<REAL, 2>& new_verts, boost::multi_array<REAL, 2>& centroids
+        vectorized_vect & new_verts, vectorized_vect & centroids
     )
 {
 
@@ -303,11 +299,11 @@ void writing_test_file(
 
     /*
     boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    boost::multi_array<REAL, 2> verts(verts_shape);
+    vectorized_vect  verts(verts_shape);
     boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
     boost::multi_array<int, 2> faces(faces_shape);
-    boost::multi_array<REAL, 2> new_verts (verts_shape);
-    boost::multi_array<REAL, 2> centroids (faces_shape);
+    vectorized_vect  new_verts (verts_shape);
+    vectorized_vect  centroids (faces_shape);
     process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, c);
     */
     //new_verts, centroids
@@ -367,16 +363,16 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
     */
     /*
     boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    boost::multi_array<REAL, 2> verts(verts_shape);
+    vectorized_vect  verts(verts_shape);
 
     boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
     boost::multi_array<int, 2> faces(faces_shape);
 
-    //boost::multi_array<REAL, 2> centroids (faces_shape);
-    //boost::multi_array<REAL, 2> new_verts (verts_shape);
+    //vectorized_vect  centroids (faces_shape);
+    //vectorized_vect  new_verts (verts_shape);
     */
     boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    boost::multi_array<REAL, 2> verts(verts_shape);
+    vectorized_vect  verts(verts_shape);
     boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
     boost::multi_array<int, 2> faces(faces_shape);
 
@@ -403,8 +399,8 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
     }
 
 
-    boost::multi_array<REAL, 2> new_verts (verts_shape);
-    boost::multi_array<REAL, 2> centroids (faces_shape);
+    vectorized_vect  new_verts (verts_shape);
+    vectorized_vect  centroids (faces_shape);
     process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, c);
 
     bool writing_test_file_ = false;

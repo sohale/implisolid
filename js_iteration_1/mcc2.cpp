@@ -404,7 +404,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // ****************************
     // Does thismake things slower ?
-    boost::multi_array<REAL, 2>  mcgrid_vectorized = _state.mc -> prepare_grid();  // 10.0
+    vectorized_vect   mcgrid_vectorized = _state.mc -> prepare_grid();  // 10.0
     _state.mc -> eval_shape(*object, mcgrid_vectorized);
 
      /*
@@ -565,6 +565,7 @@ void about() {
 
 
 #include "../js_iteration_2/basic_data_structures.hpp"
+#include "../js_iteration_2/basic_functions.hpp"
 #include "centroids_projection.cpp"
 
 typedef boost::array<vectorized_vect::index, 2>  shape_t;
