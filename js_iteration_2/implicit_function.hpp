@@ -52,6 +52,11 @@ public:
 
         return mp5_implicit::bounding_box{v1, v2, v3, v4, v5, v6};
     };
+
+    // todo:
+    // virtual vectorized_vect suggest_points_on_surface();
+    // virtual vectorized_vect is_signed_distance_function();
+
 };
 
 }
