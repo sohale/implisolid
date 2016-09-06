@@ -226,10 +226,10 @@ public:
                 );
 
                 if (d < MIN_PRINTABLE_LENGTH) {
-                    //loger << " Points are too close: " << d << std::endl;
+                    //std::clog << " Points are too close: " << d << std::endl;
 
-                    //loger << "( " << this->p[i][0] << ", " << this->p[i][1] << ", "  << this->p[i][2] << " )"<< std::endl;
-                    //loger << "( " << this->p[j][0] << ", " << this->p[j][1] << ", "  << this->p[j][2] << " )"<< std::endl;
+                    //std::clog << "( " << this->p[i][0] << ", " << this->p[i][1] << ", "  << this->p[i][2] << " )"<< std::endl;
+                    //std::clog << "( " << this->p[j][0] << ", " << this->p[j][1] << ", "  << this->p[j][2] << " )"<< std::endl;
 
                     integrity = false;
                 }
@@ -274,7 +274,7 @@ public:
             );
 
             if (d < MIN_PRINTABLE_LENGTH) {
-                //loger << " Points: " << i_1 << ", " << i_2 << ", "<< i_3 << " cannot make a plane :" << d << std::endl;
+                //std::clog << " Points: " << i_1 << ", " << i_2 << ", "<< i_3 << " cannot make a plane :" << d << std::endl;
                 integrity = false;
             }
         }
@@ -305,7 +305,7 @@ public:
             d = d < 0 ? -d : d;
 
             if (d < MIN_PRINTABLE_LENGTH) {
-                //loger << " Point " << i + 1 << " are too close to opposite plane :" << d << std::endl;
+                //std::clog << " Point " << i + 1 << " are too close to opposite plane :" << d << std::endl;
                 integrity = false;
             }
         }
