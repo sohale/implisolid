@@ -7,6 +7,8 @@ from ipdb import set_trace
 from utils import optimised_used
 from utils import flush
 
+# from surface_projection_v2_6 import set_centers_on_surface__ohtake_v3s_003
+
 
 objname = "ell_example1" #"make_bricks"  # "cube_with_cylinders"
 
@@ -266,6 +268,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     success = already_success.copy()  # falses  #.copy() is necessary
     assert not np.any(already_success)
 
+    # USE_MESH_NORMALS seems not necessary
     if USE_MESH_NORMALS:
         assert mesh_normals is not None
         dx0c_mesh_normals = mesh_normals
@@ -413,6 +416,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     best_result_x[still_nonsuccess_indices, :] = x0_v3[still_nonsuccess_indices, :]  # failed to converge
 
     if TEST:
+        # TEST IF all elements in x0_v3 & best_result_x are DUAL (CONJUGATE)
         xa1 = augment4(x0_v3)
         f1_test = iobj.implicitFunction(xa1)
         xa2 = augment4(best_result_x)
@@ -525,8 +529,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #visualise_scatter(f_plot1, f_plot1*0.2)
     #exit()
 
-set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
-
+# set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
+#set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_003
 
 def mysign_np(v, ROOT_TOLERANCE):
     return np.sign(v) * (np.abs(v) > ROOT_TOLERANCE)
@@ -615,6 +619,10 @@ def bisection_vectorized5_(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
         v_arr = iobj.implicitFunction(result_x_arr)
         assert np.all(np.abs(v_arr) < ROOT_TOLERANCE)
     return result_x_arr
+
+
+#global bisection_vectorized_thingy
+#bisection_vectorized_thingy = bisection_vectorized5_
 
 def bisection_vectorized5_compact(iobj, x1_arr, x2_arr, ROOT_TOLERANCE):
     """ based on bisection_vectorized5"""
@@ -1045,3 +1053,331 @@ def bisection_3_standard(iobj, p1, p2, f1, f2, MAX_ITER):
             f2 = f3
     #print "Convergence of the bisection did not happen"
     return None, MAX_ITER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################################################
+# A cleaner version, same logic.
+#########################################################
+
+
+
+
+
+
+
+def MAKE_ALPHA_LIST(step_size, max_dist, average_edge, MAX_ITER, EXTREME_ALPHA):
+    alpha_list = []
+    min_step_size = 0.001
+    unit_of_length = average_edge
+    assert step_size > min_step_size
+    while step_size > min_step_size:
+        step_size = step_size * 0.5
+        max_step = min(MAX_ITER, int(math.floor(max_dist/math.fabs(step_size) + 0.001)) )
+        assert max_step >= 2  # at least one step
+        #if max_step
+        #violated only at first time but the first point is already done.
+        for i in range(1, max_step+1, 2): #Step size is two, to avoid aready visited points
+            alpha = float(i)*step_size
+            # print i, alpha/unit_of_length
+            alpha_list += [alpha/unit_of_length]
+            alpha_list += [-alpha/unit_of_length]
+            # alpha is prepared
+
+    if EXTREME_ALPHA:
+        # This violates the max_dim condition. This is a bad idea. Set to False.
+        alpha_list += [+1., -1., +1.5, -1.5, +2., -2.]
+
+    """ Interesting observation: alpha_list[4] always finds many points. We can bring it forward, after [1] or [2] """
+    """ If we use mesh normals first, the results seem better! """
+
+
+    print "Alphas:"
+    for i in range(len(alpha_list)):
+        print "[%d]%g"%(i, alpha_list[i]),
+    print
+    print
+
+    return alpha_list
+
+# TEST IF all elements in x0_v3 & best_result_x are DUAL (CONJUGATE)
+def TEST_OPPOSITE_SIGNS(iobj, x1, x2, THRESHOLD_zero_interval):
+    # x2 = augment4(best_result_x[already_success, :])
+    f2 = iobj.implicitFunction(x2)
+    f2[np.abs(f2) < THRESHOLD_zero_interval] = 0.
+    #x1 = centroids[already_success, :]
+    assert x1.shape[1] == 4
+    f1 = iobj.implicitFunction(x1)
+    f1[np.abs(f1) < THRESHOLD_zero_interval] = 0.
+    bad_accepted =  (f1*f2)[f1 * f2 > 0]
+    if bad_accepted.size > 0:
+        print "bad accepted f1*f2:", (f1*f2)[f1 * f2 > 0]
+    #assert np.all((f1*f2)[f1 * f2 > 0])
+    assert np.all(f1 * f2 <= 0)
+    del f1, f2, x1, x2
+
+
+
+def TEST_CONJUGATE(iobj, x0_v3, best_result_x, THRESHOLD_zero_interval):
+    xa1 = augment4(x0_v3)
+    f1_test = iobj.implicitFunction(xa1)
+    xa2 = augment4(best_result_x)
+    f2_test = iobj.implicitFunction(xa2)
+    s = f1_test*f2_test
+    s[still_nonsuccess_indices] = -1.
+    assert np.all(s <= +THRESHOLD_zero_interval)  # can contain almost-zeros. Include the ==equality in zero-ness
+    del s
+    del f1_test
+    del f2_test
+    print "OK"
+
+def set_centers_on_surface__ohtake_v3s_003(iobj, centroids, average_edge, nones_map, debug_vf=None, mesh_normals=None):
+    """ see set_centers_on_surface__ohtake() """
+    print "Projecting the centroids: new version v3s_003 ****"
+
+
+    THRESHOLD_minimum_gradient_len = 0.000001  # kill gradients smaller than this
+    THRESHOLD_zero_interval = 0.0001  # f == TH is NOT zero.
+    MAX_ITER = 20
+    EXTREME_ALPHA = False  # To use alpha > 1. that exceeds (violates) max_dim
+
+    max_dist = average_edge
+
+    x = centroids
+
+    fc_a = iobj.implicitFunction(x)
+    g_a = iobj.implicitGradient(x)[:, :3]
+    glen_a = np.linalg.norm(g_a, axis=1)
+    glen_a[np.abs(glen_a) < THRESHOLD_minimum_gradient_len] = 1.
+
+    g_normalization_factors = 1. / glen_a[:, np.newaxis]
+    g_direction_a = g_a * g_normalization_factors
+    del g_a
+
+    negative_f_c = fc_a < -THRESHOLD_zero_interval
+    g_direction_a[negative_f_c, :] = -g_direction_a[negative_f_c, :]
+    # The only difference here is the correct direction is tested "first".
+    #Issue remains: The "distance-after-bisection" should be compared. But here, we just compare before the subdivision.
+
+    signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
+    x0_v3 = x[:, :3]   # it's a const
+    del x
+    #Move opposite the direction toward center if the value is positive.
+
+    dx0_c_grad = - g_direction_a * signs_c[:, np.newaxis]
+    directions_basedon_gradient = dx0_c_grad
+    del dx0_c_grad
+
+    step_size = max_dist / 2. * 2.
+
+    alpha_list = MAKE_ALPHA_LIST(step_size, max_dist, average_edge, MAX_ITER, EXTREME_ALPHA)
+
+    # The algorithm
+    n = x0_v3.shape[0]
+    best_result_x = np.ones((n, 3))
+    active_indices = np.arange(0, n, dtype=int)
+    active_count = n
+    del n
+
+    still_nonsuccess_indices = active_indices
+
+    print "points: ", active_count, ".",
+    already_success = fc_a*0 > 1.  # all False
+    success = already_success.copy()  # falses  #.copy() is necessary
+    assert not np.any(already_success)
+
+    assert mesh_normals is not None
+    dx0c_mesh_normals = mesh_normals
+    assert np.allclose(np.linalg.norm(dx0c_mesh_normals, axis=1), 1.)
+
+    # !!!!!!!!!!!!!!!
+    # Was left unnecessary testing !!
+    TEST = not optimised_used()
+
+    # todo: move definition of alpha_list here
+
+    for it in [0, 1, 2, 3, 4,5,6]:
+
+        # alpha_list1 = alpha_list[:10]  // Is this the default value?
+        if it == 0:
+            dxc = directions_basedon_gradient
+            alpha_list1 = alpha_list
+        elif it == 1:
+            dxc = dx0c_mesh_normals.copy() #* 0.5
+            print
+            print "now mesh normals"
+            alpha_list1 = alpha_list[:10]
+        elif it == 2:
+            n = directions_basedon_gradient.shape[0]
+            r = 0.000001
+            perturb = (np.random.rand(n, 3)*2.-1.) * r
+            #set_trace()
+            z = np.cross(dx0c_mesh_normals, directions_basedon_gradient+perturb, axis=1)
+            z = z / np.linalg.norm(z, axis=1, keepdims=True)
+            assert np.allclose(np.linalg.norm(z, axis=1), 1.)
+            global z3
+            z3 = z
+            #set_trace()
+            #dxc[:, :] = z
+            dxc = z.copy()
+
+        elif it == 3:
+            n = directions_basedon_gradient.shape[0]
+            m = dx0c_mesh_normals
+            missing = np.nonzero(np.linalg.norm(m, axis=1) < 1.-0.00001)[0]
+            m[missing] = np.random.randn(missing.shape[0], 3)
+            z2 = np.cross(m, z, axis=1)
+            z2 = z2 / np.linalg.norm(z2, axis=1, keepdims=True)
+            #set_trace()
+            assert np.allclose(np.linalg.norm(z2, axis=1), 1.), "zero or NaN vectors"
+            dxc = z2.copy()
+
+        elif it in [4, 5, 6]:
+            z3 = z.copy()
+            dim_i = it-4
+            print
+            print "XYZ"[dim_i], "direction:"
+            z3[:, :] = 0.
+            z3[:, dim_i] = 1.
+            dxc = z3  # !!missed!
+        else:
+            print "Error"
+
+        counter = -1
+        for alpha in alpha_list1:
+            counter += 1
+            x1_half = x0_v3 + (max_dist*alpha)*dxc
+
+            active_indices = still_nonsuccess_indices
+            #set_trace()
+
+            # Todo: For those that have changed sign, check if they are closer actually.
+            with Timer() as t1:
+                xa4 = augment4(x1_half[active_indices, :])
+                f_a = iobj.implicitFunction(xa4)
+            print "Evaluating on %d points"%xa4.shape[0], "took %g sec"%(t1.interval)
+            signs_a = (f_a > THRESHOLD_zero_interval)*1. + (f_a < -THRESHOLD_zero_interval)*(-1.)
+            #success = signs_a * signs_c <= 0.
+            success0 = signs_a * signs_c[active_indices] <= 0.
+            success[:] = False
+            assert np.all(success == False)
+            assert np.all(success[active_indices] == False)
+            success[active_indices] = success0
+
+
+            assert success.ndim == 1
+
+            new_success_indices = np.nonzero(np.logical_and(success, np.logical_not(already_success)))[0]
+            #collect zeros
+            #efficient verison: only from new_success_indices
+
+            still_nonsuccess_indices = np.nonzero(np.logical_and(np.logical_not(success), np.logical_not(already_success)))[0]
+            best_result_x[new_success_indices, :] = x1_half[new_success_indices, :]
+
+            #todo: also try som ein already_success and improve by replacing those that are CLOSER.
+
+            #for next round
+            already_success = np.logical_or(success, already_success)  # Union
+
+            print ("[%d](+%d)%d "%(counter, new_success_indices.size, still_nonsuccess_indices.size,)),
+
+            if TEST:
+                TEST_OPPOSITE_SIGNS(iobj, centroids[already_success, :], best_result_x[already_success, :], THRESHOLD_zero_interval)
+
+            if still_nonsuccess_indices.shape[0] == 0:
+                break
+
+        if still_nonsuccess_indices.shape[0] == 0:
+            break  # break the 'for' loop too
+
+    # if still_nonsuccess_indices.shape[0] > 0:
+    best_result_x[still_nonsuccess_indices, :] = x0_v3[still_nonsuccess_indices, :]  # failed to converge
+
+    if TEST:
+        # TEST IF all elements in x0_v3 & best_result_x are DUAL (CONJUGATE)
+        TEST_CONJUGATE(iobj, x0_v3, best_result_x, THRESHOLD_zero_interval)
+
+    assert np.all(centroids[:, 3] == 1.)
+
+    # ------------
+    # Prepare for bisection: By removing zeros and moving negatives to x1 by swapping.
+    #collect the zero ones
+    xa1 = augment4(x0_v3)
+    f1 = fc_a  # iobj.implicitFunction(xa1)
+    assert np.all(f1 == iobj.implicitFunction(xa1), axis=None)
+    xa2 = augment4(best_result_x)
+    f2 = iobj.implicitFunction(xa2)
+    zeros2_bool = np.abs(f2) <= THRESHOLD_zero_interval
+    # Copy the zeros onto results
+    zeros1_bool = np.abs(f1) <= THRESHOLD_zero_interval
+    best_result_x[zeros1_bool, :3] = x0_v3[zeros1_bool, :3]
+    zeros1or2 = np.logical_or(zeros1_bool, zeros2_bool)  # output
+    del zeros1_bool, zeros2_bool
+    assert np.all(np.abs(iobj.implicitFunction(augment4(best_result_x[zeros1or2, :]))) <= THRESHOLD_zero_interval)
+
+    ROOT_TOLERANCE = THRESHOLD_zero_interval  # because of the assert
+    relevants_bool = np.logical_and(already_success, np.logical_not(zeros1or2))
+    assert np.all(np.abs(f2[relevants_bool]) > +THRESHOLD_zero_interval)
+    assert np.all(np.abs(f2[zeros1or2]) <= +THRESHOLD_zero_interval)
+
+    assert np.all( mysign_np(f2[relevants_bool], THRESHOLD_zero_interval) * mysign_np(f1[relevants_bool], THRESHOLD_zero_interval) < 0)
+    del f1
+
+    x2_relevant_v4 = augment4(best_result_x[relevants_bool, :])
+    x1_relevant_v4 = centroids[relevants_bool, :]
+    f1_relevants = iobj.implicitFunction(x1_relevant_v4)  # for assert only
+    f2_relevants = iobj.implicitFunction(x2_relevant_v4)
+
+    assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
+    del f1_relevants
+
+    #Swap negatives and positives
+    swap_bool = f2_relevants < -THRESHOLD_zero_interval
+    # performance: boolean or indices?
+    temp = x2_relevant_v4[swap_bool, :]
+    x2_relevant_v4[swap_bool, :] = x1_relevant_v4[swap_bool, :]
+    x1_relevant_v4[swap_bool, :] = temp
+    del temp
+    del f2_relevants
+
+    x_bisect = bisection_vectorized5_(iobj, x1_relevant_v4, x2_relevant_v4, ROOT_TOLERANCE)
+    assert np.all(np.abs(iobj.implicitFunction(x_bisect) ) < THRESHOLD_zero_interval)
+    assert x_bisect.shape[0] == np.sum(relevants_bool)
+    centroids[relevants_bool, :] = x_bisect[:, :]  # x4
+    print "centroids:", centroids.shape, "best_result_x:", best_result_x.shape, "relevants_bool:", np.sum(relevants_bool), "+", np.sum(np.logical_not(relevants_bool)), "zeros1or2=", np.sum(zeros1or2)
+    centroids[zeros1or2, :3] = best_result_x[zeros1or2, :]  # x3
+
+    return
+
+# old, slow, unimporoved
+# set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
+
+#good but unrefactored
+set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_002
+
+#refactored
+#set_centers_on_surface__ohtake_v3s = set_centers_on_surface__ohtake_v3s_003

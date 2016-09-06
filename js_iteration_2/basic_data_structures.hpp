@@ -117,7 +117,18 @@ typedef boost::array<vectorized_bool::index, 1>  vectorized_bool_shape;
 // vector_of_indices   array_of_indices   indices_array
 typedef boost::multi_array<int, 1>  array_of_indices;
 typedef boost::array<array_of_indices::index, 1>  array_of_indices_shape;
+// boost::multi_array<vindex_t,1>
 
+class array_of_indices_struct {
+    array_of_indices  array;
+    array_of_indices::index  effective_length;
+
+    array_of_indices_struct(array_of_indices_shape shape)
+        :array(shape),
+        effective_length(shape[0])
+    {
+    }
+};
 
 // auto& loger = std::cerr;
 

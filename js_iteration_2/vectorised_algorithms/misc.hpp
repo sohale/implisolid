@@ -126,5 +126,38 @@ inline void bool_find_zero_scalars(vectorized_bool & zeros2_bool, const vectoriz
     }
 }
 
+
+inline array_of_indices build_range_array(array_of_indices::value_type n) {
+    array_of_indices_shape shape = {n};
+    array_of_indices  A(shape);
+    int i=0;
+    for (auto iter = A.begin(), e = A.end(); iter < e; ++iter) {
+        //A[i] = i;
+        *iter = i;
+        ++i;
+    }
+    assert(i == n);
+    if (n > 0) {
+        assert(A[n/2] == n/2);
+        assert(A[0] == 0);
+        assert(A[n-1] == n-1);
+    }
+    return A; // std::move(A);
+}
+
+/*
+template <typename T, T v>
+inline void set_array_to_value(A, v) {
+    for (auto iter = A.begin(), e = A.end(); iter < e; ++iter) {
+        *iter = v;
+    }
+}
+*/
+inline void set_array_to_boolean_value(vectorized_bool & A, vectorized_bool::value_type v) {
+    for (auto iter = A.begin(), e = A.end(); iter < e; ++iter) {
+        *iter = v;
+    }
+}
+
 }
 }

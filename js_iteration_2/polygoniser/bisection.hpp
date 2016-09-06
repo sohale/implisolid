@@ -5,7 +5,7 @@ void here(T arg) {
     std::clog << arg << std::endl << std::flush;
 }
 
-inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign) {
+inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign, bool accept_zeros) {
     assert(sign == +1 || sign == -1); // || sign == 0.0);
 
     clog << "test_points_sign" << endl;
@@ -21,7 +21,12 @@ inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit
     bool everything_alright = true;
     for (int i=0; i < n; i++) {
         auto s1 = my_sign(v_arr[i], ROOT_TOLERANCE);
-        bool ok = (s1 * sign >  0 + 0.0001);
+        // bool ok = (s1 * sign >  0 + 0.0001);
+        bool ok =
+            (!accept_zeros)?
+                (s1 * sign >  0 + 0.0001)
+            :
+                (s1 * sign >  0 - 0.01);  // inequality accepts zeros
         if (!ok) {
             clog <<  v_arr[i] << " " << s1 << " " << sign << " :" << i << endl;
         }
@@ -31,11 +36,11 @@ inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit
     return everything_alright;
 }
 
-inline bool test_if_points_are_inside(verts_t& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
-    return test_points_sign(x2_vectorized, object, ROOT_TOLERANCE, +1);
+inline bool test_if_points_are_inside(verts_t& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
+    return test_points_sign(x2_vectorized, object, ROOT_TOLERANCE, +1, accept_zeros);
 }
-inline bool test_if_points_are_outside(verts_t& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE) {
-    return test_points_sign(x1_vectorized, object, ROOT_TOLERANCE, -1);
+inline bool test_if_points_are_outside(verts_t& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
+    return test_points_sign(x1_vectorized, object, ROOT_TOLERANCE, -1, accept_zeros);
 }
 
 
@@ -56,12 +61,14 @@ inline void check_bisection_input_signs(
             auto s2 = my_sign(v2_arr[i], ROOT_TOLERANCE);
             // assert(s1* s2 < 0 - EPS);
             bool ok = (s1* s2 < 0 - EPS);
-            // if (!ok) {
-            //     std::clog << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
-            // }
+            if (!ok) {
+                std::clog << "["<<i<<"]"<< s1 << " " << s2 << " v1:" << v1_arr[i] << " v2:" << v2_arr[i] << endl;
+            }
             assert1 = assert1 && ok;
+            if (!ok)
+                break;
         }
-        if (!assert1) clog << "";
+        if (!assert1) clog << " SOME POINTS ARE NOT CONJUGATED." << std::endl;
         assert(assert1);
 
         here("a2");
@@ -202,6 +209,7 @@ void bisection(
 
         here("4");
 
+        clog << active_indices_size << " ?==? " << active_count << std::endl;
         assert(active_indices_size == active_count);
 
 
@@ -330,11 +338,14 @@ void bisection(
         indices_inside.resize(boost::extents[i_e]);
         which_zeroed.resize(boost::extents[i_e]);
         active_indices.resize(boost::extents[i_e]);
+        active_indices_size = i_e;  // bug fixed
+        // todo(sohail): use  array_of_indices_struct type.
 
         active_count = active_count - found_count;
 
         iteration += 1;
 
+        assert(active_count == indices_eitherside.size());
         for (int i=0; i < active_count; i++) {
             #if ASSERT_USED
                 v1_arr[i] = v1_arr[indices_eitherside[i]];
@@ -357,6 +368,25 @@ void bisection(
         }
 
     }
+    /*
+    #if ASSERT_USED
+
+        const vectorized_scalar::size_type nn = x_bisect.shape()[0];
+        vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
+        object->eval_implicit(x_bisect, &f);
+
+        bool ok = true;
+        for (int i = 0; i < m; i++) {
+            ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+            if (!ok) {
+                clog << f1_relevants[i] << " [" << i << "]" << std::endl;
+                break;
+            }
+        }
+        assert(ok);
+    #endif
+    */
+    assert(check_all_are_root(object, res_x_arr, res_x_arr.shape()[0], ROOT_TOLERANCE));
 
 }
 

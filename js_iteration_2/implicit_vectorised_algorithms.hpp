@@ -172,5 +172,100 @@ void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
 }
 
 
+vectorized_scalar  eval_implicit_on_selected_points_indexed(mp5_implicit::implicit_function* object, const vectorized_vect & X, const array_of_indices & active_indices,  int count) {
+    assert(count == active_indices.shape()[0]);
+    vectorized_scalar_shape scalar_shape { count    };
+    vectorized_scalar f_a(scalar_shape);
+    // assign_vects_chosen_by_fancy_indexing(xa, X, active_indices, ???);
+    vectorized_vect_shape shape = {count, 3};
+    vectorized_vect   xa(shape);
+    for (int j=0; j < count; j++) {
+        auto k = active_indices[j];
+        xa[j][0] = X[k][0];
+        xa[j][1] = X[k][1];
+        xa[j][2] = X[k][2];
+    }
+    //object->eval_implicit(xa.begin(), xa.begin()+count, f_a.begin());
+
+    ///////////// TODO: WE TO DEFINE THIS?
+    // vectorized_scalar f_a(scalar_shape);
+    object->eval_implicit(xa, &f_a);
+    clog << "Evaluating " << active_indices.shape()[0] << " points" << std::endl;
+
+    return f_a;
 }
 
+vectorized_scalar  eval_implicit_on_selected_points_bool(mp5_implicit::implicit_function* object, const vectorized_vect & X, const vectorized_bool & selected_bool,  int count) {
+    assert(count == selected_bool.shape()[0]);
+    vectorized_scalar_shape scalar_shape { count    };
+    vectorized_scalar f_a(scalar_shape);
+    // assign_vects_chosen_by_fancy_indexing(xa, X, selected_bool, ???);
+    vectorized_vect_shape shape = {count, 3};
+    vectorized_vect   xa(shape);
+    for (int j=0; j < count; j++) {
+        auto k = selected_bool[j];
+        xa[j][0] = X[k][0];
+        xa[j][1] = X[k][1];
+        xa[j][2] = X[k][2];
+    }
+    //object->eval_implicit(xa.begin(), xa.begin()+count, f_a.begin());
+
+    ///////////// TODO: WE TO DEFINE THIS?
+    // vectorized_scalar f_a(scalar_shape);
+    object->eval_implicit(xa, &f_a);
+    clog << "Evaluating " << selected_bool.shape()[0] << " points" << std::endl;
+
+    return f_a;
+}
+
+bool test_if_conjugate_opposite_signs_indexed(mp5_implicit::implicit_function* object, const vectorized_vect & A, const vectorized_vect & B, const vectorized_bool & already_success, REAL ROOT_TOLERANCE ) {
+    // object->eval_implicit(xa4, &f_a);
+    vectorized_scalar  f1 = eval_implicit_on_selected_points_bool(object, A, already_success,  already_success.shape()[0]);
+    vectorized_scalar  f2 = eval_implicit_on_selected_points_bool(object, B, already_success,  already_success.shape()[0]);
+
+    vectorized_scalar s1 = get_signs(f1, ROOT_TOLERANCE);
+    vectorized_scalar s2 = get_signs(f2, ROOT_TOLERANCE);
+
+    assert( s1.shape()[0] == s2.shape()[0]);
+    assert( s1.shape()[0] == already_success.shape()[0]);
+    int n = s1.shape()[0];
+    for(int i = 0; i < n; ++i) {
+        if ( s1[i] * s2[i] > 0.0) {
+            int i0 = already_success[i];
+            clog << " Test failed at point k=" << i << " i=" << i0 <<
+                " point:" << A[i0][0] << "," << A[i0][1] << "," << A[i0][2] <<
+                " versus:" << B[i0][0] << "," << B[i0][1] << "," << B[i0][2] <<
+                std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+#if ASSERT_USED
+    bool check_all_are_root(mp5_implicit::implicit_function* object, const vectorized_vect & x_bisect, int m, REAL ROOT_TOLERANCE) {
+        // bool evaluate_and_assert_sign<0>(x_bisect, *object);
+        /*
+        boost::array<int, 2> x1_relevant_shape = {m, 3};
+        boost::array<int, 1> f1_relevant_shape = {m};
+        */
+        const vectorized_scalar::size_type nn = x_bisect.shape()[0];
+        vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
+        object->eval_implicit(x_bisect, &f);
+
+        bool ok = true;
+        for (int i = 0; i < m; i++) {
+            // ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+            ok = ok && std::abs(f[i]) < ROOT_TOLERANCE;
+            if (!ok) {
+                clog << f[i] << " [" << i << "]" << std::endl;
+                break;
+            }
+        }
+        return ok;
+    }
+#endif
+
+}

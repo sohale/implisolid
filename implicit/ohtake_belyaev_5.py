@@ -2830,6 +2830,8 @@ def demo_everything(options):
         """
     #}
 
+    IGNORE_THAT = False
+
     global STEPSIZE
     from example_objects import make_example_vectorized
     iobj = make_example_vectorized(
@@ -2839,7 +2841,7 @@ def demo_everything(options):
         #"ell_example1"  #+
         #"bowl_15_holes"  # works too. But too many faces => too slow, too much memory. 32K?
         #"french_fries_vectorized"
-        "cyl4"
+        "cyl4"  # ignored if IGNORE_THAT
         #"cyl2"
         )
 
@@ -2847,25 +2849,28 @@ def demo_everything(options):
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
 
-    STEPSIZE = STEPSIZE / 2.
-    #STEPSIZE = STEPSIZE / 2.
 
-    sc = 8.
-    #cyl2 only
-    iobj = make_example_vectorized("cyl2", sc)
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = iobj[1]
-    #iobj = iobj[0]
-    #STEPSIZE = STEPSIZE * 1.5
-    #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
-    #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3 *sc , +3 *sc, sc*0.1/2. * 1)  #*1 for cylinders only
-    (RANGE_MIN, RANGE_MAX, STEPSIZE) = ((-3-4)*sc, (+3+3)*sc, (0.1/2. * 2)*sc)  #*1 for cylinders only
+    if IGNORE_THAT:
+        STEPSIZE = STEPSIZE / 2.
+        #STEPSIZE = STEPSIZE / 2.
 
-    #cage "cyl4" only
-    #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0 )  # too big
-    #too many centroids for this computer: 108560, 3582480
+        sc = 8.
+        #cyl2 only
+        iobj = make_example_vectorized("cyl2", sc)
 
-    #"bowl_15_holes" does not work with STEPSIZE= 0.2
+        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = iobj[1]
+        #iobj = iobj[0]
+        #STEPSIZE = STEPSIZE * 1.5
+        #RANGE_MIN, RANGE_MAX = (RANGE_MIN*1-8, RANGE_MAX*1+1)
+        #print (RANGE_MIN, RANGE_MAX, STEPSIZE)
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3 *sc , +3 *sc, sc*0.1/2. * 1)  #*1 for cylinders only
+        (RANGE_MIN, RANGE_MAX, STEPSIZE) = ((-3-4)*sc, (+3+3)*sc, (0.1/2. * 2)*sc)  #*1 for cylinders only
+
+        #cage "cyl4" only
+        #(RANGE_MIN, RANGE_MAX, STEPSIZE) = (-32 / 2, +32 / 2, 1.92 / 4.0 )  # too big
+        #too many centroids for this computer: 108560, 3582480
+
+        #"bowl_15_holes" does not work with STEPSIZE= 0.2
 
 
 
