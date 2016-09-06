@@ -1428,12 +1428,13 @@ def wr(verts, ifunc, centroids, faces_of_faces_fx3, faces_of_verts_sparse, c):
 
     assert wi.shape == (F,)
 
-    print faces_of_verts_sparse.shape
-    num_verts = verts.shape[0]
-    assert faces_of_verts_sparse.shape == (num_verts, F)
-    set_trace()
-    fov = faces_of_verts_sparse
-    fov * wi[np.newaxis, :]
+    if False: #WtW is this about??
+        print faces_of_verts_sparse.shape
+        num_verts = verts.shape[0]
+        assert faces_of_verts_sparse.shape == (num_verts, F)
+        set_trace()
+        fov = faces_of_verts_sparse
+        fov * wi[np.newaxis, :]
 
 
     #nw = faces_of_verts_sparse *? w

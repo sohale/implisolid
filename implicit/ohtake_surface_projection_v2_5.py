@@ -172,6 +172,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     g_normalization_factors = 1. / glen_a[:, np.newaxis]
     g_direction_a = g_a * g_normalization_factors
     #The directions toward the center
+    del g_a
 
     #step_size = max_dist / 2.  # average_edge / 2.
 
@@ -184,20 +185,25 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     #signs_c = (fc_a >= THRESHOLD_zero_interval)*step_size - (fc_a <= -THRESHOLD_zero_interval)*step_size
     signs_c = (fc_a > THRESHOLD_zero_interval)*1. - (fc_a < -THRESHOLD_zero_interval)*1.
     #todo: stop moving when hit zero
-    x0_v3 = x[:, :3]
+    x0_v3 = x[:, :3]   # it's a const
+    # x is not used later anymore.
+    del x
     #Move opposite the direction toward center if the value is positive.
 
     #del step_size
 
     dx0_c_grad = - g_direction_a * signs_c[:, np.newaxis]
 
+    directions_basedon_gradient = dx0_c_grad
+    del dx0_c_grad
+
 
     """
     f_a = fc_a # ???
     taubin = f_a/glen_a
     x1_taubin = x0_v3 - g_direction_a * taubin[:, np.newaxis]
-    x1_half = x0_v3 + 0.5*dx0_c_grad * step_size
-    x1_half_opposite = x0_v3 - 0.5*dx0_c_grad * step_size
+    x1_half = x0_v3 + 0.5*directions_basedon_gradient * step_size
+    x1_half_opposite = x0_v3 - 0.5*directions_basedon_gradient * step_size
     #Opposite search: Ohtake does not loop the opposite direction if it did not find te point in the forward direction.
     # boundary:
     ...
@@ -277,7 +283,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
 
         # alpha_list1 = alpha_list[:10]  // Is this the default value?
         if it == 0:
-            dxc = dx0_c_grad
+            dxc = directions_basedon_gradient
             alpha_list1 = alpha_list
         elif it == 1:
             dxc = dx0c_mesh_normals.copy() #* 0.5
@@ -285,11 +291,11 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             print "now mesh normals"
             alpha_list1 = alpha_list[:10]
         elif it == 2:
-            n = dx0_c_grad.shape[0]
+            n = directions_basedon_gradient.shape[0]
             r = 0.000001
             perturb = (np.random.rand(n, 3)*2.-1.) * r
             #set_trace()
-            z = np.cross(dx0c_mesh_normals, dx0_c_grad+perturb, axis=1)
+            z = np.cross(dx0c_mesh_normals, directions_basedon_gradient+perturb, axis=1)
             z = z / np.linalg.norm(z, axis=1, keepdims=True)
             assert np.allclose(np.linalg.norm(z, axis=1), 1.)
             global z3
@@ -299,7 +305,7 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
             dxc = z.copy()
 
         elif it == 3:
-            n = dx0_c_grad.shape[0]
+            n = directions_basedon_gradient.shape[0]
             m = dx0c_mesh_normals
             missing = np.nonzero(np.linalg.norm(m, axis=1) < 1.-0.00001)[0]
             m[missing] = np.random.randn(missing.shape[0], 3)

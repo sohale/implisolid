@@ -113,6 +113,12 @@ typedef boost::multi_array<bool_t, 1>  vectorized_bool;
 //typedef boost::array<unsigned int, 1>  vectorized_bool_shape;
 typedef boost::array<vectorized_bool::index, 1>  vectorized_bool_shape;
 
+
+// vector_of_indices   array_of_indices   indices_array
+typedef boost::multi_array<int, 1>  array_of_indices;
+typedef boost::array<array_of_indices::index, 1>  array_of_indices_shape;
+
+
 // auto& loger = std::cerr;
 
 #include ".//my_assert.hpp"

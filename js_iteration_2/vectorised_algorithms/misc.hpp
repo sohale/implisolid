@@ -75,6 +75,56 @@ inline bool sizes_are_equal(const verts_t & A, const faces_t & B) {
     return A.shape()[0] == B.shape()[0]  && A.shape()[1] == B.shape()[1];
 }
 
+// A[C] = B[C]
+inline void set_a_b_if_c(vectorized_vect & A, const vectorized_vect & B, const vectorized_bool &C){
+    assert(sizes_are_equal(A, B));
+    assert(B.shape()[0] == C.shape()[0]);
+
+    for (int i=0, n = B.shape()[0]; i < n; i++) {
+        if (C[i]) {
+            A[i][0] = B[i][0];
+            A[i][1] = B[i][1];
+            A[i][2] = B[i][2];
+        } else {
+        }
+    }
+}
+
+
+// assign_using_fancy_indexing
+ // A = B[CI];
+inline void assign_vects_chosen_by_fancy_indexing(
+    vectorized_vect & A,
+    const vectorized_vect & B,
+    const array_of_indices & CI,
+    vectorized_vect::index  other_size_to_assert
+) {
+    vectorized_vect::index n = CI.size();
+    assert( other_size_to_assert == n);
+    for (int i=0; i < other_size_to_assert; i++) {
+        auto k = CI[i];
+        A[k][0] = B[k][0];
+        A[k][1] = B[k][1];
+        A[k][2] = B[k][2];
+    }
+}
+
+
+inline void bool_find_zero_scalars(vectorized_bool & zeros2_bool, const vectorized_scalar & f2, REAL ROOT_TOLERANCE) {
+    auto n = f2.shape()[0];
+    assert( n == zeros2_bool.shape()[0]);
+    for (int i=0; i < n; ++i) {
+        zeros2_bool[i] = std::abs(f2[i])<= ROOT_TOLERANCE;
+        /*
+
+        if (ABS(f2[i])<= ROOT_TOLERANCE) {
+            zeros2_bool[i] = b_true;
+        } else {
+            zeros2_bool[i] = b_false;
+        }
+        */
+    }
+}
 
 }
 }

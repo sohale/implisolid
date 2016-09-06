@@ -349,7 +349,7 @@ def set_centers_on_surface_ohtake(iobj, centroids, average_edge):
 #    here we consider that the max_dist is the average_edge and lambda = average_edge/2
 #    new function who is a combination of sers_on_surface_ohtake and project_point_bidir_ohtake
     lambda_val = average_edge/2
-    check_vector3_vectorized(centroids)
+    check_vector4_vectorized(centroids)
     #definition of the matrix that are gonna be used in the rest of the programm
     p1 = np.ndarray(centroids.shape)
     p2 = np.ndarray(centroids.shape)
@@ -1241,7 +1241,7 @@ def demo_combination_plus_qem():
     verts, facets = vtk_mc(gridvals, (RANGE_MIN, RANGE_MAX, STEPSIZE))
     print("MC calculated.");sys.stdout.flush()
 
-    exit()
+    #exit()
     old_verts, old_facets = verts, facets
 
     # display_simple_using_mayavi_2( [(verts, facets),(verts, facets), ],

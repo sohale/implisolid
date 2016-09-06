@@ -26,14 +26,17 @@ author: Marc, Solene, Sohail
 #include "../js_iteration_2/vectorised_algorithms/normalise_inplace.hpp"
 #include "../js_iteration_2/vectorised_algorithms/assert_are_normalised.hpp"
 using mp5_implicit::vectorised_algorithms::assert_are_normalised;
+
+
 #include "../js_iteration_2/vectorised_algorithms/misc.hpp"
 using mp5_implicit::vectorised_algorithms::replace_zero_normals_with_gaussian_random;
 using mp5_implicit::vectorised_algorithms::fill_vector;
+using mp5_implicit::vectorised_algorithms::set_a_b_if_c;
+using mp5_implicit::vectorised_algorithms::assign_vects_chosen_by_fancy_indexing;
 
 #include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
 using mp5_implicit::get_signs;
 using mp5_implicit::produce_facet_normals;
-
 using mp5_implicit::compute_centroid_gradient;
 
 using namespace std;
@@ -194,7 +197,7 @@ std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL unit_of_length, R
 /* creates a bundle of directions on surface, one for each centroid. */
 void create_directions_bundle(
     //inputs
-    const int iter_type, const vectorized_vect & dx0_c_grad, const std::vector<REAL>& alpha_list_full,
+    const int iter_type, const std::vector<REAL>& alpha_list_full,
     const vectorized_vect   & directions_basedon_gradient, const vectorized_vect   & facet_normals_directions,
     //outputs
     verts_t & dxc_output, std::string & name_output, std::vector<REAL> & alpha_list_output
@@ -208,9 +211,9 @@ void create_directions_bundle(
     std::vector<REAL> alpha_list1_10 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+10);
     std::vector<REAL> alpha_list0 = std::vector<REAL>(alpha_list_full.begin(), alpha_list_full.begin()+1);
 
-    int n = dx0_c_grad.shape()[0];
+    int n = directions_basedon_gradient.shape()[0];
     boost::array<int, 2> vector_shape = {n, 3};
-    assert( dx0_c_grad.shape()[0] == n);
+    assert( directions_basedon_gradient.shape()[0] == n);
     assert( directions_basedon_gradient.shape()[0] == n);
     assert( facet_normals_directions.shape()[0] == n);
     assert( dxc_output.shape()[0] == n);
@@ -351,54 +354,29 @@ void  set_centers_on_surface(
 
     REAL max_dist = average_edge;
 
-    int n = centroids.shape()[0];
-    boost::array<int, 1> scalar_shape = {n};
+    const int n = centroids.shape()[0];
+    vectorized_scalar_shape scalar_shape = {n};
     // auto scalar_shape = boost::extents[n];
 
     vectorized_scalar fc_a(scalar_shape);
     object->eval_implicit(centroids, &fc_a);
 
 
+    /*Compute the gradients, and normalise them.*/
+    // g_direction_a:
+    // g_a:
     boost::array<int, 2> g_a_shape = { n , 3 };
-    verts_t g_a(g_a_shape);
-    // applying the centroid gradient
-
-    compute_centroid_gradient(x, g_a, object);
-
-    /*Compute the gradients, and normalise them.
-    */
-    // now g_a --> g_direction
-    print_vector("g_a", g_a, 100);
-    mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
-    assert(assert_are_normalised(g_a) && "0");
-
-
-    /*
-    {
-    constexpr REAL MIN_NORM = 1.0;  // An absolute value: not good.
+    verts_t  g_a(g_a_shape);
+    // compute_centroid_gradient(x, g_a, object);
     object->eval_gradient(x, &g_a);
-    for (int i = 0, e = g_a.shape()[0]; i < e; i++) {
-        REAL norm = norm_2(g_a[i][0], g_a[i][1], g_a[i][2]);
-        if (norm < min_gradient_len) {
-            norm = MIN_NORM;
-        }
-        REAL factor = 1.0 / norm;
-        g_a[i][0]=g_a[i][0] / norm;
-        g_a[i][1]=g_a[i][1] / norm;
-        g_a[i][2]=g_a[i][2] / norm;
-        #if ASSERT_USED
-            for (int j = 0; j < 3; j++) {
-                assert(g_a[i][j] <= 1.);
-                assert(g_a[i][j] >= -1.);
-            }
-        #endif
-    }
-    }
-    */
-
-    // Elements will be modified
+    mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
+    print_vector("g_a", g_a, 100);
+    assert(assert_are_normalised(g_a) && "0");
+    // now g_a --> g_direction
+    // Note: Elements will be modified
     auto& g_direction_a = g_a;
     // how to undefine g_a here?
+
 
     // todo: remove: negative_f_c
 
@@ -422,20 +400,24 @@ void  set_centers_on_surface(
     // Move toward surface: If inside (the f value is positive) move outwards (oppoosite the -gradient), and if outside, move inwards (+gradient).
     boost::array<int, 2> vector_shape = {n, 3};
     vectorized_vect  dx0_c_grad(vector_shape);
-
     for (int i=0; i < fc_a.shape()[0]; i++) {
         // Bug fixed: negative sign missing.
         dx0_c_grad[i][0] = - g_direction_a[i][0]*signs_c[i];
         dx0_c_grad[i][1] = - g_direction_a[i][1]*signs_c[i];
         dx0_c_grad[i][2] = - g_direction_a[i][2]*signs_c[i];
     }
-
     // Problem: directions_basedon_gradient is basically EQUAL to "g_a"
     const vectorized_vect   & directions_basedon_gradient = dx0_c_grad;
+
+
 
     // stepsize happens to be equal to the max_dist.
     REAL initial_step_size = max_dist * 1.0;
     std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, average_edge, 0.001, max_dist, max_iter, EXTREME_ALPHA);
+    /*
+        Interesting observation: alpha_list[4] always finds many points. We can bring it forward, after [1] or [2].
+        If we use mesh normals first, the results seem better.
+    */
 
     // THE algorithm
 
@@ -450,19 +432,19 @@ void  set_centers_on_surface(
 
     int active_count = n;
 
-    boost::multi_array<int, 1> still_nonsuccess_indices(scalar_shape);
+    array_of_indices  still_nonsuccess_indices(scalar_shape);
     int s_n_s = 0;
     //TODO RENAME  s_n_s --->  still_nonsuccess_indices_size
     still_nonsuccess_indices = active_indices;  // copy
     assert(std::begin(still_nonsuccess_indices) != std::begin(active_indices));  // assure it's a copy
 
-    boost::multi_array<bool_t, 1> already_success(scalar_shape);
+    vectorized_bool  already_success(scalar_shape);
     for (int i=0; i < n; i++) {
         already_success[i] = b_false;
     }
 
-    boost::multi_array<bool_t, 1> success(scalar_shape);
-    //boost::multi_array<bool_t, 1> already_success(scalar_shape);
+    vectorized_bool  success(scalar_shape);
+    //vectorized_bool  already_success(scalar_shape);
     for (int i=0; i < n; i++) {
         success[i] = b_false;  // = already_success[i]
     }
@@ -508,7 +490,7 @@ refactor into functions
     vectorized_scalar signs_a(scalar_shape);
 
     // boolean
-    boost::multi_array<bool_t, 1> success0(scalar_shape);
+    vectorized_bool  success0(scalar_shape);
 
     // indices arrays
 */
@@ -534,7 +516,7 @@ refactor into functions
         ***********************/
         create_directions_bundle(
             //inputs
-            iter_type, dx0_c_grad, alpha_list_full,
+            iter_type, alpha_list_full,
             directions_basedon_gradient, facet_normals_directions,
             // outputs
             dxc, name, alpha_list1
@@ -580,11 +562,13 @@ refactor into functions
             int still_nonsuccess_indices__effective_size = 0;
             int active_indices_size = still_nonsuccess_indices__effective_size;
 */
+            // assign_vects_chosen_by_fancy_indexing(xa4, x1_half, active_indices, ???);
             int ac = active_indices.shape()[0];
             for (int j=0; j < ac; j++) {
-                xa4[j][0] = x1_half[active_indices[j]][0];
-                xa4[j][1] = x1_half[active_indices[j]][1];
-                xa4[j][2] = x1_half[active_indices[j]][2];
+                auto k = active_indices[j];
+                xa4[j][0] = x1_half[k][0];
+                xa4[j][1] = x1_half[k][1];
+                xa4[j][2] = x1_half[k][2];
             }
             cout << "too many evaluations" << std::endl;
             //object->eval_implicit(xa4.begin(), xa4.begin()+ac, f_a.begin());
@@ -628,7 +612,7 @@ refactor into functions
 
             // NOT CHECKED
 
-            boost::multi_array<bool_t, 1> new_success_indices(scalar_shape);
+            vectorized_bool  new_success_indices(scalar_shape);
 
             // NOT CHECKED
 
@@ -651,10 +635,11 @@ refactor into functions
             }
 
             for (int j=0; j < n_s; j++) {
+                auto k = new_success_indices[j];
                 // todo: re-factor
-                best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
-                best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
-                best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
+                best_result_x[k][0] = x1_half[k][0];
+                best_result_x[k][1] = x1_half[k][1];
+                best_result_x[k][2] = x1_half[k][2];
             }
 
             for (int j=0; j < n; j++) {
@@ -743,9 +728,10 @@ refactor into functions
 
             for (int j=0; j < n_s; j++) {
                 // todo: re-factor
-                best_result_x[new_success_indices[j]][0] = x1_half[new_success_indices[j]][0];
-                best_result_x[new_success_indices[j]][1] = x1_half[new_success_indices[j]][1];
-                best_result_x[new_success_indices[j]][2] = x1_half[new_success_indices[j]][2];
+                auto k = new_success_indices[j];
+                best_result_x[k][0] = x1_half[k][0];
+                best_result_x[k][1] = x1_half[k][1];
+                best_result_x[k][2] = x1_half[k][2];
             }
 
             for (int j=0; j < n; j++) {
@@ -778,12 +764,15 @@ refactor into functions
     // todo: still_nonsuccess_indices__effective_size
     assert(s_n_s == still_nonsuccess_indices.size());
 
+    assign_vects_chosen_by_fancy_indexing(best_result_x, centroids, still_nonsuccess_indices, s_n_s);  // A = B[C];
+    /*
     for (int i=0; i < s_n_s; i++) {
         auto k = still_nonsuccess_indices[i];
         best_result_x[k][0] = centroids[k][0];
         best_result_x[k][1] = centroids[k][1];
         best_result_x[k][2] = centroids[k][2];
     }
+    */
 
 
     // vectorized_scalar f1(scalar_shape);
@@ -799,10 +788,10 @@ refactor into functions
     vectorized_scalar f2(scalar_shape);
     object->eval_implicit(xa2, &f2);
 
-    boost::multi_array<bool_t, 1> zeros2_bool(scalar_shape);
-    boost::multi_array<bool_t, 1> zeros1_bool(scalar_shape);
-    boost::multi_array<bool_t, 1> zeros1or2(scalar_shape);
-    boost::multi_array<int, 1> relevants_bool_indices(scalar_shape);
+    vectorized_bool  zeros2_bool(scalar_shape);
+    vectorized_bool  zeros1_bool(scalar_shape);
+    vectorized_bool  zeros1or2(scalar_shape);
+    array_of_indices  relevants_bool_indices(scalar_shape);
 
     clog << "3" << endl;
 
@@ -811,6 +800,7 @@ refactor into functions
     //****************************
     // UP TO HERE
 
+    // bool_find_zero_scalars(zeros2_bool, f2, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
         zeros2_bool[i] = ABS(f2[i])<= ROOT_TOLERANCE;
         /*
@@ -823,6 +813,8 @@ refactor into functions
         */
     }
 
+    // todo: turn this into a canonical function
+    // bool_find_zero_scalars(zeros1_bool, f1, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
         zeros1_bool[i] = ABS(f1[i]) <= ROOT_TOLERANCE;
         /*
@@ -836,17 +828,10 @@ refactor into functions
 
     // todo: turn this into a canonical function
     // best_result_x = x0_v3[zeros1_bool]
-    for (int i=0; i < n; i++) {
-        // if (ABS(f1[i])<= ROOT_TOLERANCE) {
-        if (zeros1_bool[i]) {
-            best_result_x[i][0] = centroids[i][0];
-            best_result_x[i][1] = centroids[i][1];
-            best_result_x[i][2] = centroids[i][2];
-        } else {
-        }
-    }
+    set_a_b_if_c(best_result_x, centroids, zeros1_bool);
 
 
+    // todo: turn this into a canonical function
     for (int i=0; i < n; i++) {
         zeros1or2[i] = zeros2_bool[i] || zeros1_bool[i];
     /*

@@ -150,6 +150,7 @@ void print_vector(const std::string heading, const verts_t& v, int count) {
 
 
 void compute_centroid_gradient(const verts_t& X, verts_t& N, implicit_function* gradou) {
+    std::clog << "Using this function is discouraged. This cause a bug." << std::endl;
 
     gradou->eval_gradient(X, &N);
     vectorised_algorithms::normalize_1111(N);

@@ -127,7 +127,7 @@ void bisection(
 
     #endif
 
-    boost::multi_array<int, 1> active_indices(v1_shape);
+    array_of_indices  active_indices(v1_shape);
 
     for (int i=0; i < n; i++) {
         active_indices[i] = i;
