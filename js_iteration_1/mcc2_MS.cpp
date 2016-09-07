@@ -212,7 +212,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
         float c = 2000.;
 
         for (int i=0; i < REPEATS_VR; i++){
-            vertex_resampling_VMS(object, c, _state.mc->result_verts, _state.mc->result_faces, writing_test_file);
+            apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc->result_verts, _state.mc->result_faces, writing_test_file);
         }
 
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);

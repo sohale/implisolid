@@ -1,7 +1,7 @@
 #pragma once
 
-ofstream debug_part_1(std::vector<REAL>& result_verts) {
-    ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+ofstream debug_part_1(string filename, std::vector<REAL>& result_verts) {
+    ofstream f_out(filename);
 
     f_out << "0ld vertex :" << endl;
     for (int i=0; i< result_verts.size()/3.; i++){
