@@ -1,5 +1,6 @@
 // Authors: Marc, Solene, Sohail
 #include "../js_iteration_1/vertex_resampling.cpp"
+#include "../js_iteration_1/debug_methods_MS.hpp"
 /*
 #include <iostream>
 #include "boost/multi_array.hpp"
@@ -235,134 +236,23 @@ void process2_vertex_resampling_relaxation_v2(
 }
 */
 
-void writing_test_file(
-        string  output_file_name,
-        std::vector<REAL>&result_verts, std::vector<int>&result_faces,
-        vectorized_vect & new_verts, vectorized_vect & centroids
-    )
-{
-
-    ofstream f_out(output_file_name);
-
-    f_out << "0ld vertex :" << endl;
-    for (int i=0; i< result_verts.size()/3.; i++){
-        f_out << result_verts[3*i];
-        f_out << " ";
-        f_out << result_verts[3*i+1];
-        f_out << " ";
-        f_out << result_verts[3*i+2];
-        f_out <<  "\n";
-    }
-    f_out << endl;
-
-    /*
-    boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    vectorized_vect  verts(verts_shape);
-    boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
-    vectorized_vect  new_verts (verts_shape);
-    vectorized_vect  centroids (faces_shape);
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, c);
-    */
-    //new_verts, centroids
-
-    for (int i=0; i<new_verts.shape()[0]; i++){
-        result_verts[i*3+0] = new_verts[i][0];
-        result_verts[i*3+1] = new_verts[i][1];
-        result_verts[i*3+2] = new_verts[i][2];
-    }
-
-    f_out << "n3w vertex :" << endl;
-    for (int i=0; i< result_verts.size()/3.; i++){
-        f_out << result_verts[3*i];
-        f_out << " ";
-        f_out << result_verts[3*i+1];
-        f_out << " ";
-        f_out << result_verts[3*i+2];
-        f_out <<  "\n";
-    }
-
-    f_out << "faces :" << endl;
-    for (int i=0; i< result_faces.size()/3.; i++){
-        f_out << result_faces[3*i];
-        f_out << " ";
-        f_out << result_faces[3*i+1];
-        f_out << " ";
-        f_out << result_faces[3*i+2];
-        f_out <<  "\n";
-    }
-
-    f_out << "centroids:" << endl;
-    for (int i=0; i< centroids.shape()[0]; i++){
-        f_out << centroids[i][0];
-        f_out << " ";
-        f_out << centroids[i][1];
-        f_out << " ";
-        f_out << centroids[i][2];
-        f_out <<  "\n";
-    }
-    f_out.close();
-}
-
 
 REAL rand01() {
     return static_cast<REAL>(rand())/ (static_cast<REAL>( RAND_MAX) + 1 );
 }
-void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
-      std::vector<REAL>&result_verts, std::vector<int>& result_faces
-      )
+void vertex_resampling_vVV2(
+        mp5_implicit::implicit_function* object,
+        const float c,
+        std::vector<REAL>&result_verts,
+        std::vector<int>& result_faces
+    )
 {
     clog << "VVV_2" << std::endl;
-    exit(1);
+    // exit(1);
 
-    /*
-    for (int i=0; i< result_verts.size()/3.; i++){
-        result_verts[i*3+0] += (rand01()-0.5 )* 0.3;
-    }
-    return;
-    */
-    /*
-    boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    vectorized_vect  verts(verts_shape);
-
-    boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
-
-    //vectorized_vect  centroids (faces_shape);
-    //vectorized_vect  new_verts (verts_shape);
-    */
 
     vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(result_verts);
     vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(result_faces);
-/*
-    boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
-    vectorized_vect  verts(verts_shape);
-
-    int output_verts=0;
-    auto i = result_verts.begin();
-    auto e = result_verts.end();
-    for(; i!=e; i++, output_verts++){
-        verts[output_verts][0] = (*i);
-        i++;
-        verts[output_verts][1] = (*i);
-        i++;
-        verts[output_verts][2] = (*i);
-    }
-
-    boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
-
-    int output_faces=0;
-    auto i_f = result_faces.begin();
-    auto e_f = result_faces.end();
-    for(; i_f!=e_f; i_f++, output_faces++){
-        faces[output_faces][0] = (*i_f);
-        i_f++;
-        faces[output_faces][1] = (*i_f);
-        i_f++;
-        faces[output_faces][2] = (*i_f);
-    }
-*/
 
     vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
     vectorized_vect_shape centroids_shape = { static_cast<int>(faces.shape()[0]) , 3 };
@@ -374,30 +264,13 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
 
     process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
-    bool writing_test_file_ = false;
-    if (writing_test_file_) {
+    bool writing_test_file = false;
+    if (writing_test_file) {
 
-        writing_test_file(
-            "/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt",
-            result_verts, result_faces,
-            new_verts, centroids
-        );
+        writing_test_file_("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt",  result_verts, result_faces, new_verts, centroids );
 
     } else {
         replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
-        /*
-        REAL cumul_abs_displacement = 0;
-        for (int i=0; i<verts.shape()[0]; i++) {
-            // std::clog << "result_verts  = new_verts: " <<result_verts[i*3+0] << " = " << new_verts[i][0] << std::endl;
-            for(int j=0;j<3;j++) {
-                cumul_abs_displacement += std::abs( result_verts[i*3+j] - new_verts[i][j]);
-            }
-            result_verts[i*3+0] = new_verts[i][0];
-            result_verts[i*3+1] = new_verts[i][1];
-            result_verts[i*3+2] = new_verts[i][2];
-        }
-        std::clog << "<cumul_abs_displacement> = " <<  cumul_abs_displacement/((REAL)(verts.shape()[0]))/3 << std::endl;
-        */
 
    }
 

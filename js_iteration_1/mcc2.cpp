@@ -447,25 +447,42 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // mc_settings_from_json.vertexresampleing.iterations
 
 
+    /*
     int vresamp_iters = 0; //3;
     bool apply_projection = false;
     float c = 1.;
+    */
 
 
-    /*
+
     int vresamp_iters = 1; //3;
     bool apply_projection = true;
     float c = 1.;
-    */
+
 
     for (int i=0; i < vresamp_iters; i++) {
         // result_verts is modified
-        vertex_resampling(object, c, _state.mc -> result_verts, _state.mc->result_faces );
+        vertex_resampling_vVV2(object, c, _state.mc -> result_verts, _state.mc->result_faces );
     }
     if (apply_projection) {
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
     }
 
+    /*
+    // int REPEATS = 2;
+    //int REPEATS_VR = 3;
+    int REPEATS = 1;
+    int REPEATS_VR = 1;
+    for (int repeats = 0; repeats < REPEATS ; ++repeats) {
+        float c = 2000.;
+
+        for (int i=0; i < REPEATS_VR; i++){
+            vertex_resampling_VMS(object, c, *(_state.mc));
+        }
+
+        centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+    }
+    */
 
     //delete object;
     object = NULL;

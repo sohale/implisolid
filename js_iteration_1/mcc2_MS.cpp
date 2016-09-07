@@ -11,6 +11,8 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
+#include "debug_methods_MS.hpp"
+
 using namespace std;
 using namespace mp5_implicit;
 
@@ -53,15 +55,21 @@ typedef struct {
 
 state_t _state;
 
-void vertex_resampling_VMS(implicit_function* object, REAL c, MarchingCubes& mc){
-  clog << "V_MS" << std::endl;
-  // exit(1);
+void vertex_resampling_VMS(
+        implicit_function* object,
+        const REAL c,
+        MarchingCubes& mc
+    )
+{
+
+    clog << "V_MS" << std::endl;
+    // exit(1);
 
 
-      vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(mc.result_verts);
-      vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(mc.result_faces);
+    vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(mc.result_verts);
+    vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(mc.result_faces);
 
-      if (!writing_test_file) {
+    if (!writing_test_file) {
 
           vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
           vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
@@ -71,78 +79,29 @@ void vertex_resampling_VMS(implicit_function* object, REAL c, MarchingCubes& mc)
 
           process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
+
           replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
-          /*
-          for (int i=0; i < verts.shape()[0]; i++) {
-              mc.result_verts[i*3+0] = new_verts[i][0];
-              mc.result_verts[i*3+1] = new_verts[i][1];
-              mc.result_verts[i*3+2] = new_verts[i][2];
-          }
-          */
 
-      } else {  // if writeing_test_file
 
-          ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
+    } else {  // if writeing_test_file
 
-          f_out << "0ld vertex :" << endl;
-          for (int i=0; i< mc.result_verts.size()/3.; i++){
-              f_out << mc.result_verts[3*i];
-              f_out << " ";
-              f_out << mc.result_verts[3*i+1];
-              f_out << " ";
-              f_out << mc.result_verts[3*i+2];
-              f_out <<  "\n";
-          }
-          f_out << endl;
 
           vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
           vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
+
           vectorized_vect  new_verts (verts_shape);
           vectorized_vect  centroids (faces_shape);
 
           process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
+
+          ofstream f_out = debug_part_1(mc.result_verts);
+
+
           replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
-          /*
-          for (int i=0; i<verts.shape()[0]; i++){
-            mc.result_verts[i*3+0] = new_verts[i][0];
-            mc.result_verts[i*3+1] = new_verts[i][1];
-            mc.result_verts[i*3+2] = new_verts[i][2];
 
-          }
-          */
-
-          f_out << "n3w vertex :" << endl;
-          for (int i=0; i< mc.result_verts.size()/3.; i++){
-              f_out << mc.result_verts[3*i];
-              f_out << " ";
-              f_out << mc.result_verts[3*i+1];
-              f_out << " ";
-              f_out << mc.result_verts[3*i+2];
-              f_out <<  "\n";
-          }
-
-          f_out << "faces :" << endl;
-          for (int i=0; i< mc.result_faces.size()/3.; i++){
-              f_out << mc.result_faces[3*i];
-              f_out << " ";
-              f_out << mc.result_faces[3*i+1];
-              f_out << " ";
-              f_out << mc.result_faces[3*i+2];
-              f_out <<  "\n";
-          }
-
-          f_out << "centroids:" << endl;
-          for (int i=0; i< centroids.shape()[0]; i++){
-              f_out << centroids[i][0];
-              f_out << " ";
-              f_out << centroids[i][1];
-              f_out << " ";
-              f_out << centroids[i][2];
-              f_out <<  "\n";
-          }
-          f_out.close();
-      }
+          debug_part_2(f_out, mc.result_verts, mc.result_faces, centroids);
+    }
 
 }
 
