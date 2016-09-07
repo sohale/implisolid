@@ -117,7 +117,7 @@ inline void bool_find_zero_scalars(vectorized_bool & zeros2_bool, const vectoriz
         zeros2_bool[i] = std::abs(f2[i])<= ROOT_TOLERANCE;
         /*
 
-        if (ABS(f2[i])<= ROOT_TOLERANCE) {
+        if (std::abs(f2[i])<= ROOT_TOLERANCE) {
             zeros2_bool[i] = b_true;
         } else {
             zeros2_bool[i] = b_false;

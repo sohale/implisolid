@@ -158,7 +158,7 @@ void compute_centroid_gradient(const verts_t& X, verts_t& N, implicit_function* 
 
 
 
-void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
+void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids){
   int nt = faces.shape()[0];
   for (int j=0; j<nt; j++){
     int f0 = faces[j][0];
@@ -256,7 +256,7 @@ bool check_all_are_root(mp5_implicit::implicit_function* object, const vectorize
 
     bool ok = true;
     for (int i = 0; i < m; i++) {
-        // ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+        // ok = ok && std::abs(f1_relevants[i]) < ROOT_TOLERANCE;
         ok = ok && std::abs(f[i]) < ROOT_TOLERANCE;
         if (!ok) {
             clog << f[i] << " [" << i << "]" << std::endl;

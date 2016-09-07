@@ -1028,7 +1028,7 @@ vf_t vector_to_vertsfaces(vector<TRIANGLE> const& ta)
     return p2;
 }
 
-void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
+void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids){
   int nt = faces.shape()[0];
   for (int j=0;j<nt; j++){
     for (int di=0; di<3; di++){

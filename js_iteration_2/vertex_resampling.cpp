@@ -27,13 +27,13 @@ typedef float REAL;
 typedef struct {
    REAL x, y, z;
 } XYZ;
-*/
 
 REAL ABS(REAL x){
   if(x<0)
     return -x;
   return x;
 }
+*/
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
@@ -42,44 +42,10 @@ typedef std::vector<int> vector_int;
 typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
-// todo: move to basic functions
 
-/*
-REAL norm_2(REAL x, REAL y, REAL z){
-  REAL norm = sqrt(x*x + y*y + z*z);
-  return norm;
-}
 
-void compute_centroids(faces_t& faces, verts_t& verts, verts_t& centroids){
-  int nt = faces.shape()[0];
-  for (int j=0; j<nt; j++){
-    int f0 = faces[j][0];
-    int f1 = faces[j][1];
-    int f2 = faces[j][2];
-    for (int di=0; di<3; di++){
-        centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di])/3.;
+#include "faces_verts_algorithms.hpp"
 
-    }
-  }
-}
-*/
-
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(verts_t& verts, faces_t& faces){
-  int nt = faces.shape()[0];
-  int vt = verts.shape()[0];
-  std::vector< std::vector<int>> neighbour_faces_of_vertex;
-  for (int fi=0; fi< vt; fi++){
-    neighbour_faces_of_vertex.push_back(std::vector<int>());
-  }
-  for (int fi=0; fi< nt; fi++){
-    for (int vi=0; vi<3; vi++){
-      int v1 = faces[fi][vi];
-      neighbour_faces_of_vertex[v1].push_back(fi);
-    }
-  }
-
-  return neighbour_faces_of_vertex;
-}
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = faces.shape()[0];
@@ -238,7 +204,7 @@ void process2_vertex_resampling_relaxation(
         // outputs
         verts_t& new_verts,
         // input
-        faces_t& faces, verts_t& verts,
+        const faces_t& faces, verts_t& verts,
         // output
         verts_t& centroids,
         // inputs

@@ -46,6 +46,8 @@ using mp5_implicit::eval_implicit_on_selected_points_indexed;
 using mp5_implicit::test_if_conjugate_opposite_signs_indexed;
 using mp5_implicit::check_all_are_root;
 
+#include "../js_iteration_2/faces_verts_algorithms.hpp"
+
 using namespace std;
 
 namespace mp5_implicit {
@@ -69,7 +71,7 @@ REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
 }
 
 
-void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
+/*void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
     int nt = faces.shape()[0];
     for (int j=0; j < nt; j++) {
         auto f0 = faces[j][0];
@@ -81,7 +83,7 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
         }
     }
 }
-
+*/
 inline REAL my_sign(REAL v, REAL ROOT_TOLERANCE) {
 //     return np.sign(v) * (np.abs(v) > ROOT_TOLERANCE)
   /*
@@ -866,10 +868,10 @@ void  set_centers_on_surface(
 
     // bool_find_zero_scalars(zeros2_bool, f2, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
-        zeros2_bool[i] = ABS(f2[i])<= ROOT_TOLERANCE;
+        zeros2_bool[i] = std::abs(f2[i])<= ROOT_TOLERANCE;
         /*
 
-        if (ABS(f2[i])<= ROOT_TOLERANCE) {
+        if (std::abs(f2[i])<= ROOT_TOLERANCE) {
             zeros2_bool[i] = b_true;
         } else {
             zeros2_bool[i] = b_false;
@@ -880,9 +882,9 @@ void  set_centers_on_surface(
     // todo: turn this into a canonical function
     // bool_find_zero_scalars(zeros1_bool, f1, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
-        zeros1_bool[i] = ABS(f1[i]) <= ROOT_TOLERANCE;
+        zeros1_bool[i] = std::abs(f1[i]) <= ROOT_TOLERANCE;
         /*
-        if (ABS(f1[i])<= ROOT_TOLERANCE) {
+        if (std::abs(f1[i])<= ROOT_TOLERANCE) {
             zeros1_bool[i] = b_true;
         } else {
             zeros1_bool[i] = b_false;
@@ -944,7 +946,7 @@ void  set_centers_on_surface(
         bool everything_alright = true;
         for (int i = 0, e = zeros1or2.size(); i < e; ++i) {
             int j = zeros1or2[i];
-            bool ok = ABS(f1[j]) <= ROOT_TOLERANCE;
+            bool ok = std::abs(f1[j]) <= ROOT_TOLERANCE;
             everything_alright = everything_alright && ok;
         }
     }
@@ -956,7 +958,7 @@ void  set_centers_on_surface(
       bool everything_alright = true;
       for (int i = 0, e = relevants_bool_indices.size(); i < e; ++i) {
           int j = relevants_bool_indices[i];
-          bool ok = ABS(f1[j]) > ROOT_TOLERANCE;
+          bool ok = std::abs(f1[j]) > ROOT_TOLERANCE;
           everything_alright = everything_alright && ok;
       }
     }
@@ -1126,8 +1128,8 @@ void  set_centers_on_surface(
 
         bool ok = true;
         for (int i = 0; i < m; i++) {
-            // ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
-            ok = ok && ABS(f[i]) < ROOT_TOLERANCE;
+            // ok = ok && std::abs(f1_relevants[i]) < ROOT_TOLERANCE;
+            ok = ok && std::abs(f[i]) < ROOT_TOLERANCE;
             if (!ok) {
                 clog << f[i] << " [" << i << "]" << std::endl;
                 break;
@@ -1197,22 +1199,6 @@ inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
 */
 
 
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const verts_t& verts, const faces_t& faces) {
-    int nt = faces.shape()[0];
-    int vt = verts.shape()[0];
-    std::vector< std::vector<int>> neighbour_faces_of_vertex;
-    for (int fi=0; fi < vt; fi++) {
-        neighbour_faces_of_vertex.push_back(std::vector<int>());
-    }
-    for (int fi=0; fi < nt; fi++) {
-        for (int vi=0; vi < 3; vi++) {
-            int v1 = faces[fi][vi];
-            neighbour_faces_of_vertex[v1].push_back(fi);
-        }
-    }
-
-    return neighbour_faces_of_vertex;
-}
 
 // get the matrix A and b used in vertex_apply_qem
 void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b) {

@@ -216,7 +216,7 @@ void bisection(
         here("5");
 
         for (int i=0; i < active_count; i++) {
-            abs_[i] = ABS(v_mid[i]);
+            abs_[i] = std::abs(v_mid[i]);
         }
         // int abs_size = active_count;
 
@@ -377,7 +377,7 @@ void bisection(
 
         bool ok = true;
         for (int i = 0; i < m; i++) {
-            ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+            ok = ok && std::abs(f1_relevants[i]) < ROOT_TOLERANCE;
             if (!ok) {
                 clog << f1_relevants[i] << " [" << i << "]" << std::endl;
                 break;
