@@ -187,32 +187,43 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
 }
 
 // main function
-void process2_vertex_resampling_relaxation_v1(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
+void process2_vertex_resampling_relaxation_v1(
+        // outputs
+        verts_t& new_verts,
+        // input
+        const faces_t& faces, verts_t& verts,
+        // output
+        verts_t& centroids,
+        // inputs
+        mp5_implicit::implicit_function* object, float c
+    )
+{
 
-  int nfaces = faces.shape()[0];
-  assert(nfaces % 2 == 0);
-  int num_edges = nfaces*3./2.;
-  boost::array<int, 2> edges_of_faces_shape = { nfaces, 3 };
-  boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
-  boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
+    int nfaces = faces.shape()[0];
+    assert(nfaces % 2 == 0);
+    int num_edges = nfaces*3./2.;
+    boost::array<int, 2> edges_of_faces_shape = { nfaces, 3 };
+    boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
+    boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
 
-  boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
-  boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
-  boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
+    boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
+    boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
+    boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
 
-  compute_centroids(faces, verts, centroids);
+    compute_centroids(faces, verts, centroids);
 
-  boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
-  vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
+    boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
+    vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
 
-  compute_centroid_gradient(centroids, centroid_normals_normalized, object);
+    compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
-  std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
+    std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
 
-  make_edge_lookup(faces, edges_of_faces, faces_of_edges);
+    make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 
-  build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
+    build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
 
-  vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
-   centroids, centroid_normals_normalized, c);
+    vertex_resampling(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
+        centroids, centroid_normals_normalized, c
+    );
 }

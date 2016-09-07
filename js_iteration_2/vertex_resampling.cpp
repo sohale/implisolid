@@ -24,20 +24,6 @@ using mp5_implicit::vectorised_algorithms::norm_2;
 #include "faces_verts_algorithms.hpp"
 
 
-/*
-typedef float REAL;
-typedef struct {
-   REAL x, y, z;
-} XYZ;
-
-REAL ABS(REAL x){
-  if(x<0)
-    return -x;
-  return x;
-}
-*/
-
-
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;
 typedef std::vector<int> vector_int;
@@ -201,7 +187,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
 }
 
 // main function
-void process2_vertex_resampling_relaxation(
+void process2_vertex_resampling_relaxation_v2(
         // outputs
         verts_t& new_verts,
         // input
@@ -366,7 +352,7 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
 
     vectorized_vect  new_verts (verts_shape);
     vectorized_vect  centroids (faces_shape);
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, c);
+    process2_vertex_resampling_relaxation_v2(new_verts, faces, verts, centroids, object, c);
 
     bool writing_test_file_ = false;
     if (writing_test_file_) {

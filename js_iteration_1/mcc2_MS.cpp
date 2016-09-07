@@ -53,7 +53,7 @@ typedef struct {
 
 state_t _state;
 
-void vertex_resampling(implicit_function* object, REAL f_argument,  float c, MarchingCubes& mc){
+void vertex_resampling(implicit_function* object, REAL c, MarchingCubes& mc){
 
       boost::array<int, 2> verts_shape = { (int)mc.result_verts.size()/3 , 3 };
       vectorized_vect  verts(verts_shape);
@@ -102,7 +102,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
       f_out << endl;
 
-      process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, f_argument, c);
+      process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
       for (int i=0; i<verts.shape()[0]; i++){
         mc.result_verts[i*3+0] = new_verts[i][0];
@@ -144,7 +144,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
 
     else {
-    process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, f_argument, c);
+    process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
     for (int i=0; i<verts.shape()[0]; i++){
       mc.result_verts[i*3+0] = new_verts[i][0];
@@ -306,14 +306,14 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
 
     float c=2000.;
     for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
+     vertex_resampling(object, c, *(_state.mc));
     }
 
 
     centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
     for (int i=0; i<3; i++){
-     vertex_resampling(object, f_argument, c, *(_state.mc));
+     vertex_resampling(object, c, *(_state.mc));
     }
 
     centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);

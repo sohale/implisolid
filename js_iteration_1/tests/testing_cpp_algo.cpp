@@ -65,7 +65,7 @@ int main() {
   const callback_t renderCallback;
   _state.mc->render_geometry(renderCallback);
 
-  mcc2_MS::vertex_resampling(object, f_argument, c, *(_state.mc));
+  mcc2_MS::vertex_resampling_v1(object, f_argument, c, *(_state.mc));
 
    }
     std::clog << "main();" << std::endl;
