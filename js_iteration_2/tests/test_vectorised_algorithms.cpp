@@ -11,7 +11,7 @@
 #include "../unit_sphere.hpp"
 #include "gtest/gtest.h"
 
-// #include "../timer.hpp"
+// #include "../js_iteration_1/timer.hpp"
 
 TEST(CrispSubtractTests, TwoSpheresOneInsideOther) {
 

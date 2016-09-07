@@ -238,11 +238,8 @@ void process2_vertex_resampling_relaxation_v2(
 }
 */
 
-/*
-REAL rand01() {
-    return static_cast<REAL>(rand())/ (static_cast<REAL>( RAND_MAX) + 1 );
-}
-*/
+
+
 void apply_vertex_resampling_to_MC_buffers_vVV2(
         mp5_implicit::implicit_function* object,
         const REAL c,
@@ -302,6 +299,12 @@ void apply_vertex_resampling_to_MC_buffers__VMS(
     vectorized_vect  centroids (faces_shape);
 
     process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
+
+    for (int i = 0; i < new_verts.shape()[0]; ++i) {
+        new_verts[i][0] += (rand01() * 2.0 - 1.0) * 0.1;
+        new_verts[i][1] += (rand01() * 2.0 - 1.0) * 0.1;
+        new_verts[i][2] += (rand01() * 2.0 - 1.0) * 0.1;
+    }
 
     if (!writing_test_file) {
 

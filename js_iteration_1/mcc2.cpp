@@ -39,6 +39,8 @@ Todo:
 #include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "../js_iteration_1/centroids_projection.cpp"
 
+#include "timer.hpp"
+
 // #include <math.h>
 
 extern "C" {
@@ -457,14 +459,17 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
 
     int vresamp_iters = 1; //3;
-    bool apply_projection = true;
+    bool apply_projection = false;
     float c = 1.;
 
 
+    timer t;
     for (int i=0; i < vresamp_iters; i++) {
         // result_verts is modified
         apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc -> result_verts, _state.mc->result_faces, false );
     }
+    t.stop();  // 18 msec
+
     if (apply_projection) {
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
     }
@@ -566,6 +571,9 @@ void* get_f_ptr() {
 // void finish_geometry();
 
 //  Can cause an exception (but not when null).
+/*
+    Leave behind and forget the current geometry. Ready for a new one.
+*/
 void finish_geometry() {
     if (!check_state())
         return;

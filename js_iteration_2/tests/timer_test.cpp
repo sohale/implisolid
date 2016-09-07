@@ -1,7 +1,7 @@
 #include <iostream>
 using namespace std;
 
-#include "../timer.hpp"
+#include "../js_iteration_1/timer.hpp"
 
 void try_things2()
 {

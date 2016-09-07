@@ -293,3 +293,9 @@ vectorized_vect prepare_inner_vectors(REAL* inv_transf_matrix, const vectorized_
 
     return x_copy;
 }
+
+
+REAL rand01() {
+    constexpr REAL denom = (static_cast<REAL>( RAND_MAX) + 1 );
+    return static_cast<REAL>(rand()) / denom;
+}
