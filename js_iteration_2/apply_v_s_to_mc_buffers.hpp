@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "../js_iteration_1/vertex_resampling.cpp"
 #include "../js_iteration_1/debug_methods_MS.hpp"
 /*
 #include <iostream>
