@@ -1201,6 +1201,9 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 
 void vertex_resampling(verts_t& new_verts, vector< vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized){
+  clog << "V_SOL" << std::endl;
+  // exit(1);
+
   int nfaces = centroids.shape()[0];
   float c=2.0;
   boost::array<int, 2> wi_total_array_shape = {{ nfaces, 1 }};

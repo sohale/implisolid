@@ -157,18 +157,17 @@ void compute_centroid_gradient(const verts_t& X, verts_t& N, implicit_function* 
 }
 
 
-
-void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids){
-  int nt = faces.shape()[0];
-  for (int j=0; j<nt; j++){
-    int f0 = faces[j][0];
-    int f1 = faces[j][1];
-    int f2 = faces[j][2];
-    for (int di=0; di<3; di++){
-        centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di])/3.;
-
+// The only compute_centroids() function
+void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
+    int nt = faces.shape()[0];
+    for (int j = 0; j < nt; j++) {
+        const int f0 = faces[j][0];
+        const int f1 = faces[j][1];
+        const int f2 = faces[j][2];
+        for (int di = 0; di < 3; di++) {
+            centroids[j][di] = (verts[f0][di] + verts[f1][di] + verts[f2][di]) / (REAL)(3.0);
+        }
     }
-  }
 }
 
 

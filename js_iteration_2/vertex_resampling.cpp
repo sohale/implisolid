@@ -1,3 +1,6 @@
+// Authors: Marc, Solene, Sohail
+#include "../js_iteration_1/vertex_resampling.cpp"
+/*
 #include <iostream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -107,7 +110,7 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
   }
 }
 
-REAL kij(int i, int j, verts_t& centroids, verts_t& centroid_normals_normalized){
+inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_normals_normalized){
   assert (i!=j);
   REAL pi_x = centroids[i][0];
   REAL pi_y = centroids[i][1];
@@ -151,6 +154,9 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 
 void vertex_resampling(verts_t& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
 verts_t& centroids, verts_t& centroid_normals_normalized, float c){
+  clog << "Vv2=" << std::endl;
+  exit(1);
+
   int nfaces = centroids.shape()[0];
 
   boost::array<int, 2> wi_total_array_shape = {nfaces, 1 };
@@ -227,6 +233,7 @@ void process2_vertex_resampling_relaxation_v2(
         centroids, centroid_normals_normalized, c
     );
 }
+*/
 
 void writing_test_file(
         string  output_file_name,
@@ -305,6 +312,8 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
       std::vector<REAL>&result_verts, std::vector<int>& result_faces
       )
 {
+    clog << "VVV_2" << std::endl;
+    exit(1);
 
     /*
     for (int i=0; i< result_verts.size()/3.; i++){
@@ -360,7 +369,10 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
 
     vectorized_vect  new_verts (verts_shape);
     vectorized_vect  centroids (centroids_shape);
-    process2_vertex_resampling_relaxation_v2(new_verts, faces, verts, centroids, object, c);
+
+    // compute_centroids(faces, verts, centroids);
+
+    process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
     bool writing_test_file_ = false;
     if (writing_test_file_) {

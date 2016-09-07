@@ -53,12 +53,13 @@ typedef struct {
 
 state_t _state;
 
-void vertex_resampling(implicit_function* object, REAL c, MarchingCubes& mc){
+void vertex_resampling_VMS(implicit_function* object, REAL c, MarchingCubes& mc){
+  clog << "V_MS" << std::endl;
+  // exit(1);
+
 
       vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(mc.result_verts);
       vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(mc.result_faces);
-
-
 
       if (!writing_test_file) {
 
@@ -292,19 +293,19 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
       }
     }
 
-    float c=2000.;
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, c, *(_state.mc));
+    // int REPEATS = 2;
+    //int REPEATS_VR = 3;
+    int REPEATS = 1;
+    int REPEATS_VR = 1;
+    for (int repeats = 0; repeats < REPEATS ; ++repeats) {
+        float c = 2000.;
+
+        for (int i=0; i < REPEATS_VR; i++){
+            vertex_resampling_VMS(object, c, *(_state.mc));
+        }
+
+        centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
     }
-
-
-    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
-
-    for (int i=0; i<3; i++){
-     vertex_resampling(object, c, *(_state.mc));
-    }
-
-    centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
 
     if(VERBOSE){
