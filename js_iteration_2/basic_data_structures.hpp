@@ -130,6 +130,10 @@ class array_of_indices_struct {
     }
 };
 
+
+typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
+typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
+
 // auto& loger = std::cerr;
 
 #include ".//my_assert.hpp"
