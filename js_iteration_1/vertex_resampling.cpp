@@ -1,5 +1,8 @@
 // Authors: Marc, Solene, Sohail
 
+#pragma once
+
+
 #include <iostream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"

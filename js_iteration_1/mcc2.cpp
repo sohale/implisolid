@@ -462,7 +462,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     for (int i=0; i < vresamp_iters; i++) {
         // result_verts is modified
-        vertex_resampling_vVV2(object, c, _state.mc -> result_verts, _state.mc->result_faces );
+        vertex_resampling_vVV2(object, c, _state.mc -> result_verts, _state.mc->result_faces, false );
     }
     if (apply_projection) {
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
@@ -477,7 +477,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         float c = 2000.;
 
         for (int i=0; i < REPEATS_VR; i++){
-            vertex_resampling_VMS(object, c, *(_state.mc));
+            vertex_resampling_VMS(object, c,  //    *(_state.mc));
+                _state.mc->result_verts, _state.mc->result_faces, ??);
         }
 
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);

@@ -6,6 +6,7 @@
 #include <map>
 #include "../js_iteration_2/primitives.cpp"
 #include "vertex_resampling.cpp"
+#include "../js_iteration_2/vertex_resampling.cpp"
 #include "centroids_projection.cpp"
 #include <fstream>
 #include "boost/multi_array.hpp"
@@ -55,55 +56,6 @@ typedef struct {
 
 state_t _state;
 
-void vertex_resampling_VMS(
-        implicit_function* object,
-        const REAL c,
-        MarchingCubes& mc
-    )
-{
-
-    clog << "V_MS" << std::endl;
-    // exit(1);
-
-
-    vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(mc.result_verts);
-    vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(mc.result_faces);
-
-    if (!writing_test_file) {
-
-          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
-          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
-
-          vectorized_vect  new_verts (verts_shape);
-          vectorized_vect  centroids (faces_shape);
-
-          process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
-
-
-          replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
-
-
-    } else {  // if writeing_test_file
-
-
-          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
-          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
-
-          vectorized_vect  new_verts (verts_shape);
-          vectorized_vect  centroids (faces_shape);
-
-          process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
-
-
-          ofstream f_out = debug_part_1(mc.result_verts);
-
-
-          replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
-
-          debug_part_2(f_out, mc.result_verts, mc.result_faces, centroids);
-    }
-
-}
 
 void check_state() {
     if(!_state.active) std::clog << "Error: not active.";
@@ -260,7 +212,7 @@ void build_geometry(int resolution, REAL mc_size, REAL time){
         float c = 2000.;
 
         for (int i=0; i < REPEATS_VR; i++){
-            vertex_resampling_VMS(object, c, *(_state.mc));
+            vertex_resampling_VMS(object, c, _state.mc->result_verts, _state.mc->result_faces, writing_test_file);
         }
 
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);

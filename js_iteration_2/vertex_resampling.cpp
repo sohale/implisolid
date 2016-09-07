@@ -1,4 +1,7 @@
 // Authors: Marc, Solene, Sohail
+
+#pragma once
+
 #include "../js_iteration_1/vertex_resampling.cpp"
 #include "../js_iteration_1/debug_methods_MS.hpp"
 /*
@@ -236,15 +239,17 @@ void process2_vertex_resampling_relaxation_v2(
 }
 */
 
-
+/*
 REAL rand01() {
     return static_cast<REAL>(rand())/ (static_cast<REAL>( RAND_MAX) + 1 );
 }
+*/
 void vertex_resampling_vVV2(
         mp5_implicit::implicit_function* object,
         const float c,
         std::vector<REAL>&result_verts,
-        std::vector<int>& result_faces
+        std::vector<int>& result_faces,
+        bool writing_test_file
     )
 {
     clog << "VVV_2" << std::endl;
@@ -264,7 +269,7 @@ void vertex_resampling_vVV2(
 
     process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
-    bool writing_test_file = false;
+    // bool writing_test_file = false;
     if (writing_test_file) {
 
         writing_test_file_("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt",  result_verts, result_faces, new_verts, centroids );
@@ -274,5 +279,58 @@ void vertex_resampling_vVV2(
 
    }
 
+
+}
+
+
+void vertex_resampling_VMS(
+        implicit_function* object,
+        const REAL c,
+        // MarchingCubes& mc
+        std::vector<REAL>& result_verts,
+        std::vector<int>& result_faces,
+        bool writing_test_file
+    )
+{
+
+    clog << "V_MS" << std::endl;
+    // exit(1);
+
+
+    vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(result_verts);
+    vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(result_faces);
+
+    if (!writing_test_file) {
+
+          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
+          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
+
+          vectorized_vect  new_verts (verts_shape);
+          vectorized_vect  centroids (faces_shape);
+
+          process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
+
+
+          replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
+
+
+    } else {  // if writeing_test_file
+
+
+          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
+          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
+
+          vectorized_vect  new_verts (verts_shape);
+          vectorized_vect  centroids (faces_shape);
+
+          process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
+
+          auto copy_of_verts_before_relaxation = result_verts;
+
+          replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
+
+          ofstream f_out = debug_part_1(copy_of_verts_before_relaxation);
+          debug_part_2(f_out, result_verts, result_faces, centroids);
+    }
 
 }
