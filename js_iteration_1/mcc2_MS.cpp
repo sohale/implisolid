@@ -56,13 +56,30 @@ state_t _state;
 void vertex_resampling(implicit_function* object, REAL c, MarchingCubes& mc){
 
       vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(mc.result_verts);
-      vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
-
       vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(mc.result_faces);
-      vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
 
 
-      if (writing_test_file) {
+
+      if (!writing_test_file) {
+
+          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
+          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
+
+          vectorized_vect  new_verts (verts_shape);
+          vectorized_vect  centroids (faces_shape);
+
+          process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
+
+          replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
+          /*
+          for (int i=0; i < verts.shape()[0]; i++) {
+              mc.result_verts[i*3+0] = new_verts[i][0];
+              mc.result_verts[i*3+1] = new_verts[i][1];
+              mc.result_verts[i*3+2] = new_verts[i][2];
+          }
+          */
+
+      } else {  // if writeing_test_file
 
           ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt");
 
@@ -77,17 +94,22 @@ void vertex_resampling(implicit_function* object, REAL c, MarchingCubes& mc){
           }
           f_out << endl;
 
+          vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
+          vectorized_vect_shape faces_shape = { static_cast<int>(faces.shape()[0]) , 3 };
           vectorized_vect  new_verts (verts_shape);
           vectorized_vect  centroids (faces_shape);
 
           process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
+          replace_vectorverts_from_vectorized_vect(mc.result_verts, new_verts);
+          /*
           for (int i=0; i<verts.shape()[0]; i++){
             mc.result_verts[i*3+0] = new_verts[i][0];
             mc.result_verts[i*3+1] = new_verts[i][1];
             mc.result_verts[i*3+2] = new_verts[i][2];
 
           }
+          */
 
           f_out << "n3w vertex :" << endl;
           for (int i=0; i< mc.result_verts.size()/3.; i++){
@@ -120,20 +142,6 @@ void vertex_resampling(implicit_function* object, REAL c, MarchingCubes& mc){
           }
           f_out.close();
       }
-
-    else {
-        vectorized_vect  new_verts (verts_shape);
-        vectorized_vect  centroids (faces_shape);
-
-        process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
-
-        for (int i=0; i < verts.shape()[0]; i++) {
-            mc.result_verts[i*3+0] = new_verts[i][0];
-            mc.result_verts[i*3+1] = new_verts[i][1];
-            mc.result_verts[i*3+2] = new_verts[i][2];
-        }
-
-   }
 
 }
 

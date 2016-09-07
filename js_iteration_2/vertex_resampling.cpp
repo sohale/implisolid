@@ -322,10 +322,12 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
     //vectorized_vect  centroids (faces_shape);
     //vectorized_vect  new_verts (verts_shape);
     */
+
+    vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(result_verts);
+    vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(result_faces);
+/*
     boost::array<int, 2> verts_shape = { (int)result_verts.size()/3 , 3 };
     vectorized_vect  verts(verts_shape);
-    boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
 
     int output_verts=0;
     auto i = result_verts.begin();
@@ -338,6 +340,9 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
         verts[output_verts][2] = (*i);
     }
 
+    boost::array<int, 2> faces_shape = { (int)result_faces.size()/3 , 3 };
+    boost::multi_array<int, 2> faces(faces_shape);
+
     int output_faces=0;
     auto i_f = result_faces.begin();
     auto e_f = result_faces.end();
@@ -348,10 +353,13 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
         i_f++;
         faces[output_faces][2] = (*i_f);
     }
+*/
 
+    vectorized_vect_shape verts_shape = { static_cast<int>(verts.shape()[0]) , 3 };
+    vectorized_vect_shape centroids_shape = { static_cast<int>(faces.shape()[0]) , 3 };
 
     vectorized_vect  new_verts (verts_shape);
-    vectorized_vect  centroids (faces_shape);
+    vectorized_vect  centroids (centroids_shape);
     process2_vertex_resampling_relaxation_v2(new_verts, faces, verts, centroids, object, c);
 
     bool writing_test_file_ = false;
@@ -364,17 +372,20 @@ void vertex_resampling(mp5_implicit::implicit_function* object,  float c,
         );
 
     } else {
-        REAL d = 0;
+        replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
+        /*
+        REAL cumul_abs_displacement = 0;
         for (int i=0; i<verts.shape()[0]; i++) {
             // std::clog << "result_verts  = new_verts: " <<result_verts[i*3+0] << " = " << new_verts[i][0] << std::endl;
-          for(int j=0;j<3;j++) {
-              d += std::abs( result_verts[i*3+j] - new_verts[i][j]);
-          }
+            for(int j=0;j<3;j++) {
+                cumul_abs_displacement += std::abs( result_verts[i*3+j] - new_verts[i][j]);
+            }
             result_verts[i*3+0] = new_verts[i][0];
             result_verts[i*3+1] = new_verts[i][1];
             result_verts[i*3+2] = new_verts[i][2];
         }
-        std::clog << "<d> = " <<  d/((REAL)(verts.shape()[0]))/3 << std::endl;
+        std::clog << "<cumul_abs_displacement> = " <<  cumul_abs_displacement/((REAL)(verts.shape()[0]))/3 << std::endl;
+        */
 
    }
 

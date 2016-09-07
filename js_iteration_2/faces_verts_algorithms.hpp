@@ -57,3 +57,24 @@ vectorized_faces  convert_vectorfaces_to_vectorized_faces(const std::vector<int>
     }
     return faces;
 }
+
+void replace_vectorverts_from_vectorized_vect(std::vector<REAL> & result_verts, const vectorized_vect & new_verts) {
+    #if ASSERT_USED
+        REAL cumul_abs_displacement = 0;
+    #endif
+        auto n = new_verts.shape()[0];
+    for (int i=0; i < n; i++) {
+        // std::clog << "result_verts  = new_verts: " <<result_verts[i*3+0] << " = " << new_verts[i][0] << std::endl;
+        #if ASSERT_USED
+            for(int j=0; j < 3; j++) {
+                cumul_abs_displacement += std::abs( result_verts[i*3 + j] - new_verts[i][j]);
+            }
+        #endif
+        result_verts[i*3 + 0] = new_verts[i][0];
+        result_verts[i*3 + 1] = new_verts[i][1];
+        result_verts[i*3 + 2] = new_verts[i][2];
+    }
+    #if ASSERT_USED
+        std::clog << "<cumul |displacement|> = " <<  cumul_abs_displacement/((REAL)(new_verts.shape()[0]))/3 << std::endl;
+    #endif
+}
