@@ -244,28 +244,26 @@ bool test_if_conjugate_opposite_signs_indexed(mp5_implicit::implicit_function* o
 }
 
 
-#if ASSERT_USED
-    bool check_all_are_root(mp5_implicit::implicit_function* object, const vectorized_vect & x_bisect, int m, REAL ROOT_TOLERANCE) {
-        // bool evaluate_and_assert_sign<0>(x_bisect, *object);
-        /*
-        boost::array<int, 2> x1_relevant_shape = {m, 3};
-        boost::array<int, 1> f1_relevant_shape = {m};
-        */
-        const vectorized_scalar::size_type nn = x_bisect.shape()[0];
-        vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
-        object->eval_implicit(x_bisect, &f);
+bool check_all_are_root(mp5_implicit::implicit_function* object, const vectorized_vect & x_bisect, int m, REAL ROOT_TOLERANCE) {
+    // bool evaluate_and_assert_sign<0>(x_bisect, *object);
+    /*
+    boost::array<int, 2> x1_relevant_shape = {m, 3};
+    boost::array<int, 1> f1_relevant_shape = {m};
+    */
+    const vectorized_scalar::size_type nn = x_bisect.shape()[0];
+    vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
+    object->eval_implicit(x_bisect, &f);
 
-        bool ok = true;
-        for (int i = 0; i < m; i++) {
-            // ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
-            ok = ok && std::abs(f[i]) < ROOT_TOLERANCE;
-            if (!ok) {
-                clog << f[i] << " [" << i << "]" << std::endl;
-                break;
-            }
+    bool ok = true;
+    for (int i = 0; i < m; i++) {
+        // ok = ok && ABS(f1_relevants[i]) < ROOT_TOLERANCE;
+        ok = ok && std::abs(f[i]) < ROOT_TOLERANCE;
+        if (!ok) {
+            clog << f[i] << " [" << i << "]" << std::endl;
+            break;
         }
-        return ok;
     }
-#endif
+    return ok;
+}
 
 }

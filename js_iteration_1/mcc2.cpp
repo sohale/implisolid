@@ -36,6 +36,7 @@ Todo:
 #include "../js_iteration_2/object_collector.hpp"
 
 #include "../js_iteration_2/vertex_resampling.cpp"
+#include "../js_iteration_1/centroids_projection.cpp"
 
 // #include <math.h>
 
@@ -444,12 +445,27 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // mc_settings_from_json.vertexresampleing.c
     // mc_settings_from_json.vertexresampleing.iterations
+
+
     int vresamp_iters = 0; //3;
+    bool apply_projection = false;
     float c = 1.;
+
+
+    /*
+    int vresamp_iters = 1; //3;
+    bool apply_projection = true;
+    float c = 1.;
+    */
+
     for (int i=0; i < vresamp_iters; i++) {
         // result_verts is modified
         vertex_resampling(object, c, _state.mc -> result_verts, _state.mc->result_faces );
     }
+    if (apply_projection) {
+        centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+    }
+
 
     //delete object;
     object = NULL;

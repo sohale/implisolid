@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
@@ -13,23 +12,22 @@
 #include "implicit_function.hpp"
 
 #include "implicit_vectorised_algorithms.hpp"
-using mp5_implicit::compute_centroids;
-using mp5_implicit::vectorised_algorithms::norm_2_squared;
-using mp5_implicit::vectorised_algorithms::norm_2;
-
-
 
 using namespace std;
 //using namespace mp5_implicit;
 
 using mp5_implicit::compute_centroid_gradient;
+using mp5_implicit::compute_centroids;
+using mp5_implicit::vectorised_algorithms::norm_2_squared;
+using mp5_implicit::vectorised_algorithms::norm_2;
 
 
+/*
 typedef float REAL;
 typedef struct {
    REAL x, y, z;
 } XYZ;
-
+*/
 
 REAL ABS(REAL x){
   if(x<0)

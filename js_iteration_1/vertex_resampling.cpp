@@ -9,6 +9,8 @@
 #include <tuple>
 #include <fstream>
 
+
+
 #include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
 
 using namespace std;
@@ -20,18 +22,19 @@ using mp5_implicit::vectorised_algorithms::norm_2_squared;
 using mp5_implicit::vectorised_algorithms::norm_2;
 
 
-
+/*
 typedef float REAL;
 typedef struct {
    REAL x, y, z;
 } XYZ;
-
+*/
 
 REAL ABS(REAL x){
   if(x<0)
     return -x;
   return x;
 }
+
 
 typedef boost::multi_array<REAL, 2> verts_t;
 typedef boost::multi_array<int, 2> faces_t;

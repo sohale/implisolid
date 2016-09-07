@@ -261,11 +261,11 @@ void create_directions_bundle(
         assert(assert_are_normalised(facet_normals_directions) && "*mesh normals*");
 
         vectorised_algorithms::cross_product(facet_normals_directions, perturb, z);
-        print_vector("**meshnormals", facet_normals_directions, 10);
-        print_vector("**perturb", perturb, 10);
-        print_vector("*z", z, 10);
+        // print_vector("**meshnormals", facet_normals_directions, 10);
+        // print_vector("**perturb", perturb, 10);
+        // print_vector("*z", z, 10);
         vectorised_algorithms::normalize_1111(z);
-        print_vector("*z normalized", z, 10);
+        // print_vector("*z normalized", z, 10);
         /*
         #if ASSERT_USED
         vectorised_algorithms::assert_are_normalised(z);
@@ -305,12 +305,12 @@ void create_directions_bundle(
         //set_vector_from(z, dxc_output); // last dxc_output
         //verts_t z = dxc_output;  // copy
         const verts_t& z = dxc_output; // last dxc_output
-        print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
-        print_vector("z", z, 10);
+        // print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
+        // print_vector("z", z, 10);
         vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
-        print_vector("z2", z2, 10);
+        // print_vector("z2", z2, 10);
         vectorised_algorithms::normalise_inplace(z2, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
-        print_vector("z2 after normalisation", z2, 10);
+        // print_vector("z2 after normalisation", z2, 10);
         assert(assert_are_normalised(z2));
         dxc_output = z2;  // copy
         //alpha_list_output = same as before
@@ -384,7 +384,7 @@ void  set_centers_on_surface(
     // compute_centroid_gradient(X, g_a, object);
     object->eval_gradient(X, &g_a);
     mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
-    print_vector("g_a", g_a, 100);
+    // print_vector("g_a", g_a, 100);
     assert(assert_are_normalised(g_a) && "0");
     // now g_a --> g_direction
     // Note: Elements will be modified
@@ -857,7 +857,7 @@ void  set_centers_on_surface(
     vectorized_bool  zeros1or2(scalar_shape);
     array_of_indices  relevants_bool_indices(scalar_shape);
 
-    clog << "3" << endl;
+    // clog << "3" << endl;
 
 
 
@@ -1022,12 +1022,13 @@ void  set_centers_on_surface(
           ));
         */
     }
-    clog << "x1x2" << endl;
+    // clog << "x1x2" << endl;
 
     // Now we have x1_relevant and x2_relevant which have the same size.
 
     object->eval_implicit(x2_relevant, &f2_relevants);
 
+    // TODO: REFACTOR
     // Check the signs are opposite
     #if ASSERT_USED
         vectorized_scalar f1_relevants(f1_relevant_shape);
@@ -1040,16 +1041,16 @@ void  set_centers_on_surface(
             << "  " <<
             x1_relevant.shape()[0]<<"/"<<x1_relevant.shape()[1]<<"/"<<x1_relevant.shape()[2]<<"/"<<x1_relevant.shape()[3]<<"/"<<x1_relevant.shape()[4]<<"/"<<x1_relevant.shape()[5]<<"/"<<x1_relevant.shape()[6]<<"/"<<x1_relevant.shape()[7]
             << endl;
-        clog << "fff" << endl;
+        // clog << "fff" << endl;
         // fails: assert(x1_relevant.shape() == x2_relevant.shape());
         // assert(x1_relevant.shape() == x2_relevant.shape());
         assert(x1_relevant.shape()[0] == x2_relevant.shape()[0]);
         assert(x1_relevant.shape()[1] == x2_relevant.shape()[1]);
 
-        clog << "ggg" << endl;
-        clog << f1_relevants.size() << " " << f2_relevants.size() << endl;
+        // clog << "ggg" << endl;
+        // clog << f1_relevants.size() << " " << f2_relevants.size() << endl;
         assert(f1_relevants.size() == f2_relevants.size());
-        clog << "hhh" << endl;
+        // clog << "hhh" << endl;
 
         // assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
 
@@ -1070,7 +1071,7 @@ void  set_centers_on_surface(
     REAL temp2;
     */
 
-    clog << "m=" << m << endl;
+    // clog << "m=" << m << endl;
     int ctr = 0;
     for (int i=0; i < m; i++) {
         // If x2 is inside, swap it. => x1 has to be outside.
@@ -1492,12 +1493,26 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     assert(assert_are_normalised(facet_normals));
     mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, treated, centroids);
 
+    /*
+        // temporary
+    for (int i=0; i < verts.shape()[0]; i++) {
+        int ti = i*2;
+        result_verts[ti*3+0] = centroids[i][0];
+        result_verts[ti*3+1] = centroids[i][1];
+        result_verts[ti*3+2] = centroids[i][2];
+    }
+    clog << "demarkate" << std::endl;
+    return ;
+    */
+
+
     std::vector< std::vector<int>> vertex_neighbours_list;
     vertex_neighbours_list = make_neighbour_faces_of_vertex(verts, faces);
 
     vectorized_vect  centroid_gradients(centroids_shape);
 
     compute_centroid_gradient(centroids, centroid_gradients, object);
+
 
     vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
 
@@ -1506,6 +1521,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         result_verts[i*3+1] = verts[i][1];
         result_verts[i*3+2] = verts[i][2];
     }
+
 
 }
 

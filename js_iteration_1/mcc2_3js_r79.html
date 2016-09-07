@@ -122,15 +122,15 @@ var call_multiple_times = function(newPolygonizer, update_callback) {
 <script type="text/javascript" src="../js_iteration_2/geometry79.js"></script>
 <!--<script type="text/javascript" src="../js_iteration_2/geometry73.js"></script>-->
 
-<!--
-<script type="text/javascript" src="./controls/OrbitControls.js"></script>
--->
 <script>
+// Default (mock) OrbitControl to void breaking the program if the orbitcontrol is not found.
 THREE.OrbitControls = function() {
     this.target = new THREE.Vector3();
     this.addEventListener = function(){};
 }
 </script>
+
+<script type="text/javascript" src="./controls/OrbitControls_r79.js"></script>
 
 <!-- <script type="text/javascript" src="../js_iteration_2/bbox_calculations.js"></script> -->
 
@@ -764,8 +764,20 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     // CONTROLS
     //see https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_teapot.html
     var cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+
+    cameraControls.rotateSpeed = 1.5;
+    cameraControls.zoomSpeed = 1.2;
+    cameraControls.panSpeed = 0.8;
+    cameraControls.enableZoom = true;
+    cameraControls.enablePan = true;
+    cameraControls.enableDamping = true;
+    cameraControls.dampingFactor = 0.6; //0.9; // 1.0; //motile: 0.3;
+
+
     cameraControls.target.set( 0, 0, 0 );
     cameraControls.addEventListener( 'change', function () {;} );
+
+
 
 }
 
