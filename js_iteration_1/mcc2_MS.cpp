@@ -102,7 +102,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
       f_out << endl;
 
-      process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+      process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, f_argument, c);
 
       for (int i=0; i<verts.shape()[0]; i++){
         mc.result_verts[i*3+0] = new_verts[i][0];
@@ -144,7 +144,7 @@ void vertex_resampling(implicit_function* object, REAL f_argument,  float c, Mar
       }
 
     else {
-    process2_vertex_resampling_relaxation(new_verts, faces, verts, centroids, object, f_argument, c);
+    process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, f_argument, c);
 
     for (int i=0; i<verts.shape()[0]; i++){
       mc.result_verts[i*3+0] = new_verts[i][0];

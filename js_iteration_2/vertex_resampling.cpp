@@ -21,6 +21,8 @@ using mp5_implicit::compute_centroids;
 using mp5_implicit::vectorised_algorithms::norm_2_squared;
 using mp5_implicit::vectorised_algorithms::norm_2;
 
+#include "faces_verts_algorithms.hpp"
+
 
 /*
 typedef float REAL;
@@ -44,7 +46,6 @@ typedef pair<verts_t, faces_t> vf_t;
 
 
 
-#include "faces_verts_algorithms.hpp"
 
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){

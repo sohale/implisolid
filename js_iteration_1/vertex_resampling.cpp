@@ -21,19 +21,7 @@ using mp5_implicit::compute_centroids;
 using mp5_implicit::vectorised_algorithms::norm_2_squared;
 using mp5_implicit::vectorised_algorithms::norm_2;
 
-
-/*
-typedef float REAL;
-typedef struct {
-   REAL x, y, z;
-} XYZ;
-
-REAL ABS(REAL x){
-  if(x<0)
-    return -x;
-  return x;
-}
-*/
+#include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
@@ -44,7 +32,6 @@ typedef pair<verts_t, faces_t> vf_t;
 
 
 
-#include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
@@ -200,7 +187,7 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
 }
 
 // main function
-void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
+void process2_vertex_resampling_relaxation_v1(verts_t& new_verts, faces_t& faces, verts_t& verts, verts_t& centroids, implicit_function* object, REAL f_argument, float c){
 
   int nfaces = faces.shape()[0];
   assert(nfaces % 2 == 0);
