@@ -35,7 +35,7 @@ Todo:
 
 #include "../js_iteration_2/object_collector.hpp"
 
-#include "../js_iteration_2/vertex_resampling.cpp"
+#include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "../js_iteration_1/centroids_projection.cpp"
 
 // #include <math.h>

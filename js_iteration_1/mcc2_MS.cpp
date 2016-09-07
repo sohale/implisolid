@@ -6,7 +6,7 @@
 #include <map>
 #include "../js_iteration_2/primitives.cpp"
 #include "vertex_resampling.cpp"
-#include "../js_iteration_2/vertex_resampling.cpp"
+#include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "centroids_projection.cpp"
 #include <fstream>
 #include "boost/multi_array.hpp"
