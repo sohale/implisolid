@@ -70,3 +70,7 @@ struct CONFIG {
 //}
 */
 
+
+constexpr bool VERBOSE_QEM = false;
+constexpr bool STORE_POINTSETS = false;
+

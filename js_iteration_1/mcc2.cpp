@@ -482,7 +482,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
     int vresamp_iters = 1; //3;
-    bool apply_projection = false;
+    bool apply_projection = true;
     float c = 1.;
 
 
@@ -495,6 +495,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     if (apply_projection) {
         /*
+        if (STORE_POINTSETS)
+        {
         auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
         point_set_set["pre_p_centroid"] = ps1;
         clog << " POINT CLOUD-1 " << std::endl;
@@ -502,9 +504,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         clog << ps1.shape()[0] << std::endl;
         clog << point_set_set["pre_p_centroid"].origin() << std::endl;
         clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
+        }
         */
 
         /*
+        if (STORE_POINTSETS) {
         auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
         point_set_set.emplace(std::make_pair(std::string("pre_p_verts"), ps1));
         clog << " POINT CLOUD-1 " << std::endl;
@@ -512,19 +516,23 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         clog << ps1.shape()[0] << std::endl;
         clog << point_set_set["pre_p_centroid"].origin() << std::endl;
         clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
+        }
         */
 
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
         /*
+        if (STORE_POINTSETS)
+        {
         auto ps2 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
-        // point_set_set["post_p_centroid"] = ps2;
+        // point_set_set["post_p_centroids"] = ps2;
         point_set_set.emplace(std::make_pair(std::string("post_p_verts"), ps2));
         clog << " POINT CLOUD-2 " << std::endl;
         clog << ps2.origin() << std::endl;
         clog << ps2.shape()[0] << std::endl;
-        clog << point_set_set["post_p_centroid"].origin() << std::endl;
-        clog << point_set_set["post_p_centroid"].shape()[0] << std::endl;
+        clog << point_set_set["post_p_centroids"].origin() << std::endl;
+        clog << point_set_set["post_p_centroids"].shape()[0] << std::endl;
+        }
         */
     }
     }

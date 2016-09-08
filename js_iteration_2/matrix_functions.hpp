@@ -27,6 +27,10 @@ inline int SVD(
     )
 {
 
+    // Assertion failed: (!(m_computeThinU || m_computeThinV) || (MatrixType::ColsAtCompileTime==Dynamic)) && "JacobiSVD: thin U and V are only available when your matrix has a dynamic number of columns."
+
+    //Assertion failed: computeU() && "This JacobiSVD decomposition didn't compute U. Did you ask for it?", at:
+
     Eigen::JacobiSVD<Matrix<REAL, 3, 3>> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
     svd.setThreshold( threshold );

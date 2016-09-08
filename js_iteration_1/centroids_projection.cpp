@@ -1222,12 +1222,12 @@ void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const 
         center_array[i][2] = centroids[cn][2];
     }
 
-    REAL a00;
-    REAL a01;
-    REAL a02;
-    REAL a11;
-    REAL a12;
-    REAL a22;
+    REAL nn00;
+    REAL nn01;
+    REAL nn02;
+    REAL nn11;
+    REAL nn12;
+    REAL nn22;
 
     (*A)[0][0] = 0;
     (*A)[0][1] = 0;
@@ -1245,30 +1245,30 @@ void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const 
     for (int j=0; j < m; j++) {
         /* the matrix is symmetric so we dont need to compute all 9 elements*/
         /* A = dot(normals, normals.T) */
-        a00 = normals[j][0] * normals[j][0];
-        a01 = normals[j][0] * normals[j][1];
-        a02 = normals[j][0] * normals[j][2];
-        a11 = normals[j][1] * normals[j][1];
-        a12 = normals[j][1] * normals[j][2];
-        a22 = normals[j][2] * normals[j][2];
+        nn00 = normals[j][0] * normals[j][0];
+        nn01 = normals[j][0] * normals[j][1];
+        nn02 = normals[j][0] * normals[j][2];
+        nn11 = normals[j][1] * normals[j][1];
+        nn12 = normals[j][1] * normals[j][2];
+        nn22 = normals[j][2] * normals[j][2];
 
-        (*A)[0][0] += a00;
-        (*A)[0][1] += a01;
-        (*A)[0][2] += a02;
-        (*A)[1][0] += a01;
-        (*A)[1][1] += a11;
-        (*A)[1][2] += a12;
-        (*A)[2][2] += a22;
-        (*A)[2][0] += a02;
-        (*A)[2][1] += a12;
+        (*A)[0][0] += nn00;
+        (*A)[0][1] += nn01;
+        (*A)[0][2] += nn02;
+        (*A)[1][0] += nn01;
+        (*A)[1][1] += nn11;
+        (*A)[1][2] += nn12;
+        (*A)[2][2] += nn22;
+        (*A)[2][0] += nn02;
+        (*A)[2][1] += nn12;
 
-        REAL cx = center_array[j][0];
-        REAL cy = center_array[j][1];
-        REAL cz = center_array[j][2];
+        REAL Px = center_array[j][0];
+        REAL Py = center_array[j][1];
+        REAL Pz = center_array[j][2];
 
-        (*b)[0] -= a00 * cx + a01 * cy + a02 * cz;
-        (*b)[1] -= a01 * cx + a11 * cy + a12 * cz;
-        (*b)[2] -= a02 * cx + a12 * cy + a22 * cz;
+        (*b)[0] -= nn00 * Px + nn01 * Py + nn02 * Pz;
+        (*b)[1] -= nn01 * Px + nn11 * Py + nn12 * Pz;
+        (*b)[2] -= nn02 * Px + nn12 * Py + nn22 * Pz;
 
     }
 
@@ -1431,7 +1431,11 @@ void vertex_apply_qem__old(
 
 // Calculates A nd b for a selection of centroids only (an umbrella).
 // Todo: vectorized version.
-void get_A_b(const std::vector<int> & neighbours_faces, const verts_t& centroids, const verts_t& centroid_normals,
+void get_A_b(
+    const std::vector<int> & neighbours_faces,
+    const verts_t& centroids,
+    const verts_t& centroid_normals,
+    const Matrix<REAL, 3, 1> & qem_origin,
     Matrix<REAL, 3, 3> *A, Matrix<REAL, 3, 1> * b) {
 
     // centroid_normals must be normalised
@@ -1450,34 +1454,40 @@ void get_A_b(const std::vector<int> & neighbours_faces, const verts_t& centroids
         REAL Ni_y = centroid_normals[ni][1];
         REAL Ni_z = centroid_normals[ni][2];
 
-        REAL cx = centroids[ni][0];
-        REAL cy = centroids[ni][1];
-        REAL cz = centroids[ni][2];
+        // Pi - origin
+        REAL Px = centroids[ni][0] - qem_origin(0);
+        REAL Py = centroids[ni][1] - qem_origin(1);
+        REAL Pz = centroids[ni][2] - qem_origin(2);
+
+        // Matrix<REAL, 3, 1> P;
+        // P << centroids[ni][0], centroids[ni][1], centroids[ni][2];
 
         /* the matrix is symmetric so we dont need to compute all 9 elements*/
-        REAL a00 = Ni_x * Ni_x;
-        REAL a01 = Ni_x * Ni_y;
-        REAL a02 = Ni_x * Ni_z;
-        REAL a11 = Ni_y * Ni_y;
-        REAL a12 = Ni_y * Ni_z;
-        REAL a22 = Ni_z * Ni_z;
+        REAL nn00 = Ni_x * Ni_x;
+        REAL nn01 = Ni_x * Ni_y;
+        REAL nn02 = Ni_x * Ni_z;
+        REAL nn11 = Ni_y * Ni_y;
+        REAL nn12 = Ni_y * Ni_z;
+        REAL nn22 = Ni_z * Ni_z;
 
         // A += dot(normals, normals.T)
-        (*A)(0,0) += a00;
-        (*A)(0,1) += a01;
-        (*A)(0,2) += a02;
-        (*A)(1,0) += a01;
-        (*A)(1,1) += a11;
-        (*A)(1,2) += a12;
-        (*A)(2,2) += a22;
-        (*A)(2,0) += a02;
-        (*A)(2,1) += a12;
+        (*A)(0,0) += nn00;
+        (*A)(0,1) += nn01;
+        (*A)(0,2) += nn02;
+        (*A)(1,0) += nn01;
+        (*A)(1,1) += nn11;
+        (*A)(1,2) += nn12;
+        (*A)(2,2) += nn22;
+        (*A)(2,0) += nn02;
+        (*A)(2,1) += nn12;
 
-        (*b)[0] -= a00 * cx + a01 * cy + a02 * cz;
-        (*b)[1] -= a01 * cx + a11 * cy + a12 * cz;
-        (*b)[2] -= a02 * cx + a12 * cy + a22 * cz;
+        // nnt * p_i
+        (*b)[0] -= nn00 * Px + nn01 * Py + nn02 * Pz;
+        (*b)[1] -= nn01 * Px + nn11 * Py + nn12 * Pz;
+        (*b)[2] -= nn02 * Px + nn12 * Py + nn22 * Pz;
     }
 }
+
 
 void vertex_apply_qem(
     verts_t* verts, const faces_t faces,
@@ -1495,6 +1505,16 @@ void vertex_apply_qem(
     assert(nverts = vertex_neighbours_list.size());
 
 
+    /*
+    for( int j = 0; j <vertex_neighbours_list.size(); j++) {
+        // clog << vertex_neighbours_list[j] << " "
+        for( auto v : vertex_neighbours_list[j]) {
+            clog << v << " ";
+        }
+        clog << std::endl;
+    }
+    */
+
     // Matrix<REAL, 3, 1> y;
     // Matrix<REAL, 3, 1> utb;
     // Matrix<REAL, 3, 1> new_x;
@@ -1510,18 +1530,23 @@ void vertex_apply_qem(
 
         const std::vector<int> & nlist = vertex_neighbours_list[vi];
 
-        get_A_b(nlist, centroids, centroid_gradients, &A, &b);
+        Matrix<REAL, 3, 1> qem_origin;
+        qem_origin << (*verts)[vi][0], (*verts)[vi][1], (*verts)[vi][2];  // old verts
+
+        get_A_b(nlist, centroids, centroid_gradients, qem_origin, &A, &b);
 
         /*
         int rank = SVD(A, U, S, V, svd_threshold); // the SVD
         */
 
-        Eigen::JacobiSVD< Matrix<REAL, 3, 3> > svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::JacobiSVD< Matrix<REAL, 3, 3> > svd(A,  Eigen::ComputeFullU | Eigen::ComputeFullV);
         svd.setThreshold( svd_threshold );
         auto S = svd.singularValues();
         U = svd.matrixU();
         V = svd.matrixV();
         int rank = svd.rank();
+
+        // std::clog << "!1" << std::endl;
 
         // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
         /*
@@ -1540,8 +1565,9 @@ void vertex_apply_qem(
         assert np.all(s[:rank]/s[0] >= 1.0/tau)
         */
 
+
         Matrix<REAL, 3, 1> v0;
-        v0 << (*verts)[vi][0],(*verts)[vi][1],(*verts)[vi][2];
+        v0 << (*verts)[vi][0] - qem_origin(0), (*verts)[vi][1] - qem_origin(1), (*verts)[vi][2] - qem_origin(2);
         /*
         const REAL x0 = (*verts)[vi][0];
         const REAL y0 = (*verts)[vi][1];
@@ -1563,12 +1589,29 @@ void vertex_apply_qem(
         // Solves Ax = b,   i.e. minimzes |Ax-b|
         // ?? svd.solve(utb);
 
-        if (rank < 3) assert( S[rank+1] == 0.0 );
-        for (int i=0; i < rank; i++) {
-            if (S(i) != 0.0) {
-                y(i) = utb(i) / S(i);
+        // std::clog << "rank=" << rank << " S( " << S(0) << ", " << S(1) << ", " << S(2) << " ) " << std::endl;
+
+        if (rank < 3) {
+            if (VERBOSE_QEM)
+                std::clog << " > S(rank+1-1)" << S(rank+1-1) << std::endl;
+            for (int i = rank; i < 3; ++i) {
+                S(i) = 0.0;  // not necessary really
             }
+            assert( S(rank+1-1) == 0.0 );
         }
+
+
+        // std::clog << "!4" << std::endl;
+        // std::clog << " > S(0)" << S(0) << std::endl;
+        // std::clog << "!4.5" << std::endl;
+
+        for (int i=0; i < rank; i++) {
+            //if (S(i) != 0.0)
+            y(i) = utb(i) / S(i);
+        }
+
+        // std::clog << "!5" << std::endl;
+
         /*
         new_x[0] = v[0][0] * y[0] + v[0][1] * y[1] + v[0][2] * y[2];
         new_x[1] = v[1][0] * y[0] + v[1][1] * y[1] + v[1][2] * y[2];
@@ -1579,7 +1622,7 @@ void vertex_apply_qem(
         (*verts)[vi][2] = new_x[2];
         */
 
-        Matrix<REAL, 3, 1> new_x = V.transpose() * y;  // + qem_origin
+        Matrix<REAL, 3, 1> new_x = V.transpose() * y + qem_origin;
 
         (*verts)[vi][0] = new_x(0);
         (*verts)[vi][1] = new_x(1);
@@ -1625,11 +1668,20 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     vectorized_vect_shape  centroids_shape = { static_cast<vectorized_vect::index>(result_faces.size()/3) , 3 };
     vectorized_vect centroids(centroids_shape);
 
+    if (VERBOSE_QEM)
+        clog << "1.centroids: " << centroids.shape()[0] << "x" << centroids.shape()[1] << " : "  << centroids[0][0] << std::endl;
+
     compute_centroids(faces, verts, centroids);
 
+    // clog << "2.centroids: " << centroids.shape()[0] << "x" << centroids.shape()[1] << " : "  << centroids[0][0] << std::endl;
 
+    if (STORE_POINTSETS)
+    {
     verts_t ps1 = centroids;
-    point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps1));
+    if (VERBOSE_QEM)
+        clog << "2.centroids: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
+    point_set_set.emplace(std::make_pair(std::string("pre_p_centroids"), ps1));
+    }
 
 
     vectorized_bool_shape  treated_shape = {static_cast<vectorized_vect::index>(result_faces.size())};
@@ -1650,8 +1702,14 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     assert(assert_are_normalised(facet_normals));
     mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, treated, centroids);
 
+
+    if (STORE_POINTSETS) {
     verts_t ps2 = centroids;
-    point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps2));
+    if (VERBOSE_QEM)
+        clog << "3.centroids: " << ps2.shape()[0] << "x" << ps2.shape()[1] << " : " << ps2[0][0] << std::endl;
+    point_set_set.emplace(std::make_pair(std::string("post_p_centroids"), ps2));
+    }
+
 
 
     /*
@@ -1675,8 +1733,25 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     compute_centroid_gradient(centroids, centroid_gradients, object);
 
 
+    if (STORE_POINTSETS)
+    {
+    verts_t ps1 = verts;
+    if (VERBOSE_QEM)
+        clog << "1.verts: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
+    point_set_set.emplace(std::make_pair(std::string("pre_qem_verts"), ps1));
+    }
+
     vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
 
+    if (STORE_POINTSETS)
+    {
+    verts_t ps1 = verts;
+    if (VERBOSE_QEM)
+        clog << "2.verts: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
+    point_set_set.emplace(std::make_pair(std::string("post_qem_verts"), ps1));
+    }
+
+    // if APPLY_QEM_RESULT
     for (int i=0; i < verts.shape()[0]; i++) {
         result_verts[i*3+0] = verts[i][0];
         result_verts[i*3+1] = verts[i][1];
