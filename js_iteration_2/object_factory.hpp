@@ -78,6 +78,21 @@ void getMatrix12(REAL * matrix12, const pt::ptree& shapeparams_dict){
         }
 }
 
+void getCorners(std::vector<boost::array<REAL,3>>& corners, const pt::ptree& shapeparams_dict){
+
+    int i = 0;
+    for (const pt::ptree::value_type &element : shapeparams_dict.get_child("corners")) {
+        int j = 0;
+        for (const pt::ptree::value_type &cell : element.second)
+        {
+            corners[i][j] = cell.second.get_value<REAL>();
+            j++;
+        }
+        i++;
+
+    }
+}
+
 void copy_eye(REAL matrix12[12]){
     REAL eye[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0 };
     for(int j=0;j<12;j++)
@@ -102,8 +117,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     //     zmax = 1;
     //     resolution = 28;
     // }
-
-
 
 
     if(name=="meta_balls"){
@@ -202,7 +215,23 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         object = new mp5_implicit::torus(matrix12);
         register_new_object(object);
 
-    }else if (name == "Union") {
+    }
+    else
+    if (name == "tetrahedron"){
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+
+        std::vector<boost::array<REAL,3>> corners(4);
+        getCorners(corners, shapeparams_dict);
+
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new mp5_implicit::tetrahedron(corners, matrix12);
+        register_new_object(object);
+    }
+    else if (name == "Union") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);

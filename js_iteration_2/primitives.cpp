@@ -82,3 +82,5 @@ class TwistedObject::ImplicitObject(){
 #include "transformed_intersection.hpp"
 #include "transformed_subtract.hpp"
 #include "torus.hpp"
+#include "tetrahedron.hpp"
+
