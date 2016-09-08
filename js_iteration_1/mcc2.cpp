@@ -39,6 +39,8 @@ Todo:
 #include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "../js_iteration_1/centroids_projection.cpp"
 
+#include "../js_iteration_2/faces_verts_algorithms.hpp"
+
 #include "timer.hpp"
 
 // #include <math.h>
@@ -263,6 +265,12 @@ extern "C" {
     void* get_gradients_ptr(); // return g_results.data()
     int get_gradients_size(); // return g_results
 
+
+    // query point_set. For example, centroids.
+    void* get_pointset_ptr(char* id);
+    int get_pointset_size(char* id);
+
+
     void about();  // shows build information
 
     //void calculate_gradients()
@@ -372,6 +380,17 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 
 
 
+std::map< std::string, vectorized_vect > point_set_set;
+
+void* get_pointset_ptr(char* id) {
+    void* p = point_set_set[std::string(id)].origin();
+    return p;
+}
+int get_pointset_size(char* id) {
+    return point_set_set[std::string(id)].shape()[0];
+}
+
+
 #include "../js_iteration_2/object_factory.hpp"
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
@@ -459,19 +478,45 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
 
     int vresamp_iters = 1; //3;
-    bool apply_projection = false;
+    bool apply_projection = true;
     float c = 1.;
 
 
-    timer t;
     for (int i=0; i < vresamp_iters; i++) {
+        timer t;
         // result_verts is modified
         apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc -> result_verts, _state.mc->result_faces, false );
+        t.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
     }
-    t.stop();  // 18 msec
 
     if (apply_projection) {
+        auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
+        /*
+        point_set_set["pre_p_centroid"] = ps1;
+        clog << " POINT CLOUD-1 " << std::endl;
+        clog << ps1.origin() << std::endl;
+        clog << ps1.shape()[0] << std::endl;
+        clog << point_set_set["pre_p_centroid"].origin() << std::endl;
+        clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
+        */
+
+        point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
+        clog << " POINT CLOUD-1 " << std::endl;
+        clog << ps1.origin() << std::endl;
+        clog << ps1.shape()[0] << std::endl;
+        clog << point_set_set["pre_p_centroid"].origin() << std::endl;
+        clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
+
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+
+        auto ps2 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
+        // point_set_set["post_p_centroid"] = ps2;
+        point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps2));
+        clog << " POINT CLOUD-2 " << std::endl;
+        clog << ps2.origin() << std::endl;
+        clog << ps2.shape()[0] << std::endl;
+        clog << point_set_set["post_p_centroid"].origin() << std::endl;
+        clog << point_set_set["post_p_centroid"].shape()[0] << std::endl;
     }
 
     /*
@@ -771,6 +816,8 @@ int get_gradients_size() {
 
     return current_grad->shape()[0] * 3;
 }
+
+
 
 
 int main(int argc, char **argv) {

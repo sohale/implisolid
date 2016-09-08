@@ -25,6 +25,9 @@ function init(service) {
     service.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
     service.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
 
+    service.get_pointset_ptr = Module.cwrap('get_pointset_ptr', 'number', ['string']);
+    service.get_pointset_size = Module.cwrap('get_pointset_size', 'number', ['string']);
+
     if (Module["_about"]) {
         service.about = Module.cwrap('about', null, []);
     } else {

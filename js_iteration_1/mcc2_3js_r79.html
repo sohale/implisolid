@@ -183,6 +183,9 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
         newProducer.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
         newProducer.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
 
+        newProducer.get_pointset_ptr = Module.cwrap('get_pointset_ptr', 'number', ['string']);
+        newProducer.get_pointset_size = Module.cwrap('get_pointset_size', 'number', ['string']);
+
         newProducer.about = Module.cwrap('about', null, []);
 
         newProducer.init = function(){ newProducer.needsFinish = false; }
@@ -214,6 +217,63 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
         //console.log("ok");
         return newProducer;
     }
+
+</script>
+
+<script>
+    var MP5_GENERIC_EXAMPLE_MOON = {
+       "printerSettings":{
+            "name":"test",  "layerThickness":0.2, "emptyLayer":0, "infillSpace":4, "topThickness":0.6, "paramSamples":75,
+            "speedRate":1000, "circleSpeedRate":1000, "temperature":220, "inAirSpeed":7000, "flowRate":0.035,
+            "criticalLength":35, "retractionSpeed":2400, "retractionLength":5, "shellNumber":3, "material":"PLA 2.85mm",
+            "autoZScar":true, "zScarGap":0.5, "critLayerTime":6, "filamentDiameter":2.85 },
+       "mp5-version":"0.3",
+       "root":{
+          "type":"root",
+          "children":[
+             {
+                "type":"Difference",
+                "protected":false,
+                "children":[
+                   {
+                      "type":"cylinder",
+                      "displayColor":{ "x":0.77, "y":0.04, "z":0.18 },
+                      "matrix":[ 42.5, 0, 0, 0, 0, 49.6, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1 ],
+                      "index":652818
+                   },
+                   {
+                      "type":"Difference",
+                      "protected":false,
+                      "children":[
+                         {
+                            "type":"cylinder",
+                            "displayColor":{"x":0.82, "y":0.66, "z":0.74 },
+                            "matrix":[10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1],
+                            "index":1272174
+                         },
+                         {
+                            "type":"cylinder",
+                            "displayColor":{"x":0.11, "y":0.076,"z":0.63 },
+                            "matrix":[10, 0, 0, 0.66, 0, 10, 0, 6.22, 0, 0, 10, 0.00001, 0, 0, 0, 1 ],
+                            "index":2463576
+                         }
+                      ],
+                      "displayColor":{ "x":0.66, "y":0.45, "z":0.72 },
+                      "matrix":[2.38, 0, 0, 0.36, 0, 2.38, 0, 0.56, 0, 0, 2.38, 6.9, 0, 0, 0, 1],
+                      "index":413872
+                   }
+                ],
+                "displayColor":{"x":0.55, "y":0.07, "z":0.12 },
+                "matrix":[ 1, 0, 0, 0.33, 0, 1, 0, 0.156, 0, 0, 1, 0.000000000000014, 0, 0, 0, 1],
+                "index":6565922
+             }
+          ]
+       }
+    };
+    var sz0 = 1.0;
+    var HEART = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":['+sz0+',0,0,82.63768850593796,0,'+sz0+',0,126.37324151118989,0,0,'+sz0+',5.000000079354265,0,0,0,1],"index":4872526}]}}';
+
+    var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]}}';
 
 </script>
 <script>
@@ -287,34 +347,52 @@ function provide_input (subjective_time, is_update_mode) {
         } else {
             var sz = r;
         }
-        var HEART = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":['+sz+',0,0,82.63768850593796,0,'+sz+',0,126.37324151118989,0,0,'+sz+',5.000000079354265,0,0,0,1],"index":4872526}]}}';
+        /*
+        HEART.root.children[0].matrix[0] = sz;
+        HEART.root.children[0].matrix[5] = sz;
+        HEART.root.children[0].matrix[10] = sz;
+        */
 
-        var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[42.583184547062736,0,0,0,0,49.55270399250958,0,0,0,0,10,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]}}';
-
-        var mp5_json_tetrahedron = {
+        var tetrahedron_dict = {
             type: "tetrahedron",
-            corners: [[0, 0, 5],[0, 10, 0],[10, 0, 0],[0, 0, 10]],
+            corners: [[0, 0, 5],[0, 10, 0],[10, 0, 0],[0, 0, -5]],
             matrix:[
                 1, 0,0, 0,
                 0,1, 0, 0,
                 0,0,1,  0,
                 0,0,0,   1]
         };
+        var mp5_json_tetrahedron_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
+        mp5_json_tetrahedron_dict.root.children=[tetrahedron_dict];
+        var TETRAHEDRON = JSON.stringify(mp5_json_tetrahedron_dict);
 
-        var mp5_json = HEART;
+
+
+        // var mp5_json = HEART;     const BB_SIZE = 9;
+        // var mp5_json = MOON;         const BB_SIZE = 9+9;
+        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+
         var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
         //var mp5_json_dict = mp5_json_tetrahedron;
 
+
+        // Scale the object
+        mp5_json_dict.matrix[0] = sz;
+        mp5_json_dict.matrix[5] = sz;
+        mp5_json_dict.matrix[10] = sz;
+
+
+
         /*
-        // for heart
-        mp5_json_dict.matrix[3]=0;
-        mp5_json_dict.matrix[7]=0;
-        mp5_json_dict.matrix[11]=0;
+            // Move the object
+            mp5_json_dict.matrix[3] = 0;
+            mp5_json_dict.matrix[7] = 0;
+            mp5_json_dict.matrix[11] = 0;
         */
+
         if(false) {
             setShapeMatrix2Eye(mp5_json_dict.matrix);
         }
-        //console.log(mp5_json_dict);
 
         //var bb = getBoundingBoxForTree();
 
@@ -325,7 +403,6 @@ function provide_input (subjective_time, is_update_mode) {
 
 
 
-        const BB_SIZE = 9;
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
@@ -493,6 +570,59 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     report_time(timeDiff, function(){hist();});
 
     return geom;
+}
+
+function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color_b) {
+
+    // r79 only
+
+    // var point_size = 15.0; // millimeters
+    var scale_up = 30.0;
+
+    point_size = point_size !== undefined? point_size : 15.0;
+
+    color_r = color_r !== undefined? color_r : 0.9;
+    color_g = color_g !== undefined? color_g : 0.9;
+    color_b = color_b !== undefined? color_b : 0.9;
+
+    var dx = Math.random() * 1.0 * scale_up;
+    var dy = Math.random() * 1.0 * scale_up;
+    var dz = Math.random() * 1.0 * scale_up;
+
+    var verts_address = newPolygonizer.get_pointset_ptr(name);
+    var point_count = newPolygonizer.get_pointset_size(name);
+
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3 * point_count);
+    console.error(verts);
+
+
+    var geometry = new THREE.BufferGeometry();
+    var positions = verts; //new Float32Array( point_count * 3 );
+
+    var colors = new Float32Array( point_count * 3 );
+    for ( var i = 0; i < positions.length; i += 3 ) {
+        positions[ i     ] = positions[ i     ] * scale_up + dx;
+        positions[ i + 1 ] = positions[ i + 1 ] * scale_up + dy;
+        positions[ i + 2 ] = positions[ i + 2 ] * scale_up + dz;
+    }
+
+    for ( var i = 0; i < positions.length; i += 3 ) {
+        colors[ i ]     = color_r;
+        colors[ i + 1 ] = color_g;
+        colors[ i + 2 ] = color_b;
+    }
+
+    geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+    geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+    geometry.computeBoundingSphere();
+
+    //geometry is ready
+
+    var material = new THREE.PointsMaterial( { size: point_size, vertexColors: THREE.VertexColors } );
+    var points = new THREE.Points( geometry, material );
+
+    return points;
 }
 
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
@@ -727,6 +857,12 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     }
 
 
+    var points2 = make_pointset(newPolygonizer, "pre_p_centroid", 4.0,   0.9, 0.0, 0.0);
+    scene.add( points2 );
+
+    var points1 = make_pointset(newPolygonizer, "post_p_centroid", 10.0,   0.9, 0.9, 0.0);
+    scene.add( points1 );
+
     var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
     mesh2_tiny_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
     mesh2_tiny_box_wireframe	.position.set( 0, 0, 0 );
@@ -784,6 +920,12 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     cameraControls.enablePan = true;
     cameraControls.enableDamping = true;
     cameraControls.dampingFactor = 0.6; //0.9; // 1.0; //motile: 0.3;
+
+    /*
+  cameraControls.constraint.smoothZoom = true;
+    cameraControls.constraint.zoomDampingFactor = 0.2;
+    cameraControls.constraint.smoothZoomSpeed = 5.0;
+    */
 
 
     cameraControls.target.set( 0, 0, 0 );
@@ -1174,10 +1316,12 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
 
 <script>
+    var implisolid = {};
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
     function set_off() {
         console.log("ready.");
         var newPolygonizer = init_polygonizer();
+        implisolid = newPolygonizer;
 
         //if(delta_t === undefined)
         var delta_t = 0.2;
