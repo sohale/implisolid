@@ -476,7 +476,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
 
 
-
+    if (0) {  // DISABLED ALL MESH POST-PROCESSING (mesh optimisation)
     int vresamp_iters = 1; //3;
     bool apply_projection = true;
     float c = 1.;
@@ -517,6 +517,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         clog << ps2.shape()[0] << std::endl;
         clog << point_set_set["post_p_centroid"].origin() << std::endl;
         clog << point_set_set["post_p_centroid"].shape()[0] << std::endl;
+    }
     }
 
     /*
