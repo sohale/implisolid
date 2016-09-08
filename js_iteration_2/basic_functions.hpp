@@ -248,7 +248,8 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
  * Notes:
  */
 
-void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
+
+void SVD__old(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
 
   boost::numeric::ublas::matrix < REAL > QQL(3,3);
   boost::numeric::ublas::matrix < REAL > QQW(3,3);
@@ -272,6 +273,33 @@ void SVD(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
   }
 
 }
+
+
+#define MATRIX_PRODUCT_3x3(cx,cy,cz,   m00,m10,m20, m01,m11,m21, m02,m12,m22,  x,y,z ) { \
+    cx = (m00) * (x) + (m10) * (y) + (m20) * (z); \
+    cy = (m01) * (x) + (m11) * (y) + (m21) * (z); \
+    cz = (m02) * (x) + (m12) * (y) + (m22) * (z); \
+}
+
+/*
+inline void matrix_product_3x3 (
+        REAL& cx, REAL &cy, REAL &cz,
+        const REAL m00, const REAL m10, const REAL m20,
+        const REAL m01, const REAL m11, const REAL m21,
+        const REAL m02, const REAL m12, const REAL m22,
+        const REAL x, const REAL y, const REAL z
+    )
+{
+    MATRIX_PRODUCT_3x3 (cx,cy,cz,   m00,m10,m20, m01,m11,m21, m02,m12,m22,  x,y,z );
+    // cx = m00 * x + m10 * y + m20 * z;
+    // cy = m01 * x + m11 * y + m21 * z;
+    // cz = m02 * x + m12 * y + m22 * z;
+}
+
+bool test_svd(const verts_t& A, const verts_t& u, const verts_t& s, const verts_t& v) {
+  return true;
+}
+*/
 
 
 /**
@@ -309,3 +337,46 @@ REAL rand01() {
     constexpr REAL denom = (static_cast<REAL>( RAND_MAX) + 1 );
     return static_cast<REAL>(rand()) / denom;
 }
+
+
+
+/*
+// UBLAS
+// https://groups.google.com/forum/#!topic/boost-list/GYABmyc1j8M
+
+#include <boost/numeric/bindings/lapack/gesdd.hpp>
+#include <boost/numeric/bindings/traits/ublas_matrix.hpp>
+#include <boost/numeric/bindings/traits/ublas_vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+
+int try_that()
+{
+ using namespace boost::numeric::bindings::lapack;
+ using namespace boost::numeric::ublas;
+
+ matrix<REAL, column_major> A (4,2);
+ A(0,0)=REAL(2); //std::complex<double>(2, 5);
+ A(0,1)=4;
+ A(1,0)=1;
+ A(1,1)=3;
+ A(2,0)=0;
+ A(2,1)=0;
+ A(3,0)=0;
+ A(3,1)=0;
+
+ std::cout << A << std::endl;
+
+ matrix<REAL, column_major> U(4,4);
+ matrix<REAL, column_major> V(2,2);
+ vector<REAL> S(2);
+ gesdd(A, S, U, V);
+
+ std::cout << U << std::endl;
+ std::cout << S << std::endl;
+ std::cout << V << std::endl;
+
+ return 0;
+}
+*/
+

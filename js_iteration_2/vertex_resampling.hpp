@@ -151,7 +151,7 @@ REAL wi(int i, const faces_t& faces_of_faces, const verts_t& centroids, const ve
   for (int j_faces=0; j_faces<3; j_faces ++){
     ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
   }
-  REAL wi = 1.0 + c*ki;
+  REAL wi = 1.0 + c * ki;
   return wi;
 
 }
@@ -173,12 +173,15 @@ void vertex_resampling_VV1(
         wi_total_array[i_faces] = w;
     }
     for (int i=0; i< new_verts.shape()[0]; i++){
+
+        // todo: DONT USE  std::vector<?>
         const std::vector<int> & umbrella_faces = faceslist_neighbours_of_vertex[i];
         REAL sum_w = 0;
         for (int j=0; j< umbrella_faces.size(); j++){
             sum_w += wi_total_array[umbrella_faces[j]];
         }
 
+        // todo: DONT USE  std::vector<?>
         // todo: remove w, aoid std::vector<REAL>. e.g. reuse wi_total_array for normalisation.
         std::vector<REAL> w;
         for (int j=0; j< umbrella_faces.size(); j++){
@@ -230,6 +233,9 @@ void process2_vertex_resampling_relaxation_v1(
     boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
     boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
 
+    verts_t ps1 = verts;
+    point_set_set.emplace(std::make_pair(std::string("pre_resampling_vertices"), ps1));
+
     compute_centroids(faces, verts, centroids);
 
     boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
@@ -245,7 +251,27 @@ void process2_vertex_resampling_relaxation_v1(
 
     build_faces_of_faces(edges_of_faces, faces_of_edges, faces_of_faces);
 
+
+    // verts_t ps1 = centroids;
+    // point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
+    // verts_t ps1 = new_verts;
+    // point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
+
     vertex_resampling_VV1(new_verts, faceslist_neighbours_of_vertex, faces_of_faces,
         centroids, centroid_normals_normalized, c
     );
+
+    verts_t ps2 = new_verts;
+    point_set_set.emplace(std::make_pair(std::string("post_resampling_vertices"), ps2));
+
+    // verts_t ps2 = centroids;
+    /*
+    for (int i=0;i<ps2.shape()[0]; ++i) {
+        ps2[i][0] += (rand01()*2.0-1.0)*0.2;
+        ps2[i][1] += (rand01()*2.0-1.0)*0.2;
+        ps2[i][2] += (rand01()*2.0-1.0)*0.2;
+    }
+    */
+    // point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps2));
+
 }

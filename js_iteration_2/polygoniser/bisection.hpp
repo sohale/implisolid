@@ -2,7 +2,7 @@
 
 template<typename T>
 void here(T arg) {
-    std::clog << arg << std::endl << std::flush;
+    // std::clog << arg << std::endl << std::flush;
 }
 
 inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign, bool accept_zeros) {

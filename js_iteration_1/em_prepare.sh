@@ -5,6 +5,8 @@
 
 export BOOST_FOLDER=/usr/local/include/boost_1_61_0
 
+export EIGEN_LIB_FOLDER=~/mp5/eigen3
+
 ~/install/emsdk_portable/emsdk activate latest
 
 source ~/install/emsdk_portable/emsdk_env.sh

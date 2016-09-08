@@ -368,9 +368,9 @@ function provide_input (subjective_time, is_update_mode) {
 
 
 
-        // var mp5_json = HEART;     const BB_SIZE = 9;
+        var mp5_json = HEART;     const BB_SIZE = 9;
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
-        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
 
         var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
         //var mp5_json_dict = mp5_json_tetrahedron;
@@ -405,7 +405,7 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: 28,
+            resolution: 28/2,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: true,
         });
@@ -583,9 +583,12 @@ function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color
     color_g = color_g !== undefined? color_g : 0.9;
     color_b = color_b !== undefined? color_b : 0.9;
 
-    var dx = Math.random() * 1.0 * scale_up;
-    var dy = Math.random() * 1.0 * scale_up;
-    var dz = Math.random() * 1.0 * scale_up;
+    // var dx = Math.random() * 1.0 * scale_up * 1;
+    // var dy = Math.random() * 1.0 * scale_up * 1;
+    // var dz = Math.random() * 1.0 * scale_up * 1;
+    var dx = 1.0 * scale_up * 1;
+    var dy = 1.0 * scale_up * 1;
+    var dz = 1.0 * scale_up * 1;
 
     var verts_address = newPolygonizer.get_pointset_ptr(name);
     var point_count = newPolygonizer.get_pointset_size(name);
@@ -760,7 +763,10 @@ function update_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
         arrows[i].position.set(x, y, z);
         arrows[i].setLength(ls);
         // This can easily get broken. i.e. by multiplying ls.
-        dir = new THREE.Vector3( -gx/l, -gy/l, -gz/l);
+        if (!dir) {
+            dir = new THREE.Vector3( 0, 0, 0);
+        }
+        dir.set(-gx/l, -gy/l, -gz/l);
         arrows[i].setDirection(dir);
         //console.log("change_arrow");
     }
@@ -854,12 +860,21 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
         scene.add( mesh_solid );
     }
 
-
-    var points2 = make_pointset(newPolygonizer, "pre_p_centroid", 4.0,   0.9, 0.0, 0.0);
+    /*
+    var points2 = make_pointset( newPolygonizer, "pre_resampling_vertices", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
     scene.add( points2 );
 
-    var points1 = make_pointset(newPolygonizer, "post_p_centroid", 10.0,   0.9, 0.9, 0.0);
+    var points1 = make_pointset( newPolygonizer, "post_resampling_vertices", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
+    */
+
+    var points2 = make_pointset( newPolygonizer, "pre_p_centroid", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
+    scene.add( points2 );
+
+    var points1 = make_pointset( newPolygonizer, "post_p_centroid", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
+    scene.add( points1 );
+
+
 
     var geo2 = new THREE.BoxGeometry( 20, 20, 20 );
     mesh2_tiny_box_wireframe	 = new THREE.Mesh( geo2, material_wireframe );
@@ -1151,7 +1166,7 @@ function animate() {
     requestAnimationFrame( animate );
 
     //Updating the meshes
-    var SPEED = 3. / 100;
+    var SPEED = 0 * 3. / 100;
     if(mesh_wireframe){
         mesh_wireframe.rotation.x += 0.01*SPEED;
         mesh_wireframe.rotation.y += 0.02*SPEED;

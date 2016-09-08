@@ -239,7 +239,7 @@ void process2_vertex_resampling_relaxation_v2(
 */
 
 
-
+// NOT CALLED
 void apply_vertex_resampling_to_MC_buffers_vVV2(
         mp5_implicit::implicit_function* object,
         const REAL c,
@@ -300,10 +300,13 @@ void apply_vertex_resampling_to_MC_buffers__VMS(
 
     process2_vertex_resampling_relaxation_v1(new_verts, faces, verts, centroids, object, c);
 
-    for (int i = 0; i < new_verts.shape()[0]; ++i) {
-        new_verts[i][0] += (rand01() * 2.0 - 1.0) * 0.1;
-        new_verts[i][1] += (rand01() * 2.0 - 1.0) * 0.1;
-        new_verts[i][2] += (rand01() * 2.0 - 1.0) * 0.1;
+    REAL random_amplitude = 0.0;  // 0.1;
+    if (random_amplitude != 0.0) {
+        for (int i = 0; i < new_verts.shape()[0]; ++i) {
+            new_verts[i][0] += (rand01() * 2.0 - 1.0) * random_amplitude;
+            new_verts[i][1] += (rand01() * 2.0 - 1.0) * random_amplitude;
+            new_verts[i][2] += (rand01() * 2.0 - 1.0) * random_amplitude;
+        }
     }
 
     if (!writing_test_file) {

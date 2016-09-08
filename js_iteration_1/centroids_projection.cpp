@@ -46,6 +46,8 @@ using mp5_implicit::eval_implicit_on_selected_points_indexed;
 using mp5_implicit::test_if_conjugate_opposite_signs_indexed;
 using mp5_implicit::check_all_are_root;
 
+#include "../js_iteration_2/matrix_functions.hpp"
+
 #include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 using namespace std;
@@ -1201,7 +1203,7 @@ inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
 
 
 // get the matrix A and b used in vertex_apply_qem
-void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b) {
+void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b) {
 
     int m = nai.size();
 
@@ -1273,8 +1275,6 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
 }
 
 
-
-
 /*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)
 
     Description:
@@ -1307,7 +1307,7 @@ void get_A_b(const std::vector<int> nai, const verts_t& centroids, const verts_t
           A list of flags that indicates the process is complete for every index
  */
 
-void vertex_apply_qem(
+void vertex_apply_qem__old(
     verts_t* verts, const faces_t faces,
     const verts_t centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
@@ -1339,88 +1339,253 @@ void vertex_apply_qem(
         std::vector<int> nlist;
         for (int i=0; i < vertex_neighbours_list[vi].size(); i++) {
             nlist.push_back(vertex_neighbours_list[vi][i]);
-    }
-
-    std::clog << " remove 'treated' " << std::endl;
-    bool skip = false;
-    for (int g = 0; g < vertex_neighbours_list[vi].size()-1; g++) {
-        if (!treated[vertex_neighbours_list[vi][g]]) {
-            skip = true;
         }
-        for (int g1 = g+1 ; g1 < vertex_neighbours_list[vi].size()-1; g1++) {
-            if ((abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][0]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][0])) < 0.000001)
-            &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][1]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][1])) < 0.000001)
-            &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][2]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][2])) < 0.000001))
-            skip = true;
+
+        if (true) {
+            std::clog << " remove 'treated' " << std::endl;
+            bool skip = false;
+            for (int g = 0; g < vertex_neighbours_list[vi].size()-1; g++) {
+                if (!treated[vertex_neighbours_list[vi][g]]) {
+                    skip = true;
+                }
+                for (int g1 = g+1 ; g1 < vertex_neighbours_list[vi].size()-1; g1++) {
+                    if ((abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][0]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][0])) < 0.000001)
+                    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][1]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][1])) < 0.000001)
+                    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][2]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][2])) < 0.000001))
+                    skip = true;
+                }
+            }
+
+
+
+            if (skip) {
+                clog << vi << endl;
+                continue;
+            }
         }
+
+        get_A_b__old(nlist, centroids, centroid_gradients, &A, &b);
+        SVD__old(A, u, s, v); // the SVD
+        // assert(test_svd(A, u, s, v));
+
+        // in python the SVD values of s are sorted by the svd function, this is a possible workaround
+        // (we may need to keep the A=u*s*v equality, which is done this way)
+        // assert(np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))) validation assert,
+        // also note that u and v are supposed to be unitary
+        // so we can add: assert(u.T = u^-1) and assert(v.T == v^-1)
+
+        REAL max_s = max(s[0][0], max(s[1][1], s[2][2]));
+
+        REAL tau = 680;
+        int rank = 0;
+        if (s[0][0]/max_s < 1./tau) {
+            s[0][0] = 0.;
+        } else {
+            ++rank;
+        }
+        if (s[1][1]/max_s < 1./tau) {
+            s[1][1] = 0.;
+        } else {
+            ++rank;
+        }
+
+        if (s[2][2]/max_s < 1./tau) {
+            s[2][2] = 0.;
+        } else {
+            ++rank;
+        }
+
+        // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
+        const REAL x0 = (*verts)[vi][0];
+        const REAL y0 = (*verts)[vi][1];
+        const REAL z0 = (*verts)[vi][2];
+        y[0] = v[0][0] * x0 + v[1][0] * y0 + v[2][0] * z0;
+        y[1] = v[0][1] * x0 + v[1][1] * y0 + v[2][1] * z0;
+        y[2] = v[0][2] * x0 + v[1][2] * y0 + v[2][2] * z0;
+
+        utb[0] = - u[0][0] * b[0] - u[1][0] * b[1] - u[2][0] * b[2];
+        utb[1] = - u[0][1] * b[0] - u[1][1] * b[1] - u[2][1] * b[2];
+        utb[2] = - u[0][2] * b[0] - u[1][2] * b[1] - u[2][2] * b[2];
+
+        for (int i=0; i < rank; i++) {
+          if (s[i][i] != 0) {
+              y[i] = utb[i] / s[i][i];
+          } else {
+              rank++;
+          }
+        }
+
+        new_x[0] = v[0][0] * y[0] + v[0][1] * y[1] + v[0][2] * y[2];
+        new_x[1] = v[1][0] * y[0] + v[1][1] * y[1] + v[1][2] * y[2];
+        new_x[2] = v[2][0] * y[0] + v[2][1] * y[1] + v[2][2] * y[2];
+
+
+        (*verts)[vi][0] = new_x[0];
+        (*verts)[vi][1] = new_x[1];
+        (*verts)[vi][2] = new_x[2];
     }
+}
 
 
 
-    if (skip) {
-        clog << vi << endl;
-        continue;
+
+// Calculates A nd b for a selection of centroids only (an umbrella).
+// Todo: vectorized version.
+void get_A_b(const std::vector<int> & neighbours_faces, const verts_t& centroids, const verts_t& centroid_normals,
+    Matrix<REAL, 3, 3> *A, Matrix<REAL, 3, 1> * b) {
+
+    // centroid_normals must be normalised
+
+    int m = neighbours_faces.size();
+    // centroids[neighbours_faces]
+
+    *A << 0,0,0, 0,0,0, 0,0,0;
+    *b << 0,0,0;
+
+    for (int i=0; i < m; i++) {
+
+        vindex_t ni = neighbours_faces[i];
+
+        REAL Ni_x = centroid_normals[ni][0];
+        REAL Ni_y = centroid_normals[ni][1];
+        REAL Ni_z = centroid_normals[ni][2];
+
+        REAL cx = centroids[ni][0];
+        REAL cy = centroids[ni][1];
+        REAL cz = centroids[ni][2];
+
+        /* the matrix is symmetric so we dont need to compute all 9 elements*/
+        REAL a00 = Ni_x * Ni_x;
+        REAL a01 = Ni_x * Ni_y;
+        REAL a02 = Ni_x * Ni_z;
+        REAL a11 = Ni_y * Ni_y;
+        REAL a12 = Ni_y * Ni_z;
+        REAL a22 = Ni_z * Ni_z;
+
+        // A += dot(normals, normals.T)
+        (*A)(0,0) += a00;
+        (*A)(0,1) += a01;
+        (*A)(0,2) += a02;
+        (*A)(1,0) += a01;
+        (*A)(1,1) += a11;
+        (*A)(1,2) += a12;
+        (*A)(2,2) += a22;
+        (*A)(2,0) += a02;
+        (*A)(2,1) += a12;
+
+        (*b)[0] -= a00 * cx + a01 * cy + a02 * cz;
+        (*b)[1] -= a01 * cx + a11 * cy + a12 * cz;
+        (*b)[2] -= a02 * cx + a12 * cy + a22 * cz;
     }
+}
 
-    get_A_b(nlist, centroids, centroid_gradients, &A, &b);
-    SVD(A, u, s, v); // the SVD
-
-    // in python the SVD values of s are sorted by the svd function, this is a possible workaround
-    // (we may need to keep the A=u*s*v equality, which is done this way)
-    // assert(np.allclose(A, np.dot(u, np.dot(np.diag(s), v)))) validation assert,
-    // also note that u and v are supposed to be unitary
-    // so we can add: assert(u.T = u^-1) and assert(v.T == v^-1)
-
-    REAL maxi = max(s[0][0], max(s[1][1], s[2][2]));
-
+void vertex_apply_qem(
+    verts_t* verts, const faces_t faces,
+    const verts_t centroids,
+    const std::vector< std::vector<int>> vertex_neighbours_list,
+    const verts_t centroid_gradients,
+    const vectorized_bool& treated)
+{
     REAL tau = 680;
-    int rank = 0;
-    if (s[0][0]/maxi < 1./tau) {
-        s[0][0] = 0.;
-    } else {
-        ++rank;
+    REAL svd_threshold = 1.0 / tau;
+
+    assert (verts != nullptr);
+
+    int nverts = verts->shape()[0];
+    assert(nverts = vertex_neighbours_list.size());
+
+
+    // Matrix<REAL, 3, 1> y;
+    // Matrix<REAL, 3, 1> utb;
+    // Matrix<REAL, 3, 1> new_x;
+
+    Matrix<REAL, 3, 3> A;
+    Matrix<REAL, 3, 1> b;
+
+    Matrix<REAL, 3, 3> U;
+    // Matrix<REAL, 3, 3> S;  // const SingularValuesType' (aka 'const Eigen::Matrix<float, 3, 1, 0, 3, 1>')
+    Matrix<REAL, 3, 3> V;
+
+    for (int vi=0; vi < nverts; vi++) {
+
+        const std::vector<int> & nlist = vertex_neighbours_list[vi];
+
+        get_A_b(nlist, centroids, centroid_gradients, &A, &b);
+
+        /*
+        int rank = SVD(A, U, S, V, svd_threshold); // the SVD
+        */
+
+        Eigen::JacobiSVD< Matrix<REAL, 3, 3> > svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        svd.setThreshold( svd_threshold );
+        auto S = svd.singularValues();
+        U = svd.matrixU();
+        V = svd.matrixV();
+        int rank = svd.rank();
+
+        // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
+        /*
+        MIN_EIGENVALUE = 0.000001
+        if not s[0] > MIN_EIGENVALUE:
+            print("Warning! sigma_1 == 0" )
+            print(s)
+            print("A", A)
+
+            #not tested
+            result_verts_ranks[vi] = 0
+            new_verts[vi, 0:3] = new_x[:, 0]
+
+            rank = 0
+
+        assert np.all(s[:rank]/s[0] >= 1.0/tau)
+        */
+
+        Matrix<REAL, 3, 1> v0;
+        v0 << (*verts)[vi][0],(*verts)[vi][1],(*verts)[vi][2];
+        /*
+        const REAL x0 = (*verts)[vi][0];
+        const REAL y0 = (*verts)[vi][1];
+        const REAL z0 = (*verts)[vi][2];
+        y[0] = v[0][0] * x0 + v[1][0] * y0 + v[2][0] * z0;
+        y[1] = v[0][1] * x0 + v[1][1] * y0 + v[2][1] * z0;
+        y[2] = v[0][2] * x0 + v[1][2] * y0 + v[2][2] * z0;
+        */
+        Matrix<REAL, 3, 1> y  // deafault value. It will be changed later.
+            = V * v0;
+        /*
+        utb[0] = - u[0][0] * b[0] - u[1][0] * b[1] - u[2][0] * b[2];
+        utb[1] = - u[0][1] * b[0] - u[1][1] * b[1] - u[2][1] * b[2];
+        utb[2] = - u[0][2] * b[0] - u[1][2] * b[1] - u[2][2] * b[2];
+        */
+        Matrix<REAL, 3, 1> utb
+            = -U.transpose() * b;
+
+        // Solves Ax = b,   i.e. minimzes |Ax-b|
+        // ?? svd.solve(utb);
+
+        if (rank < 3) assert( S[rank+1] == 0.0 );
+        for (int i=0; i < rank; i++) {
+            if (S(i) != 0.0) {
+                y(i) = utb(i) / S(i);
+            }
+        }
+        /*
+        new_x[0] = v[0][0] * y[0] + v[0][1] * y[1] + v[0][2] * y[2];
+        new_x[1] = v[1][0] * y[0] + v[1][1] * y[1] + v[1][2] * y[2];
+        new_x[2] = v[2][0] * y[0] + v[2][1] * y[1] + v[2][2] * y[2];
+
+        (*verts)[vi][0] = new_x[0];
+        (*verts)[vi][1] = new_x[1];
+        (*verts)[vi][2] = new_x[2];
+        */
+
+        Matrix<REAL, 3, 1> new_x = V.transpose() * y;  // + qem_origin
+
+        (*verts)[vi][0] = new_x(0);
+        (*verts)[vi][1] = new_x(1);
+        (*verts)[vi][2] = new_x(2);
+
     }
-    if (s[1][1]/maxi < 1./tau) {
-        s[1][1] = 0.;
-    } else {
-        ++rank;
-    }
-
-    if (s[2][2]/maxi < 1./tau) {
-        s[2][2] = 0.;
-    } else {
-        ++rank;
-    }
-
-    // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
-    y[0] = v[0][0]*(*verts)[vi][0] + v[1][0]*(*verts)[vi][1] + v[2][0]*(*verts)[vi][2];
-    y[1] = v[0][1]*(*verts)[vi][0] + v[1][1]*(*verts)[vi][1] + v[2][1]*(*verts)[vi][2];
-    y[2] = v[0][2]*(*verts)[vi][0] + v[1][2]*(*verts)[vi][1] + v[2][2]*(*verts)[vi][2];
-
-
-
-    utb[0] = - u[0][0]*b[0] - u[1][0]*b[1] - u[2][0]*b[2];
-    utb[1] = - u[0][1]*b[0] - u[1][1]*b[1] - u[2][1]*b[2];
-    utb[2] = - u[0][2]*b[0] - u[1][2]*b[1] - u[2][2]*b[2];
-
-    for (int i=0; i < rank; i++) {
-      if (s[i][i] != 0) {
-          y[i] = utb[i]/s[i][i];
-      } else {
-          rank++;
-      }
-    }
-
-    new_x[0] = v[0][0]*y[0] + v[0][1]*y[1] + v[0][2]*y[2];
-    new_x[1] = v[1][0]*y[0] + v[1][1]*y[1] + v[1][2]*y[2];
-    new_x[2] = v[2][0]*y[0] + v[2][1]*y[1] + v[2][2]*y[2];
-
-
-    (*verts)[vi][0] = new_x[0];
-    (*verts)[vi][1] = new_x[1];
-    (*verts)[vi][2] = new_x[2];
-    }
-
 
 }
 
@@ -1461,6 +1626,12 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     vectorized_vect centroids(centroids_shape);
 
     compute_centroids(faces, verts, centroids);
+
+
+    verts_t ps1 = centroids;
+    point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps1));
+
+
     vectorized_bool_shape  treated_shape = {static_cast<vectorized_vect::index>(result_faces.size())};
     vectorized_bool  treated(treated_shape);
     // IS this necessary? It was missing.
@@ -1478,6 +1649,10 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     verts_t facet_normals = produce_facet_normals(faces, verts, true);
     assert(assert_are_normalised(facet_normals));
     mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, treated, centroids);
+
+    verts_t ps2 = centroids;
+    point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps2));
+
 
     /*
         // temporary

@@ -35,6 +35,9 @@ Todo:
 
 #include "../js_iteration_2/object_collector.hpp"
 
+std::map< std::string, vectorized_vect > point_set_set;
+
+
 #include "../js_iteration_2/vertex_resampling.hpp"
 #include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "../js_iteration_1/centroids_projection.cpp"
@@ -379,8 +382,8 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 }
 
 
-
-std::map< std::string, vectorized_vect > point_set_set;
+// moved up
+// std::map< std::string, vectorized_vect > point_set_set;
 
 void* get_pointset_ptr(char* id) {
     void* p = point_set_set[std::string(id)].origin();
@@ -476,9 +479,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
 
 
-    if (0) {  // DISABLED ALL MESH POST-PROCESSING (mesh optimisation)
+    bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
+    if (!DISABLE_POSTPROCESSING) {
     int vresamp_iters = 1; //3;
-    bool apply_projection = true;
+    bool apply_projection = false;
     float c = 1.;
 
 
@@ -490,8 +494,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     }
 
     if (apply_projection) {
-        auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
         /*
+        auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
         point_set_set["pre_p_centroid"] = ps1;
         clog << " POINT CLOUD-1 " << std::endl;
         clog << ps1.origin() << std::endl;
@@ -500,23 +504,28 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
         */
 
-        point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
+        /*
+        auto ps1 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
+        point_set_set.emplace(std::make_pair(std::string("pre_p_verts"), ps1));
         clog << " POINT CLOUD-1 " << std::endl;
         clog << ps1.origin() << std::endl;
         clog << ps1.shape()[0] << std::endl;
         clog << point_set_set["pre_p_centroid"].origin() << std::endl;
         clog << point_set_set["pre_p_centroid"].shape()[0] << std::endl;
+        */
 
         centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
 
+        /*
         auto ps2 = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);;
         // point_set_set["post_p_centroid"] = ps2;
-        point_set_set.emplace(std::make_pair(std::string("post_p_centroid"), ps2));
+        point_set_set.emplace(std::make_pair(std::string("post_p_verts"), ps2));
         clog << " POINT CLOUD-2 " << std::endl;
         clog << ps2.origin() << std::endl;
         clog << ps2.shape()[0] << std::endl;
         clog << point_set_set["post_p_centroid"].origin() << std::endl;
         clog << point_set_set["post_p_centroid"].shape()[0] << std::endl;
+        */
     }
     }
 
