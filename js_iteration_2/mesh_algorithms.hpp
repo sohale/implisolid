@@ -88,4 +88,5 @@ void build_faces_of_faces(const faces_t& edges_of_faces, const faces_t& faces_of
   }
 }
 
-}
+}   // namespace
+

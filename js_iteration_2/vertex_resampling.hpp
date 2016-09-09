@@ -29,11 +29,11 @@ using mp5_implicit::vectorised_algorithms::norm_2;
 #include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 
-typedef boost::multi_array<REAL, 2> verts_t;
-typedef boost::multi_array<int, 2> faces_t;
-typedef std::vector<int> vector_int;
-typedef std::vector<std::vector<int>> neighbour;
-typedef pair<verts_t, faces_t> vf_t;
+// typedef boost::multi_array<REAL, 2> verts_t;
+// typedef boost::multi_array<int, 2> faces_t;
+// typedef std::vector<int> vector_int;
+// typedef std::vector<std::vector<int>> neighbour;
+// typedef pair<verts_t, faces_t> vf_t;
 
 
 #include "../js_iteration_2/mesh_algorithms.hpp"
@@ -179,7 +179,7 @@ void process2_vertex_resampling_relaxation_v1(
     object->eval_gradient(centroids, &centroid_normals_normalized);
     vectorised_algorithms::normalize_1111(centroid_normals_normalized);
 
-    std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
+    std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
     make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 

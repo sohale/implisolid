@@ -71,6 +71,14 @@ typedef verts_t::index vindex_t;   // used for arrays of verts or centroids
 typedef verts_t::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
 
 
+/*
+C::element  is not C::value_type   when C is multi-dimensional
+*/
+// typedef  faces_t::value_type  vertexindex_type;
+typedef  faces_t::element  vertexindex_type;
+
+
+
 typedef short int bool_t;
 
 const bool_t b_true = 1;

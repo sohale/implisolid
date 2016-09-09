@@ -1258,7 +1258,7 @@ void process2_vertex_resampling_relaxation(verts_t& new_verts, faces_t& faces, v
 
   compute_centroid_gradient(centroids, centroid_normals_normalized);
 
-  vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(verts, faces);
+  vector< vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
   make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 
