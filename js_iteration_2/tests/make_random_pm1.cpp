@@ -27,7 +27,7 @@
 
 TEST(VectorizsedAlgorithmsTests, make_random_pm1__mean) {
 
-    verts_t result = vectorised_algorithms::make_random_pm1(4, 3, 1);
+    verts_t result = mp5_implicit::vectorised_algorithms::make_random_pm1(4, 3, 1);
     for (vindex_t i = 0; i < std::min<unsigned int>(result.shape()[0], 10); ++i) {
         std::clog
             << result[i][0] << " "

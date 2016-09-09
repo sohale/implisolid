@@ -1,5 +1,7 @@
 #include "../primitives.cpp"
-#include "../js_iteration_1/timer.hpp"
+#include "../../js_iteration_1/timer.hpp"
+
+usin namespace mp5_implicit;
 
 void immutable_test(const vectorized_vect& v){
     // IS multi_array immutable?
@@ -63,7 +65,7 @@ void test_sphere_one_point(){
     vectorized_scalar  f = vectorized_scalar(sf);
 
     vectorized_vect x = make_test_vector(1.5,2.5,3.5);
-    unit_sphere s(2.0);
+    mp5_implicit::unit_sphere s(2.0);
     //s.implicit_func(x, f);
     s.eval_implicit(x, &f);
 
@@ -181,7 +183,7 @@ void test_memoryleak_sphere(){
 
     vectorized_vect x = make_empty_x(nsize);
 
-    unit_sphere s(2.0);
+    mp5_implicit::unit_sphere s(2.0);
 
     s.eval_implicit(x, &f);
 

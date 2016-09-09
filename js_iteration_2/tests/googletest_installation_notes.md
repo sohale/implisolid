@@ -12,6 +12,9 @@ Synopsis:
 7- cmake and make
 8- check if libgtest.a is created
 9- compile some tests
+10- run full_test_suite.sh
+
+# DETAILS:
 
 # go to an installation folder: for example:
 export G1=~/mp5  # change according to this installation

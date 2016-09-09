@@ -53,26 +53,36 @@ fi
 
 if [ $OPTIM -eq 0 ]
 then
-    cols=$( tput cols )
-    tput bold
-    echo " * * * Development Version * * * "
-    echo Compiling ...
-    echo Error messages, and output information will be sent to "em_compile.log"
+    mkdir -p build
+    # cols=$( tput cols )
+    # tput bold
+    # echo " * * * Development Version * * * "
+    # echo Compiling ...
+    # echo Error messages, and output information will be sent to "em_compile.log"
     em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
             "$1" \
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
-            "$filename".compiled.js > em_compile.log 2>&1 \
+            build/"$filename".compiled.js \
             && echo "compile success." \
-            && node "$filename".compiled.js \
-    tput sgr0  # reset terminal options
+            && tput bold \
+            && cols=$( tput cols ) \
+            && node build/"$filename".compiled.js \
+            && tput sgr0 \
+            && echo "test executed."
+
+
+            #  > em_compile.log 2>&1
+
+    #tput sgr0  # reset terminal options
 
 fi
 
 
 if [ $OPTIM -eq 1 ]; then
     echo " * * * Optimized Version  * * *  "
+    mkdir -p build
     em++    -I $BOOST_FOLDER -s EXPORTED_FUNCTIONS="['_main' ]"  \
             -s NO_EXIT_RUNTIME=1                \
             -Winline    \
@@ -84,7 +94,7 @@ if [ $OPTIM -eq 1 ]; then
             -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS \
             -pedantic -std=c++14  \
              "$filename".cpp      \
-            -o  "$filename".compiled.js
+            -o  build/"$filename".compiled.js
 fi
 
 
