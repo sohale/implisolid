@@ -1,34 +1,6 @@
 #pragma once
 
 
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const faces_t& faces, vertexindex_type  max_vert_index) {
-    /*
-    note: max_vert_index could be derived from maximum index in faces, but 1-It is safer, may prevent future capacity increase? (not really needed though) 2- It will not be much smaller enyway
-    This will be replaced by the more efficient "sparse" matrices (or equivalent data structures) anyway.
-    */
-    vertexindex_type num_verts = max_vert_index;  // verts.shape()[0];
-    std::vector< std::vector<int>> neighbour_faces_of_vertex;
-    for (vertexindex_type vi=0; vi < num_verts; vi++) {
-        neighbour_faces_of_vertex.push_back(std::vector<int>());
-    }
-
-    // todo: initialise using C++ RAII principle:
-    // std::vector< std::vector<int>> neighbour_faces_of_vertex(max_vert_index);
-
-    // static_assert(vertexindex_type == neighbour_faces_of_vertex::index_type);
-    // static_assert(faces_t::value_type == vertexindex_type);
-
-    int num_faces = faces.shape()[0];
-    for (int fi=0; fi < num_faces; fi++) {
-        for (int side_i=0; side_i < 3; side_i++) {
-            vertexindex_type v1 = faces[fi][side_i];
-            neighbour_faces_of_vertex[v1].push_back(fi);
-        }
-    }
-
-    return neighbour_faces_of_vertex;
-}
-
 /*
     std::vector<REAL> result_verts;
     std::vector<int> result_faces;
