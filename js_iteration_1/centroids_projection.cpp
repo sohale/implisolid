@@ -1595,9 +1595,9 @@ void vertex_apply_qem(
             if (VERBOSE_QEM)
                 std::clog << " > S(rank+1-1)" << S(rank+1-1) << std::endl;
             for (int i = rank; i < 3; ++i) {
-                S(i) = 0.0;  // not necessary really
+                // S(i) = 0.0;  // not necessary really
             }
-            assert( S(rank+1-1) == 0.0 );
+            // assert( S(rank+1-1) == 0.0 );
         }
 
 

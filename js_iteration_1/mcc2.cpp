@@ -481,9 +481,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
-    int vresamp_iters = 1; //3;
-    bool apply_projection = true;
-    float c = 1.;
+    int vresamp_iters = 10; //3;
+    bool apply_projection = false;
+    // float c = 1.;
+    REAL c = 1.0;
 
 
     for (int i=0; i < vresamp_iters; i++) {
