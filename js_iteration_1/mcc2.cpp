@@ -573,11 +573,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
     if (VERBOSE) {
-    clog << "vresampl.c: " << c << std::endl;
-    clog << "vresamp_iters: " << vresamp_iters << std::endl;
-    clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
-    clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
-}
+        clog << "vresampl.c: " << c << std::endl;
+        clog << "vresamp_iters: " << vresamp_iters << std::endl;
+        clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
+        clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
+    }
 
 
     timer timr;
@@ -623,7 +623,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces, mc_settings_from_json.qem.enabled);
             timr.report_and_continue("centroids_projection");
         } else {
-            std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
+            // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
         }
 
         /*

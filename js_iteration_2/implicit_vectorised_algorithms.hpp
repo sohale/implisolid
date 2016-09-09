@@ -189,7 +189,7 @@ vectorized_scalar  eval_implicit_on_selected_points_indexed(mp5_implicit::implic
     ///////////// TODO: WE TO DEFINE THIS?
     // vectorized_scalar f_a(scalar_shape);
     object->eval_implicit(xa, &f_a);
-    clog << "Evaluating " << active_indices.shape()[0] << " points" << std::endl;
+    clog << "Evaluating(a) " << active_indices.shape()[0] << " points" << std::endl;
 
     return f_a;
 }
@@ -212,7 +212,7 @@ vectorized_scalar  eval_implicit_on_selected_points_bool(mp5_implicit::implicit_
     ///////////// TODO: WE TO DEFINE THIS?
     // vectorized_scalar f_a(scalar_shape);
     object->eval_implicit(xa, &f_a);
-    clog << "Evaluating " << selected_bool.shape()[0] << " points" << std::endl;
+    clog << "Evaluating(b) " << selected_bool.shape()[0] << " points" << std::endl;
 
     return f_a;
 }
