@@ -36,81 +36,12 @@ typedef std::vector<std::vector<int>> neighbour;
 typedef pair<verts_t, faces_t> vf_t;
 
 
+#include "../js_iteration_2/mesh_algorithms.hpp"
+
+using mp5_implicit::build_faces_of_faces;
+using mp5_implicit::make_edge_lookup;
 
 
-
-void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
-  int nfaces = faces.shape()[0];
-  cout << "nfaces is : " << nfaces << endl;
-  assert(nfaces % 2 == 0);
-  int num_edges = nfaces*3./2.;
-
-  long modulo = long(num_edges);
-  long lookup_array_size = modulo*num_edges + num_edges;
-  map<int, int> eulookup;
-  map<int, int>::iterator iter;
-  int edge_counter = 0;
-  for (int fi=0; fi<nfaces; fi++){
-    for (int vj=0; vj<3; vj++){
-      assert(fi<nfaces);
-      bool new_edge = false;
-      int v2j = (vj+1)%3;
-      int e1 = faces[fi][vj];
-      int e2 = faces[fi][v2j];
-      int eu_pair_int;
-      if (e2 > e1){
-        eu_pair_int = int(e1 + e2*modulo);
-      }
-      else{
-        eu_pair_int = int(e2 + e1*modulo);
-      }
-
-      iter = eulookup.find(eu_pair_int);
-      if (iter== eulookup.end()){
-        new_edge = true;
-      }
-      if (new_edge){
-        int e_id = edge_counter;
-        edges_of_faces[fi][vj] = e_id;
-        faces_of_edges[e_id][0] = fi;
-        assert (vj!= v2j);
-
-        eulookup.insert(pair<int,int>(eu_pair_int,e_id));
-        edge_counter ++;
-        assert(edge_counter <= num_edges);
-      }
-      else{
-        int e_id = iter->second;
-        assert (e_id >= 0);
-        edges_of_faces[fi][vj] = e_id;
-        faces_of_edges[e_id][1] = fi;
-        assert (vj!= v2j);
-        int other_fi = faces_of_edges[e_id][0];
-
-      }
-    }
-  }
-
-}
-
-void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& faces_of_faces){
-  for(int face = 0; face < edges_of_faces.shape()[0]; face++){
-    for(int edge = 0; edge < 3; edge++){
-      if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
-        faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][0];
-      else{
-        assert(faces_of_edges[edges_of_faces[face][edge]][1] != face);
-        faces_of_faces[face][edge]=faces_of_edges[edges_of_faces[face][edge]][1];}
-    }
-  }
-  for(int face = 0; face < faces_of_faces.shape()[0]; face ++){
-    for(int faces = 0; faces<3; faces++){
-      assert(face==faces_of_faces[faces_of_faces[face][faces]][0] ||
-          face==faces_of_faces[faces_of_faces[face][faces]][1] ||
-          face==faces_of_faces[faces_of_faces[face][faces]][2]);
-    }
-  }
-}
 
 inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_normals_normalized){
   assert (i!=j);
