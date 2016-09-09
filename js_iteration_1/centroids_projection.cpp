@@ -201,7 +201,7 @@ std::vector<REAL> make_alpha_list(REAL initial_step_size, REAL min_step_size, RE
     #if ASSERT_USED
         // todo: D.R.Y.
         // if (VERBOSE)
-        std::clog << "Alphas: ";
+        std::clog << "Alphas: (count=" << alpha_list.size() << ") ";
         for (std::vector<REAL>::iterator i = std::begin(alpha_list), e=std::end(alpha_list); i < e; ++i) {
             std::clog << *i << " ";
         }
@@ -436,7 +436,11 @@ void  set_centers_on_surface(
     // stepsize happens to be equal to the max_dist.
     const REAL length_factor = max_dist;  // average_edge; // max_dist
     REAL initial_step_size = max_dist * 1.0;
-    std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, 0.001, max_dist, max_iter, EXTREME_ALPHA);
+    clog << " initial_step_size: " << initial_step_size
+    << " max_dist:" << max_dist << std::endl;
+    // Goog value equivalent to 0.001, scale
+    REAL scale_min_len = 1.0; // initial_step_size / 1.27158;
+    std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, 0.001*scale_min_len, max_dist, max_iter, EXTREME_ALPHA);
     /*
         Interesting observation: alpha_list[4] always finds many points. We can bring it forward, after [1] or [2].
         If we use mesh normals first, the results seem better.
@@ -1062,10 +1066,11 @@ void  set_centers_on_surface(
 
         // assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
 
+        //  f2 = -0.15016 * f1 = -0.00199347        tol=0.001
         for (int i=0; i < m; i++) {
             REAL mult = f2_relevants[i] * f1_relevants[i];
             if (!  (mult <= - ROOT_TOLERANCE*ROOT_TOLERANCE)) {
-                clog << mult <<" = " << f2_relevants[i] << " * " << f1_relevants[i] << " tol=" << ROOT_TOLERANCE << "[" << i << "]"<< endl;
+                clog << mult <<" = " << f2_relevants[i] << " * " << f1_relevants[i] << " tol=" << ROOT_TOLERANCE << " i:[" << i << "]"<< endl;
             }
             // if (0)
             assert(mult <= + ROOT_TOLERANCE*ROOT_TOLERANCE);

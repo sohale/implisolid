@@ -91,6 +91,8 @@ then
 
     echo "** dev version **"
 
+    EMCC_DEBUG=1
+
     em++ -I $BOOST_FOLDER  \
          -I $EIGEN_LIB_FOLDER \
         -s TOTAL_MEMORY=30100100 \
@@ -100,6 +102,7 @@ then
         -s DEMANGLE_SUPPORT=1 \
          -s ASSERTIONS=1 \
         -pedantic -std=c++14 \
+        -v \
         mcc2.cpp -o mcc2.compiled.js
 #        --profiling \
     exit 0

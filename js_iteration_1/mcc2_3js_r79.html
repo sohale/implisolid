@@ -51,18 +51,21 @@
 
 <script>
 /**  Asynchronously does a series of calls to the function  update_mc(). */
-var call_multiple_times = function(newPolygonizer, update_callback) {
+var callMultipleTimes = function() {
     // private:
     var last_active = 0;
     var intervals_counter = 0;
 
-    function _call_multiple_times(newPolygonizer, update_callback) {
+    function function_body(newPolygonizer, update_callback, burst_count, interval_msec) {
         /** Asynchronously does a series of calls to the function  update_callback().
         Previous name: update_mc_mul tiple() */
-        var BURST_COUNT = 50;
-        var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
-            // Works well on too small values (Semaphore).
-            // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
+
+        var BURST_COUNT = burst_count; //2; // 50;
+        var INTERVAL_MSEC = interval_msec; //8-1; //40  // 1   // in Milliseconds
+        // Works well on too small values of INTERVAL_MSEC (Semaphore).
+        // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
+
 
         var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
         var burst_counter = 0;
@@ -81,6 +84,7 @@ var call_multiple_times = function(newPolygonizer, update_callback) {
 
                 burst_counter++; // mc_icounter
 
+                console.error(BURST_COUNT);
                 if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
                 {
 
@@ -113,7 +117,7 @@ var call_multiple_times = function(newPolygonizer, update_callback) {
             INTERVAL_MSEC
         );
     }
-    return _call_multiple_times;
+    return function_body;
 }();
 
 </script>
@@ -314,7 +318,7 @@ function setShapeMatrix2Eye(shape_matrix) {
 }
 
 const MESH_SCALE = 300/10;
-const ARROWS_COUNT = 20;
+const ARROWS_COUNT = 20*10;
 
 var global_mp5 = "***";
 
@@ -325,9 +329,9 @@ function provide_input (subjective_time, is_update_mode) {
 
     // asked for:
     var shape_json, polygonization_json;
-    const DONT_CHANGE = false;  // was true
+    const DONT_CHANGE = false;  // should be false
 
-    if(DONT_CHANGE || is_update_mode == 0) {
+    if (DONT_CHANGE || is_update_mode == 0) {
         var r = subjective_time;
 
         var mp5_json_0 = JSON.stringify({
@@ -404,13 +408,13 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: 28/2,
+            resolution: Math.floor(28/2),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: true,
 
-            vresampl: {iters: 1, c: 2.0},
+            vresampl: {iters: 0, c: 1.0},
             projection: {enabled: 1},
-            qem: {enabled: 0},
+            qem: {enabled: 1},
         });
 
 
@@ -430,11 +434,12 @@ function provide_input (subjective_time, is_update_mode) {
         var r = subjective_time * 5;
         //var BB_SIZE = 6.;
         var mc_properties_json = JSON.stringify({
-            resolution: 28,
+            resolution: 14,  // 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        /*
         var mp5_json = JSON.stringify({
             type: "ellipsoid",
             //radius: r, //boudbl_mushroom only
@@ -446,9 +451,17 @@ function provide_input (subjective_time, is_update_mode) {
         });
 
         shape_json = mp5_json;
+        */
+
+        var d = JSON.parse(global_mp5);
+        d.matrix[0] = r / 10.;
+        d.matrix[5] = r / 10.;
+        d.matrix[10] = r / 10.;
+        shape_json = JSON.stringify(d);;
+        // shape_json = global_mp5;
         polygonization_json = mc_properties_json;
 
-        //global_mp5 = mp5_json;
+        //global_mp5 is not updated here. It is the original object before the update.
         var tuple = [shape_json, polygonization_json];
         return tuple;
 
@@ -521,7 +534,12 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
 
     //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
     //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
-    newPolygonizer.build_geometry( shape_json , polygonization_json);
+    try{
+        newPolygonizer.build_geometry( shape_json , polygonization_json);
+    } catch(e) {
+        console.error(e);
+        Module={};  // avoids calling Module.dynCall_vii(), etc.
+    }
         //implicit_double_mushroom center will be zero.
 
     newPolygonizer.needsFinish = true;
@@ -677,10 +695,9 @@ function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, ge
 
 
 //*************** Arrow Functions ****************************
+/*
 function make_arrow(){
-    /**
-     * Create an arrow and add it to the scene.
-     */
+    // Create an arrow and add it to the scene.
     var dir  = new THREE.Vector3( 10, 4, 0);
     var origin = new THREE.Vector3(0, 0, 0);
     var length = 10;
@@ -691,6 +708,7 @@ function make_arrow(){
     console.log("Arrow");
     return arrowHelper;
 }
+*/
 
 function make_multiple_arrows(n) {
     /**
@@ -792,7 +810,10 @@ var mesh_wireframe = null;
 
 var global_arrows;
 
-const CHOSEN_MATERIAL_INDEX = 7; //3;
+const CHOSEN_MATERIAL_INDEX = 2; //3;
+    // 7 = colourful
+    // 3 = ?
+
     //1: grayscale boring phong.
     //2: faceted. (good for debug / shape study)
     //3: colorful
@@ -815,7 +836,16 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     //var WIDTH = 300, HEIGHT = 300;
     var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
-    camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+
+    if (true) {
+        // PerspectiveCamera( fov, aspect, near, far )
+        camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+    } else {
+        // OrthographicCamera( left, right, top, bottom, near, far )
+        var span_per_pixel = 1.0/800.0*2000.0; //for orthogaphic camera
+        camera = new THREE.OrthographicCamera( -WIDTH/2.0*span_per_pixel,  +WIDTH/2.0*span_per_pixel, -HEIGHT/2.0*span_per_pixel, +HEIGHT/2.0*span_per_pixel, 1, 10000 );
+    }
+
     camera.position.z = 1000;
 
     materials_list = look_nice(scene);
@@ -918,7 +948,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
 
     /*
-      function call_multiple_times() {
+      function callMultipleTimes() {
             var mc_icounter=0;
             setInterval(function(){ if(mc_icounter<10) update_mc(newPolygonizer, 0.2/10.*5); mc_icounter++; }, 30);
         }
@@ -927,8 +957,12 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
+
+            var BURST_COUNT = 5; // 50;
+            var INTERVAL_MSEC = 100; // 8-1; //40  // 1   // in Milliseconds
+
             //update_mc(newPolygonizer);
-            call_multiple_times(newPolygonizer, update_mc);
+            callMultipleTimes (newPolygonizer, update_mc, BURST_COUNT, INTERVAL_MSEC);
             //change_arrow(arrow, newPolygonizer, global_mp5);
         }
         else
@@ -1034,6 +1068,7 @@ function update_mc(newPolygonizer, delta_t){
     if(UPDATE_SAME_GEOM_OBJECT) {
         geometry = g;
         //update_reused_geometry(newPolygonizer, global_time, geometry);
+        // shape_json: from update,
         update_reused_geometry(newPolygonizer, shape_json, polygonization_json, geometry);
     }
     else {
@@ -1062,6 +1097,7 @@ function update_mc(newPolygonizer, delta_t){
     "";
     */
     var ignore_root_matrix = false;
+
     update_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
 
 
@@ -1141,7 +1177,11 @@ function look_nice(scene){
     texture.needsUpdate = true;
     materials.push( new THREE.MeshLambertMaterial( { map: texture, transparent: true } ) );
     materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.FlatShading } ) );
-    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.FlatShading } ) );
+    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30,
+        shading: THREE.FlatShading,
+        side:THREE.DoubleSide,
+        } ) );
+
     materials.push( new THREE.MeshNormalMaterial( ) );
     materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
     //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );

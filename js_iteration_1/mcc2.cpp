@@ -344,6 +344,9 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     namespace pt = boost::property_tree;
     pt::ptree mcparams_dict;
 
+
+    bool needs_abort = false;
+
     // MC settings:
 
     // TODO(charles): find an alternativ to catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
@@ -357,7 +360,14 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     REAL zmin = mcparams_dict.get<REAL>("box.zmin", NaN);
     REAL zmax = mcparams_dict.get<REAL>("box.zmax", NaN);
 
-    int resolution = mcparams_dict.get<int>("resolution", -1);
+
+    REAL resolution_real = mcparams_dict.get<REAL>("resolution", -1);
+    int resolution = static_cast<int>(resolution_real);
+    if (static_cast<REAL>(resolution) != resolution_real) {
+        cerr << "Error: resolution must be integer: " << static_cast<REAL>(resolution) << " != " << resolution_real << std::endl;
+        needs_abort = true;
+    }
+
 
     if ( isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ) {
         std::cerr << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
@@ -368,6 +378,8 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
         zmin = -1;
         zmax = 1;
         resolution = 28;
+
+        needs_abort = true;
     }
     // std::clog << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
 
@@ -399,23 +411,40 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 
     // default: dont do resampling
     REAL c = mcparams_dict.get<REAL>("vresampl.c", 1.0);
-    int default_vresampl_iters = (c == 0.0)? 0 : 1;
+    // int default_vresampl_iters = (c == 0.0)? 0 : 1;  // if c is zero, ...
+    int default_vresampl_iters = 0;
     int vresamp_iters = mcparams_dict.get<int>("vresampl.iters", default_vresampl_iters);
 
-    // default is false
-    bool qem_enabled = !!mcparams_dict.get<int>("qem.enabled", 0);
+    // handling the default cases is frustrating. Also it's very difficult to use bool and int.
+
+    // default is false. dont use boolean in Json for *.enabled
+    int qem_enabled_int = mcparams_dict.get<int>("qem.enabled", -1);
+    if (VERBOSE)
+        clog << "json: qem.enabled : " << qem_enabled_int << std::endl;
+    bool qem_enabled = !!qem_enabled_int;
+    if (qem_enabled_int == -1)   // If you write 'false' or 'true' it is an error, in both cases it will be false.
+        qem_enabled = false;
     // todo: interpret as <bool>
-    int projection_enabled = mcparams_dict.get<int>("projection.enabled", 9);  // Why this goes to the default when I use "false"?
-    clog << "projection_enabled : " << projection_enabled << std::endl;
-    projection_enabled = !!projection_enabled;
+    int projection_enabled_int = mcparams_dict.get<int>("projection.enabled", -1);  // Why this goes to the default when I use "false" or "true"?
+    if (VERBOSE)
+        clog << "projection_enabled : " << projection_enabled_int << std::endl;
+    bool projection_enabled = !!projection_enabled_int;
+    if (projection_enabled_int == -1)  // to handle the default cases seaprately. "true", "false" in Json both mean error.
+        projection_enabled = false;
 
-    if(mcparams_dict.get<int>("projection.enable", 9123456) == 9123456) {
+    // Check if the wrong spelling is used.
+    if(mcparams_dict.get<int>("projection.enable", 9123456) != 9123456) {
         std::cerr << "Error: Use projection.enabled instead of use projection.enable" << std::endl;
+        needs_abort = true;
     }
-    if(mcparams_dict.get<int>("qem.enable", 9123456) == 9123456) {
+    if(mcparams_dict.get<int>("qem.enable", 9123456) != 9123456) {
         std::cerr << "Error: Use qem.enabled instead of use qem.enable" << std::endl;
+        needs_abort = true;
     }
 
+    if (needs_abort) {
+        abort();
+    }
 
 
     mp5_implicit::mc_settings  mc_settings_from_json;  // settings
@@ -543,10 +572,12 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // float c = 1.;
     REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
+    if (VERBOSE) {
     clog << "vresampl.c: " << c << std::endl;
     clog << "vresamp_iters: " << vresamp_iters << std::endl;
     clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
     clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
+}
 
 
     timer timr;
