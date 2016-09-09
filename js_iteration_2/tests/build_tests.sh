@@ -19,8 +19,9 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-OPTIM=1
-GTEST_ROOT=~/googletest
+OPTIM=0
+# GTEST_ROOT=~/googletest
+GTEST_ROOT=$GOOGLETEST_ROOT
 fullfilename=$1 # get first argument as input file
 BOOST_FOLDER=/usr/local/include/boost_1_61_0/
 extension="${fullfilename##*.}" # seperate extension and filename

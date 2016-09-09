@@ -1,7 +1,7 @@
 #include <iostream>
 using namespace std;
 
-#include "../js_iteration_1/timer.hpp"
+#include "../../js_iteration_1/timer.hpp"
 
 void try_things2()
 {
@@ -21,6 +21,8 @@ void test_timer(){
 
 int main(){
     test_timer();
+    cout << std::endl;
+    cout << "done" << std::endl;
     return 0;
 }
 

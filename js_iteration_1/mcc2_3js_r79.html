@@ -410,11 +410,11 @@ function provide_input (subjective_time, is_update_mode) {
         var mc_properties_json = JSON.stringify({
             resolution: Math.floor(28/2),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
-            ignore_root_matrix: true,
+            ignore_root_matrix: false,
 
             vresampl: {iters: 0, c: 1.0},
             projection: {enabled: 1},
-            qem: {enabled: 1},
+            qem: {enabled: 0},
         });
 
 
