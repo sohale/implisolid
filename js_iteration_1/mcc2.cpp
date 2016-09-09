@@ -318,10 +318,25 @@ struct mc_settings {
     mp5_implicit::bounding_box box;
     int resolution;
     bool ignore_root_matrix;
+    struct {
+        int iters;
+        REAL c;
+    } vresampl;
+    struct {
+        bool enabled = true;
+    } qem;
+    struct {
+        // projection of centroids, not vertices
+        bool enabled;
+    } projection;  // cproj
 };
 
 }
 
+/*void print_mc_settings() {
+
+}
+*/
 mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_json) {
     std::stringstream mc_json_stream;
     mc_json_stream << mc_parameters_json;
@@ -329,6 +344,7 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     namespace pt = boost::property_tree;
     pt::ptree mcparams_dict;
 
+    // MC settings:
 
     // TODO(charles): find an alternativ to catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
     // try{
@@ -344,7 +360,7 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     int resolution = mcparams_dict.get<int>("resolution", -1);
 
     if ( isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ) {
-        std::clog << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
+        std::cerr << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
         xmin = -1;
         xmax = 1;
         ymin = -1;
@@ -370,11 +386,54 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     }*/
 
 
+    // post-MC steps (I, II, III):
+
+
+    // bool apply_projection = false;
+    // bool apply_qem = false;
+    // REAL qem_reject_maxlen = ...;
+    // REAL qem_tau = ...;
+    // REAL projection_maxlen = ...;
+    // mc_settings_from_json.vertexresampleing.c
+    // mc_settings_from_json.vertexresampleing.iterations
+
+    // default: dont do resampling
+    REAL c = mcparams_dict.get<REAL>("vresampl.c", 1.0);
+    int default_vresampl_iters = (c == 0.0)? 0 : 1;
+    int vresamp_iters = mcparams_dict.get<int>("vresampl.iters", default_vresampl_iters);
+
+    // default is false
+    bool qem_enabled = !!mcparams_dict.get<int>("qem.enabled", 0);
+    // todo: interpret as <bool>
+    int projection_enabled = mcparams_dict.get<int>("projection.enabled", 9);  // Why this goes to the default when I use "false"?
+    clog << "projection_enabled : " << projection_enabled << std::endl;
+    projection_enabled = !!projection_enabled;
+
+    if(mcparams_dict.get<int>("projection.enable", 9123456) == 9123456) {
+        std::cerr << "Error: Use projection.enabled instead of use projection.enable" << std::endl;
+    }
+    if(mcparams_dict.get<int>("qem.enable", 9123456) == 9123456) {
+        std::cerr << "Error: Use qem.enabled instead of use qem.enable" << std::endl;
+    }
+
+
+
     mp5_implicit::mc_settings  mc_settings_from_json;  // settings
     mp5_implicit::bounding_box box = {xmin, xmax, ymin, ymax, zmin, zmax};  // {15,20,15,20,15,20};
     mc_settings_from_json.box = box;
     mc_settings_from_json.resolution = resolution;
 
+    mc_settings_from_json.vresampl.c = c;
+    mc_settings_from_json.vresampl.iters = vresamp_iters;
+
+    mc_settings_from_json.qem.enabled = qem_enabled;
+    mc_settings_from_json.projection.enabled = projection_enabled;
+
+    if (mc_settings_from_json.qem.enabled && !mc_settings_from_json.projection.enabled) {
+        std::clog << "Warning: QEM will not be applied if centroid projection is disabled" << std::endl;
+    }
+
+    // Shape settings
 
     mc_settings_from_json.ignore_root_matrix = mcparams_dict.get<bool>("ignore_root_matrix", false);
 
@@ -395,6 +454,7 @@ int get_pointset_size(char* id) {
 
 
 #include "../js_iteration_2/object_factory.hpp"
+
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
@@ -468,9 +528,6 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
     }
 
-    // mc_settings_from_json.vertexresampleing.c
-    // mc_settings_from_json.vertexresampleing.iterations
-
 
     /*
     int vresamp_iters = 0; //3;
@@ -479,19 +536,28 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
 
 
-    bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
+    const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
-    int vresamp_iters = 10; //3;
-    bool apply_projection = false;
+    int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
+    bool apply_projection = true;
     // float c = 1.;
-    REAL c = 1.0;
+    REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
+    clog << "vresampl.c: " << c << std::endl;
+    clog << "vresamp_iters: " << vresamp_iters << std::endl;
+    clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
+    clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
+
+
+    timer timr;
+    timr.report_and_continue("timer started.");
 
     for (int i=0; i < vresamp_iters; i++) {
-        timer t;
+        timer t1;
         // result_verts is modified
         apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc -> result_verts, _state.mc->result_faces, false );
-        t.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
+        t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
+        timr.report_and_continue("vertex resampling");
     }
 
     if (apply_projection) {
@@ -520,7 +586,14 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         }
         */
 
-        centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+        if (mc_settings_from_json.projection.enabled) {
+            std::clog << "centroids_projection:" << std::endl;
+            // Dn't send mc_settings_from_json as an argument
+            centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces, mc_settings_from_json.qem.enabled);
+            timr.report_and_continue("centroids_projection");
+        } else {
+            std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
+        }
 
         /*
         if (STORE_POINTSETS)

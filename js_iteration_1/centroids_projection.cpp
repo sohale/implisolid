@@ -1207,7 +1207,7 @@ inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
 
 
 
-void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces) {
+void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces, bool enable_qem) {
     boost::array<unsigned int, 2> verts_shape = { (unsigned int)result_verts.size()/3 , 3 };
     vectorized_vect  verts(verts_shape);
     boost::array<unsigned int, 2> faces_shape = { (unsigned int)result_faces.size()/3 , 3 };
@@ -1306,7 +1306,9 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     compute_centroid_gradient(centroids, centroid_gradients, object);
 
-
+    /* ***********************
+    QEM
+    ************************ */
     if (STORE_POINTSETS)
     {
     verts_t ps1 = verts;
@@ -1315,23 +1317,27 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     point_set_set.emplace(std::make_pair(std::string("pre_qem_verts"), ps1));
     }
 
-    vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
+    if (enable_qem) {
+        std::clog << "Going for QEM:" << std::endl;
+        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
 
-    if (STORE_POINTSETS)
-    {
-    verts_t ps1 = verts;
-    if (VERBOSE_QEM)
-        clog << "2.verts: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
-    point_set_set.emplace(std::make_pair(std::string("post_qem_verts"), ps1));
+        if (STORE_POINTSETS)
+        {
+        verts_t ps1 = verts;
+        if (VERBOSE_QEM)
+            clog << "2.verts: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
+        point_set_set.emplace(std::make_pair(std::string("post_qem_verts"), ps1));
+        }
+
+        // if APPLY_QEM_RESULT
+        for (int i=0; i < verts.shape()[0]; i++) {
+            result_verts[i*3+0] = verts[i][0];
+            result_verts[i*3+1] = verts[i][1];
+            result_verts[i*3+2] = verts[i][2];
+        }
+    } else {
+        std::clog << "qem skipped because you asked for it." << std::endl;
     }
-
-    // if APPLY_QEM_RESULT
-    for (int i=0; i < verts.shape()[0]; i++) {
-        result_verts[i*3+0] = verts[i][0];
-        result_verts[i*3+1] = verts[i][1];
-        result_verts[i*3+2] = verts[i][2];
-    }
-
 
 }
 

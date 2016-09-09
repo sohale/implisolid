@@ -40,29 +40,38 @@ class timer{
 
     }
 
+protected:
+    double report(string heading) {
+        my_time_point_t timer_end_time = chrono::steady_clock::now();
+        my_duration_t diff = timer_end_time - timer_start_time;
+        // cout << endl;
+        cout << heading << " " << "execution duration: ";
+        double duration = chrono::duration <double, milli> (diff).count();
+        cout << duration << " msec" ;
+        //cout << " (" << chrono::duration <double, nano> (diff).count() << " ns" << ")";
+        cout << endl;
+        return duration;
+    }
+
 public:
     timer(){
         this->timer_start();
     }
 
+
     auto stop(string heading="")
-    //stop, report as a string, and restart.
+    //stop, report as a string, and restart (reset).
     {
-        my_time_point_t timer_end_time = chrono::steady_clock::now();
-        my_duration_t diff = timer_end_time - timer_start_time;
-        cout << endl;
-        if(heading=="")
-            cout << "";
-        else
-            cout << heading;
-        cout << " ";
-        cout << "execution duration: ";
-        double duration = chrono::duration <double, milli> (diff).count();
-        cout << duration << " msec" ;
-        //cout << " (" << chrono::duration <double, nano> (diff).count() << " ns" << ")";
-        cout << endl;
+        auto duration = this->report(heading);
 
         this->timer_start(); //restart_from zero
+        return duration;
+    }
+
+    auto report_and_continue(string heading="")
+    //report as a string, and move on (don't reset).
+    {
+        auto duration = this->report(heading);
         return duration;
     }
 };
