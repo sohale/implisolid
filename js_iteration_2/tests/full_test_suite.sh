@@ -31,7 +31,7 @@ em++    -I $BOOST_FOLDER    \
         -I $GTEST_ROOT/googletest/include \
         -s ASSERTIONS=1 \
         -pedantic -std=c++14 \
-        *.cpp\
+        main_all_tests.cpp  test_*.cpp\
         ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
         build/testsuit.compiled.js \
         && echo "compile success." \

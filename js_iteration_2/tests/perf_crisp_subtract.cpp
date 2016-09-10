@@ -4,6 +4,8 @@
 	Desc: Test the performance of CrispSubtraction
 */
 
+#include "gtest/gtest.h"
+
 #include "../primitives.cpp"
 #include "../../js_iteration_1/timer.hpp"	// provides a timer class
 #include "../crisp_subtract.hpp"	// provides crisp_subtract class
@@ -182,7 +184,8 @@ test_mp5_object(int nr_points) {
 		t1.stop();
 }
 
-int main()
+//int main()
+TEST(performance, test_crisp_subtract_performance)
 {
 	test_crisp_subtract_performance(1000000);
 	test_crisp_subtract_performance_in_chunks(1000000, 1);
@@ -194,5 +197,5 @@ int main()
 	test_crisp_subtract_performance_in_chunks(1000000, 500);
 	test_crisp_subtract_performance_in_chunks(1000000, 1000);
 	test_mp5_object(10000);
-	return 0;
+	// return 0;
 }

@@ -4,12 +4,13 @@
 
 // see test_crisp_subtract.cpp
 
+#include "gtest/gtest.h"
+
 #include "../primitives.cpp"
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
 #include "../crisp_subtract.hpp"
 #include "../unit_sphere.hpp"
-#include "gtest/gtest.h"
 
 // #include "../../js_iteration_1/timer.hpp"
 
@@ -25,11 +26,12 @@ TEST(CrispSubtractTests, TwoSpheresOverlapping){
 }
 */
 
+/*
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
+*/
 
 
 /*

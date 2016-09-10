@@ -1,7 +1,8 @@
 Use:
 ./full_test_suite.sh to compile and run all tests together (all cpp files in this immediate folder).
 
-This folder contains several tests,
+
+This folder contains several tests. All of those which start with test_*.cpp :
 - all of them are xUnit-style tests.
 - all of them share the same main function.
 - all of them are compiled at the same time.

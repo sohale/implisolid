@@ -98,8 +98,9 @@ TEST(CrispSubtractTests, TwoSpheresOverlapping){
      EXPECT_LT( f[2], -ROOT_TOLERANCE );
 }
 
-
+/*
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+*/
