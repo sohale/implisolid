@@ -1,9 +1,14 @@
 #pragma once
 
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
+
 //#include "unit_sphere.hpp"
 #include "primitives.cpp"
 #include "crisp_subtract.hpp"
 #include "linearly_transformed.hpp"
+
+#include "object_collector.hpp"
 //using namespace mp5_implicit;
 using mp5_implicit::implicit_function;
 

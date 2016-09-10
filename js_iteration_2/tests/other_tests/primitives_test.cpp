@@ -1,7 +1,14 @@
+/*
+This is not a usual xUnit style test. This ,easures ad compares the performance of different implementations of a certain function.
+How to return efficiently.
+Hence, this test should be compiled using optiisation turned on (another difference with usual ubnit tests.
+
+*/
+
 #include "../primitives.cpp"
 #include "../../js_iteration_1/timer.hpp"
 
-usin namespace mp5_implicit;
+using namespace mp5_implicit;
 
 void immutable_test(const vectorized_vect& v){
     // IS multi_array immutable?
@@ -84,7 +91,7 @@ void test_sphere_one_point(){
 }
 
 
-vectorized_vect  make_empty_x(const int nsize){
+vectorized_vect  make_empty_x_1(const int nsize){
     auto sf = make_shape_1d(nsize);
     //vectorized_scalar  f = vectorized_scalar(sf);
 
@@ -93,6 +100,7 @@ vectorized_vect  make_empty_x(const int nsize){
     return vectors;
 }
 
+// This will crash the system. Because of returning a pointer (reference) to a local variable which doesnt exist outisde this function (becasue it resides in stack. )
 //Don't do this. For educational purpose only. This will crash the system.
 vectorized_vect&  make_empty_x_2__dontuse(const int nsize){
     //primitives_test.cpp:100:12: warning: reference to stack memory associated with local variable 'values' returned [-Wreturn-stack-address]
@@ -102,6 +110,13 @@ vectorized_vect&  make_empty_x_2__dontuse(const int nsize){
     boost::array<int, 2> values_shape = {{ nsize, 3 }};
     vectorized_vect  values (values_shape);
     return values;
+    /* Correctly generates the following warning:
+primitives_test.cpp:112:12: warning: reference to stack memory associated with
+      local variable 'values' returned [-Wreturn-stack-address]
+    return values;
+           ^~~~~~
+1 warning generated.
+    */
 }
 
 void  make_empty_x_inplace(const int nsize, vectorized_vect& output){
@@ -118,30 +133,30 @@ void test_three_types_of_return_alloc() {
     const int nsize = 10000;
     const int REPEATS = 100;
 
-    std::clog << "make_empty_x";
+    std::clog << "make_empty_x_1";
     timer t1;
     for(int i=0;i<REPEATS;i++) {
-        vectorized_vect  x = make_empty_x(nsize);
+        vectorized_vect  x = make_empty_x_1(nsize);
     }
     t1.stop();
 
     std::clog << "make_empty_x_2";
     timer t3;
     for(int i=0;i<REPEATS;i++) {
-        vectorized_vect   x= make_empty_x_2(nsize);
+        vectorized_vect   x= make_empty_x_2__dontuse(nsize);
     }
     t3.stop();
 
     std::clog << "make_empty_x_inplace";
     timer t2;
     for(int i=0;i<REPEATS;i++) {
-        vectorized_vect   x= make_empty_x(nsize);
+        vectorized_vect   x= make_empty_x_1(nsize);
         //make_empty_x_inplace(nsize);
         make_empty_x_inplace(nsize, x);
     }
     t2.stop();
     /*
-make_empty_x
+make_empty_x_1
  execution duration: 35.318 msec
 make_empty_x_2
  execution duration: 44.6931 msec
@@ -151,7 +166,7 @@ make_empty_x_inplace
 
 Using compiler optimisation:
 
-make_empty_x
+make_empty_x_1
  execution duration: 3.20714 msec
 make_empty_x_2
  execution duration: 134.21 msec
@@ -161,7 +176,7 @@ make_empty_x_inplace
 
 After caching:
 
-make_empty_x
+make_empty_x_1
  execution duration: 3.01159 msec
 make_empty_x_2
  execution duration: 30.6404 msec
@@ -181,7 +196,7 @@ void test_memoryleak_sphere(){
     auto sf = make_shape_1d(nsize);
     vectorized_scalar  f = vectorized_scalar(sf);
 
-    vectorized_vect x = make_empty_x(nsize);
+    vectorized_vect x = make_empty_x_1(nsize);
 
     mp5_implicit::unit_sphere s(2.0);
 
