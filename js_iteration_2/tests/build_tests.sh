@@ -73,12 +73,16 @@ then
             && echo "test executed."
 
 
+
             #  > em_compile.log 2>&1
 
     #tput sgr0  # reset terminal options
 
 fi
 
+
+exit
+# #################################################################
 
 if [ $OPTIM -eq 1 ]; then
     echo "Dont use optimized option for tests"
