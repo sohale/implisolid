@@ -36,8 +36,9 @@ TEST(VectorizsedAlgorithmsTests, make_random_pm1__mean) {
             << std::endl;
     }
 
-    unsigned int n = 400000;
-    verts_t A = vectorised_algorithms::make_random_pm1(n, 3, 1);
+    unsigned int n = 400000/100;
+
+    verts_t A = mp5_implicit::vectorised_algorithms::make_random_pm1(n, 3, 1);
     REAL x=0, y=0, z=0;
     REAL x2=0, y2=0, z2=0;
     for (vindex_t i = 0; i < std::min<unsigned int>(A.shape()[0], 10); ++i) {
@@ -53,17 +54,21 @@ TEST(VectorizsedAlgorithmsTests, make_random_pm1__mean) {
     std::clog << "std: " << std::sqrt(x2/(n-1)) << " " << std::sqrt(y2/(n-1)) << " " << std::sqrt(z2/(n-1)) << " " << std::endl;
 
 
-    vectorised_algorithms::add_inplace(A, A);
+    mp5_implicit::vectorised_algorithms::add_inplace(A, A);
     //todo: calculate mean
 
 
     EXPECT_LT( 1, 2 );
     EXPECT_GT( 2, 1 );
 }
+
+
+/*
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+*/
 
 /*
 #include "gtest/gtest.h"

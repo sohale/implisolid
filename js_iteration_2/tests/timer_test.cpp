@@ -1,3 +1,5 @@
+#include "gtest/gtest.h"
+
 #include <iostream>
 using namespace std;
 
@@ -8,7 +10,8 @@ void try_things2()
     ;
 }
 
-void test_timer(){
+TEST(AAA, timer) {
+//void test_timer(){
     timer t;
     //t.timer_start();
     //timer_start();
@@ -19,11 +22,12 @@ void test_timer(){
     cout << r;
 }
 
+/*
 int main(){
     test_timer();
     cout << std::endl;
     cout << "done" << std::endl;
     return 0;
 }
-
+*/
 

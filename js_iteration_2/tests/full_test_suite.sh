@@ -1,3 +1,5 @@
+bash build_tests.sh  make_random_pm1.cpp
+
 bash build_tests.sh    timer_test.cpp
 
 #bash finitediff_test0.cpp

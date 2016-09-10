@@ -62,7 +62,7 @@ then
     em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
-            "$1" \
+            "$1" main_all_tests.cpp\
             ${GTEST_ROOT}/build/googlemock/gtest/libgtest.a -o \
             build/"$filename".compiled.js \
             && echo "compile success." \
@@ -81,6 +81,8 @@ fi
 
 
 if [ $OPTIM -eq 1 ]; then
+    echo "Dont use optimized option for tests"
+    exit
     echo " * * * Optimized Version  * * *  "
     mkdir -p build
     em++    -I $BOOST_FOLDER -s EXPORTED_FUNCTIONS="['_main' ]"  \
