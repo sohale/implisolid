@@ -35,8 +35,7 @@ Todo:
 
 #include "../js_iteration_2/object_collector.hpp"
 
-std::map< std::string, vectorized_vect > point_set_set;
-
+#include "../js_iteration_2/pointset_set.hpp"
 
 #include "../js_iteration_2/vertex_resampling.hpp"
 #include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"

@@ -40,6 +40,8 @@ using mp5_implicit::vectorised_algorithms::norm_2;
 using mp5_implicit::build_faces_of_faces;
 using mp5_implicit::make_edge_lookup;
 
+// for debugging purposes
+#include "pointset_set.hpp"
 
 
 inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_normals_normalized){

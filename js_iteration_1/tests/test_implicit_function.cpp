@@ -1,5 +1,7 @@
-// author ; Solene Chauvier & Marc Fraysse
-
+/*
+   author ; Solene Chauvier & Marc Fraysse
+   This program generates output textfile to be compared with the output of the equivalent python program.
+*/
 #include <cassert>
 #include <algorithm>
 #include <iostream>
@@ -9,6 +11,7 @@
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include "../mcc2_MS.cpp"
+// #include "../../js_iteration_1/mcc2_marching_cubes.hpp"
 
 using namespace std;
 using namespace mp5_implicit;

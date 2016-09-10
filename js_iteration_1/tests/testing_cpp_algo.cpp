@@ -1,4 +1,7 @@
-// author ; Solene Chauvier & Marc Fraysse
+/*
+   author ; Solene Chauvier & Marc Fraysse
+   This program generates output textfile to be compared with the output of the equivalent python program.
+*/
 
 #include <cassert>
 #include <algorithm>

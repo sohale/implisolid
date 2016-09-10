@@ -72,5 +72,7 @@ struct CONFIG {
 
 
 constexpr bool VERBOSE_QEM = false;
-constexpr bool STORE_POINTSETS = true;
+
+// constexpr bool STORE_POINTSETS = true;
+// Now: see pointset_set.hpp
 
