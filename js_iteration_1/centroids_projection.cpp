@@ -1210,13 +1210,9 @@ inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
 */
 
 
-
-
-void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& result_faces, bool enable_qem) {
-    boost::array<unsigned int, 2> verts_shape = { (unsigned int)result_verts.size()/3 , 3 };
+vectorized_vect  vects2vects(const std::vector<REAL>& result_verts) {
+    boost::array<vectorized_vect::index, 2> verts_shape = { (vectorized_vect::index)(result_verts.size()/3) , 3 };
     vectorized_vect  verts(verts_shape);
-    boost::array<unsigned int, 2> faces_shape = { (unsigned int)result_faces.size()/3 , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
 
     int output_verts = 0;
     auto i = result_verts.begin();
@@ -1228,11 +1224,29 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         i++;
         verts[output_verts][2] = (*i);
     }
+    return verts;
+}
 
+void set_vectorverts_from_vectorised_verts(std::vector<REAL>& result_verts, const vectorized_vect & verts) {
+    auto n = verts.shape()[0];
+    for (int i=0; i < n; i++) {
+        result_verts[i*3+0] = verts[i][0];
+        result_verts[i*3+1] = verts[i][1];
+        result_verts[i*3+2] = verts[i][2];
+    }
+}
+
+boost::multi_array<int, 2> copy_faces_from_vectorfaces(const std::vector<int> & mesh_faces) {
+    // boost::multi_array<int, 2> faces = ;
+
+    vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
+
+    boost::array<vectorized_vect::index, 2> faces_shape = { num_faces , 3 };
+    boost::multi_array<int, 2> faces(faces_shape);
 
     int output_faces = 0;
-    auto i_f = result_faces.begin();
-    auto e_f = result_faces.end();
+    auto i_f = mesh_faces.begin();
+    auto e_f = mesh_faces.end();
     for ( ; i_f != e_f; i_f++, output_faces++) {
         faces[output_faces][0] = (*i_f);
         i_f++;
@@ -1241,10 +1255,23 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         faces[output_faces][2] = (*i_f);
     }
 
+    return faces;
+}
+
+
+// rename: project_points_on_surface. (output_points)
+void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& mesh_faces, bool enable_qem) {
+
+    vectorized_vect  verts = vects2vects(result_verts);
+
+    vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
+
+    boost::multi_array<int, 2> faces = copy_faces_from_vectorfaces(mesh_faces);
+
     REAL average_edge;
     average_edge = compute_average_edge_length(faces,  verts);
 
-    vectorized_vect_shape  centroids_shape = { static_cast<vectorized_vect::index>(result_faces.size()/3) , 3 };
+    vectorized_vect_shape  centroids_shape = { num_faces , 3 };
     vectorized_vect centroids(centroids_shape);
 
     if (VERBOSE_QEM)
@@ -1263,7 +1290,8 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     }
 
 
-    vectorized_bool_shape  treated_shape = {static_cast<vectorized_vect::index>(result_faces.size())};
+
+    vectorized_bool_shape  treated_shape = {num_faces*3};
     vectorized_bool  treated(treated_shape);
     // IS this necessary? It was missing.
     for (auto it = treated.begin(), e=treated.end(); it != e; ++it) {
@@ -1335,11 +1363,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         }
 
         // if APPLY_QEM_RESULT
-        for (int i=0; i < verts.shape()[0]; i++) {
-            result_verts[i*3+0] = verts[i][0];
-            result_verts[i*3+1] = verts[i][1];
-            result_verts[i*3+2] = verts[i][2];
-        }
+        set_vectorverts_from_vectorised_verts(result_verts, verts);
     } else {
         std::clog << "qem skipped because you asked for it." << std::endl;
     }

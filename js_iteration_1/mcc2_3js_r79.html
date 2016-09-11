@@ -24,7 +24,10 @@
 </script-->
 <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js">
 </script>-->
+
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
+    <script type="text/javascript" src="./three_r79.js">
+    </script>
 </script>
 
 
@@ -1180,6 +1183,7 @@ function look_nice(scene){
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30,
         shading: THREE.FlatShading,
         side:THREE.DoubleSide,
+        opacity: 0.5, transparent: true,
         } ) );
 
     materials.push( new THREE.MeshNormalMaterial( ) );

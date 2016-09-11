@@ -1,3 +1,5 @@
+# for cMake, see http://stackoverflow.com/questions/5900447/simplest-example-of-using-google-c-testing-framework-with-cmake?rq=1
+
 if [ ! 1 ]; then
     echo "THIS"
     GTEST_ROOT=$GOOGLETEST_ROOT
