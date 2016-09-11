@@ -358,7 +358,7 @@ void  set_centers_on_surface(
       const REAL average_edge,
       //nones_map
       const verts_t & facet_normals_directions,
-      vectorized_bool& treated,
+      //vectorized_bool& treated,
       verts_t & centroids_output) {
 
     /*
@@ -1121,7 +1121,7 @@ void  set_centers_on_surface(
 
     vectorized_vect  x_bisect(x1_relevant_shape);
     // calling the vectorized bisection
-    bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE, treated);
+    bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);
     // x1_relevant: outside, x2_relevant: inside
 
 
@@ -1290,13 +1290,14 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     }
 
 
-
+    /*
     vectorized_bool_shape  treated_shape = {num_faces*3};
     vectorized_bool  treated(treated_shape);
     // IS this necessary? It was missing.
     for (auto it = treated.begin(), e=treated.end(); it != e; ++it) {
         *it = b_false;
     }
+    */
     /*
     verts_t mesh_normals(centroids_shape);
     std::clog << "Error: mesh_normals is not initialised" << endl;
@@ -1307,7 +1308,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     */
     verts_t facet_normals = produce_facet_normals(faces, verts, true);
     assert(assert_are_normalised(facet_normals));
-    mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, treated, centroids);
+    mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, centroids);
 
 
     if (STORE_POINTSETS) {
@@ -1352,7 +1353,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     if (enable_qem) {
         std::clog << "Going for QEM:" << std::endl;
-        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated);
+        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
         if (STORE_POINTSETS)
         {

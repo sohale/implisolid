@@ -103,8 +103,10 @@ void bisection(
     verts_t& res_x_arr,
     verts_t& x1_arr,
     verts_t& x2_arr,
-    REAL ROOT_TOLERANCE,
-    vectorized_bool& treated) {
+    REAL ROOT_TOLERANCE
+    //vectorized_bool& treated
+    )
+{
 
     // initilization step
     int n = x1_arr.shape()[0];
@@ -141,9 +143,11 @@ void bisection(
     }
     int active_indices_size = n;
 
+    /*
     for (int i=0; i < n; i++) {
         treated[i] = false;
     }
+    */
 
     int active_count = n;
     int solved_count = 0;
@@ -274,7 +278,7 @@ void bisection(
         // which_zeroed = active_indices[indices_boundary]
         for (int i = 0; i < indices_boundary_size; ++i) {
             which_zeroed[i] = active_indices[indices_boundary[i]];
-            treated[active_indices[indices_boundary[i]]]=true;
+            // treated[active_indices[indices_boundary[i]]]=true;
         }
         const int which_zeroed_size = indices_boundary_size;
 
@@ -362,8 +366,8 @@ void bisection(
         }
 
         if (active_indices.shape()[0] == 0 || iteration==10) {
-            clog << "projection treated this much points" << endl;
-            clog << solved_count << endl;
+            // clog << "projection treated this much points" << endl;
+            // clog << solved_count << endl;
             break;
         }
 

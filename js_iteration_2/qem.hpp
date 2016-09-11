@@ -113,8 +113,9 @@ void vertex_apply_qem__old(
     verts_t* verts, const faces_t faces,
     const verts_t centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
-    const verts_t centroid_gradients,
-    const vectorized_bool& treated)
+    const verts_t centroid_gradients
+    //const vectorized_bool& treated
+    )
 {
     assert (verts != nullptr);
     /* The next asserts have no significance in C++, only Python */
@@ -143,6 +144,7 @@ void vertex_apply_qem__old(
             nlist.push_back(vertex_neighbours_list[vi][i]);
         }
 
+        /*
         if (true) {
             std::clog << " remove 'treated' " << std::endl;
             bool skip = false;
@@ -165,6 +167,7 @@ void vertex_apply_qem__old(
                 continue;
             }
         }
+        */
 
         get_A_b__old(nlist, centroids, centroid_gradients, &A, &b);
         SVD__old(A, u, s, v); // the SVD
@@ -295,8 +298,8 @@ void vertex_apply_qem(
     verts_t* verts, const faces_t faces,
     const verts_t centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
-    const verts_t centroid_gradients,
-    const vectorized_bool& treated)
+    const verts_t centroid_gradients)
+    //const vectorized_bool& treated)
 {
     REAL tau = 680;
     REAL svd_threshold = 1.0 / tau;
