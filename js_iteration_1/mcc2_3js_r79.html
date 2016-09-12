@@ -26,8 +26,9 @@
 </script>-->
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
-    <script type="text/javascript" src="./three_r79.js">
-    </script>
+</script>
+
+<script type="text/javascript" src="./three_r79.js">
 </script>
 
 
@@ -377,8 +378,8 @@ function provide_input (subjective_time, is_update_mode) {
         // Select the object to display
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
-        var mp5_json = MOON;         const BB_SIZE = 9+9;
-        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        //var mp5_json = MOON;         const BB_SIZE = 9+9;
+        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
 
@@ -411,11 +412,11 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2),
+            resolution: Math.floor(28/2*2),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            vresampl: {iters: 0, c: 1.0},
+            vresampl: {iters: 0, c: 0.0},
             projection: {enabled: 1},
             qem: {enabled: 0},
         });
@@ -594,6 +595,16 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     return geom;
 }
 
+function get_emc_array(verts_address, point_count) {
+    // var verts_address = newPolygonizer.get_pointset_ptr(name);
+    // var point_count = newPolygonizer.get_pointset_size(name);
+
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+    var float_array = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 1 * point_count);
+    // console.error(float_array);
+    return float_array;
+}
+
 function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color_b) {
 
     // r79 only
@@ -616,12 +627,16 @@ function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color
     // var dz = 1.0 * scale_up * 1;
     var dx = 0, dy = 0, dz = 0;
 
+    /*
     var verts_address = newPolygonizer.get_pointset_ptr(name);
     var point_count = newPolygonizer.get_pointset_size(name);
 
     const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3 * point_count);
-    console.error(verts);
+    */
+    var point_count = newPolygonizer.get_pointset_size(name);
+    var verts = get_emc_array(newPolygonizer.get_pointset_ptr(name), 3 * point_count );
+    // console.error(verts);
 
 
     var geometry = new THREE.BufferGeometry();
@@ -650,6 +665,68 @@ function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color
     var points = new THREE.Points( geometry, material );
 
     return points;
+}
+
+
+function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
+// vector field flow
+    var color_r, color_g, color_b;
+    color_r = color_r !== undefined? color_r : 0.9;
+    color_g = color_g !== undefined? color_g : 0.9;
+    color_b = color_b !== undefined? color_b : 0.9;
+
+    var verts1 = get_emc_array(newPolygonizer.get_pointset_ptr(name1), 3 * newPolygonizer.get_pointset_size(name1) );
+    var verts2 = get_emc_array(newPolygonizer.get_pointset_ptr(name2), 3 * newPolygonizer.get_pointset_size(name2) );
+
+    var n1 = verts1.length / 3;
+    var n2 = verts2.length / 3;
+
+    /*
+    n1 = 4*10;
+    n2 = 4*10;
+    var debug_mode = true;
+    verts1 = verts1.subarray(0, n1 * 3);
+    verts2 = verts2.subarray(0, n2 * 3);
+    */
+
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
+    var verts12 = new Float32Array(raw_buffer);
+    // var verts12 = new Float32Array(n1 + n2);
+    verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
+    verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
+
+
+    if (n1 !== n2) {
+        console.error("Need to have the same number of elements.");
+    }
+    /*
+    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 2 );
+    var indeices12 = new Uint32Array(raw_buffer);
+    for (var i=0; i < n1; i++) {
+        indeices12[i * 2] = i;
+        indeices12[i + 2 + 1] = 0; //i + n1;
+    }
+    */
+
+    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
+    var indeices12 = new Uint32Array(raw_buffer);
+    for (var i=0; i < n1; i++) {
+        indeices12[i * 3] = i;
+        indeices12[i + 3 + 1] = i + n1;
+        indeices12[i * 3 + 2 ] = i + n1;
+    }
+
+
+    var re_allocate_buffers;
+    // var geom = new LiveBufferGeometry79( verts12, indeices12, re_allocate_buffers=true, 0, 0);
+    var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers=true, 0, 0);
+    geom.update_geometry2(verts12, indeices12, true);
+
+
+    var wireframe_material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff, wireframe: true, opacity:0.9,  transparent: true,} );
+    var wire_msh = new THREE.Mesh(geom, wireframe_material);
+    return wire_msh;
 }
 
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
@@ -912,6 +989,17 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0*2,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
+
+
+    /*
+    var vectorfield = make_vectorfield_flow_lines(newPolygonizer, "pre_p_centroids", "post_p_centroids");
+    scene.add( vectorfield );
+
+    mesh_solid.visible = false;
+    points1.visible = false;
+    points2.visible = false;
+    mesh_wireframe.visible = false;
+    */
 
 
     /*

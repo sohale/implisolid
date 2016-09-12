@@ -1308,15 +1308,20 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     */
     verts_t facet_normals = produce_facet_normals(faces, verts, true);
     assert(assert_are_normalised(facet_normals));
+
     mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, centroids);
 
 
+    /*
     if (STORE_POINTSETS) {
     verts_t ps2 = centroids;
     if (VERBOSE_QEM)
         clog << "3.centroids: " << ps2.shape()[0] << "x" << ps2.shape()[1] << " : " << ps2[0][0] << std::endl;
     point_set_set.emplace(std::make_pair(std::string("post_p_centroids"), ps2));
     }
+    */
+    // LOG_POINTSET("post_p_centroids", centroids);
+    STORE_POINTSET("post_p_centroids", centroids);
 
 
 
