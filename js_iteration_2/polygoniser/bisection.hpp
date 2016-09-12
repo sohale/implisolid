@@ -1,8 +1,12 @@
 #include "my_sign.hpp"
 
+#include "../implicit_vectorised_algorithms.hpp"
+using mp5_implicit::vectorised_algorithms::norm_2;
+
+
 template<typename T>
 void here(T arg) {
-    // std::clog << arg << std::endl << std::flush;
+    std::clog << arg << std::endl << std::flush;
 }
 
 inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign, bool accept_zeros) {
@@ -53,7 +57,7 @@ inline void check_bisection_input_signs(
     int iteration
   ) {
     #if ASSERT_USED
-        here("a1. iteration"+std::to_string(iteration));
+        here("a1. iteration "+std::to_string(iteration));
 
         bool assert1 = true;
         for (int i=0; i < active_count; i++) {
@@ -90,6 +94,18 @@ inline void check_bisection_input_signs(
     #endif
 }
 
+
+
+REAL mean_distance(const verts_t& x1, const verts_t& x2) {
+    REAL sum = 0.0;
+    int n = x1.shape()[0];
+    assert (x1.shape()[0] == x2.shape()[0]);
+    for (int i = 0; i < n; i++) {
+        REAL d = norm_2(x1[i][0] - x2[i][0], x1[i][1] - x2[i][1], x1[i][2] - x2[i][2]);
+        sum += d;
+    }
+    return sum / static_cast<REAL>(n);
+}
 
 /*
     vectorized bisection.
@@ -133,7 +149,6 @@ void bisection(
             res_x_arr[i][1] = -10000.0;
             res_x_arr[i][2] = -10000.0;
         }
-
     #endif
 
     array_of_indices  active_indices(v1_shape);
@@ -173,7 +188,7 @@ void bisection(
     #endif
     */
 
-    vectorized_scalar abs_(v1_shape); // absolute value of the implicit function
+    vectorized_scalar abs_v_mid(v1_shape); // absolute value of the implicit function
 
 
     // array of indices
@@ -213,14 +228,17 @@ void bisection(
 
         here("4");
 
-        clog << active_indices_size << " ?==? " << active_count << std::endl;
+        clog << active_indices_size << " active_indices_size ?==? active_count " << active_count
+            //  << std::endl;
+            << "  ";
+        clog << "average distace |x1-x2| : " << mean_distance(x1_arr, x2_arr) << std::endl;
         assert(active_indices_size == active_count);
 
 
         here("5");
 
         for (int i=0; i < active_count; i++) {
-            abs_[i] = std::abs(v_mid[i]);
+            abs_v_mid[i] = std::abs(v_mid[i]);
         }
         // int abs_size = active_count;
 
@@ -229,7 +247,7 @@ void bisection(
         // imcrementing the size of the indices arrays
         int indices_boundary_size = 0;
         for (int i=0; i < active_count; i++) {
-            if (abs_[i] <= ROOT_TOLERANCE) {
+            if (abs_v_mid[i] <= ROOT_TOLERANCE) {
                 indices_boundary[indices_boundary_size] = i;
                 indices_boundary_size ++;
             }
@@ -239,7 +257,7 @@ void bisection(
 
         int i_e = 0;
         for (int i=0; i < active_count; i++) {
-            if (abs_[i] > ROOT_TOLERANCE) {
+            if (abs_v_mid[i] > ROOT_TOLERANCE) {
                 indices_eitherside[i_e] = i;
                 i_e ++;
             }
@@ -275,8 +293,10 @@ void bisection(
         here("10");
 
 ////////////////
+        // which_zeroed : global index
         // which_zeroed = active_indices[indices_boundary]
         for (int i = 0; i < indices_boundary_size; ++i) {
+            assert(indices_boundary[i] < active_count);
             which_zeroed[i] = active_indices[indices_boundary[i]];
             // treated[active_indices[indices_boundary[i]]]=true;
         }
@@ -289,11 +309,12 @@ void bisection(
 
         // copy into the result, the x_mid that solved the equation.
         for (int i = 0; i < indices_boundary_size; ++i) {
-            int w = which_zeroed[i];
             int b = indices_boundary[i];
-            res_x_arr[w][0] = x_mid[b][0];
-            res_x_arr[w][1] = x_mid[b][1];
-            res_x_arr[w][2] = x_mid[b][2];
+            int global_index = which_zeroed[i];  // no need for which_zeroed[] really
+            // which_zeroed_global_index = active_indices[indices_boundary[i]];
+            res_x_arr[global_index][0] = x_mid[b][0];
+            res_x_arr[global_index][1] = x_mid[b][1];
+            res_x_arr[global_index][2] = x_mid[b][2];
         }
 
         // assert indices_boundary[:] < active_count
@@ -313,59 +334,78 @@ void bisection(
 
         // changing the values of x2 and x1
         for (int i=0; i < i_i; i++) {
+            auto j = indices_inside[i];
             #if ASSERT_USED
-                    v2_arr[indices_inside[i]] = v_mid[indices_inside[i]];
+                    v2_arr[j] = v_mid[j];
             #endif
-            x2_arr[indices_inside[i]][0] = x_mid[indices_inside[i]][0];
-            x2_arr[indices_inside[i]][1] = x_mid[indices_inside[i]][1];
-            x2_arr[indices_inside[i]][2] = x_mid[indices_inside[i]][2];
+            x2_arr[j][0] = x_mid[j][0];
+            x2_arr[j][1] = x_mid[j][1];
+            x2_arr[j][2] = x_mid[j][2];
         }
 
         for (int i=0; i < i_o; i++) {
+            auto j = indices_outside[i];
             #if ASSERT_USED
-                v1_arr[indices_outside[i]] = v_mid[indices_outside[i]];
+                v1_arr[j] = v_mid[j];
             #endif
-            x1_arr[indices_outside[i]][0] = x_mid[indices_outside[i]][0];
-            x1_arr[indices_outside[i]][1] = x_mid[indices_outside[i]][1];
-            x1_arr[indices_outside[i]][2] = x_mid[indices_outside[i]][2];
+            x1_arr[j][0] = x_mid[j][0];
+            x1_arr[j][1] = x_mid[j][1];
+            x1_arr[j][2] = x_mid[j][2];
         }
 
         // next round
+        // now remove the non-active ones.
+        // 1- first update the global indices so that we later update the res_x_arr
+        // 2- then update the local indices.
+        // active_indices[]   element is global index
+        // indices_eitherside[]   element is local index
 
-        for (int i=0; i < i_e; i++) {
+        for (int i=0; i < indices_eitherside_size; i++) {
+            assert(indices_eitherside[i] >= active_indices[i] && "safe?");
             active_indices[i] = active_indices[indices_eitherside[i]];
         }
+        active_indices_size = indices_eitherside_size;  // bug fixed
 
-        indices_boundary.resize(boost::extents[i_e]);
-        indices_eitherside.resize(boost::extents[i_e]);
-        indices_outside.resize(boost::extents[i_e]);
-        indices_inside.resize(boost::extents[i_e]);
-        which_zeroed.resize(boost::extents[i_e]);
-        active_indices.resize(boost::extents[i_e]);
-        active_indices_size = i_e;  // bug fixed
+
+        /*
+        indices_boundary.resize(boost::extents[indices_eitherside_size]);
+        indices_eitherside.resize(boost::extents[indices_eitherside_size]);
+        indices_outside.resize(boost::extents[indices_eitherside_size]);
+        indices_inside.resize(boost::extents[indices_eitherside_size]);
+        which_zeroed.resize(boost::extents[indices_eitherside_size]);
+        active_indices.resize(boost::extents[indices_eitherside_size]);
+        */
         // todo(sohail): use  array_of_indices_struct type.
 
         active_count = active_count - found_count;
 
         iteration += 1;
 
-        assert(active_count == indices_eitherside.size());
+        // assert(active_count == indices_eitherside.size());
+        assert(active_count == indices_eitherside_size);
+
+        // compact x1_arr by removing the non-active ones.
         for (int i=0; i < active_count; i++) {
+            // i = (dense) index to local.
+            // j = indices_eitherside[i] = (sparse) index to local, previous round.
+            auto j = indices_eitherside[i];
+
             #if ASSERT_USED
-                v1_arr[i] = v1_arr[indices_eitherside[i]];
-                v2_arr[i] = v2_arr[indices_eitherside[i]];
+                v1_arr[i] = v1_arr[j];
+                v2_arr[i] = v2_arr[j];
             #endif
 
-            x1_arr[i][0] = x1_arr[indices_eitherside[i]][0];
-            x1_arr[i][1] = x1_arr[indices_eitherside[i]][1];
-            x1_arr[i][2] = x1_arr[indices_eitherside[i]][2];
+            x1_arr[i][0] = x1_arr[j][0];
+            x1_arr[i][1] = x1_arr[j][1];
+            x1_arr[i][2] = x1_arr[j][2];
 
-            x2_arr[i][0] = x2_arr[indices_eitherside[i]][0];
-            x2_arr[i][1] = x2_arr[indices_eitherside[i]][1];
-            x2_arr[i][2] = x2_arr[indices_eitherside[i]][2];
+            x2_arr[i][0] = x2_arr[j][0];
+            x2_arr[i][1] = x2_arr[j][1];
+            x2_arr[i][2] = x2_arr[j][2];
         }
 
-        if (active_indices.shape()[0] == 0 || iteration==10) {
+        //if (active_indices.shape()[0] == 0 || iteration==10) {
+        if (active_indices_size == 0) || iteration == 10) {
             // clog << "projection treated this much points" << endl;
             // clog << solved_count << endl;
             break;

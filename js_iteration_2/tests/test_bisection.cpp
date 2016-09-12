@@ -50,7 +50,7 @@ TEST(BisectionTests1, on_sphere1) {
     mp5_implicit::CrispSubtract object = mp5_implicit::CrispSubtract(s2, s1);
 
 
-    int nsize = 10000;
+    int nsize = 100; //00;
 
     // make_empty_x
     vectorized_vect x1 = make_random_pm1(nsize, 3, 1.0);   // uniform(-1,1)
@@ -70,12 +70,16 @@ TEST(BisectionTests1, on_sphere1) {
 
 
 
-    assert(test_if_points_are_outside(x1, object, ROOT_TOLERANCE, true));
-    assert(test_if_points_are_inside(x2, object, ROOT_TOLERANCE, true));
+    ASSERT_TRUE(test_if_points_are_outside(x1, object, ROOT_TOLERANCE, true));
+    ASSERT_TRUE(test_if_points_are_inside(x2, object, ROOT_TOLERANCE, true));
 
     vectorized_vect result_x {x1};
 
+    std::cout << "Starting the vectorised bisection:" << std::endl << std::flush;
+
     bisection(&object, result_x, x1, x2, ROOT_TOLERANCE );
+
+    std::cout << "Finished the vectorised bisection." << std::endl << std::flush;
 
     auto shape_tuple = make_shape_1d(nsize);
     vectorized_scalar f = vectorized_scalar(shape_tuple);
@@ -84,6 +88,10 @@ TEST(BisectionTests1, on_sphere1) {
     // see the output for the first point
     EXPECT_LT( std::abs(f[0]), ROOT_TOLERANCE );
     EXPECT_LT( std::abs(f[1]), ROOT_TOLERANCE );
+
+
+    EXPECT_TRUE( ASSERT_USED );
+
 }
 
 /*
