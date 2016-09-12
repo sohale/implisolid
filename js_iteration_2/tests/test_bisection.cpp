@@ -42,6 +42,7 @@ TEST(BisectionTests1, on_sphere1) {
     //mp5_implicit::CrispSubtract object = two_spheres(1.3, 2.0);
     REAL r1 = 1.3;
     REAL r2 = 2.0;
+    REAL ROOT_TOLERANCE = 0.0001;
 
     mp5_implicit::unit_sphere s1(r1);
     mp5_implicit::unit_sphere s2(r2);
@@ -58,6 +59,7 @@ TEST(BisectionTests1, on_sphere1) {
 
     assert(assert_are_normalised(x1));
 
+
     vectorized_vect x2 = x1;
 
     REAL a1 = 2.5;
@@ -68,9 +70,12 @@ TEST(BisectionTests1, on_sphere1) {
 
 
 
+    assert(test_if_points_are_outside(x1, object, ROOT_TOLERANCE, true));
+    assert(test_if_points_are_inside(x2, object, ROOT_TOLERANCE, true));
+
     vectorized_vect result_x {x1};
 
-    bisection(&object, result_x, x1, x2, 0.0001 );
+    bisection(&object, result_x, x1, x2, ROOT_TOLERANCE );
 
     auto shape_tuple = make_shape_1d(nsize);
     vectorized_scalar f = vectorized_scalar(shape_tuple);
