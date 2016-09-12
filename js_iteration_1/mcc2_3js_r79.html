@@ -579,6 +579,8 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
             verts, faces,
             re_allocate_buffers,
             min_faces_capacity_, min_verts_capacity_);
+
+        geom.update_geometry(newPolygonizer, true);
     }
 
     if(VERBOSE){
@@ -699,28 +701,31 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     if (n1 !== n2) {
         console.error("Need to have the same number of elements.");
     }
+
     /*
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 2 );
-    var indeices12 = new Uint32Array(raw_buffer);
+    var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
-        indeices12[i * 2] = i;
-        indeices12[i + 2 + 1] = 0; //i + n1;
+        indices12[i * 2] = i;
+        indices12[i + 2 + 1] = i + n1;  //i+1; //i + n1;
     }
     */
 
+
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
-    var indeices12 = new Uint32Array(raw_buffer);
+    var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
-        indeices12[i * 3] = i;
-        indeices12[i + 3 + 1] = i + n1;
-        indeices12[i * 3 + 2 ] = i + n1;
+        indices12[i * 3] = i;
+        indices12[i + 3 + 1] = i + n1;
+        indices12[i * 3 + 2 ] = i + n1;
     }
 
 
+
     var re_allocate_buffers;
-    // var geom = new LiveBufferGeometry79( verts12, indeices12, re_allocate_buffers=true, 0, 0);
+    // var geom = new LiveBufferGeometry79( verts12, indices12, re_allocate_buffers=true, 0, 0);
     var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers=true, 0, 0);
-    geom.update_geometry1(verts12, indeices12, true);
+    geom.update_geometry1(verts12, indices12, true, true);
 
 
     var wireframe_material = new THREE.MeshBasicMaterial( {
@@ -1000,6 +1005,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     points2.visible = false;
     mesh_wireframe.visible = false;
     */
+
 
 
     /*

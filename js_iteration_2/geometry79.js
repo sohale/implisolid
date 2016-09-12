@@ -213,35 +213,39 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
          * Setting the sizes (number of faces)
          ***********************************/
 
-        var nf3 = faces.length;
+        // var nf3 = faces.length;
+        var ntriangles = faces.length / POINTS_PER_FACE;
+
 
         if(threejs_r71) {
             var gl_chunkSize=21845;
 
             /*
             var ii = 0;
-            this.offsets.push({start:ii, index: ii , count: Math.min(nf3 - ii, gl_chunkSize*3)});
+            this.offsets.push({start:ii, index: ii , count: Math.min(faces.length - ii, gl_chunkSize*3)});
             */
             if(threejs_r71) {
-                var triangles = nf3/POINTS_PER_FACE;
+                // var triangles = nf3/POINTS_PER_FACE;
                 this.offsets = [];
-                var offsets = triangles / gl_chunkSize;
+                var offsets = ntriangles / gl_chunkSize;
                 for ( var i = 0; i < offsets; i ++ ) {
 
                     var offset = {
                         start: i * gl_chunkSize * POINTS_PER_FACE,
                         index: i * gl_chunkSize * POINTS_PER_FACE,
-                        count: Math.min( triangles - ( i * gl_chunkSize ), gl_chunkSize ) * POINTS_PER_FACE
+                        count: Math.min( ntriangles - ( i * gl_chunkSize ), gl_chunkSize ) * POINTS_PER_FACE
                     };
 
                     this.offsets.push( offset );
 
                 }
             }
+            this.used_faces_range = ntriangles * POINTS_PER_FACE;
         } else
         if(threejs_r79) {
-            assert(nf3);
-            this.setDrawRange( 0, nf3/POINTS_PER_FACE*POINTS_PER_FACE );
+            assert(ntriangles);
+            this.setDrawRange( 0, ntriangles * POINTS_PER_FACE );
+            this.used_faces_range = ntriangles * POINTS_PER_FACE;  // arraysize
         }
 
         //var materialIndex = 0;
@@ -294,19 +298,26 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
 
-        return this.update_geometry1(verts, faces, ignoreNormals);
+        return this.update_geometry1(verts, faces, ignoreNormals, false);
     };
 
-    this.update_geometry1 = function(verts, faces, ignoreNormals) {
+    this.update_geometry1 = function(verts, faces, ignoreNormals, use_wireframe) {
+        use_wireframe = false;
 
-        var nverts = verts.length;  // todo: double check
-        var nfaces = faces.length;  // todo: double check
 
         /*
             A wireframe BufferGeometry may have "2" vertex "indices" per line.
             A non-wireframe one uses "3" vertex "indices" per face.
         */
-        const POINTS_PER_FACE = 3;
+        if (use_wireframe)
+            var POINTS_PER_FACE = 2;
+        else
+            var POINTS_PER_FACE = 3;
+
+        var nverts = verts.length / 3;  // todo: double check
+        var nfaces = faces.length / POINTS_PER_FACE;  // todo: double check
+        // A BUG DETECTED HERE! IT SHOULD BE LIKE THIS INSTEAD:
+        // var nfaces = faces.length / POINTS_PER_FACE;  // todo: double check
 
         const geometry = this;
 
@@ -318,8 +329,8 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             var old_nfaces = geometry.index.array.length/POINTS_PER_FACE;
         }
 
-        var nv3 = Math.min(nverts, old_nverts) * 3;
-        var nf3 = Math.min(nfaces, old_nfaces) * POINTS_PER_FACE;
+        // var nv3 = Math.min(nverts, old_nverts) * 3;
+        // var nf3 = Math.min(nfaces, old_nfaces) * POINTS_PER_FACE;
         //assert(nv3 === verts.length);
         //assert(nf3 === faces.length);
 
