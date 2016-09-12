@@ -408,18 +408,23 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         }
 
         if(grow_needed){
+            // Why are we using faces_ here ??
             console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
-            var min_faces_capacity = Math.floor(Math.max(availableFacesSize/POINTS_PER_FACE, faces_.length/POINTS_PER_FACE) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
-            var min_verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
+            var min_faces_capacity = Math.floor(Math.max(availableFacesSize/POINTS_PER_FACE, faces.length/POINTS_PER_FACE) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
+            var min_verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
 
-            var min_faces_capacity = faces_.length/POINTS_PER_FACE;
-            var min_verts_capacity = verts_.length/3;
+            var min_faces_capacity = faces.length/POINTS_PER_FACE;
+            var min_verts_capacity = verts.length/3;
 
             console.error("capacity grow: "+min_faces_capacity+"  "+min_verts_capacity);
 
             //also copies
             this.allocate_buffers(verts, faces,  true, min_faces_capacity, min_verts_capacity);
+
+            // It seems this is needed:
+            // faces_ = faces;
+            // verts_ = verts;
 
             //old solution was: create a new object
             //  var new_geometry= new LiveBufferGeometry79( verts, faces,  true, Math.max(availableFacesSize/POINTS_PER_FACE, faces.length/POINTS_PER_FACE) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);

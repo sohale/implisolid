@@ -687,12 +687,15 @@ function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color
 }
 
 
-function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
-// vector field flow
+function make_vectorfield_flow_lines_v1(newPolygonizer, name1, name2, point_size) {
+    // works!
+    // vector field flow
+    /*
     var color_r, color_g, color_b;
     color_r = color_r !== undefined? color_r : 0.9;
     color_g = color_g !== undefined? color_g : 0.9;
     color_b = color_b !== undefined? color_b : 0.9;
+    */
 
     var verts1 = get_emc_array(newPolygonizer.get_pointset_ptr(name1), 3 * newPolygonizer.get_pointset_size(name1) );
     var verts2 = get_emc_array(newPolygonizer.get_pointset_ptr(name2), 3 * newPolygonizer.get_pointset_size(name2) );
@@ -726,9 +729,9 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
         indices12[i * 2] = i;
-        indices12[i + 2 + 1] = i ; //+ n1;  //i+1; //i + n1;
+        indices12[i * 2 + 1] = i ; //+ n1;  //i+1; //i + n1;
         // indices12[i * 2] = 0;
-        // indices12[i + 2 + 1] = i;
+        // indices12[i * 2 + 1] = i;
     }
     */
 
@@ -739,11 +742,10 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
         indices12[i * 3] = i;
-        indices12[i + 3 + 1] = i; //i + n1;
+        indices12[i * 3 + 1] = i + n1; //i + n1;
         indices12[i * 3 + 2 ] = i; //i + n1;
     }
     assert(indices12.length == n1 * 3);
-
 
 
 
@@ -754,7 +756,7 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
 
 
     var wireframe_material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff, wireframe: true, opacity:0.1,  transparent: true,} );
+        color: 0xffffff, wireframe: true, opacity:0.9,  transparent: true,} );
      var wire_msh = new THREE.Mesh(geom, wireframe_material);
 
     /*
@@ -763,6 +765,82 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     */
     return wire_msh;
 }
+
+
+function make_vectorfield_flow_lines_v2(newPolygonizer, name1, name2, point_size) {
+    // vector field flow. Without using LiveGEometry (and using LineSegments)
+
+    // does not work
+    /*
+    var color_r, color_g, color_b;
+    color_r = color_r !== undefined? color_r : 0.9;
+    color_g = color_g !== undefined? color_g : 0.9;
+    color_b = color_b !== undefined? color_b : 0.9;
+    */
+
+
+
+    /*
+
+                var positions = [];
+                var next_positions_index = 0;
+                var colors = [];
+                var indices_array = [];
+    */
+
+    var verts1 = get_emc_array(newPolygonizer.get_pointset_ptr(name1), 3 * newPolygonizer.get_pointset_size(name1) );
+    var verts2 = get_emc_array(newPolygonizer.get_pointset_ptr(name2), 3 * newPolygonizer.get_pointset_size(name2) );
+
+    var n1 = verts1.length / 3;
+    var n2 = verts2.length / 3;
+
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
+    var verts12 = new Float32Array(raw_buffer);
+    // var verts12 = new Float32Array(n1 + n2);
+    verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
+    verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
+
+
+    if (n1 !== n2) {
+        console.error("Need to have the same number of elements.");
+    }
+
+    // I don't use a geometry mesh with wiredframe. I use a LineSegments that uses a BufferGeometry
+
+    var raw_buffer = new ArrayBuffer( Uint16Array.BYTES_PER_ELEMENT * (n1) * 2 );
+    var indices12 = new Uint16Array(raw_buffer);
+    for (var i=0; i < n1; i++) {
+        indices12[i * 2] = i;
+        indices12[i * 2 + 1] = i + n1;  //i+1; //i + n1;
+    }
+
+
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1) * 3 );
+    var colors_ta = new Float32Array(raw_buffer);
+    for (var i=0; i < n1; i++) {
+        colors_ta[i * 3] = (i/10.0) % 1.0;
+        colors_ta[i + 3 + 1] = (i/10.0) % 1.0;
+        colors_ta[i + 3 + 2] = (i/10.0) % 1.0;
+    }
+
+    // var indices12 = new Uint16Array( indices_array );
+    // var verts12 = new Float32Array( positions );
+    // var colors_ta = new Float32Array( colors );
+
+    var geom = new THREE.BufferGeometry();
+    geom.setIndex( new THREE.BufferAttribute( indices12, 1 ) );
+    geom.addAttribute( 'position', new THREE.BufferAttribute( verts12, 3 ) );
+    geom.addAttribute( 'color', new THREE.BufferAttribute( colors_ta, 3 ) );
+    geom.computeBoundingSphere();
+
+    // var line_material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+    var line_material = new THREE.MeshBasicMaterial( {
+        color: 0xffffff, wireframe: true, opacity:0.8,  transparent: true,} );
+    var wire_msh = new THREE.LineSegments(geom, line_material);
+
+    return wire_msh;
+}
+
 
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
@@ -1028,13 +1106,15 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
 
 
-    var vectorfield = make_vectorfield_flow_lines(newPolygonizer, "pre_p_centroids", "post_p_centroids");
+    var vectorfield = make_vectorfield_flow_lines_v1(newPolygonizer, "pre_p_centroids", "post_p_centroids");
     scene.add( vectorfield );
 
-    //mesh_solid.visible = false;
+    // choose what is visible and what is not
+    mesh_solid.visible = false;
     points1.visible = false;
-    points2.visible = false;
+    //points2.visible = false;
     //mesh_wireframe.visible = false;
+    // vectorfield.visiable =
 
 
 
