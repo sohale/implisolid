@@ -216,7 +216,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         // var nf3 = faces.length;
         var ntriangles = faces.length / POINTS_PER_FACE;
 
-        this.__set_sizes(ntriangles, POINTS_PER_FACE);
+        this.__set_range_of_used_faces(ntriangles, POINTS_PER_FACE);
 
         //var materialIndex = 0;
         //this.addGroup( 0, faces.length*1-10, materialIndex );
@@ -271,8 +271,12 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         return this.update_geometry1(verts, faces, ignoreNormals, false);
     };
 
-    this.__set_sizes = function (ntriangles, POINTS_PER_FACE)
+    this.__set_range_of_used_faces = function (ntriangles, POINTS_PER_FACE)
     {
+        /*
+            Sets which part of the faces array is actually used. This is necessary when we preallocate an extra capacity for updatable geometryies to avoid need for dynamically growing/changing the size at each update.
+        */
+
         if(threejs_r71) {
             var gl_chunkSize=21845;
             // var ii = 0;this.offsets.push({start:ii, index: ii , count: Math.min(faces.length - ii, gl_chunkSize*3)});
@@ -302,7 +306,11 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         }
     };
 
-    this.__set_needsUpdate = function (ignoreNormals) {
+    this.__set_needsUpdate_flag = function (ignoreNormals) {
+        /*
+            Sets the flags so that WebGL is notified of change/update in the geometry's faces or verts.
+        */
+
         var geometry = this;
         //geometry.computeOffsets();
         geometry.attributes.position.needsUpdate = true;
@@ -416,7 +424,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             //old solution was: create a new object
             //  var new_geometry= new LiveBufferGeometry79( verts, faces,  true, Math.max(availableFacesSize/POINTS_PER_FACE, faces.length/POINTS_PER_FACE) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
 
-            geometry.__set_needsUpdate(ignoreNormals);
+            geometry.__set_needsUpdate_flag(ignoreNormals);
 
             return false; //new_geometry;
 
@@ -425,14 +433,14 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         assert(!grow_needed);
         var copied_faces = Math.min(faces.length, availableFacesSize);
         var ntriangles = copied_faces/POINTS_PER_FACE;
-        this.__set_sizes(ntriangles, POINTS_PER_FACE);
+        this.__set_range_of_used_faces(ntriangles, POINTS_PER_FACE);
         assert(!grow_needed);
 
         //if(grow_needed){
 
         // Notify the changes
 
-        geometry.__set_needsUpdate();
+        geometry.__set_needsUpdate_flag(ignoreNormals);
 
         /*
         g =currentMeshes[0].geometry
