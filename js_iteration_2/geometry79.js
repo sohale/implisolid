@@ -130,7 +130,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
 
         assert(padded_verts instanceof Float32Array);
-        this.addAttribute( 'position', new THREE.BufferAttribute( padded_verts, 3 ) );
+        this.addAttribute( 'position', new THREE.BufferAttribute( padded_verts, 3 ) );  // does this replace the old one?
 
         /***********************************
          * Adding the attributes: index (i.e. faces)
@@ -216,37 +216,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         // var nf3 = faces.length;
         var ntriangles = faces.length / POINTS_PER_FACE;
 
-
-        if(threejs_r71) {
-            var gl_chunkSize=21845;
-
-            /*
-            var ii = 0;
-            this.offsets.push({start:ii, index: ii , count: Math.min(faces.length - ii, gl_chunkSize*3)});
-            */
-            if(threejs_r71) {
-                // var triangles = nf3/POINTS_PER_FACE;
-                this.offsets = [];
-                var offsets = ntriangles / gl_chunkSize;
-                for ( var i = 0; i < offsets; i ++ ) {
-
-                    var offset = {
-                        start: i * gl_chunkSize * POINTS_PER_FACE,
-                        index: i * gl_chunkSize * POINTS_PER_FACE,
-                        count: Math.min( ntriangles - ( i * gl_chunkSize ), gl_chunkSize ) * POINTS_PER_FACE
-                    };
-
-                    this.offsets.push( offset );
-
-                }
-            }
-            this.used_faces_range = ntriangles * POINTS_PER_FACE;
-        } else
-        if(threejs_r79) {
-            assert(ntriangles);
-            this.setDrawRange( 0, ntriangles * POINTS_PER_FACE );
-            this.used_faces_range = ntriangles * POINTS_PER_FACE;  // arraysize
-        }
+        this.__set_sizes(ntriangles, POINTS_PER_FACE);
 
         //var materialIndex = 0;
         //this.addGroup( 0, faces.length*1-10, materialIndex );
@@ -301,6 +271,56 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         return this.update_geometry1(verts, faces, ignoreNormals, false);
     };
 
+    this.__set_sizes = function (ntriangles, POINTS_PER_FACE)
+    {
+        if(threejs_r71) {
+            var gl_chunkSize=21845;
+            // var ii = 0;this.offsets.push({start:ii, index: ii , count: Math.min(faces.length - ii, gl_chunkSize*3)});
+            // if(threejs_r71) {...}
+            this.offsets = [];
+            var offsets = ntriangles / gl_chunkSize;
+            for ( var i = 0; i < offsets; i ++ ) {
+
+                var offset = {
+                    start: i * gl_chunkSize * POINTS_PER_FACE,
+                    index: i * gl_chunkSize * POINTS_PER_FACE,
+                    count: Math.min( ntriangles - ( i * gl_chunkSize ), gl_chunkSize ) * POINTS_PER_FACE
+                };
+
+                this.offsets.push( offset );
+
+            }
+            this.used_faces_range = ntriangles * POINTS_PER_FACE;
+            //this.computeBoundingSphere();
+            //this.clearGroups();this.addGroup( 0, ntriangles * POINTS_PER_FACE, 0 );
+
+        } else if(threejs_r79) {
+            assert(ntriangles);
+            //vertices or faces? faces.
+            this.setDrawRange( 0, ntriangles * POINTS_PER_FACE );
+            this.used_faces_range = ntriangles * POINTS_PER_FACE;  // array size
+        }
+    };
+
+    this.__set_needsUpdate = function (ignoreNormals) {
+        var geometry = this;
+        //geometry.computeOffsets();
+        geometry.attributes.position.needsUpdate = true;
+        geometry.attributes.position.dynamic = true;
+        if(threejs_r71) {
+            geometry.attributes.index.needsUpdate = true;
+        } else if (threejs_r79) {
+            geometry.index.needsUpdate = true;
+            geometry.index.dynamic = true;
+        }
+        if(!ignoreNormals) {
+            geometry.attributes.normal.needsUpdate = true;
+            geometry.attributes.normal.dynamic = true;
+        }
+        //geometry.attributes.color.needsUpdate = true;
+    };
+
+
     this.update_geometry1 = function(verts, faces, ignoreNormals, use_wireframe) {
         use_wireframe = false;
 
@@ -314,8 +334,9 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         else
             var POINTS_PER_FACE = 3;
 
-        var nverts = verts.length / 3;  // todo: double check
-        var nfaces = faces.length / POINTS_PER_FACE;  // todo: double check
+        // nverts actually not used
+        // var nverts = verts.length / 3;  // todo: double check
+        // var nfaces = faces.length / POINTS_PER_FACE;  // todo: double check
         // A BUG DETECTED HERE! IT SHOULD BE LIKE THIS INSTEAD:
         // var nfaces = faces.length / POINTS_PER_FACE;  // todo: double check
 
@@ -353,7 +374,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         }else{
             // copy now
-            geometry.attributes.position.array.set(verts);
+            geometry.attributes.position.array.set(verts);  // .set() can copy if the number of soure (verts) is smaller than target
             if(!ignoreNormals) {
                 geometry.attributes.normal.array.set(verts);
             }
@@ -373,6 +394,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             if(threejs_r71) {
                 geometry.attributes.index.array.set(faces);
             } else if (threejs_r79) {
+                  // .set() can copy if the number of soure (verts) is smaller than target
                 geometry.index.array.set(faces);
             }
         }
@@ -383,6 +405,9 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             var min_faces_capacity = Math.floor(Math.max(availableFacesSize/POINTS_PER_FACE, faces_.length/POINTS_PER_FACE) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
             var min_verts_capacity = Math.floor(Math.max(availableVertsSize/3, verts_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);
 
+            var min_faces_capacity = faces_.length/POINTS_PER_FACE;
+            var min_verts_capacity = verts_.length/3;
+
             console.error("capacity grow: "+min_faces_capacity+"  "+min_verts_capacity);
 
             //also copies
@@ -391,20 +416,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             //old solution was: create a new object
             //  var new_geometry= new LiveBufferGeometry79( verts, faces,  true, Math.max(availableFacesSize/POINTS_PER_FACE, faces.length/POINTS_PER_FACE) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
 
-            geometry.attributes.position.needsUpdate = true;
-            geometry.attributes.position.dynamic = true;
-            if(threejs_r71) {
-                geometry.attributes.index.needsUpdate = true;
-            } else if (threejs_r79) {
-                geometry.index.needsUpdate = true;
-                geometry.index.dynamic = true;
-            }
-
-
-            if(!ignoreNormals) {
-                geometry.attributes.normal.needsUpdate = true;
-                geometry.attributes.normal.dynamic = true;
-            }
+            geometry.__set_needsUpdate(ignoreNormals);
 
             return false; //new_geometry;
 
@@ -412,52 +424,15 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         assert(!grow_needed);
         var copied_faces = Math.min(faces.length, availableFacesSize);
+        var ntriangles = copied_faces/POINTS_PER_FACE;
+        this.__set_sizes(ntriangles, POINTS_PER_FACE);
+        assert(!grow_needed);
 
-        if(threejs_r71) {
-            var triangles = copied_faces/POINTS_PER_FACE;
-            var gl_chunkSize=21845;
-            geometry.offsets = [];
-            var offsets = triangles / gl_chunkSize;
-            for ( var i = 0; i < offsets; i ++ ) {
-
-                var offset = {
-                    start: i * gl_chunkSize * POINTS_PER_FACE,
-                    index: i * gl_chunkSize * POINTS_PER_FACE,
-                    count: Math.min( triangles - ( i * gl_chunkSize ), gl_chunkSize ) * POINTS_PER_FACE
-                };
-
-                geometry.offsets.push( offset );
-
-            }
-            //geometry.computeBoundingSphere();
-
-            /*geometry.clearGroups();
-            geometry.addGroup( 0, nf3, 0 );
-            */
-
-        } else
-        if(threejs_r79) {
-            assert(!grow_needed);
-            assert(copied_faces);
-            //vertices or faces?
-            this.setDrawRange( 0, copied_faces/POINTS_PER_FACE*POINTS_PER_FACE );
-        }
         //if(grow_needed){
 
         // Notify the changes
 
-        //geometry.computeOffsets();
-        geometry.attributes.position.needsUpdate = true;
-        if(threejs_r71) {
-            geometry.attributes.index.needsUpdate = true;
-        } else
-        if(threejs_r79) {
-            geometry.index.needsUpdate = true;
-        }
-        if(!ignoreNormals) {
-            geometry.attributes.normal.needsUpdate = true;
-        }
-        //geometry.attributes.color.needsUpdate = true;
+        geometry.__set_needsUpdate();
 
         /*
         g =currentMeshes[0].geometry

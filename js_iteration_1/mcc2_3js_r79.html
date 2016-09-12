@@ -338,28 +338,31 @@ function provide_input (subjective_time, is_update_mode) {
     if (DONT_CHANGE || is_update_mode == 0) {
         var r = subjective_time;
 
-        var mp5_json_0 = JSON.stringify({
+        var ellipsoid_radius = 8.0; // r;
+        var sphere_dict1 = {
             type: "ellipsoid",
             //radius: subjective_time,
             matrix:[
-                r, 0,0, x0,
-                0,r, 0, y0,
-                0,0,r,  z0,
+                ellipsoid_radius, 0,0, 0,
+                0,ellipsoid_radius, 0, 0,
+                0,0,ellipsoid_radius,  0,
                 0,0,0,   1]
-        });
+        };
+        var sphere_dict = {
+            type: "Union",
+            matrix:[
+                1, 0,0, 0,
+                0,1, 0, 0,
+                0,0,1,  0,
+                0,0,0,   1],
+            children: [sphere_dict1, sphere_dict1]
+        };
         //global_mp5 = mp5_json_0;
+        var mp5_json_sphere_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
+        mp5_json_sphere_dict.root.children=[sphere_dict];
+        var SPHERE = JSON.stringify(mp5_json_sphere_dict);
+        console.log(SPHERE);
 
-
-        if(is_update_mode == 0) {
-            var sz = 1.;
-        } else {
-            var sz = r;
-        }
-        /*
-        HEART.root.children[0].matrix[0] = sz;
-        HEART.root.children[0].matrix[5] = sz;
-        HEART.root.children[0].matrix[10] = sz;
-        */
 
         var tetrahedron_dict = {
             type: "tetrahedron",
@@ -379,9 +382,22 @@ function provide_input (subjective_time, is_update_mode) {
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
         //var mp5_json = MOON;         const BB_SIZE = 9+9;
-        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        var mp5_json = SPHERE;  const BB_SIZE = 9;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
+        console.log(shape_dict);
+
+        if(is_update_mode == 0) {
+            var sz = 1.;
+        } else {
+            var sz = r;
+        }
+        /*
+        HEART.root.children[0].matrix[0] = sz;
+        HEART.root.children[0].matrix[5] = sz;
+        HEART.root.children[0].matrix[10] = sz;
+        */
 
         // Scale the object
         shape_dict.matrix[0] = sz;
@@ -416,9 +432,9 @@ function provide_input (subjective_time, is_update_mode) {
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            vresampl: {iters: 0, c: 0.0},
+            vresampl: {iters: 1, c: 1.0},
             projection: {enabled: 1},
-            qem: {enabled: 0},
+            qem: {enabled: 1},
         });
 
 
@@ -458,9 +474,10 @@ function provide_input (subjective_time, is_update_mode) {
         */
 
         var d = JSON.parse(global_mp5);
-        d.matrix[0] = r / 10.;
-        d.matrix[5] = r / 10.;
-        d.matrix[10] = r / 10.;
+        var updated_size = r / 10.;
+        d.matrix[0] = updated_size;
+        d.matrix[5] = updated_size;
+        d.matrix[10] = updated_size;
         shape_json = JSON.stringify(d);;
         // shape_json = global_mp5;
         polygonization_json = mc_properties_json;
@@ -703,22 +720,30 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     }
 
     /*
+    // I don't use a geometry mesh with wiredframe. I use a LineSegments that uses a BufferGeometry
+
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 2 );
     var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
         indices12[i * 2] = i;
-        indices12[i + 2 + 1] = i + n1;  //i+1; //i + n1;
+        indices12[i + 2 + 1] = i ; //+ n1;  //i+1; //i + n1;
+        // indices12[i * 2] = 0;
+        // indices12[i + 2 + 1] = i;
     }
     */
+
+
 
 
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
     var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
         indices12[i * 3] = i;
-        indices12[i + 3 + 1] = i + n1;
-        indices12[i * 3 + 2 ] = i + n1;
+        indices12[i + 3 + 1] = i; //i + n1;
+        indices12[i * 3 + 2 ] = i; //i + n1;
     }
+    assert(indices12.length == n1 * 3);
+
 
 
 
@@ -729,8 +754,13 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
 
 
     var wireframe_material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff, wireframe: true, opacity:0.9,  transparent: true,} );
-    var wire_msh = new THREE.Mesh(geom, wireframe_material);
+        color: 0xffffff, wireframe: true, opacity:0.1,  transparent: true,} );
+     var wire_msh = new THREE.Mesh(geom, wireframe_material);
+
+    /*
+    var line_material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+    var wire_msh = new THREE.LineSegments(geom, line_material);
+    */
     return wire_msh;
 }
 
@@ -989,22 +1019,23 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     */
 
 
+
     var points2 = make_pointset( newPolygonizer, "pre_p_centroids", 8.0 / 4.0*2,   0.9, 0.0, 0.0);  // Red: before
-    scene.add( points2 );
+    // scene.add( points2 );
 
     var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0*2,   0.9, 0.9, 0.0); // Yellow: after
-    scene.add( points1 );
+    // scene.add( points1 );
 
 
-    /*
+
     var vectorfield = make_vectorfield_flow_lines(newPolygonizer, "pre_p_centroids", "post_p_centroids");
     scene.add( vectorfield );
 
-    mesh_solid.visible = false;
+    //mesh_solid.visible = false;
     points1.visible = false;
     points2.visible = false;
-    mesh_wireframe.visible = false;
-    */
+    //mesh_wireframe.visible = false;
+
 
 
 
