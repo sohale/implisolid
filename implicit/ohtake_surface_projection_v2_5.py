@@ -415,6 +415,10 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     # if still_nonsuccess_indices.shape[0] > 0:
     best_result_x[still_nonsuccess_indices, :] = x0_v3[still_nonsuccess_indices, :]  # failed to converge
 
+    """
+    Big todo:
+        This part is a mess. refactor into separate functions so that the data flow is known and variable names are un-entangled.
+    """
     if TEST:
         # TEST IF all elements in x0_v3 & best_result_x are DUAL (CONJUGATE)
         xa1 = augment4(x0_v3)
@@ -476,7 +480,8 @@ def set_centers_on_surface__ohtake_v3s_002(iobj, centroids, average_edge, nones_
     f1_relevants = iobj.implicitFunction(x1_relevant_v4)  # for assert only
     f2_relevants = iobj.implicitFunction(x2_relevant_v4)
 
-    assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)
+    # fix me: Is this a bug? The multiplication needs to be compared with: <= ROOT_TOLERANCE * ROOT_TOLERANCE, not just ROOT_TOLERANCE
+    assert np.all(f1_relevants*f2_relevants <= +THRESHOLD_zero_interval)  # todo: Use THRESHOLD_zero_interval**2
     del f1_relevants
 
     #Swap negatives and positives

@@ -57,7 +57,7 @@ inline void check_bisection_input_signs(
     int iteration
   ) {
     #if ASSERT_USED
-        here("a1. iteration "+std::to_string(iteration));
+        // here("a1. iteration "+std::to_string(iteration));
 
         bool assert1 = true;
         for (int i=0; i < active_count; i++) {
@@ -75,20 +75,20 @@ inline void check_bisection_input_signs(
         if (!assert1) clog << " SOME POINTS ARE NOT CONJUGATED." << std::endl;
         assert(assert1);
 
-        here("a2");
+        // here("a2");
 
         bool assert2 = true;
         for (int i=0; i < active_count; i++) {
             bool ok = v1_arr[i] < 0 - ROOT_TOLERANCE;
             assert2 = assert2 && ok;
         }
-        here("a3");
+        // here("a3");
 
         assert(assert2);
-        here("a4");
+        // here("a4");
 
         assert(active_count <= n);
-        here("a5");
+        // here("a5");
 
         assert(true);
     #endif
@@ -202,14 +202,14 @@ void bisection(
 
     // loop
     while (true) {
-        here("start");
+        // here("start");
 
         /* Checks if all v1 and v2 have opposite signs and are not zero*/
         #if ASSERT_USED
         check_bisection_input_signs(v1_arr, v2_arr, ROOT_TOLERANCE, n, active_count, iteration);
         #endif
 
-        here("2");
+        // here("2");
 
         // mean of (x1, x2)
         for (int i=0; i < active_count; i++) {
@@ -218,7 +218,7 @@ void bisection(
             x_mid[i][2] = (x1_arr[i][2] + x2_arr[i][2]) / 2.;
         }
 
-        here("3");
+        // here("3");
 
         // *************************************
         // Fix me
@@ -226,7 +226,7 @@ void bisection(
         //
         // *************************************
 
-        here("4");
+        // here("4");
 
         clog << active_indices_size << " active_indices_size ?==? active_count " << active_count
             //  << std::endl;
@@ -235,14 +235,14 @@ void bisection(
         assert(active_indices_size == active_count);
 
 
-        here("5");
+        // here("5");
 
         for (int i=0; i < active_count; i++) {
             abs_v_mid[i] = std::abs(v_mid[i]);
         }
         // int abs_size = active_count;
 
-        here("6");
+        // here("6");
 
         // imcrementing the size of the indices arrays
         int indices_boundary_size = 0;
@@ -253,7 +253,7 @@ void bisection(
             }
         }
 
-        here("7");
+        // here("7");
 
         int i_e = 0;
         for (int i=0; i < active_count; i++) {
@@ -282,15 +282,15 @@ void bisection(
         }
         int indices_inside_size = i_i;
 
-        here("8");
+        // here("8");
 
         assert(indices_boundary_size + indices_inside_size + indices_outside_size == active_count);
 
-        here("9");
+        // here("9");
 
         assert(indices_eitherside_size + indices_boundary_size == active_count);
 
-        here("10");
+        // here("10");
 
 ////////////////
         // which_zeroed : global index
@@ -361,7 +361,13 @@ void bisection(
         // indices_eitherside[]   element is local index
 
         for (int i=0; i < indices_eitherside_size; i++) {
+            /*
+            if (!(indices_eitherside[i] >= active_indices[i])) {
+                clog << indices_eitherside[i] << " >= " << active_indices[i] << std::endl;
+            }
             assert(indices_eitherside[i] >= active_indices[i] && "safe?");
+            */
+            assert(i <= indices_eitherside[i] && "safe?");
             active_indices[i] = active_indices[indices_eitherside[i]];
         }
         active_indices_size = indices_eitherside_size;  // bug fixed
@@ -404,8 +410,25 @@ void bisection(
             x2_arr[i][2] = x2_arr[j][2];
         }
 
+        if (iteration >= 200) {
+            if (iteration % 100 == 0) {
+                std:cerr <<
+                    "Warning. The bisection is not converging. " <<
+                    "It is guaranteed that this never happens. " <<
+                    "However in practice, in production, the asserts for prequisites are not executed each time. " <<
+                    "Hence, this sitioation is possible. " <<
+                    "This means initial prequisits (assert) are not holding. Bad usage."
+                 << std::endl;
+            }
+            if (iteration >= 2000) {
+                // must throw an exception
+            }
+        }
         //if (active_indices.shape()[0] == 0 || iteration==10) {
-        if (active_indices_size == 0) || iteration == 10) {
+        // bug found!  There is no maximum iteration here. The convergence is guaranteed in case of given assertions.
+        if (active_indices_size == 0) {
+                        // || iteration == 10) {  // bug fixed!
+
             // clog << "projection treated this much points" << endl;
             // clog << solved_count << endl;
             break;

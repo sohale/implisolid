@@ -801,6 +801,7 @@ void  set_centers_on_surface(
     // todo: still_nonsuccess_indices__effective_size
     assert(still_nonsuccess_indices___s_n_s == still_nonsuccess_indices.size());
 
+    /* The points that failed to find their conjugates, just copy the original point (centroids).*/
     assign_vects_chosen_by_fancy_indexing(best_result_x, centroids, still_nonsuccess_indices, still_nonsuccess_indices___s_n_s);  // A = B[C];
     /*
     for (int i=0; i < still_nonsuccess_indices___s_n_s; i++) {
@@ -828,10 +829,8 @@ void  set_centers_on_surface(
     vectorized_scalar f2(scalar_shape);
     object->eval_implicit(xa2, &f2);
 
-    vectorized_bool  zeros2_bool(scalar_shape);
-    vectorized_bool  zeros1_bool(scalar_shape);
-    vectorized_bool  zeros1or2(scalar_shape);
-    array_of_indices  relevants_bool_indices(scalar_shape);
+
+
 
     // clog << "3" << endl;
 
@@ -840,6 +839,7 @@ void  set_centers_on_surface(
     //****************************
     // UP TO HERE
 
+    vectorized_bool  zeros2_bool(scalar_shape);
     // bool_find_zero_scalars(zeros2_bool, f2, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
         zeros2_bool[i] = std::abs(f2[i])<= ROOT_TOLERANCE;
@@ -853,6 +853,7 @@ void  set_centers_on_surface(
         */
     }
 
+    vectorized_bool  zeros1_bool(scalar_shape);
     // todo: turn this into a canonical function
     // bool_find_zero_scalars(zeros1_bool, f1, ROOT_TOLERANCE);
     for (int i=0; i < n; i++) {
@@ -871,6 +872,7 @@ void  set_centers_on_surface(
     set_a_b_if_c(best_result_x, centroids, zeros1_bool);
 
 
+    vectorized_bool  zeros1or2(scalar_shape);
     // todo: turn this into a canonical function
     for (int i=0; i < n; i++) {
         zeros1or2[i] = zeros2_bool[i] || zeros1_bool[i];
@@ -883,6 +885,7 @@ void  set_centers_on_surface(
     */
     }
 
+    array_of_indices  relevants_bool_indices(scalar_shape);
     // bug fixed. Initialisation was missing.
     int r_b = 0;
     for (int i=0; i < n; i++) {
@@ -892,40 +895,60 @@ void  set_centers_on_surface(
         }
     }
 
+    int relevants_bool_indices_size = r_b;
+    relevants_bool_indices.resize(boost::extents[r_b]);
+    int m = relevants_bool_indices_size; //relevants_bool_indices.shape()[0];
+    assert(m == r_b);
+
+    // Invariant at this point:
+    // [a.]  abs(f2[relevant_bool_indices[:]]) is non zero
+    // [b.]  f2[i if zeros1or2[i]] is zero
+
+    // testing [a.]
     #if ASSERT_USED
     {
+        // Why this test?
         assert(scalar_shape[0] == n);
-        vectorized_scalar f_(scalar_shape);
-        object->eval_implicit(best_result_x, &f_);
+        vectorized_scalar f2_(scalar_shape);
+        // But it is already done. It can ebe found in f2
+        object->eval_implicit(best_result_x, &f2_);  // ??  //why?
         bool everything_alright = true;
         assert(zeros1or2.size() == n);
-        for (int i = 0, e = zeros1or2.size(); i < e; ++i) {
+        for (int i = 0, e = n; i < e; ++i) {
             if (zeros1or2[i]) {
-                bool ok = f_[i] <= ROOT_TOLERANCE; // f(best_result_x[i]);
+                // why was this done?
+                // bool ok = f2_[i] <= ROOT_TOLERANCE; // f(best_result_x[i]);
+
+                bool ok = std::abs(f2_[i]) <= ROOT_TOLERANCE; // f(best_result_x[i]);
                 everything_alright = everything_alright && ok;
+
+                assert (f2[i] == f2_[i]);
+
             }
         }
     }
     #endif
 
-    int relevants_bool_indices_size = r_b;
-    relevants_bool_indices.resize(boost::extents[r_b]);
-    int m = relevants_bool_indices.shape()[0];
-    assert(m == r_b);
-
+    /*
     // template<>
     // void lookup_<func>(f1, zeros1or2)
     #if ASSERT_USED
     {
         bool everything_alright = true;
         for (int i = 0, e = zeros1or2.size(); i < e; ++i) {
+            // what??
+            // int j = zeros1or2[i];
+            // bool ok = std::abs(f1[j]) <= ROOT_TOLERANCE;
+
             int j = zeros1or2[i];
             bool ok = std::abs(f1[j]) <= ROOT_TOLERANCE;
             everything_alright = everything_alright && ok;
         }
     }
     #endif
+    */
 
+    /*
     // check all are non-zero
     #if ASSERT_USED
     {
@@ -933,6 +956,19 @@ void  set_centers_on_surface(
       for (int i = 0, e = relevants_bool_indices.size(); i < e; ++i) {
           int j = relevants_bool_indices[i];
           bool ok = std::abs(f1[j]) > ROOT_TOLERANCE;
+          everything_alright = everything_alright && ok;
+      }
+    }
+    #endif
+    */
+
+    // testing [b.]
+    #if ASSERT_USED
+    {
+      bool everything_alright = true;
+      for (int i = 0, e = relevants_bool_indices_size; i < e; ++i) {
+          int j = relevants_bool_indices[i];
+          bool ok = std::abs(f2[j]) > ROOT_TOLERANCE;
           everything_alright = everything_alright && ok;
       }
     }
@@ -977,13 +1013,14 @@ void  set_centers_on_surface(
     assert(x1_relevant.shape()[0] == m);
 
     for (int i=0; i < m; i++) {
-        x1_relevant[i][0] = centroids[relevants_bool_indices[i]][0];
-        x1_relevant[i][1] = centroids[relevants_bool_indices[i]][1];
-        x1_relevant[i][2] = centroids[relevants_bool_indices[i]][2];
+        auto j = relevants_bool_indices[i];
+        x1_relevant[i][0] = centroids[j][0];
+        x1_relevant[i][1] = centroids[j][1];
+        x1_relevant[i][2] = centroids[j][2];
 
-        x2_relevant[i][0] = best_result_x[relevants_bool_indices[i]][0];
-        x2_relevant[i][1] = best_result_x[relevants_bool_indices[i]][1];
-        x2_relevant[i][2] = best_result_x[relevants_bool_indices[i]][2];
+        x2_relevant[i][0] = best_result_x[j][0];
+        x2_relevant[i][1] = best_result_x[j][1];
+        x2_relevant[i][2] = best_result_x[j][2];
 
         /*
         assert("problem");
@@ -1038,6 +1075,7 @@ void  set_centers_on_surface(
             }
             // if (0)
             assert(mult <= + ROOT_TOLERANCE*ROOT_TOLERANCE);
+            // assert(mult <= + ROOT_TOLERANCE);  // In Python code it is like this.
         }
     #endif
 
@@ -1076,6 +1114,7 @@ void  set_centers_on_surface(
             */
         }
     }
+    // note: f2_relevants[] is not valid anymore, because it is now swapped.
     clog << "swapped: " << ctr << endl;
 
     #if ASSERT_USED
@@ -1114,27 +1153,40 @@ void  set_centers_on_surface(
     #endif
         */
 
+    // now put them (all of those RELEVEANT ones) into the results array.
+    // What about those which were not successful? Answer: They are not "relevant".
+    // not Relevant: either the conjugate was not found, or t was already zero (zeros1or2).
 
 
-
+    // Shold not be needed if it is not resized:
     assert(relevants_bool_indices.size() == x_bisect.shape()[0]);
 
     // clog << "1-centroids_output.begin() " << static_cast<void*>(&centroids_output) << " != " << " centroids.begin():" << static_cast<const void*>(&centroids) << std::endl;
     bool same_address1 = centroids_output.begin() != centroids.begin();
+
+
+    // Copying centroids into centroids_output is necessary, so that when neigher zeros1or2[.] nor relevants_bool_indices[.],
+    // ,  ... wait, what?  best_result_x[] is ignored. But it's fine. That was before the bisecion.
+    // relevant[] : pased through bisection, hance, correct.
+    // zeros1or2[]: not passed through bisection, but correct.
+    // rest: either non-successful conjugate or non-successful bisection? But there will be no unsuccessful bisection. It always converges.
+    // todo: fix the python code to sepaate the vairables.
 
     centroids_output = centroids;  // copy
     // clog << "centroids_output.begin() " << static_cast<void*>(centroids_output.begin()) << " != " << " centroids.begin():" << static_cast<void*>(centroids.begin()) << std::endl;
     // clog << "2-centroids_output.begin() " << static_cast<void*>(&centroids_output) << " != " << " centroids.begin():" << static_cast<const void*>(&centroids) << std::endl;
     // assert(centroids_output.begin() != centroids.begin() );
     bool same_address2 = centroids_output.begin() != centroids.begin();
+    // Check reference-ness (view-ness)
     assert(same_address1 && same_address2  || !same_address1 && !same_address2);
 
     // changing the values of the centroids
     assert(m == relevants_bool_indices.size());
     for (int i=0; i < m; i++) {
-        centroids_output[relevants_bool_indices[i]][0] = x_bisect[i][0];
-        centroids_output[relevants_bool_indices[i]][1] = x_bisect[i][1];
-        centroids_output[relevants_bool_indices[i]][2] = x_bisect[i][2];
+        auto j = relevants_bool_indices[i];
+        centroids_output[j][0] = x_bisect[i][0];
+        centroids_output[j][1] = x_bisect[i][1];
+        centroids_output[j][2] = x_bisect[i][2];
     }
 
     assert(n == zeros1or2.size());
@@ -1145,6 +1197,8 @@ void  set_centers_on_surface(
             centroids_output[i][2] = best_result_x[i][2];
         }
     }
+    // What about the rest of centroids_output?
+    // They are copied above.
 
 }
 
