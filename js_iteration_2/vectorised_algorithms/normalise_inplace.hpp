@@ -75,5 +75,45 @@ void normalize_1111(verts_t & A) {
 // todo: move code here
 
 
+
+void normalise_forced_inplace(verts_t & v, REAL min_len) {
+    const REAL default_min_norm_sq = mp5_implicit::CONFIG.MIN_PRINTABLE_LENGTH * mp5_implicit::CONFIG.MIN_PRINTABLE_LENGTH;
+
+    REAL min_len_sq = (min_len <= 0.0)? default_min_norm_sq : (min_len * min_len);
+
+    const REAL osqrt3 = 1.0 / std::sqrt((REAL)3.0);
+
+    for (int fi = 0; fi < v.shape()[0]; ++fi) {
+
+        REAL x = v[fi][0];
+        REAL y = v[fi][1];
+        REAL z = v[fi][2];
+
+        REAL n2 = x*x + y*y + z*z;
+        if ( n2 < min_len_sq) {
+            x = osqrt3;
+            y = osqrt3;
+            z = osqrt3;
+
+        }
+        else {
+            REAL n = std::sqrt(n2);
+            x = x / n;
+            y = y / n;
+            z = z / n;
+        }
+
+        auto& nx = v[fi][0];
+        auto& ny = v[fi][1];
+        auto& nz = v[fi][2];
+
+        nx = x;
+        ny = y;
+        nz = z;
+    }
+    // assert(assert_are_normalised(v));
+
+}
+
 }
 }

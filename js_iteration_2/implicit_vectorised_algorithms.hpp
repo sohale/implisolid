@@ -54,7 +54,7 @@ produce_facet_normals(
     vectorized_vect  verts,
     bool force_normalisation)
 {
-    const REAL min_norm_sq = mp5_implicit::CONFIG_C::MIN_AREA * mp5_implicit::CONFIG_C::MIN_AREA;
+    const REAL min_norm_sq = mp5_implicit::CONFIG_C::MIN_AREA * mp5_implicit::CONFIG_C::MIN_AREA;   // why squared?
     const REAL osqrt3 = 1.0 / std::sqrt((REAL)3.0);
     auto numfaces = faces.shape()[0];
     verts_t facet_normals = verts_t(boost::extents[numfaces][3]);
