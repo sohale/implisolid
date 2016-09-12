@@ -720,7 +720,7 @@ function make_vectorfield_flow_lines(newPolygonizer, name1, name2, point_size) {
     var re_allocate_buffers;
     // var geom = new LiveBufferGeometry79( verts12, indeices12, re_allocate_buffers=true, 0, 0);
     var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers=true, 0, 0);
-    geom.update_geometry2(verts12, indeices12, true);
+    geom.update_geometry1(verts12, indeices12, true);
 
 
     var wireframe_material = new THREE.MeshBasicMaterial( {
