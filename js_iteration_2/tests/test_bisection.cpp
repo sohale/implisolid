@@ -39,7 +39,15 @@ void smult(vectorized_vect & v, REAL ampl) {
 
 TEST(BisectionTests1, on_sphere1) {
 
-    mp5_implicit::CrispSubtract object = two_spheres(1.3, 2.0);
+    //mp5_implicit::CrispSubtract object = two_spheres(1.3, 2.0);
+    REAL r1 = 1.3;
+    REAL r2 = 2.0;
+
+    mp5_implicit::unit_sphere s1(r1);
+    mp5_implicit::unit_sphere s2(r2);
+
+    mp5_implicit::CrispSubtract object = mp5_implicit::CrispSubtract(s2, s1);
+
 
     int nsize = 10000;
 
