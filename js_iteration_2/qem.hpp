@@ -381,6 +381,9 @@ void vertex_apply_qem(
         V = svd.matrixV();
         int rank = svd.rank();
 
+        assert(S(0) >= S(1));
+        assert(S(1) >= S(2));
+
         // std::clog << "!1" << std::endl;
 
         // assert s[0] == np.max(s)  asserts that SVD produces descending order eigenvalues
@@ -435,11 +438,22 @@ void vertex_apply_qem(
             // assert( S(rank+1-1) == 0.0 );
         }
 
+        clog << " rank=" << rank << " ";
+
+        for (int i = rank; i < 3; ++i) {
+            S(i) = 0.0;  // not necessary really
+        }
+        const REAL MIN_EIGENVALUE = 0.000001;
+        if (S(0) <= MIN_EIGENVALUE) {
+            //rank = 0
+            //new_verts[vi, 0:3] = new_x[:, 0]
+        }
 
         // std::clog << "!4" << std::endl;
         // std::clog << " > S(0)" << S(0) << std::endl;
         // std::clog << "!4.5" << std::endl;
 
+        y = V * v0; //default value. Is this needed?
         for (int i=0; i < rank; i++) {
             //if (S(i) != 0.0)
             y(i) = utb(i) / S(i);

@@ -338,15 +338,15 @@ function provide_input (subjective_time, is_update_mode) {
     if (DONT_CHANGE || is_update_mode == 0) {
         var r = subjective_time;
 
-        var ellipsoid_radius = 8.0 * 0.1; // r;
-        // var ellipsoid_radius = 8.0; // r;
+        // var ellipsoid_radius = 8.0 * 0.1; // r;
+        var ellipsoid_radius = 8.0; // r;
         var sphere_dict1 = {
             type: "ellipsoid",
             //radius: subjective_time,
             matrix:[
                 ellipsoid_radius, 0,0, 0,
                 0,ellipsoid_radius, 0, 0,
-                0,0,ellipsoid_radius * 0.5,  0,
+                0,0,ellipsoid_radius * 0.5 / 0.5,  0,
                 0,0,0,   1]
         };
         var sphere_dict = {
@@ -434,7 +434,7 @@ function provide_input (subjective_time, is_update_mode) {
             ignore_root_matrix: false,
 
             // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
-            vresampl: {iters: 0, c: 1.0},
+            vresampl: {iters: 5, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
         });
@@ -705,8 +705,8 @@ function make_vectorfield_flow_lines_v1(newPolygonizer, name1, name2, point_size
     color_b = color_b !== undefined? color_b : 0.9;
     */
 
-    var verts1 = get_emc_array(newPolygonizer.get_pointset_ptr(name1), 3 * newPolygonizer.get_pointset_size(name1) );
-    var verts2 = get_emc_array(newPolygonizer.get_pointset_ptr(name2), 3 * newPolygonizer.get_pointset_size(name2) );
+    var verts1 = get_emc_array(newPolygonizer.get_pointset_ptr(name1)+120*3*4*0, 3 * newPolygonizer.get_pointset_size(name1) + 0  );
+    var verts2 = get_emc_array(newPolygonizer.get_pointset_ptr(name2)+120*3*4*0, 3 * newPolygonizer.get_pointset_size(name2) + 0 );
 
     var n1 = verts1.length / 3;
     var n2 = verts2.length / 3;
@@ -1110,8 +1110,8 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     var points2 = make_pointset( newPolygonizer, "pre_p_centroids", 8.0 / 4.0*2,   0.9, 0.0, 0.0);  // Red: before
     // scene.add( points2 );
 
-    var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0*2,   0.9, 0.9, 0.0); // Yellow: after
-    // scene.add( points1 );
+    var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
+    scene.add( points1 );
 
 
 
@@ -1119,7 +1119,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     scene.add( vectorfield );
 
     // choose what is visible and what is not
-    mesh_solid.visible = false;
+    // mesh_solid.visible = false;
     // points1.visible = false;
     //points2.visible = false;
     // mesh_wireframe.visible = false;
@@ -1147,6 +1147,12 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(100, 100, 50);
     scene.add(dirLight);
+
+
+    var dirLight2 = new THREE.DirectionalLight(0x00ffff, 1);
+    dirLight2.position.set(-100, -100, -50);
+    scene.add(dirLight2);
+
     //var arrow = make_arrow();
     //global_arrow = arrow;
     var arrows = make_multiple_arrows(ARROWS_COUNT);

@@ -494,11 +494,16 @@ void  set_centers_on_surface(
     vectorized_vect   best_result_x (vector_shape);
     assert(best_result_x.shape()[0] == n);
     #if ASSERT_USED
-        constexpr REAL  MAGIC_VALUE_FOR_DEBUG = -10000.0;
         for (int i = 0; i < best_result_x.shape()[0]; ++i) {
             best_result_x[i][0] = MAGIC_VALUE_FOR_DEBUG;
             best_result_x[i][1] = MAGIC_VALUE_FOR_DEBUG;
             best_result_x[i][2] = MAGIC_VALUE_FOR_DEBUG;
+        }
+    #else
+        for (int i = 0; i < best_result_x.shape()[0]; ++i) {
+            best_result_x[i][0] = -10.0;
+            best_result_x[i][1] = -10.0;
+            best_result_x[i][2] = -10.0;
         }
     #endif
     array_of_indices  active_indices = build_range_array(n);
@@ -849,7 +854,7 @@ void  set_centers_on_surface(
             for (int j=0; j < n; j++) {
                 if (success[j]) {  // it should be new_success? ****
                     already_success_bool[j] = b_true;
-
+                    #if ASSERT_USED
                     // DEBUG THINGY
                     {
                         if (best_result_x[j][0] == MAGIC_VALUE_FOR_DEBUG || (best_result_x[j][0] == 0 && best_result_x[j][1] == 0 && best_result_x[j][2] == 0)) {
@@ -857,11 +862,13 @@ void  set_centers_on_surface(
                             abort();
                         }
                     }
+                    #endif
                 }
             }
 
             clog << "[" << counter << "](+" << new_success_indices___n_s << ")" << still_nonsuccess_indices___s_n_s << " ";
 
+            #if ASSERT_USED
             // DEBUG THINGY
             {
                 std::clog << "already_success_bool.shape()[0] = " << already_success_bool.shape()[0] << std::endl;
@@ -875,6 +882,7 @@ void  set_centers_on_surface(
                     }
                 }
             }
+            #endif
 
             #if ASSERT_USED
                 // fails
@@ -1488,6 +1496,7 @@ boost::multi_array<int, 2> copy_faces_from_vectorfaces(const std::vector<int> & 
         i_f++;
         faces[output_faces][2] = (*i_f);
     }
+    assert(num_faces == output_faces);
 
     return faces;
 }

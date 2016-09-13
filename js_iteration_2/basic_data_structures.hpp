@@ -41,6 +41,11 @@ using namespace std;
 // Enables long print out of variables and arrays contents for debugging
 #define DEBUG_VERBOSE false
 
+#if ASSERT_USED
+
+constexpr REAL  MAGIC_VALUE_FOR_DEBUG = -10000.0;
+
+#endif
 
 //namespace implicit {
 
