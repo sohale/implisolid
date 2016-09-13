@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../js_iteration_2/basic_functions.hpp"
+
 #include "../js_iteration_2/matrix_functions.hpp"
 
 namespace mp5_implicit {
@@ -231,8 +233,19 @@ void vertex_apply_qem__old(
     }
 }
 
-
-
+/*
+*/
+inline bool check_normality_for_qem(REAL nx, REAL ny, REAL nz) {
+    // constexpr REAL N2 = std::pow(CONFIG_C::MIN_NORMAL_LEN, 2);
+    bool ok = true;
+    if (norm_squared(nx, ny, nz) < std::pow(CONFIG_C::MIN_NORMAL_LEN, 2)) {
+        std::clog << "Error: bad normal: " << nx <<","<< ny <<","<< nz << std::endl;
+    }
+    ok = ok && !is_bad_number(nx);
+    ok = ok && !is_bad_number(ny);
+    ok = ok && !is_bad_number(nz);
+    return ok;
+}
 
 // Calculates A nd b for a selection of centroids only (an umbrella).
 // Todo: vectorized version.
@@ -243,7 +256,8 @@ void get_A_b(
     const Matrix<REAL, 3, 1> & qem_origin,
     Matrix<REAL, 3, 3> *A, Matrix<REAL, 3, 1> * b) {
 
-    // centroid_normals must be normalised
+    // centroid_normals must be normalised already
+
 
     int m = neighbours_faces.size();
     // centroids[neighbours_faces]
@@ -258,6 +272,10 @@ void get_A_b(
         REAL Ni_x = centroid_normals[ni][0];
         REAL Ni_y = centroid_normals[ni][1];
         REAL Ni_z = centroid_normals[ni][2];
+
+
+        assert(check_normality_for_qem(Ni_x, Ni_y, Ni_z));
+
 
         // Pi - origin
         REAL Px = centroids[ni][0] - qem_origin(0);
@@ -279,7 +297,7 @@ void get_A_b(
         (*A)(0,0) += nn00;
         (*A)(0,1) += nn01;
         (*A)(0,2) += nn02;
-        (*A)(1,0) += nn01;
+        (*A)(1,0) += nn01;  // (*,R) is an Abelian group.
         (*A)(1,1) += nn11;
         (*A)(1,2) += nn12;
         (*A)(2,2) += nn22;
@@ -292,6 +310,8 @@ void get_A_b(
         (*b)[2] -= nn02 * Px + nn12 * Py + nn22 * Pz;
     }
 }
+
+
 
 
 void vertex_apply_qem(
@@ -309,6 +329,16 @@ void vertex_apply_qem(
     int nverts = verts->shape()[0];
     assert(nverts = vertex_neighbours_list.size());
 
+    // print_vertex_neighbourhood(vertex_neighbours_list);
+    /*
+    // Seems incorrect.
+        0: 0, 1, 2, 3.
+        1: 0, 1, 4, 5.
+        2: 0, 2, 4, 6.
+        3: 1, 3, 5, 7.
+        4: 2, 3, 6, 7.
+        5: 4, 5, 6, 7.
+    */
 
     /*
     for( int j = 0; j <vertex_neighbours_list.size(); j++) {

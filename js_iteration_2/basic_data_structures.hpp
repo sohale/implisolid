@@ -34,6 +34,13 @@ using namespace std;
 #endif
 
 
+#ifndef ASSERT_USED
+    #define ASSERT_USED false
+#endif
+
+// Enables long print out of variables and arrays contents for debugging
+#define DEBUG_VERBOSE false
+
 
 //namespace implicit {
 
@@ -50,11 +57,6 @@ using namespace std;
 typedef unsigned short int dim_t;
 
 typedef float REAL;     // heavily used (can be changed to double from here at any time)
-
-const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
-//const REAL NaN = std::numeric_limits<REAL>::signaling_NaN();
-
-inline bool isNaN(REAL x){return isnan(x);};
 
 typedef boost::multi_array<REAL, 1>  array1d;
 

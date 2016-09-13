@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <cmath>
+
 /*,
 ================================================================
 =           Configuration Parameters                           =
@@ -33,13 +35,22 @@ const REAL MIN_PRINTABLE_LENGTH = 0.01 / 2.0;
 
 namespace mp5_implicit {
 
+constexpr static const REAL MILLIMETER = 1.0;
+constexpr static const REAL MICROMETER = MILLIMETER / 1000.0;
+constexpr static const REAL NANOMETER = MICROMETER / 1000.0;
+
 struct CONFIG_C {
+
+
     const REAL MIN_PRINTABLE_LENGTH = 0.01 / 2.0;
     const REAL MIN_THICKNESS = 0.2;  // for FDM
 
-    constexpr static const REAL MIN_AREA = 0.000000001;    // 0.00001;
+    constexpr static REAL MIN_AREA = (30 * NANOMETER)*(30 * NANOMETER); //
+        // std::pow(30 * NANOMETER, 2); //0.000000001 == (30* NANOMETER)^2;    // 0.00001;
     //static const REAL MIN_AREA = 0.00001;  // 0.000000001;
     /* Also used for facet normal vector being zero */
+    constexpr static REAL MIN_NORMAL_LEN = 0.1 * NANOMETER; //0.0000001; //  # 0.000001 = I millions of millimeter = 1 nanometer  #TH_N
+
 
     struct center_projection {
         // Gradients smaller than this are considered zero.

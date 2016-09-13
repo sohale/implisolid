@@ -153,7 +153,7 @@ inline void set_array_to_value(A, v) {
     }
 }
 */
-inline void set_array_to_boolean_value(vectorized_bool & A, vectorized_bool::value_type v) {
+inline void set_all_array_elements_to_a_boolean_value(vectorized_bool & A, vectorized_bool::value_type v) {
     for (auto iter = A.begin(), e = A.end(); iter < e; ++iter) {
         *iter = v;
     }

@@ -89,6 +89,49 @@ void build_faces_of_faces(const faces_t& edges_of_faces, const faces_t& faces_of
 }
 
 
+void print_faces(const faces_t& faces) {
+    for( int i = 0 ; i < faces.size(); i++) {
+        std::clog << "Face " << i << ": ";
+        for( int j = 0 ; j < 3; j++) {
+            std::clog << faces[i][j] << ", ";
+        }
+        std::clog << std::endl;
+    }
+}
+
+void print_vertex_neighbourhood(const std::vector< std::vector<int>> & vertex_neighbours_list) {
+    for( int i = 0 ; i < vertex_neighbours_list.size(); i++) {
+        const std::vector<int> & na = vertex_neighbours_list[i];
+        if (na.size() > 0) {
+            std::clog << "Vertex " << i << ": ";
+            for( int j = 0 ; j < na.size(); j++) {
+                std::clog << na[j] << ", ";
+            }
+            std::clog << std::endl;
+        }
+    }
+    /*
+      // It is correct.
+
+                F  F  F  F
+      Vertex 0: 0, 1, 2, 3.
+      Vertex 1: 0, 1, 4, 5.
+      Vertex 2: 0, 2, 4, 6.
+      Vertex 3: 1, 3, 5, 7.
+      Vertex 4: 2, 3, 6, 7.
+      Vertex 5: 4, 5, 6, 7.
+
+              V  V  V
+      Face 0: 0, 1, 2,
+      Face 1: 1, 0, 3,
+      Face 2: 0, 2, 4,
+      Face 3: 3, 0, 4,
+      Face 4: 1, 5, 2,
+      Face 5: 1, 3, 5,
+      Face 6: 2, 5, 4,
+      Face 7: 3, 4, 5,
+    */
+}
 
 std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const faces_t& faces, vertexindex_type  max_vert_index) {
     /*
@@ -114,6 +157,11 @@ std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const faces_t& fac
             neighbour_faces_of_vertex[v1].push_back(fi);
         }
     }
+
+    #if DEBUG_VERBOSE
+    print_faces(faces);
+    print_vertex_neighbourhood(neighbour_faces_of_vertex);
+    #endif
 
     return neighbour_faces_of_vertex;
 }

@@ -1,10 +1,10 @@
 #pragma once
 
-inline REAL squared(REAL x){
+inline REAL squared(REAL x) {
     return x*x;
 }
 
-inline REAL norm_squared(REAL x, REAL y, REAL z){
+inline REAL norm_squared(REAL x, REAL y, REAL z) {
     return x*x + y*y + z*z;
 }
 
@@ -379,4 +379,30 @@ int try_that()
  return 0;
 }
 */
+
+
+
+const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
+//const REAL NaN = std::numeric_limits<REAL>::signaling_NaN();
+
+inline bool isNaN(REAL x){return std::isnan(x);};
+
+/* detects NaN or Inf, etc */
+inline bool is_bad_number(REAL x) {
+    // also see: std::fpclassify()
+    //if (isNaN(x))
+    //    return true;
+    if (std::isnan(x))
+        return true;
+    if (std::isinf(x))
+        return true;
+
+    if (x == 0.0)
+        return false;
+
+    if (!std::isfinite(x))
+        return true;
+
+    return false;
+}
 

@@ -338,7 +338,8 @@ function provide_input (subjective_time, is_update_mode) {
     if (DONT_CHANGE || is_update_mode == 0) {
         var r = subjective_time;
 
-        var ellipsoid_radius = 8.0; // r;
+        var ellipsoid_radius = 8.0 * 0.1; // r;
+        // var ellipsoid_radius = 8.0; // r;
         var sphere_dict1 = {
             type: "ellipsoid",
             //radius: subjective_time,
@@ -382,8 +383,8 @@ function provide_input (subjective_time, is_update_mode) {
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
         //var mp5_json = MOON;         const BB_SIZE = 9+9;
-        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
-        // var mp5_json = SPHERE;  const BB_SIZE = 9;
+        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        var mp5_json = SPHERE;  const BB_SIZE = 9;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
         console.log(shape_dict);
@@ -432,9 +433,10 @@ function provide_input (subjective_time, is_update_mode) {
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            vresampl: {iters: 1, c: 1.0},
+            // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
+            vresampl: {iters: 0, c: 1.0},
             projection: {enabled: 1},
-            qem: {enabled: 0},
+            qem: {enabled: 1},
         });
 
 
@@ -457,6 +459,12 @@ function provide_input (subjective_time, is_update_mode) {
             resolution: 14,  // 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
+            /*
+            vresampl: {iters: 1, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            */
+
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
         /*
@@ -1022,7 +1030,7 @@ var chosen_matrial;
 const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
-const PERSPECTIVE = false;
+const PERSPECTIVE = true;
 
 function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
@@ -1103,7 +1111,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     // scene.add( points2 );
 
     var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0*2,   0.9, 0.9, 0.0); // Yellow: after
-    scene.add( points1 );
+    // scene.add( points1 );
 
 
 
@@ -1112,7 +1120,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
     // choose what is visible and what is not
     mesh_solid.visible = false;
-    points1.visible = false;
+    // points1.visible = false;
     //points2.visible = false;
     // mesh_wireframe.visible = false;
     // vectorfield.visiable =

@@ -360,6 +360,7 @@ void bisection(
         // active_indices[]   element is global index
         // indices_eitherside[]   element is local index
 
+        // Select a subset of active_indices[] where "eitherside=true"
         for (int i=0; i < indices_eitherside_size; i++) {
             /*
             if (!(indices_eitherside[i] >= active_indices[i])) {

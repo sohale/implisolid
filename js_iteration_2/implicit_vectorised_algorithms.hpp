@@ -171,7 +171,11 @@ void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& cent
 }
 
 
-vectorized_scalar  eval_implicit_on_selected_points_indexed(mp5_implicit::implicit_function* object, const vectorized_vect & X, const array_of_indices & active_indices,  int count) {
+vectorized_scalar  eval_implicit_on_selected_points_indexed(
+        mp5_implicit::implicit_function* object,
+        const vectorized_vect & X,
+        const array_of_indices & active_indices,
+        int count) {
     assert(count == active_indices.shape()[0]);
     vectorized_scalar_shape scalar_shape { count    };
     vectorized_scalar f_a(scalar_shape);
@@ -217,7 +221,12 @@ vectorized_scalar  eval_implicit_on_selected_points_bool(mp5_implicit::implicit_
     return f_a;
 }
 
-bool test_if_conjugate_opposite_signs_indexed(mp5_implicit::implicit_function* object, const vectorized_vect & A, const vectorized_vect & B, const vectorized_bool & already_success, REAL ROOT_TOLERANCE ) {
+bool test_if_conjugate_opposite_signs_indexed(
+    mp5_implicit::implicit_function* object,
+    const vectorized_vect & A, const vectorized_vect & B,
+    const vectorized_bool & already_success,
+    REAL ROOT_TOLERANCE
+    ) {
     // object->eval_implicit(xa4, &f_a);
     vectorized_scalar  f1 = eval_implicit_on_selected_points_bool(object, A, already_success,  already_success.shape()[0]);
     vectorized_scalar  f2 = eval_implicit_on_selected_points_bool(object, B, already_success,  already_success.shape()[0]);
