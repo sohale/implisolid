@@ -84,6 +84,12 @@ struct CONFIG {
 
 constexpr bool VERBOSE_QEM = false;
 
+#if ASSERT_USED
+
+constexpr REAL  MAGIC_VALUE_FOR_DEBUG = -10000.0;
+
+#endif
+
 // constexpr bool STORE_POINTSETS = true;
 // Now: see pointset_set.hpp
 

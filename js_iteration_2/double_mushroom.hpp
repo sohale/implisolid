@@ -94,7 +94,7 @@ public:
               (*f_output)[output_ctr] = r + (*i)[2];
             }
             else{
-              (*f_output)[output_ctr] = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+              (*f_output)[output_ctr] = -(std::pow((*i)[0]-this->x,2)/a2+std::pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
             }
 
         }
@@ -117,7 +117,7 @@ public:
             REAL g1;
             REAL g2;
 
-            REAL f = -(pow((*i)[0]-this->x,2)/a2+pow((*i)[1]-this->y,2)/b2-pow((*i)[2]-this->z,2)/c2-1);
+            REAL f = -(std::pow((*i)[0]-this->x,2)/a2+std::pow((*i)[1]-this->y,2)/b2-std::pow((*i)[2]-this->z,2)/c2-1);
             REAL uperside = r-((*i)[2]-this->z);
             REAL lowerside = r+((*i)[2]-this->z);
 
