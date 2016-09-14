@@ -477,6 +477,9 @@ void* get_pointset_ptr(char* id) {
     return p;
 }
 int get_pointset_size(char* id) {
+    clog << "int get_pointset_size(char* id) {return point_set_set[std::string(id)].shape()[0];} = "
+        << point_set_set[std::string(id)].shape()[0]
+        << std::endl;
     return point_set_set[std::string(id)].shape()[0];
 }
 

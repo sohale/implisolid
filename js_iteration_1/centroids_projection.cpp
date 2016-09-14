@@ -506,6 +506,8 @@ void  set_centers_on_surface(
             best_result_x[i][2] = -10.0;
         }
     #endif
+
+    // todo: reverse this. active_indices =  still_nonsuccess_indices
     array_of_indices  active_indices = build_range_array(n);
     array_of_indices::index active_indices_size = n;
 
@@ -525,7 +527,7 @@ void  set_centers_on_surface(
     int still_nonsuccess_indices___s_n_s = active_indices.shape()[0];
     //TODO RENAME  still_nonsuccess_indices___s_n_s --->  still_nonsuccess_indices_size
     still_nonsuccess_indices = active_indices;  // copy
-    assert(std::begin(still_nonsuccess_indices) != std::begin(active_indices));  // assure it's a correct copy
+    assert(std::begin(still_nonsuccess_indices) != std::begin(active_indices));  // assure it's a proper copy
 
     /*
     vectorized_bool  already_success_bool(scalar_shape);
@@ -664,7 +666,7 @@ void  set_centers_on_surface(
             ///////////// TODO: WE TO DEFINE THIS?
             // moved outside
             vectorized_vect  x1_half(vector_shape);
-            REAL c = (length_factor * alpha) * 4.0;
+            REAL c = (length_factor * alpha) * 4.0 / 4.0;
             assert(X.shape()[0] == dxc.shape()[0]);
 
 
@@ -676,6 +678,7 @@ void  set_centers_on_surface(
             // for (int j=0; j < n; j++) {
             for (int j=0; j < X.shape()[0]; j++) {
                 // But we need this only for active points
+                //No we already have all of dxc, so no need to prune.
                 // todo: only on chosen ones. ( fixme: )  set_h1_half --> h1_half_of_selected_points
                 x1_half[j][0] = X[j][0] + c * dxc[j][0];
                 x1_half[j][1] = X[j][1] + c * dxc[j][1];
@@ -690,9 +693,13 @@ void  set_centers_on_surface(
             clog << still_nonsuccess_indices___s_n_s << "==" << still_nonsuccess_indices.shape()[0] << std::endl;
             assert(still_nonsuccess_indices___s_n_s == still_nonsuccess_indices.shape()[0]);
             active_indices.resize(boost::extents[still_nonsuccess_indices.shape()[0]]);
-            active_indices_size = still_nonsuccess_indices___s_n_s;
 
+            active_indices_size = still_nonsuccess_indices___s_n_s;
             active_indices = still_nonsuccess_indices;  // just copy all contents. Tobe simplified later.
+
+            for (int i=0; i < active_indices.size(); i++) {
+                assert(active_indices [i] == still_nonsuccess_indices[i]);
+            }
 
 /*
             ////////////// REPEATED CODE.
@@ -702,6 +709,7 @@ void  set_centers_on_surface(
 */
             vectorized_scalar f_a = eval_implicit_on_selected_points_indexed(object, x1_half, active_indices, active_indices.shape()[0]);
 
+            //KEEPS repeating forever for 2 points only
             #if DEBUG_VERBOSE
             print_out_array_of_scalars(f_a, f_a.shape()[0], "f(active_indices)");
             // print_out_array_of_vectors(dxc, dxc.shape()[0], "dx");
@@ -789,12 +797,18 @@ void  set_centers_on_surface(
 
 
             still_nonsuccess_indices___s_n_s = 0;
-            for (int j=0; j < active_indices.shape()[0]; j++) {
+            for (int k=0; k < active_indices.shape()[0]; k++) {
+                /* **********************
+                *  BUG DETECTED.
+                ************************ */
+                auto j = active_indices[k];  // BUG!!!!
+
                 if (success[j] && !already_success_bool[j]) {
                     new_success_indices[new_success_indices___n_s] = j;
                     new_success_indices___n_s ++;
                 }
                 if (!success[j] && !already_success_bool[j]) {
+                    // still_nonsuccess_indices is next round's active_indices
                     still_nonsuccess_indices[still_nonsuccess_indices___s_n_s] = j;
                     still_nonsuccess_indices___s_n_s ++;
                 }
@@ -817,6 +831,21 @@ void  set_centers_on_surface(
                     */
 
             }
+
+            #if ASSERT_USED
+            // DEBUG THINGY
+            {
+                for (int j=0; j < active_indices.shape()[0]; j++) {
+                    if(already_success_bool[j])
+                    if (best_result_x[j][0] == MAGIC_VALUE_FOR_DEBUG || (best_result_x[j][0] == 0 && best_result_x[j][1] == 0 && best_result_x[j][2] == 0)) {
+                        // happens
+                        clog << "[a1]is absolute zero. j=" << j << " " << best_result_x[j][0] << std::endl;
+                        abort();
+                    }
+                }
+            }
+            #endif
+
             // not really necessary
             still_nonsuccess_indices.resize(boost::extents[still_nonsuccess_indices___s_n_s]);
 
@@ -834,7 +863,7 @@ void  set_centers_on_surface(
             print_out_array_of_indices(active_indices, active_indices_size, "active_indices");
             #endif
 
-
+            // active_indices is NOT up to date at this point.
 
 
             // note: new_success_indices[] can be empty
@@ -853,18 +882,37 @@ void  set_centers_on_surface(
             assert(success.shape()[0] == n);
             for (int j=0; j < n; j++) {
                 if (success[j]) {  // it should be new_success? ****
-                    already_success_bool[j] = b_true;
                     #if ASSERT_USED
                     // DEBUG THINGY
                     {
+                        // THIS DOES FAIL.
                         if (best_result_x[j][0] == MAGIC_VALUE_FOR_DEBUG || (best_result_x[j][0] == 0 && best_result_x[j][1] == 0 && best_result_x[j][2] == 0)) {
+                            clog << "signs_c[j] size " << signs_c.size() << " j=" << j << std::endl;
+                            clog << "success[j] size " << success.size() << " j=" << j << std::endl;
+                            clog << "already_success_bool[j] size test" << already_success_bool.size() << " j=" << j << std::endl;
+                            clog << "IN-POINT" <<
+                                X[j][0] << "," << X[j][1] << "," << X[j][2] << " .  " <<
+                                " DX=" << dxc[j][0] << "," << dxc[j][1] << "," << dxc[j][2] << " .  " <<
+                                " alpha = " << alpha << "c=" << c <<
+                                " already_success_bool=" << already_success_bool[j] <<
+                                " success=" << success[j] <<
+                                // " signs_a=" << signs_a[j] <<
+                                " signs_c[j]=" << signs_c[j] <<
+
+                                "            " << best_result_x[j][0] << std::endl;
                             clog << "[2]is absolute zero. j=" << j << " " << best_result_x[j][0] << std::endl;
                             abort();
                         }
                     }
                     #endif
+
+                    already_success_bool[j] = b_true;
+
                 }
             }
+
+            // invariant:
+            //     if already_success_bool[j]   <=>  best_result_x[j] is not empty
 
             clog << "[" << counter << "](+" << new_success_indices___n_s << ")" << still_nonsuccess_indices___s_n_s << " ";
 
@@ -1505,6 +1553,8 @@ boost::multi_array<int, 2> copy_faces_from_vectorfaces(const std::vector<int> & 
 // rename: project_points_on_surface. (output_points)
 void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& mesh_faces, bool enable_qem) {
 
+    clog << "mesh_faces.size():" << mesh_faces.size() << std::endl;
+
     vectorized_vect  verts = vects2vects(result_verts);
 
     vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
@@ -1565,6 +1615,10 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     */
     // LOG_POINTSET("post_p_centroids", centroids);
     STORE_POINTSET("post_p_centroids", centroids);
+    clog << "post_p_centroids" << " :" << centroids.shape()[0] << std::endl;
+    clog << "faces" << " :" << faces.shape()[0] << std::endl;
+    clog << "mesh_faces" << " :" << mesh_faces.size() << std::endl;
+
 
 
 

@@ -299,7 +299,10 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             //this.clearGroups();this.addGroup( 0, ntriangles * POINTS_PER_FACE, 0 );
 
         } else if(threejs_r79) {
-            assert(ntriangles);
+            // assert(ntriangles);
+            if (!ntriangles) {
+                console.error("Warning: ntriangles==0 : " + ntriangles);
+            }
             //vertices or faces? faces.
             this.setDrawRange( 0, ntriangles * POINTS_PER_FACE );
             this.used_faces_range = ntriangles * POINTS_PER_FACE;  // array size
@@ -330,9 +333,11 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
 
     this.update_geometry1 = function(verts, faces, ignoreNormals, use_wireframe) {
-        use_wireframe = false;
+        use_wireframe = false;  // experimental. should be always false;
 
-
+        if (faces.length == 0) {
+            console.warn("Warning: faces.length == 0");
+        }
         /*
             A wireframe BufferGeometry may have "2" vertex "indices" per line.
             A non-wireframe one uses "3" vertex "indices" per face.

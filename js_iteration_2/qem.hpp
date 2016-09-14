@@ -479,6 +479,8 @@ void vertex_apply_qem(
 
     }
 
+    clog << std::endl;
+
 }
 
 }  // namespace

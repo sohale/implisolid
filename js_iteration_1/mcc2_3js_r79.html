@@ -229,6 +229,27 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
 </script>
 
 <script>
+'use strict';
+function setShapeMatrix2Eye(shape_matrix, sz) {
+    if (typeof sz == "undefined")
+        sz = 1.0;
+
+    for(var ii=0; ii<16; ii++) {
+        shape_matrix[0] = 0;
+    }
+
+    shape_matrix[0] = 1 * sz;
+    shape_matrix[5] = 1 * sz;
+    shape_matrix[10] = 1 * sz;
+    shape_matrix[15] = 1;
+
+    shape_matrix[3] = 0;
+    shape_matrix[7] = 0;
+    shape_matrix[11] = 0;
+}
+</script>
+
+<script>
     var MP5_GENERIC_EXAMPLE_MOON = {
        "printerSettings":{
             "name":"test",  "layerThickness":0.2, "emptyLayer":0, "infillSpace":4, "topThickness":0.6, "paramSamples":75,
@@ -278,8 +299,11 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
           ]
        }
     };
-    var sz0 = 1.0;
-    var HEART = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":['+sz0+',0,0,82.63768850593796,0,'+sz0+',0,126.37324151118989,0,0,'+sz0+',5.000000079354265,0,0,0,1],"index":4872526}]}}';
+    var sz0 = 100.0;
+    var HEART = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.9661750055896976,"y":0.8085857086202395,"z":0.41578037212168595},"matrix":[10,0,0,-3.7368777450135866,0,10,0,-1.9559832356144682,0,0,10,1.7323194345664206e-7,0,0,0,1],"index":7575510},{"type":"cube","displayColor":{"x":0.23399071378141634,"y":0.31584816496653323,"z":0.35457351563365425},"matrix":[10,0,0,1.867397834493545,0,10,0,-1.7325527119763677,0,0,10,-9.734106853898084e-10,0,0,0,1],"index":5587759},{"type":"cylinder","displayColor":{"x":0.43814645627496795,"y":0.39556472441055845,"z":0.3415798414286939},"matrix":[10,0,0,1.8694799105200275,0,10,0,3.688535947590836,0,0,10,-1.7225853365943067e-7,0,0,0,1],"index":6657333}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6470588235294118,"y":0.2784313725490196,"z":0.5882352941176471},"matrix":[10.0,0,0,82.63768850593796,0,10.0,0,126.37324151118989,0,0,10.0,5.000000079354265,0,0,0,1],"index":4872526}]}}';
+    HEART = JSON.parse(HEART);
+    setShapeMatrix2Eye(HEART.root.children[0].matrix, sz0);
+    HEART = JSON.stringify(HEART);
 
     var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]}}';
 
@@ -304,22 +328,6 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
 
 
 'use strict';
-
-
-function setShapeMatrix2Eye(shape_matrix) {
-    for(var ii=0; ii<16; ii++) {
-        shape_matrix[0] = 0;
-    }
-
-    shape_matrix[0] = 1;
-    shape_matrix[5] = 1;
-    shape_matrix[10] = 1;
-    shape_matrix[15] = 1;
-
-    shape_matrix[3] = 0;
-    shape_matrix[7] = 0;
-    shape_matrix[11] = 0;
-}
 
 // const MESH_SCALE = 300/10;
 const MESH_SCALE = 1.0;
@@ -347,7 +355,7 @@ function provide_input (subjective_time, is_update_mode) {
             matrix:[
                 ellipsoid_radius, 0,0, 0,
                 0,ellipsoid_radius, 0, 0,
-                0,0,ellipsoid_radius * 0.5 / 0.5,  0,
+                0,0,ellipsoid_radius * 0.5 ,  0,
                 0,0,0,   1]
         };
         var sphere_dict = {
@@ -365,7 +373,6 @@ function provide_input (subjective_time, is_update_mode) {
         var SPHERE = JSON.stringify(mp5_json_sphere_dict);
         console.log(SPHERE);
 
-
         var tetrahedron_dict = {
             type: "tetrahedron",
             corners: [[0, 0, 5],[0, 10, 0],[10, 0, 0],[0, 0, -5]],
@@ -382,10 +389,10 @@ function provide_input (subjective_time, is_update_mode) {
 
         // Select the object to display
 
-        // var mp5_json = HEART;     const BB_SIZE = 9;
+        var mp5_json = HEART;     const BB_SIZE = 9;
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
-        var mp5_json = SPHERE;  const BB_SIZE = 9;
+        // var mp5_json = SPHERE;  const BB_SIZE = 9;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
         console.log(shape_dict);
@@ -434,10 +441,14 @@ function provide_input (subjective_time, is_update_mode) {
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
             vresampl: {iters: 1, c: 1.0},
             projection: {enabled: 1},
+
+
             qem: {enabled: 1},
+
+
+            // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
         });
 
 
@@ -462,11 +473,11 @@ function provide_input (subjective_time, is_update_mode) {
             ignore_root_matrix: false,
 
             /*
+            // makes things very slow
             vresampl: {iters: 1, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
             */
-
 
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
@@ -698,6 +709,10 @@ function make_pointset(newPolygonizer, name, point_size, color_r, color_g, color
 }
 
 function make_lines_mesh_v1(verts12, indices12, color) {
+
+    if (indices12.length == 0) {
+        console.error("Warning: indices12.length =", indices12.length);
+    }
     var re_allocate_buffers;
     //var geom = new LiveBufferGeometry79( verts12, indices12, re_allocate_buffers=true, 0, 0);
     var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers=true, 0, 0);
@@ -710,6 +725,9 @@ function make_lines_mesh_v1(verts12, indices12, color) {
     return wire_msh;
 }
 
+function make_empty_lines_mesh() {
+    return new THREE.LineSegments(new THREE.BoxGeometry(0.33333,0.3333333,0.33333333));
+}
 
 function make_vectorfield_flow_lines_v1(newPolygonizer, name1, name2, point_size) {
     // works!
@@ -727,6 +745,9 @@ function make_vectorfield_flow_lines_v1(newPolygonizer, name1, name2, point_size
     var n1 = verts1.length / 3;
     var n2 = verts2.length / 3;
 
+    if (n1 == 0) {
+        return make_empty_lines_mesh();
+    }
     /*
     n1 = 4*10;
     n2 = 4*10;
@@ -818,6 +839,8 @@ function make_vectorfield_flow_lines_v2(newPolygonizer, name1, name2, point_size
     var n1 = verts1.length / 3;
     var n2 = verts2.length / 3;
 
+    assert(n1 > 0);
+
     var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
     var verts12 = new Float32Array(raw_buffer);
     // var verts12 = new Float32Array(n1 + n2);
@@ -875,6 +898,11 @@ function make_normals(newPolygonizer, shape_json, label_name, alpha, MESH_SCALE,
     var n = newPolygonizer.get_pointset_size(label_name);
     var verts = get_emc_array(newPolygonizer.get_pointset_ptr(label_name),
         n * 3 );
+
+    if (n == 0) {
+        console.warn("Error: zero points", n);
+        return make_empty_lines_mesh();
+    }
 
     // verts = arrow_bases
 
@@ -1099,6 +1127,7 @@ var materials_list; //, material_f;
 var material_wireframe;
 var mesh_wireframe = null;
 //var last_geometry = null;
+var global_normals;
 
 var global_arrows;
 
@@ -1203,9 +1232,10 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     scene.add( points1 );
     */
 
-    var alpha = -10.0;
-    var norms_ = make_normals(newPolygonizer, shape_json, "post_p_centroids", alpha, MESH_SCALE, 0x00ff00); // 0x88ff00
+    var alpha = 60.0;
+    var norms_ = make_normals(newPolygonizer, shape_json, "post_p_centroids", alpha, MESH_SCALE, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
+    global_normals = norms_;
 
     var points2 = make_pointset( newPolygonizer, "pre_p_centroids", 8.0 / 4.0*2,   0.9, 0.0, 0.0);  // Red: before
     // scene.add( points2 );
@@ -1218,11 +1248,13 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     scene.add( vectorfield );
 
     // choose what is visible and what is not
-     mesh_solid.visible = false;
+    // mesh_solid.visible = false;
     // points1.visible = false;
     //points2.visible = false;
     // mesh_wireframe.visible = false;
     // vectorfield.visiable =
+    // norms_.visible = false;
+    // global_normals.visible = false;
 
 
 
@@ -1418,9 +1450,24 @@ function update_mc(newPolygonizer, delta_t){
     //geometry.index.needsUpdate = true;
     "";
     */
+
+    /*
+    // SLOW. But using -o3 compilation it can make a nice live smooth QEM demo.
+    if (global_normals) {
+        scene.remove(global_normals);
+        global_normals = null
+    }
+    var alpha = 60.0;
+    var norms_ = make_normals(newPolygonizer, global_mp5, "post_p_centroids", alpha, MESH_SCALE, 0x009900); //  0x00ff00  // 0x88ff00
+    scene.add(norms_);
+    global_normals = norms_;
+    */
+
+    /*
     var ignore_root_matrix = false;
 
     update_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
+    */
 
 
     if(!EVEN_REUSE_MESH_OBJECT){
