@@ -389,7 +389,7 @@ void vertex_apply_qem(
         svd.setThreshold( svd_threshold );
         auto S = svd.singularValues();
         U = svd.matrixU();
-        V = svd.matrixV();
+        V = svd.matrixV().transpose();
         int rank = svd.rank();
 
         assert(S(0) >= S(1));
