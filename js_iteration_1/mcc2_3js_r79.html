@@ -389,8 +389,8 @@ function provide_input (subjective_time, is_update_mode) {
 
         // Select the object to display
 
-        var mp5_json = HEART;     const BB_SIZE = 9;
-        // var mp5_json = MOON;         const BB_SIZE = 9+9;
+        // var mp5_json = HEART;     const BB_SIZE = 9;
+        var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
 
@@ -1156,7 +1156,7 @@ var chosen_matrial;
 const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
-const PERSPECTIVE = true;
+const PERSPECTIVE = false;
 
 function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
@@ -1173,7 +1173,7 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
         camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
     } else {
         // OrthographicCamera( left, right, top, bottom, near, far )
-        var span_per_pixel = 1.0/800.0*2000.0; //for orthogaphic camera
+        var span_per_pixel = 1.0/800.0*2000.0/30.0; //for orthogaphic camera
         camera = new THREE.OrthographicCamera( -WIDTH/2.0*span_per_pixel,  +WIDTH/2.0*span_per_pixel, -HEIGHT/2.0*span_per_pixel, +HEIGHT/2.0*span_per_pixel, 1, 10000 );
     }
 
@@ -1238,29 +1238,45 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     scene.add( points1 );
     */
 
+    /*
+    var points2 = make_pointset( newPolygonizer, "pre_qem_verts", 2.0 / 30.0,   0.9, 0.0, 0.0);  // Red: before
+    scene.add( points2 );
+    */
+
+
+    var points1q = make_pointset( newPolygonizer, "post_qem_verts", 2.5 / 30.0 * 6.0,   0.9, 0.9, 0.0); // Yellow: after
+    scene.add( points1q );
+
+
+
     var alpha1 = -0.3, alpha2 = -0.6;
     var norms_ = make_normals(newPolygonizer, shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
     global_normals = norms_;
 
+
+    /*
     var points2 = make_pointset( newPolygonizer, "pre_p_centroids", 8.0 / 4.0*2 / 30.0,   0.9, 0.0, 0.0);  // Red: before
     // scene.add( points2 );
 
     var points1 = make_pointset( newPolygonizer, "post_p_centroids", 10.0 / 4.0 / 30.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
+    */
+
 
 
     // "Centroid Projection"'s result.
     var vectorfield = make_vectorfield_flow_lines_v1(newPolygonizer, "pre_p_centroids", "post_p_centroids");
     scene.add( vectorfield );
 
+
     // choose what is visible and what is not
     // mesh_solid.visible = false;
     // points1.visible = false;
     //points2.visible = false;
     // mesh_wireframe.visible = false;
-    // vectorfield.visiable =
-    // norms_.visible = false;
+    // vectorfield.visiable = false;
+    norms_.visible = false;
     // global_normals.visible = false;
 
 

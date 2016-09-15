@@ -17,6 +17,8 @@ author: Marc, Solene, Sohail
 #include <tuple>
 #include <fstream>
 
+#include <cstddef>   // for std::nullptr only
+
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 
@@ -53,6 +55,7 @@ using mp5_implicit::check_all_are_root;
 #include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 // #include "../js_iteration_2/qem.hpp"
+
 
 using namespace std;
 
@@ -1655,14 +1658,49 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     if (enable_qem) {
         std::clog << "Going for QEM:" << std::endl;
-        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
+        // array_of_indices  ranks {num_faces}; // will not work
+        array_of_indices  ranks {boost::extents[num_faces]};
+
+        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, &ranks);
+        //vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
 
         if (STORE_POINTSETS)
         {
+        /*
         verts_t ps1 = verts;
         if (VERBOSE_QEM)
             clog << "2.verts: " << ps1.shape()[0] << "x" << ps1.shape()[1] << " : " << ps1[0][0] << std::endl;
+
+
+        //for (int i=0;i < num_faces; i++) {
+        //    if (ranks[i] != 2) {
+        //        for (int d=0;d<3;d++)
+        //            point_set_set["pre_p_centroids"][i][d] = -1000;
+        //        for (int d=0;d<3;d++)
+        //            point_set_set["post_p_centroids"][i][d] = -1000;
+        //    }
+        //}
+
         point_set_set.emplace(std::make_pair(std::string("post_qem_verts"), ps1));
+        */
+
+        STORE_POINTSET("post_qem_verts", verts);
+
+        int ONLY_RANK = 1;
+        for (int i=0;i < verts.shape()[0]; i++) {
+            if (ranks[i] != ONLY_RANK) {
+                /*
+                ps1[i][0] = -1000;
+                ps1[i][1] = -1000;
+                ps1[i][2] = -1000;
+                */
+                for (int d=0;d<3;d++) {
+                    point_set_set["post_qem_verts"][i][d] = -1000;
+                    point_set_set["pre_qem_verts"][i][d] = -1000;
+                }
+            }
+        }
+
         }
 
         // if APPLY_QEM_RESULT

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>   // for std::nullptr only
+
 #include "../js_iteration_2/basic_functions.hpp"
 
 #include "../js_iteration_2/matrix_functions.hpp"
@@ -315,19 +317,28 @@ void get_A_b(
 
 
 void vertex_apply_qem(
-    verts_t* verts, const faces_t faces,
-    const verts_t centroids,
-    const std::vector< std::vector<int>> vertex_neighbours_list,
-    const verts_t centroid_gradients)
+    verts_t* verts
+    , const faces_t faces
+    , const verts_t centroids
+    , const std::vector< std::vector<int>> vertex_neighbours_list
+    , const verts_t centroid_gradients
+    , array_of_indices *ranks_output
+    )
     //const vectorized_bool& treated)
 {
     REAL tau = 680;
     REAL svd_threshold = 1.0 / tau;
 
-    assert (verts != nullptr);
+    // assert (verts != nullptr);
 
     int nverts = verts->shape()[0];
     assert(nverts = vertex_neighbours_list.size());
+
+    bool store_ranks = (ranks_output != nullptr);
+    if (store_ranks) {
+        assert(ranks_output->shape()[0] == centroids.shape()[0]);
+    }
+    assert(centroid_gradients.shape()[0] == centroids.shape()[0]);
 
     // print_vertex_neighbourhood(vertex_neighbours_list);
     /*
@@ -438,7 +449,9 @@ void vertex_apply_qem(
             // assert( S(rank+1-1) == 0.0 );
         }
 
+        #if DEBUG_VERBOSE
         clog << " rank=" << rank << " ";
+        #endif
 
         for (int i = rank; i < 3; ++i) {
             S(i) = 0.0;  // not necessary really
@@ -457,6 +470,21 @@ void vertex_apply_qem(
         for (int i=0; i < rank; i++) {
             //if (S(i) != 0.0)
             y(i) = utb(i) / S(i);
+            /*
+            Never happens:
+            if (S(i) == 0.0) {
+                // y(i) = 0.0;
+                clog "utb(i) " << utb(i) << " ";
+            }
+            */
+        }
+
+        for (int i=rank; i < 3; i++) {
+            // y(i) = utb(i) / S(i);
+            //if (S(i) == 0.0) {  // always
+            clog << "utb(i) " << utb(i) << " ";
+            y(i) = 0.0;
+            //}
         }
 
         // std::clog << "!5" << std::endl;
@@ -477,8 +505,15 @@ void vertex_apply_qem(
         (*verts)[vi][1] = new_x(1);
         (*verts)[vi][2] = new_x(2);
 
+        if (store_ranks) {
+            (*ranks_output)[vi] = rank;
+        }
+
     }
 
+    #if DEBUG_VERBOSE
+    clog << std::endl;
+    #endif
     clog << std::endl;
 
 }
