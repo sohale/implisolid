@@ -437,14 +437,12 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2),
+            resolution: Math.floor(28/2*2/2),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            vresampl: {iters: 1, c: 1.0},
+            vresampl: {iters: 3, c: 1.0},
             projection: {enabled: 1},
-
-
             qem: {enabled: 1},
 
 
@@ -468,16 +466,16 @@ function provide_input (subjective_time, is_update_mode) {
         var r = subjective_time * 5;
         //var BB_SIZE = 6.;
         var mc_properties_json = JSON.stringify({
-            resolution: 14,  // 28,
+            resolution: 14*2 / 2,  // 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
-            /*
+
             // makes things very slow
             vresampl: {iters: 1, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
-            */
+
 
         });
         //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
@@ -1244,8 +1242,11 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     */
 
 
+    /*
     var points1q = make_pointset( newPolygonizer, "post_qem_verts", 2.5 / 30.0 * 6.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1q );
+    */
+
 
 
 
@@ -1264,9 +1265,13 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     */
 
 
-
+/*
     // "Centroid Projection"'s result.
     var vectorfield = make_vectorfield_flow_lines_v1(newPolygonizer, "pre_p_centroids", "post_p_centroids");
+    scene.add( vectorfield );
+*/
+    // "QEM"'s result.
+    var vectorfield = make_vectorfield_flow_lines_v1(newPolygonizer, "pre_qem_verts", "post_qem_verts");
     scene.add( vectorfield );
 
 

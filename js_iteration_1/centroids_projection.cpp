@@ -1660,9 +1660,11 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         std::clog << "Going for QEM:" << std::endl;
         // array_of_indices  ranks {num_faces}; // will not work
         array_of_indices  ranks {boost::extents[num_faces]};
+        REAL maximum_qem_displacement = average_edge;
 
-        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, &ranks);
         //vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients);
+        // vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, &ranks);
+        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, &ranks, maximum_qem_displacement);
 
         if (STORE_POINTSETS)
         {
@@ -1686,8 +1688,9 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
         STORE_POINTSET("post_qem_verts", verts);
 
-        int ONLY_RANK = 1;
+        int ONLY_RANK = -1;
         for (int i=0;i < verts.shape()[0]; i++) {
+            if (ONLY_RANK >= 0)
             if (ranks[i] != ONLY_RANK) {
                 /*
                 ps1[i][0] = -1000;

@@ -323,6 +323,7 @@ void vertex_apply_qem(
     , const std::vector< std::vector<int>> vertex_neighbours_list
     , const verts_t centroid_gradients
     , array_of_indices *ranks_output
+    , REAL maximum_displacement_distance
     )
     //const vectorized_bool& treated)
 {
@@ -483,7 +484,12 @@ void vertex_apply_qem(
             // y(i) = utb(i) / S(i);
             //if (S(i) == 0.0) {  // always
             clog << "utb(i) " << utb(i) << " ";
-            y(i) = 0.0;
+            // There are two solutions for this:
+            // // 1- y(i) = 0.0
+            // // 2- y(i) = default
+            //if (!DEFAUT_SOLUTIION)
+            // y(i) = 0.0;
+
             //}
         }
 
@@ -501,9 +507,32 @@ void vertex_apply_qem(
 
         Matrix<REAL, 3, 1> new_x = V.transpose() * y + qem_origin;
 
-        (*verts)[vi][0] = new_x(0);
-        (*verts)[vi][1] = new_x(1);
-        (*verts)[vi][2] = new_x(2);
+        if (maximum_displacement_distance > 0) {
+            REAL dx = new_x(0) - (*verts)[vi][0];
+            REAL dy = new_x(1) - (*verts)[vi][1];
+            REAL dz = new_x(2) - (*verts)[vi][2];
+
+            REAL dist2 = norm_squared(dx,dy,dz);
+
+            if (dist2 <= maximum_displacement_distance*maximum_displacement_distance) {
+                (*verts)[vi][0] = new_x(0);
+                (*verts)[vi][1] = new_x(1);
+                (*verts)[vi][2] = new_x(2);
+            } else {
+                // move "a bit"
+                REAL displacement_len = maximum_displacement_distance *0.9; // * 0.5;
+
+                REAL dist = std::sqrt(dist2);
+                (*verts)[vi][0] += dx / dist * displacement_len;
+                (*verts)[vi][1] += dy / dist * displacement_len;
+                (*verts)[vi][2] += dz / dist * displacement_len;
+            }
+
+        } else {
+            (*verts)[vi][0] = new_x(0);
+            (*verts)[vi][1] = new_x(1);
+            (*verts)[vi][2] = new_x(2);
+        }
 
         if (store_ranks) {
             (*ranks_output)[vi] = rank;
