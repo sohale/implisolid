@@ -520,9 +520,19 @@ void vertex_apply_qem(
                 (*verts)[vi][2] = new_x(2);
             } else {
                 // move "a bit"
-                REAL displacement_len = maximum_displacement_distance *0.9; // * 0.5;
 
                 REAL dist = std::sqrt(dist2);
+
+                // factor 1.5: works better on large objects (large MC step)
+                //  factor 0.9: problems on high-resolution objection (small MC step)
+                // togo: put the factor in maximum_displacement_distance (now it has discontinuity)
+
+                REAL displacement_len = maximum_displacement_distance * 1.5; //* 0 .9; // * 0.5;
+                if (displacement_len > dist) {
+                    displacement_len = dist;
+                }
+
+
                 (*verts)[vi][0] += dx / dist * displacement_len;
                 (*verts)[vi][1] += dy / dist * displacement_len;
                 (*verts)[vi][2] += dz / dist * displacement_len;

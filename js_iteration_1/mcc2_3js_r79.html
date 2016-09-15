@@ -437,7 +437,7 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2/2),
+            resolution: Math.floor(28/2*2),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
@@ -466,7 +466,7 @@ function provide_input (subjective_time, is_update_mode) {
         var r = subjective_time * 5;
         //var BB_SIZE = 6.;
         var mc_properties_json = JSON.stringify({
-            resolution: 14*2 / 2,  // 28,
+            resolution: 14*2 / 2 * 2,  // 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
@@ -1588,7 +1588,7 @@ function look_nice(){
     materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30,
         shading: THREE.FlatShading,
         side:THREE.DoubleSide,
-        opacity: 0.5, transparent: true,
+        opacity: 0.99, transparent: true,
         } ) );
 
     materials.push( new THREE.MeshNormalMaterial( ) );
