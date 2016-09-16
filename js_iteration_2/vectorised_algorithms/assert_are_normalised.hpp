@@ -20,6 +20,21 @@ inline bool assert_are_normalised(const verts_t& A) {
     return true;
 }
 
+inline vindex_t first_not_normalised(const verts_t& A) {
+    /*
+    For debugging only
+    */
+    for (vindex_t i = 0, e = A.shape()[0]; i < e; i++) {
+        REAL norm2 = norm_squared(A[i][0], A[i][1], A[i][2]);
+        if(std::abs(norm2 - 1.0) < mp5_implicit::vectorised_algorithms::ALL_CLOSE_EPS)
+            {}
+        else
+            return i;
+    }
+    return -1;
+}
+
+
 /*
 inline void assert_are_normalised(const verts_t& A) {
 

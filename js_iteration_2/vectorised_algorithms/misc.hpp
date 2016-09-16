@@ -110,6 +110,33 @@ inline void assign_vects_chosen_by_fancy_indexing(
 }
 
 
+/*
+// template <typename T>
+inline void assign_selected(T& a, const T& b, bool[] bool_arr, int n) {
+    for (int i=0; i < n; i++) {
+        if (bool_arr[i]) {
+            a[i][0] = b[i][0];
+            a[i][1] = b[i][1];
+            a[i][2] = b[i][2];
+        }
+    }
+}
+
+assign_fancy_indexes(centroids, x_bisect, relevants_bool_indices)
+inline void assign_fancy_indexes(T& a, const T& b, int[] indices_arr, int m) {
+    for (int i=0; i < m; i++) {
+        if (bool_arr[i]) {
+            a[f[i]][0] = b[i][0];
+            a[f[i]][1] = b[i][1];
+            a[f[i]][2] = b[i][2];
+        }
+    }
+}
+
+*/
+
+
+
 inline void bool_find_zero_scalars(vectorized_bool & zeros2_bool, const vectorized_scalar & f2, REAL ROOT_TOLERANCE) {
     auto n = f2.shape()[0];
     assert( n == zeros2_bool.shape()[0]);
@@ -153,6 +180,8 @@ inline void set_array_to_value(A, v) {
     }
 }
 */
+
+// todo: write a TDD test for this. // not checked
 inline void set_all_array_elements_to_a_boolean_value(vectorized_bool & A, vectorized_bool::value_type v) {
     for (auto iter = A.begin(), e = A.end(); iter < e; ++iter) {
         *iter = v;
@@ -160,4 +189,10 @@ inline void set_all_array_elements_to_a_boolean_value(vectorized_bool & A, vecto
 }
 
 }
+}
+
+inline ostream& operator<<(ostream& os, const vectorized_vect::value_type& single_vector)
+{
+    os << single_vector[0] << ',' << single_vector[1] << ',' << single_vector[2];
+    return os;
 }

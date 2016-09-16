@@ -12,11 +12,14 @@ inline void STORE_POINTSET(std::string key_name, const verts_t & centroids)
 {
     if (STORE_POINTSETS) {
         verts_t ps2 = centroids;  // make a copy
-        //if (VERBOSE_QEM)
-            clog << key_name << ": "  // "3.centroids: "
+        if (VERBOSE_QEM) {
+            clog << "STORE_POINTSET" << key_name << ": "  // "3.centroids: "
                 << ps2.shape()[0] << "x" << ps2.shape()[1] << " : " << ps2[0][0] << std::endl;
+        }
         auto number_erased = point_set_set.erase(std::string(key_name));
-        clog << "number_erased : " << number_erased << std::endl;
+        if (VERBOSE_QEM) {
+            clog << "number_erased : " << number_erased << std::endl;
+        }
         point_set_set.emplace(std::make_pair(std::string(key_name), ps2));  // uses move constructor
     }
 }
