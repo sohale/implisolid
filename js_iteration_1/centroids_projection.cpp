@@ -668,7 +668,7 @@ void  set_centers_on_surface(
             #endif
 
             // simply: active_indices = still_nonsuccess_indices
-            clog << still_nonsuccess_indices_effective_size << "==" << still_nonsuccess_indices.shape()[0] << std::endl;
+            // clog << still_nonsuccess_indices_effective_size << "==" << still_nonsuccess_indices.shape()[0] << std::endl;
             assert(still_nonsuccess_indices_effective_size == still_nonsuccess_indices.shape()[0]);
             active_indices.resize(boost::extents[still_nonsuccess_indices.shape()[0]]);
 

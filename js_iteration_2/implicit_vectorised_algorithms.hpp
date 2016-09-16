@@ -193,7 +193,7 @@ vectorized_scalar  eval_implicit_on_selected_points_indexed(
     ///////////// TODO: WE TO DEFINE THIS?
     // vectorized_scalar f_a(scalar_shape);
     object->eval_implicit(xa, &f_a);
-    clog << "Evaluating(a) " << active_indices.shape()[0] << " points" << std::endl;
+    // clog << "Evaluating(a) " << active_indices.shape()[0] << " points" << std::endl;
 
     return f_a;
 }
