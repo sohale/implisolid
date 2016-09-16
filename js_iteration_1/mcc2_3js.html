@@ -40,7 +40,7 @@ Based on MCC1
     'use strict';
 
 
-    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needs_deallocation
+    //function d(arg){console.log(" ------- HERE "+arg );}  //polygonizer_service.needs_deallocation
     // Exported
 
     var produce_object;
@@ -84,14 +84,14 @@ Based on MCC1
         newProducer.init = function(){ newProducer.needs_deallocation = false; }
         newProducer.finish_with = function (){
             //after the last round.
-            if(!newPolygonizer.needs_deallocation)
+            if(!polygonizer_service.needs_deallocation)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
             //todo: try-catch
             //d(1);
-            newPolygonizer.finish_geometry();
-            newPolygonizer.needs_deallocation = false;
-            //todo(sohail):  Why newPolygonizer is used here? We should use 'this'.
+            polygonizer_service.finish_geometry();
+            polygonizer_service.needs_deallocation = false;
+            //todo(sohail):  Why polygonizer_service is used here? We should use 'this'.
         }
         newProducer.set_vect = function (float32Array){
             if (float32Array.length % 3 != 0) {console.error("bad input array");};
@@ -103,6 +103,61 @@ Based on MCC1
             Module._free( verts_space );
 
         }
+
+        newProducer.update_geometry = function(geometry, ignoreNormals) {
+
+            var implicit_service = this;
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+            const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+            const POINTS_PER_FACE = 3;
+
+            var nverts = implicit_service.get_v_size();
+            var nfaces = implicit_service.get_f_size();
+
+            if(nfaces > 0){
+                var verts_address = implicit_service.get_v_ptr();
+                var faces_address = implicit_service.get_f_ptr();
+
+                var verts = Module.HEAPF32.subarray(
+                    verts_address/_FLOAT_SIZE,
+                    verts_address/_FLOAT_SIZE + 3*nverts);
+
+                var faces = Module.HEAPU32.subarray(
+                    faces_address/_INT_SIZE,
+                    faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+            }
+            else{
+                console.log("empty implicit");
+                var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+                var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+            }
+
+            return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+        };
+
+        newProducer.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
+
+            implicit_service = newProducer;
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+
+            implicit_service.set_object(mp5_str, ignore_root_matrix);
+            implicit_service.set_vect(x);  // overhead
+            implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+            var ptr = implicit_service.get_gradients_ptr();
+            var ptr_len = implicit_service.get_gradients_size();
+            var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+            //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+            //for( var i = 0 ; i < ptr_len; i++) {
+            //    gradients[i] += Math.random() * 0.2;
+            //}
+
+            geom.update_normals_from_array(gradients);
+
+            implicit_service.unset_x();
+            implicit_service.unset_object();
+        };
+
 
         newProducer.init();
 
@@ -254,10 +309,10 @@ var call_multiple_times = function() {
     var last_active = 0;
     var intervals_counter = 0;
 
-    function _call_multiple_times(newPolygonizer, update_mc) {
+    function _call_multiple_times(polygonizer_service, update_mc) {
         /** Asynchronously does a series of calls to the function  update_mc().
         Previous name: update_mc_mul tiple() */
-        var BURST_COUNT = 50;
+        var BURST_COUNT = 5; // 50;
         var INTERVAL_MSEC = 8-1; //40  // 1   // in Milliseconds
             // Works well on too small values (Semaphore).
             // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
@@ -299,7 +354,7 @@ var call_multiple_times = function() {
                     {
                         already_busy_doing_it++;
 
-                        update_mc(newPolygonizer, 0.2/10.*5 /5.);
+                        update_mc(polygonizer_service, 0.2/10.*5 /5.   *10);
 
                         if(already_busy_doing_it>1)
                             console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
@@ -341,17 +396,17 @@ LiveGeometry.prototype.constructor = LiveGeometry;
 
 
 // Keep this method, although it is not used.
-function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
+function make_geometry_old1(polygonizer_service, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
 {
     var startTime = new Date();
 
-    //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
-    //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
-    newPolygonizer.build_geometry( shape_json , polygonization_json);
+    //polygonizer_service.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+    //polygonizer_service.build_geometry( mp5_json , mc_properties_json);
+    polygonizer_service.build_geometry( shape_json , polygonization_json);
     //implicit_double_mushroom center will be zero.
 
-    var nverts = newPolygonizer.get_v_size();
-    var nfaces = newPolygonizer.get_f_size();
+    var nverts = polygonizer_service.get_v_size();
+    var nfaces = polygonizer_service.get_f_size();
     if(VERBOSE){
         console.log(nverts);
     }
@@ -359,8 +414,8 @@ function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reu
     var verts_address = Module._malloc(_FLOAT_SIZE*3*nverts);
     var faces_address = Module._malloc(_INT_SIZE*3*nfaces);
 
-    newPolygonizer.get_v(verts_address, nverts);
-    newPolygonizer.get_f(faces_address, nfaces);
+    polygonizer_service.get_v(verts_address, nverts);
+    polygonizer_service.get_f(faces_address, nfaces);
 
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
     //console.log(verts);
@@ -389,8 +444,8 @@ function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reu
     Module._free(faces_address);
 
     //d(1);
-    newPolygonizer.finish_geometry();
-    newPolygonizer.needs_deallocation = false;
+    polygonizer_service.finish_geometry();
+    polygonizer_service.needs_deallocation = false;
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -430,10 +485,12 @@ function provide_input (subjective_time, update_mode) {
     // update_mode: 1 => update
     // update_mode: 2 => deprecated (used in make_geometry_old1() )
 
+        console.error("update_mode == ", update_mode);
+
     // asked for:
     var shape_json, polygonization_json;
 
-    if(1 || update_mode == 0) {
+    if( update_mode == 0) {
         var r = subjective_time;
 
         var mp5_json_0 = JSON.stringify({
@@ -470,6 +527,7 @@ function provide_input (subjective_time, update_mode) {
         var mp5_json = HEART;
         var mp5_json_dict = JSON.parse(mp5_json).root.children[0];
         //var mp5_json_dict = mp5_json_tetrahedron;
+
 
         /*
         // for heart
@@ -524,7 +582,7 @@ function provide_input (subjective_time, update_mode) {
             resolution: 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE}
         });
-        //newPolygonizer.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        //polygonizer_service.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
         var mp5_json = JSON.stringify({
             type: "egg",
             //radius: r, //boudbl_mushroom only
@@ -534,6 +592,8 @@ function provide_input (subjective_time, update_mode) {
                 0,0, r, z0,
                 0,0,0,   1]
         });
+        console.error("r=", r);
+        console.log(mp5_json);
 
 
         shape_json = mp5_json;
@@ -548,7 +608,7 @@ function provide_input (subjective_time, update_mode) {
     /*
     if(update_mode == 2) {
         //not used anymore
-        //console.log(newPolygonizer);
+        //console.log(polygonizer_service);
         //d("2   G..");
         var x0=0, y0=0, z0=0;
         var r = subjective_time;
@@ -580,7 +640,7 @@ Three ways:
 3-  make_geometry_new2()
 */
 
-function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
+function make_geometry_new2(polygonizer_service, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
 {
     //console.log(shape_json);
     //console.log(polygonization_json);
@@ -589,18 +649,18 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     // reusable_geometry is not used;
     var startTime = new Date();
 
-    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
-        //console.log("newPolygonizer.needs_deallocation " + newPolygonizer.needs_deallocation);
+    if(polygonizer_service.needs_deallocation) {  // Remove data from last round.
+        //console.log("polygonizer_service.needs_deallocation " + polygonizer_service.needs_deallocation);
         //d(1);
-        newPolygonizer.finish_geometry();
-        newPolygonizer.needs_deallocation = false;
+        polygonizer_service.finish_geometry();
+        polygonizer_service.needs_deallocation = false;
     }
     else{
         //console.error("Should not get here");
-        //newPolygonizer.finish_geometry();
-        //newPolygonizer.needs_deallocation = false;
+        //polygonizer_service.finish_geometry();
+        //polygonizer_service.needs_deallocation = false;
     }
-    //newPolygonizer.finish_geometry();
+    //polygonizer_service.finish_geometry();
 
     //d("2   G");
     //28*2 --> 27 sec    28->3.75--7 msec?
@@ -610,21 +670,21 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     //var mp5_json = "";
     //var mc_properties_json = "";
 
-    //newPolygonizer.build_geometry( 28, mc_properties, "sphere", subjective_time);
-    //newPolygonizer.build_geometry( mp5_json , mc_properties_json);
-    newPolygonizer.build_geometry( shape_json , polygonization_json);
+    //polygonizer_service.build_geometry( 28, mc_properties, "sphere", subjective_time);
+    //polygonizer_service.build_geometry( mp5_json , mc_properties_json);
+    polygonizer_service.build_geometry( shape_json , polygonization_json);
         //implicit_double_mushroom center will be zero.
 
-    newPolygonizer.needs_deallocation = true;
+    polygonizer_service.needs_deallocation = true;
 
-    var nverts = newPolygonizer.get_v_size();
-    var nfaces = newPolygonizer.get_f_size();
+    var nverts = polygonizer_service.get_v_size();
+    var nfaces = polygonizer_service.get_f_size();
     if(VERBOSE){
         console.log(nverts);
     }
 
-    var verts_address = newPolygonizer.get_v_ptr();
-    var faces_address = newPolygonizer.get_f_ptr();
+    var verts_address = polygonizer_service.get_v_ptr();
+    var faces_address = polygonizer_service.get_f_ptr();
     //no need to free anymore!
 
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
@@ -653,36 +713,36 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
 //unload
-function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, geometry) {
+function update_reused_geometry(polygonizer_service, mp5_json, mc_properties_json, geometry) {
 
     //console.log(mp5_json);
     //console.log(mc_properties_json);
 
     var startTime = new Date();
 
-    //console.log(newPolygonizer.needs_deallocation);
-    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
+    //console.log(polygonizer_service.needs_deallocation);
+    if(polygonizer_service.needs_deallocation) {  // Remove data from last round.
         //d(1);
-        newPolygonizer.finish_geometry();
-        newPolygonizer.needs_deallocation = false;
+        polygonizer_service.finish_geometry();
+        polygonizer_service.needs_deallocation = false;
     }
 
-    if(newPolygonizer.needs_deallocation)
+    if(polygonizer_service.needs_deallocation)
         console.error("not deallocated.");
     try{
 
-        newPolygonizer.build_geometry( mp5_json , mc_properties_json);
+        polygonizer_service.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
-        newPolygonizer.needs_deallocation = true;
+        polygonizer_service.needs_deallocation = true;
     }catch(err){
         console.error("An error occured during MCC C++")
         console.info(err);
     }finally {
     }
 
-    // geometry. update_geometry (newPolygonizer);
-    newPolygonizer. update_geometry (geometry);
+    // geometry. update_geometry (polygonizer_service);
+    polygonizer_service. update_geometry (geometry);
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;
@@ -730,7 +790,7 @@ function make_multiple_arrows(n) {
     return arrowHelpers;
 }
 
-function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
+function change_arrows(arrows, polygonizer_service, mp5_str, n, ignore_root_matrix) {
     /**
      * Update the arrow parameters
     */
@@ -747,11 +807,11 @@ function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
     //var _verts = new Float32Array([x, y, z]);
     var _verts = new Float32Array(vlist);
 
-    newPolygonizer.set_object(mp5_str, ignore_root_matrix);
-    newPolygonizer.set_vect(_verts);
-    newPolygonizer.calculate_implicit_gradients();
-    var ptr = newPolygonizer.get_gradients_ptr();
-    var ptr_len = newPolygonizer.get_gradients_size();
+    polygonizer_service.set_object(mp5_str, ignore_root_matrix);
+    polygonizer_service.set_vect(_verts);
+    polygonizer_service.calculate_implicit_gradients();
+    var ptr = polygonizer_service.get_gradients_ptr();
+    var ptr_len = polygonizer_service.get_gradients_size();
     var g = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
     //console.log("grad len = " +  ptr_len+ "  grad = " + g);  // x 4
 
@@ -766,8 +826,8 @@ function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
         var gx = g[i*3 + 0];
         var gy = g[i*3 + 1];
         var gz = g[i*3 + 2];
-        //newPolygonizer.unset_x();
-        //newPolygonizer.unset_object();
+        //polygonizer_service.unset_x();
+        //polygonizer_service.unset_object();
 
 
         //console.log("*****************************************")
@@ -786,8 +846,8 @@ function change_arrows(arrows, newPolygonizer, mp5_str, n, ignore_root_matrix) {
         //console.log("change_arrow");
     }
 
-    newPolygonizer.unset_x();
-    newPolygonizer.unset_object();
+    polygonizer_service.unset_x();
+    polygonizer_service.unset_object();
 }
 // **************************************************************
 
@@ -819,7 +879,7 @@ const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
 
-function init_scene(newPolygonizer, shape_json, polygonization_json) {
+function init_scene(polygonizer_service, shape_json, polygonization_json) {
 
     scene = new THREE.Scene();
 
@@ -857,12 +917,12 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
             shape_json = tuple[0];
             polygonization_json = tuple[1];
 
-            // //geometry = make_geometry_old1(newPolygonizer, global_time, polygonization_json, null);
+            // //geometry = make_geometry_old1(polygonizer_service, global_time, polygonization_json, null);
 
-            geometry = make_geometry_old1(newPolygonizer, shape_json,  null);         //keep this comment
+            geometry = make_geometry_old1(polygonizer_service, shape_json,  null);         //keep this comment
         */
-        //geometry = make_geometry_new2(newPolygonizer, global_time, null, true);
-        geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, true);
+        //geometry = make_geometry_new2(polygonizer_service, global_time, null, true);
+        geometry = make_geometry_new2(polygonizer_service, shape_json, polygonization_json, null, true);
     }
     //last_geometry = geometry;
 
@@ -914,16 +974,16 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     /*
       function call_multiple_times() {
             var mc_icounter=0;
-            setInterval(function(){ if(mc_icounter<10) update_mc(newPolygonizer, 0.2/10.*5); mc_icounter++; }, 30);
+            setInterval(function(){ if(mc_icounter<10) update_mc(polygonizer_service, 0.2/10.*5); mc_icounter++; }, 30);
         }
     */
 
 
     function doKeyDownListener(event) {
         if ( event.keyCode == 17 ) {
-            //update_mc(newPolygonizer);
-            call_multiple_times(newPolygonizer, update_mc);
-            //change_arrow(arrow, newPolygonizer, global_mp5);
+            //update_mc(polygonizer_service);
+            call_multiple_times(polygonizer_service, update_mc);
+            //change_arrow(arrow, polygonizer_service, global_mp5);
         }
         else
             console.log(event.keyCode);
@@ -939,12 +999,13 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
 }
 
-function update_mc(newPolygonizer, delta_t){
+function update_mc(polygonizer_service, delta_t){
 
     if(delta_t === undefined)
         delta_t = 0.2;
     // Subjective time!
     global_time += delta_t;
+
 
     var tuple = provide_input(global_time, 1);
     var shape_json = tuple[0];
@@ -1009,8 +1070,8 @@ function update_mc(newPolygonizer, delta_t){
     var geometry = null;
     if(UPDATE_SAME_GEOM_OBJECT) {
         geometry = g;
-        //update_reused_geometry(newPolygonizer, global_time, geometry);
-        update_reused_geometry(newPolygonizer, shape_json, polygonization_json, geometry);
+        //update_reused_geometry(polygonizer_service, global_time, geometry);
+        update_reused_geometry(polygonizer_service, shape_json, polygonization_json, geometry);
     }
     else {
         if(CALL_VERSION==1){
@@ -1020,12 +1081,12 @@ function update_mc(newPolygonizer, delta_t){
         }
         else{
             //reused_last_geom = null;
-            //geometry = make_geometry_new2(newPolygonizer, global_time, reused_last_geom, false);
+            //geometry = make_geometry_new2(polygonizer_service, global_time, reused_last_geom, false);
 
-            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
+            //geometry = make_geometry_new2(polygonizer_service, global_time, null, false);  //FALSE??
 
-            //geometry = make_geometry_new2(newPolygonizer, global_time, null, false);  //FALSE??
-            geometry = make_geometry_new2(newPolygonizer, shape_json, polygonization_json, null, false);  //FALSE??
+            //geometry = make_geometry_new2(polygonizer_service, global_time, null, false);  //FALSE??
+            geometry = make_geometry_new2(polygonizer_service, shape_json, polygonization_json, null, false);  //FALSE??
         }
     };
     /*
@@ -1042,8 +1103,8 @@ function update_mc(newPolygonizer, delta_t){
     "";
     */
     var ignore_root_matrix = false;
-    //change_arrow(global_arrow, newPolygonizer, global_mp5);
-    change_arrows(global_arrows, newPolygonizer, global_mp5, ARROWS_COUNT, ignore_root_matrix);
+    //change_arrow(global_arrow, polygonizer_service, global_mp5);
+    change_arrows(global_arrows, polygonizer_service, global_mp5, ARROWS_COUNT, ignore_root_matrix);
 
 
     if(!EVEN_REUSE_MESH_OBJECT){
@@ -1186,11 +1247,11 @@ function animate() {
 var scene, camera, renderer;
 //var geometry;
 
-//var newPolygonizer; //no longer global. Hopefully does not affect the performance.
+//var polygonizer_service; //no longer global. Hopefully does not affect the performance.
 window.setTimeout(
     // function() {
-    //     var newPolygonizer = init_polygonizer();
-    //     init_scene(newPolygonizer);
+    //     var polygonizer_service = init_polygonizer();
+    //     init_scene(polygonizer_service);
     //     animate();
     // },
 3000);
@@ -1326,7 +1387,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
     function set_off() {
         console.log("ready.");
-        var newPolygonizer = init_polygonizer();
+        var polygonizer_service = init_polygonizer();
 
         //if(delta_t === undefined)
         var delta_t = 0.2;
@@ -1337,7 +1398,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         var shape_json = tuple[0];
         var polygonization_json = tuple[1];
 
-        init_scene(newPolygonizer, shape_json, polygonization_json);
+        init_scene(polygonizer_service, shape_json, polygonization_json);
         animate();
     };
 </script>

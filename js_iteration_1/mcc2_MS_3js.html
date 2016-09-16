@@ -210,7 +210,8 @@ function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
     }finally {
     }
 
-    geometry. update_geometry (newPolygonizer);
+    // geometry. update_geometry (newPolygonizer);
+    newPolygonizer. update_geometry (geometry);
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;

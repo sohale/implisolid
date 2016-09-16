@@ -267,12 +267,13 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
     // ThreeJS does not use prototype-based OOP.
 
     // still not refactored into update_geometry1
-    this.update_geometry = function(newPolygonizer) {
+    this.update_geometry_ = function(polygonizer_service) {
+        console.error("error: geometry.update_geometry(iservice)  is deprecated. Use instead: iservice.update_geometry(geometry); ");
         var geometry = this;
-        var nverts = newPolygonizer.get_v_size();
-        var nfaces = newPolygonizer.get_f_size();
-        var verts_address = newPolygonizer.get_v_ptr();
-        var faces_address = newPolygonizer.get_f_ptr();
+        var nverts = polygonizer_service.get_v_size();
+        var nfaces = polygonizer_service.get_f_size();
+        var verts_address = polygonizer_service.get_v_ptr();
+        var faces_address = polygonizer_service.get_f_ptr();
         var verts = Module.HEAPF32.subarray(
             verts_address/_FLOAT_SIZE,
             verts_address/_FLOAT_SIZE + 3*nverts);
@@ -281,11 +282,12 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
             faces_address/_INT_SIZE + 3*nfaces);
 
         // REFACTORED. NOTE TESTED.
-        this.update_geometry1 = function(verts, faces);
+        this.update_geometry1(verts, faces);
     };
 
     this.update_geometry1 = function(verts, faces) {
         //NOT TESTED.
+        var geometry = this;
 
         //var g_nverts = geometry.attributes.position.count/3;  // Displayed size
         //check allocated space
@@ -295,12 +297,16 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
         //console.log(nverts); console.log(g_nverts);
         //console.log(nfaces); console.log(g_nfaces);
 
+        var nverts = verts.length / 3;
+        var nfaces = faces.length / 3;
+
         //Bug revealed by commenting the following! Changing the geometry broke the C++ code !
         var nv3 = Math.min(nverts, g_nverts) * 3;
         var nf3 = Math.min(nfaces, g_nfaces) * 3;
         //console.log(nv3/3. +" === "+ verts.length/3.)
         my_assert(nv3 === verts.length);
         my_assert(nf3 === faces.length);
+
         /*
         for(var i=0;i<nv3;i++){
             geometry.attributes.position.array[i] = verts[i];  //or use copy
