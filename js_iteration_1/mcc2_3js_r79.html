@@ -1154,7 +1154,7 @@ var chosen_matrial;
 const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
-const PERSPECTIVE = false;
+const PERSPECTIVE = true;
 
 function init_scene(newPolygonizer, shape_json, polygonization_json) {
 
@@ -1167,15 +1167,17 @@ function init_scene(newPolygonizer, shape_json, polygonization_json) {
     var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
 
     if (PERSPECTIVE) {
-        // PerspectiveCamera( fov, aspect, near, far )
         camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
+        // ( fov, aspect, near, far )
     } else {
-        // OrthographicCamera( left, right, top, bottom, near, far )
-        var span_per_pixel = 1.0/800.0*2000.0/30.0; //for orthogaphic camera
-        camera = new THREE.OrthographicCamera( -WIDTH/2.0*span_per_pixel,  +WIDTH/2.0*span_per_pixel, -HEIGHT/2.0*span_per_pixel, +HEIGHT/2.0*span_per_pixel, 1, 10000 );
+        // Use Orthogaphic camera
+        var span_per_pixel = 1.0/800.0*2000.0/30.0;
+        var x0 = WIDTH/2.0*span_per_pixel;
+        var y0 = HEIGHT/2.0*span_per_pixel;
+        camera = new THREE.OrthographicCamera( -x0,  +x0, -y0, +y0, 1, 10000 ); // ( left, right, top, bottom, near, far )
     }
 
-    camera.position.z = 40*GRID_CELL_SIZE;  // 40*25; //1000;
+    camera.position.set(0, 0, 40*GRID_CELL_SIZE);  // 40*25; //1000;
 
     // Grid
     var grid = grid_bed(GRID_CELL_SIZE);
