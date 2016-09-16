@@ -211,11 +211,11 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
         // * It will not work well if the same BufferGeometry is used in more than one Mesh
         // * So the object will look fine if we disable the wireframe mesh.
         // *************************************
-        var grow_needed = false;
+        var growth_needed = false;
         var availableVertsSize = geometry.attributes.position.array.length;
         if(verts.length > availableVertsSize){
 
-            grow_needed = true;
+            growth_needed = true;
 
             //console.log("needed "+verts.length );
 /*
@@ -260,12 +260,12 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
         var availableFacesSize = geometry.attributes.index.array.length;
         if(faces.length > availableFacesSize){
             //geometry.attributes.index.array.set(faces.subarray(0, availableFacesSize));
-            grow_needed = true;
+            growth_needed = true;
         }else{
             geometry.attributes.index.array.set(faces);
         }
 
-        if(grow_needed){
+        if(growth_needed){
             console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
             var faces_capacity = Math.floor(Math.max(availableFacesSize/3, faces_.length/3) * GROWTH_FACTOR + GROWTH_ADDITIONAL);

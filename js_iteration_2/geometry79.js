@@ -376,7 +376,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         // * It will not work well if the same BufferGeometry is used in more than one Mesh
         // * So the object will look fine if we disable the wireframe mesh.
         // *************************************
-        var grow_needed = false;
+        var growth_needed = false;
 
         if(threejs_r71) {
             var availableVertsSize = geometry.attributes.position.array.length;
@@ -386,7 +386,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         if(verts.length > availableVertsSize){
 
-            grow_needed = true;
+            growth_needed = true;
 
         }else{
             // copy now
@@ -403,7 +403,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         }
         if(faces.length > availableFacesSize){
             //geometry.attributes.index.array.set(faces.subarray(0, availableFacesSize));
-            grow_needed = true;
+            growth_needed = true;
         }else{
             // copy now
 
@@ -415,7 +415,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             }
         }
 
-        if(grow_needed){
+        if(growth_needed){
             // Why are we using faces_ here ??
             console.log("increasing capacity : availableFacesSize : " + availableFacesSize + " facesLength : " + faces.length);
             //this.dispose();
@@ -443,13 +443,13 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         }
 
-        assert(!grow_needed);
+        assert(!growth_needed);
         var copied_faces = Math.min(faces.length, availableFacesSize);
         var ntriangles = copied_faces/POINTS_PER_FACE;
         this.__set_range_of_used_faces(ntriangles, POINTS_PER_FACE);
-        assert(!grow_needed);
+        assert(!growth_needed);
 
-        //if(grow_needed){
+        //if(growth_needed){
 
         // Notify the changes
 
