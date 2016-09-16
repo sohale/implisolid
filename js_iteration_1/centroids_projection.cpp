@@ -648,7 +648,8 @@ void  set_centers_on_surface(
             assert(X.shape()[0] == dxc.shape()[0]);
 
 
-
+            super_quiet = true;
+            if (!super_quiet)
             std::clog << "alpha: " << alpha << " c:" << c << " length_factor:" << length_factor << std::endl;
 
             // todo: ONLY ACTIVE INDICES

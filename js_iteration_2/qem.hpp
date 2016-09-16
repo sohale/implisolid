@@ -8,6 +8,8 @@
 
 namespace mp5_implicit {
 
+bool super_quiet =true;
+
 // get the matrix A and b used in vertex_apply_qem
 void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b) {
 
@@ -483,7 +485,8 @@ void vertex_apply_qem(
         for (int i=rank; i < 3; i++) {
             // y(i) = utb(i) / S(i);
             //if (S(i) == 0.0) {  // always
-            clog << "utb(i) " << utb(i) << " ";
+            if (!super_quiet)
+                clog << "utb(i) " << utb(i) << " ";
             // There are two solutions for this:
             // // 1- y(i) = 0.0
             // // 2- y(i) = default
@@ -553,7 +556,8 @@ void vertex_apply_qem(
     #if DEBUG_VERBOSE
     clog << std::endl;
     #endif
-    clog << std::endl;
+    if (!super_quiet)
+        clog << std::endl;
 
 }
 

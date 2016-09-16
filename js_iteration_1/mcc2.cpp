@@ -566,6 +566,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     float c = 1.;
     */
 
+    mc_settings_from_json.projection.enabled = true;
+    mc_settings_from_json.vresampl.c = 1.0;
+    mc_settings_from_json.vresampl.iters = 1;
+    mc_settings_from_json.qem.enabled = true;
+
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {

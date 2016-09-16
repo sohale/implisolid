@@ -445,6 +445,11 @@ function provide_input (subjective_time, is_update_mode) {
             projection: {enabled: 1},
             qem: {enabled: 1},
 
+            debug: {
+                enabled_pointsets:1
+                // only_rank
+            },
+
 
             // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
         });
