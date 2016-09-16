@@ -894,7 +894,7 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
 
     int problems = 0;
 
-    clog << "size consistency" << std::endl;
+    clog << "size consistency" ;
     if (current_x->shape()[0] != current_grad->shape()[0]) {
         clog << " " << current_x->shape()[0] << "  !=  " << current_grad->shape()[0];
             //<< std::endl;

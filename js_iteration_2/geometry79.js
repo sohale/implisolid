@@ -66,6 +66,7 @@ assert( threejs_r71 || threejs_r79 );
 
 /** Simply creates a geometry . This is static and cannot be modified when displayed. Instantiate a new one and make a new THREE.Mesh() */
 function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacity_, min_verts_capacity_) {
+    // Alternative design: another argument: given_normals
 
     THREE.BufferGeometry.call( this );
     this.type = 'LiveBufferGeometry79';
@@ -169,6 +170,21 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             // if !ignoreNormals ...
             //is this correct? : padded_verts
             padded_normals.set(padded_verts);
+
+            /*
+            if (given_normals) {
+                console.log("given_normals = ", given_normals);
+                console.log(padded_normals.length);
+                console.log(given_normals.length);
+                padded_normals.set(given_normals);
+            } else if (given_normals == null ) {
+                ; //it's fine.
+            }
+            else {
+                console.error(" no given_normals", given_normals);
+            }
+            */
+
             //var padded_colors = copy_Float32Array_preallocated(verts, min_verts_capacity*3, "random");
             //var uvs = copy_Float32Array_preallocated(new Float32Array([]), min_verts_capacity*3 * 0, "random");
             //padded_colors.set(padded_verts);

@@ -270,6 +270,21 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             //for( var i = 0 ; i < ptr_len; i++) {
             //    gradients[i] += Math.random() * 0.2;
             //}
+            /*
+            for( var i = 0 ; i < ptr_len; i++) {
+                gradients[i] += (Math.random()*2-1) * 0.2*10;
+            }
+            */
+            /*
+            for( var i = 0 ; i < ptr_len/3; i++) {
+                var x = gradients[i * 3 + 0 ];
+                var y = gradients[i * 3 + 1 ];
+                var z = gradients[i * 3 + 2 ];
+                gradients[i * 3 + 0 ] = z;
+                gradients[i * 3 + 1 ] = x;
+                gradients[i * 3 + 2 ] = y;
+            }
+            */
 
             geom.update_normals_from_array(gradients);
 
@@ -385,6 +400,10 @@ function setShapeMatrix2Eye(shape_matrix, sz) {
 
 
 'use strict';
+
+
+var global_verts_copy = null;
+var global_gradients_copy = null;
 
 // const MESH_SCALE = 300/10;
 const MESH_SCALE = 1.0;
@@ -598,6 +617,38 @@ function provide_input (subjective_time, is_update_mode) {
     */
 
 }
+
+
+function prepare_gradients1(implicit_service, shape_json, verts) {
+    var ignore_root_matrix = true;
+
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+    implicit_service.set_object(shape_json, ignore_root_matrix);
+    implicit_service.set_vect(verts);  // overhead
+    implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+    var ptr = implicit_service.get_gradients_ptr();
+    var ptr_len = implicit_service.get_gradients_size();
+    var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+
+    for( var i = 0 ; i < ptr_len; i++) {
+        // gradients[i]  += (Math.random() *2 -1.0 )* 0.2;
+    }
+   // geom.update_normals_from_array(gradients);
+   return gradients;
+}
+function release_gradients1(implicit_service) {
+    implicit_service.unset_x();
+    implicit_service.unset_object();
+}
+
+function clone_varray(verts) {
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (verts.length/3) * 3);
+    var g = new Float32Array(raw_buffer);
+    g.subarray(0, verts.length).set(new Float32Array(verts));
+    return g;
+}
+
+
 /*
 Three ways:
 1-  make_geometry_oldold()
@@ -662,6 +713,14 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
     const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
+    /*
+            // Uncomment for visualising the mesh's normals when set according to Implicit gradients.
+            var gradients = prepare_gradients1(implisolid_, shape_json, verts);
+            global_verts_copy = clone_varray(verts);
+            global_gradients_copy = clone_varray(gradients);
+    */
+
+
     //verts[2] -= 0.1;
     //verts[2 + nverts*3-3] += 0.3;
 
@@ -678,9 +737,11 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
             verts, faces,
             re_allocate_buffers,
             min_faces_capacity_, min_verts_capacity_);
+            //, gradients);        // Alternative: specify normals at creation of LiveGeometry. But this is fine.
 
         //geom.update_geometry(implisolid_, true);
         implisolid_.update_geometry(geom, true);
+        // Alternative: specify normals at creation of LiveGeometry. But this is fine.
         implisolid_.make_normals_into_geometry(geom, shape_json, verts, false);
 
         /*
@@ -692,6 +753,11 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
         implisolid_.make_normals_into_geometry(geom, shape_json, centroids, false);
         */
     }
+
+    /*
+            release_gradients1(implisolid_);
+    */
+
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -967,6 +1033,43 @@ function make_vectorfield_flow_lines_v2(implisolid_, name1, name2, point_size) {
 }
 
 
+function hairy_object_based_on_vectors(vects, gradients, alpha1, alpha2, color) {
+
+    var n = gradients.length / 3;
+    var n1 = vects.length / 3;
+    assert(n == n1);
+
+    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
+    var arrow_tips = new Float32Array(raw_buffer);
+    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
+    var arrow_bases = new Float32Array(raw_buffer);
+    for (var i = 0; i < n; ++i) {
+        for (var d = 0; d < 3; d++) {
+            var j = (i * 3) + d;
+            arrow_tips[j] = vects[j] + alpha2 * gradients[j];
+            arrow_bases[j] = vects[j] + alpha1 * gradients[j];
+        }
+    }
+
+    // repeated code
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n + n) * 3);
+    var verts12 = new Float32Array(raw_buffer);
+    verts12.subarray(0, n * 3).set(new Float32Array(arrow_bases));
+    verts12.subarray(n * 3, (n+n) * 3).set(new Float32Array(arrow_tips));  //
+
+    //repeated code
+    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n) * 3 );
+    var indices12 = new Uint32Array(raw_buffer);
+    for (var i=0; i < n; i++) {
+        indices12[i * 3] = i;
+        indices12[i * 3 + 1] = i + n; //i + n;
+        indices12[i * 3 + 2] = i + n; //i + n;
+    }
+    assert(indices12.length == n * 3);
+
+    var wire_msh = make_lines_mesh_v1(verts12, indices12, color)
+    return wire_msh;
+}
 
 function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, color) {
     /*
@@ -989,7 +1092,7 @@ function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, c
 
     var ignore_root_matrix = false;
     var mp5_str = shape_json;
-    console.error(mp5_str);
+    // console.error(mp5_str);
     implisolid_.set_object(mp5_str, ignore_root_matrix);
     implisolid_.set_vect(verts);
     implisolid_.calculate_implicit_gradients();
@@ -1008,6 +1111,10 @@ function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, c
         gradients[i*3 + 2] /= r;
     }
 
+
+    var wire_msh = hairy_object_based_on_vectors(verts, gradients, alpha1, alpha2, color);
+
+    /*
     var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
     var arrow_tips = new Float32Array(raw_buffer);
     var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
@@ -1019,12 +1126,6 @@ function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, c
             arrow_bases[j] = verts[j] + alpha1 * gradients[j];
         }
     }
-
-    /*
-    tuple = verts12indices12(arrow_bases, arrow_tips, n);
-    indices12 = tuple[0];
-    verts12 = tuple[1];
-    */
 
     // repeated code
     var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n + n) * 3);
@@ -1043,6 +1144,7 @@ function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, c
     assert(indices12.length == n * 3);
 
     var wire_msh = make_lines_mesh_v1(verts12, indices12, color)
+    */
 
     implisolid_.unset_x();
     implisolid_.unset_object();
@@ -1358,6 +1460,13 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     // "QEM"'s result.
     var vectorfield = make_vectorfield_flow_lines_v1(implisolid_, "pre_qem_verts", "post_qem_verts");
     scene.add( vectorfield );
+
+
+    // Visualising the normal vectors as queried and applied on t geometry. Normal vector for vertices is a bad idea. Need to see how normal vectors can be specified for facets of BufferGeometry.
+    if ( global_verts_copy && global_gradients_copy ) {
+        var hairy_m = hairy_object_based_on_vectors(global_verts_copy, global_gradients_copy, 0.0, 1.0, 0x777700);
+        scene.add( hairy_m );
+    }
 
 
     // choose what is visible and what is not
