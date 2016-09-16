@@ -361,13 +361,19 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
         geometry.attributes.normal.needsUpdate = true;
     };
 
+    // just for backward comptibility
     this.update_normals = function(implicit_service, x, mp5_str, ignore_root_matrix) {
         // Only called after updateGeometry(), or after LiveGeometry()
+        console.error("error. update_normals()");
+        throw new Error("Deprecated. You should not call this");
+
+        implicit_service.make_normals_into_geometry(geom, mp5_str, x, ignore_root_matrix);
 
         //this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
 
+        /*
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
 
         implicit_service.set_object(mp5_str, ignore_root_matrix);
@@ -383,7 +389,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         implicit_service.unset_x();
         implicit_service.unset_object();
-
+        */
     };
 
     this.get_minz = function(matrix, shape) {

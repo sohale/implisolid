@@ -250,6 +250,29 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             return geometry.update_geometry1(verts, faces, ignoreNormals, false);
         };
 
+        newProducer.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
+
+            implicit_service = newProducer;
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+
+            implicit_service.set_object(mp5_str, ignore_root_matrix);
+            implicit_service.set_vect(x);  // overhead
+            implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+            var ptr = implicit_service.get_gradients_ptr();
+            var ptr_len = implicit_service.get_gradients_size();
+            var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+            //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+            //for( var i = 0 ; i < ptr_len; i++) {
+            //    gradients[i] += Math.random() * 0.2;
+            //}
+
+            geom.update_normals_from_array(gradients);
+
+            implicit_service.unset_x();
+            implicit_service.unset_object();
+        };
+
         newProducer.init();
 
         //console.log("ok");

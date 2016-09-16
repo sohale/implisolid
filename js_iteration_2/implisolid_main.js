@@ -100,6 +100,28 @@ function init(service) {
         return geometry.update_geometry1(verts, faces, ignoreNormals, false);
     };
 
+
+    //was: geom. update_normals (service ..)
+    service.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
+
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+
+        service.set_object(mp5_str, ignore_root_matrix);
+        service.set_vect(x);  // overhead
+        service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+        var ptr = service.get_gradients_ptr();
+        var ptr_len = service.get_gradients_size();
+        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+        //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+        //for( var i = 0 ; i < ptr_len; i++) {
+        //    gradients[i] += Math.random() * 0.2;
+        //}
+
+        geom.update_normals_from_array(gradients);
+    };
+
+
     service.init();
 
     return service;
@@ -108,6 +130,7 @@ function init(service) {
 
 var ImplicitService = function(){
     init(this);
+
     this.make_geometry = function (shape_params, mc_params) {
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -139,7 +162,10 @@ var ImplicitService = function(){
 
         // Set the normals
         var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
-        geom.update_normals(this, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+        //geom.update_normals(this, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+        this.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
         //this.aaaaaaaaa(verts);
 
 
@@ -324,7 +350,9 @@ function test_update1(t, mesh, dict){
     }
     // g.update_geometry(IMPLICIT, true);
     IMPLICIT.update_geometry(g, true);
-    g.update_normals(IMPLICIT);
+    //??????? g.update_normals(IMPLICIT);
+    var x = "?";
+    IMPLICIT.make_normals_into_geometry(g, JSON.stringify(shape_properties), x, false);
 
 }
 
@@ -334,7 +362,11 @@ function test_update2(t){
 
     // var new_geometry = g.update_geometry(IMPLICIT, false);
     var new_geometry = IMPLICIT.update_geometry(g, false);
-    g.update_normals(IMPLICIT);
+    // g.update_normals(IMPLICIT);
+    var x = "?";
+    var mp5_string = "?";
+    IMPLICIT.make_normals_into_geometry(g, mp5_String, x, false);
+
     if(new_geometry){
         currentMeshes[0].geometry = new_geometry;
     }

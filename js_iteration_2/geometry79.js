@@ -485,12 +485,21 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
     };
 
     // Separation of convern: Should not use implicit_service. Only provide .update_normals_from_array()
-    this.update_normals = function(implicit_service, x, mp5_str, ignore_root_matrix) {
+    this.update_normals__ = function(implicit_service, mp5_str, x, ignore_root_matrix) {
         // Only called after updateGeometry(), or after LiveGeometry()
 
         //this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
+        console.error("geometry.update_normals() deprecated");
+
+        // throw new Error("Deprecated method");
+
+        var geom = this;
+        //var gradients = implicit_service.make_normals_into_geometry(geom, mp5_str, x, ignore_root_matrix);
+        implicit_service.make_normals_into_geometry(geom, mp5_str, x, ignore_root_matrix);
+
+        /*
 
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
 
@@ -502,18 +511,17 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
         //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
 
-        /*
-        for( var i = 0 ; i < ptr_len; i++) {
-            gradients[i] += Math.random() * 0.2;
-        }
-        */
+        //for( var i = 0 ; i < ptr_len; i++) {
+        //    gradients[i] += Math.random() * 0.2;
+        //}
 
-        var geom = this;
+
         geom.update_normals_from_array(gradients);
+
 
         implicit_service.unset_x();
         implicit_service.unset_object();
-
+        */
     };
 
     this.get_minz = function(matrix, shape) {
