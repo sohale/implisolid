@@ -892,6 +892,17 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
         return;
     }
 
+    int problems = 0;
+
+    clog << "size consistency" << std::endl;
+    if (current_x->shape()[0] != current_grad->shape()[0]) {
+        clog << " " << current_x->shape()[0] << "  !=  " << current_grad->shape()[0];
+            //<< std::endl;
+    }
+    clog << std::endl;
+    assert(current_x->shape()[0] == current_grad->shape()[0]);
+
+
     current_object -> eval_gradient(*current_x, current_grad);
     if(normalize_and_invert) {
         for(auto it = current_grad->begin(); it < current_grad->end(); it++) {
@@ -901,10 +912,11 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
             REAL norm = std::sqrt(x*x + y*y + z*z);
 
             REAL norm_factor;
-            if (norm > 0.000000001) {
+            if (norm > 0.0001) {
                 norm_factor = -1.0 / norm;
             } else {
                 norm_factor = -42.0; // how to avoid look black
+                problems++;
             }
 
             (*it)[0] = x * norm_factor;
@@ -913,6 +925,9 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
         }
     }
 
+    if (problems > 0) {
+        cerr << " problems " << problems << std::endl;
+    }
 
     /*
     std::clog << "calculated grad: "

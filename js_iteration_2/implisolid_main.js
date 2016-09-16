@@ -105,6 +105,11 @@ function init(service) {
     service.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
 
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        console.error(x);
+
+        for( var i = 0 ; i < x.length; i++) {
+            x[i] += Math.random() * 0.9;
+        }
 
         service.set_object(mp5_str, ignore_root_matrix);
         service.set_vect(x);  // overhead

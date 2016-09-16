@@ -256,7 +256,7 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
 
         s_service.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
 
-            implicit_service = s_service;
+            var implicit_service = s_service;
             const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
 
             implicit_service.set_object(mp5_str, ignore_root_matrix);
@@ -681,6 +681,16 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
 
         //geom.update_geometry(implisolid_, true);
         implisolid_.update_geometry(geom, true);
+        implisolid_.make_normals_into_geometry(geom, shape_json, verts, false);
+
+        /*
+        var n = implisolid_.get_pointset_size("post_p_centroids");
+        var centroids = get_emc_array(
+            implisolid_.get_pointset_ptr("post_p_centroids")
+            , n * 3 );
+
+        implisolid_.make_normals_into_geometry(geom, shape_json, centroids, false);
+        */
     }
 
     if(VERBOSE){
@@ -704,6 +714,13 @@ function get_emc_array(verts_address, point_count) {
     const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
     var float_array = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 1 * point_count);
     // console.error(float_array);
+
+    if (point_count == 0) {
+        console.warn("Error: zero points", n);
+        return make_empty_lines_mesh();
+    }
+
+
     return float_array;
 }
 
@@ -965,10 +982,6 @@ function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, c
     var verts = get_emc_array(implisolid_.get_pointset_ptr(pointset_label),
         n * 3 );
 
-    if (n == 0) {
-        console.warn("Error: zero points", n);
-        return make_empty_lines_mesh();
-    }
 
     // verts = arrow_bases
 
@@ -1199,7 +1212,8 @@ var global_normals;
 
 var global_arrows;
 
-const CHOSEN_MATERIAL_INDEX = 2; //3;
+const CHOSEN_MATERIAL_INDEX = 13;
+    //2; nice //3;
     // 7 = colourful
     // 3 = ?
 
@@ -1213,6 +1227,9 @@ const CHOSEN_MATERIAL_INDEX = 2; //3;
     //9: plain white?
     //10: changing peach
     //11: changing cyan
+    //12: ??? white?
+    //13: proper Phong (As in WeDesign.Live)
+
 var chosen_matrial;
 
 const SHOW_WIREFRAME = true;
@@ -1249,10 +1266,12 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
     materials_list = look_nice();
     chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
+
     //chosen_matrial = new THREE.MeshBasicMaterial( {
     //    color: 0xaaffff, wireframe: false, opacity:0.5,  transparent: true,
     //    side:THREE.DoubleSide } );
     //THREE.FrontSide or THREE.BackSide or  THREE.DoubleSide.
+
 
     material_wireframe = new THREE.MeshBasicMaterial( {
         color: 0xff0000, wireframe: true, opacity:0.3,  transparent: true,} );
@@ -1670,6 +1689,11 @@ function look_nice(){
     materials.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000, shading: THREE.SmoothShading } ) );
     materials.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, shading: THREE.SmoothShading, opacity: 0.9, transparent: true } ) );
     materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
+
+    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true })  );
+
+    console.log("Choose material "+(materials.length-1));
+
     return materials;
 }
 
