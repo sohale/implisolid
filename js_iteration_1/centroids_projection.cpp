@@ -194,6 +194,7 @@ void create_directions_bundle(
     //inputs
     const int iter_type, const std::vector<REAL>& alpha_list_full,
     const vectorized_vect   & directions_basedon_gradient, const vectorized_vect   & facet_normals_directions,
+    const verts_t & last_dxc,
     //outputs
     verts_t & dxc_output, std::string & name_output, std::vector<REAL> & alpha_list_output
 ) {
@@ -269,7 +270,13 @@ void create_directions_bundle(
         assert(dxc_output.shape()[0] == facet_normals_directions.shape()[0]); // remove this and make it inplace directly in dxc_output. or return using move constructor.
         // assert(dxc_output.shape() == facet_normals_directions.shape());  // FAILS?!!! yes. Becasue these are pointers.
         assert( vectorised_algorithms::sizes_are_equal(dxc_output, facet_normals_directions) );
-        dxc_output = facet_normals_directions; // copy. checks size.
+
+        // bug! fixed (but incorrectly)
+        //?????
+        //dxc_output = facet_normals_directions; // copy. checks size.
+        // bug2 fixed:
+        dxc_output = z; // copy. checks size.
+
         alpha_list_output = alpha_list1_10;
 
         // static auto last_dxc = dxc_output;
@@ -291,11 +298,13 @@ void create_directions_bundle(
         //z = ???????????????????
         //set_vector_from(z, dxc_output); // last dxc_output
         //verts_t z = dxc_output;  // copy
-        const verts_t& z = dxc_output; // last dxc_output
+        const verts_t& z = last_dxc; // last dxc_output
         // print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
         // print_vector("z", z, 10);
         vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
         // print_vector("z2", z2, 10);
+
+
         vectorised_algorithms::normalise_inplace(z2, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
         // print_vector("z2 after normalisation", z2, 10);
 
@@ -583,12 +592,14 @@ void  set_centers_on_surface(
         cases = std::vector<int>{0};
     }
 
+    verts_t dxc = verts_t(vector_shape);
+
     // todo: move alpha_list here
     for (auto iter_type : cases) {
 
         std::vector<REAL> alpha_list1;
         // always copy
-        verts_t dxc = verts_t(vector_shape);
+        //verts_t dxc = verts_t(vector_shape);
         std::string iter_type_name;
 
         #if DEBUG_VERBOSE
@@ -603,6 +614,7 @@ void  set_centers_on_surface(
             //inputs
             iter_type, alpha_list_full,
             directions_basedon_gradient, facet_normals_directions,
+            dxc,
             // outputs
             dxc, iter_type_name, alpha_list1
         );
