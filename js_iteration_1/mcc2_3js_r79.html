@@ -196,16 +196,16 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
 
         newProducer.about = Module.cwrap('about', null, []);
 
-        newProducer.init = function(){ newProducer.needsFinish = false; }
+        newProducer.init = function(){ newProducer.needs_deallocation = false; }
         newProducer.finish_with = function (){
             //after the last round.
-            if(!newPolygonizer.needsFinish)
+            if(!newPolygonizer.needs_deallocation)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
             //todo: try-catch
             //d(1);
             newPolygonizer.finish_geometry();
-            newPolygonizer.needsFinish = false;
+            newPolygonizer.needs_deallocation = false;
             //todo(sohail):  Why newPolygonizer is used here? We should use 'this'.
         }
         newProducer.set_vect = function (float32Array){
@@ -217,8 +217,38 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             var result = this.set_x(verts_space, nverts);
             console.log("set_x() result: "+result);
             Module._free( verts_space );
-
         }
+
+        newProducer.update_geometry = function(geometry, ignoreNormals) {
+
+            var implicit_service = this;
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+            const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+            const POINTS_PER_FACE = 3;
+
+            var nverts = implicit_service.get_v_size();
+            var nfaces = implicit_service.get_f_size();
+
+            if(nfaces > 0){
+                var verts_address = implicit_service.get_v_ptr();
+                var faces_address = implicit_service.get_f_ptr();
+
+                var verts = Module.HEAPF32.subarray(
+                    verts_address/_FLOAT_SIZE,
+                    verts_address/_FLOAT_SIZE + 3*nverts);
+
+                var faces = Module.HEAPU32.subarray(
+                    faces_address/_INT_SIZE,
+                    faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+            }
+            else{
+                console.log("empty implicit");
+                var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+                var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+            }
+
+            return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+        };
 
         newProducer.init();
 
@@ -557,16 +587,16 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     // reusable_geometry is not used;
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {  // Remove data from last round.
-        //console.log("newPolygonizer.needsFinish " + newPolygonizer.needsFinish);
+    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
+        //console.log("newPolygonizer.needs_deallocation " + newPolygonizer.needs_deallocation);
         //d(1);
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
     else{
         //console.error("Should not get here");
         //newPolygonizer.finish_geometry();
-        //newPolygonizer.needsFinish = false;
+        //newPolygonizer.needs_deallocation = false;
     }
     //newPolygonizer.finish_geometry();
 
@@ -588,7 +618,7 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     }
         //implicit_double_mushroom center will be zero.
 
-    newPolygonizer.needsFinish = true;
+    newPolygonizer.needs_deallocation = true;
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -622,7 +652,8 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
             re_allocate_buffers,
             min_faces_capacity_, min_verts_capacity_);
 
-        geom.update_geometry(newPolygonizer, true);
+        //geom.update_geometry(newPolygonizer, true);
+        newPolygonizer.update_geometry(geom, true);
     }
 
     if(VERBOSE){
@@ -988,21 +1019,21 @@ function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, ge
 
     var startTime = new Date();
 
-    //console.log(newPolygonizer.needsFinish);
-    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+    //console.log(newPolygonizer.needs_deallocation);
+    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
         //d(1);
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
 
-    if(newPolygonizer.needsFinish)
+    if(newPolygonizer.needs_deallocation)
         console.error("not deallocated.");
     try{
 
         newPolygonizer.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
-        newPolygonizer.needsFinish = true;
+        newPolygonizer.needs_deallocation = true;
     }catch(err){
         console.error("An error occured during MCC C++")
         console.info(err);

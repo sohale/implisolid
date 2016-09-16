@@ -262,6 +262,14 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
             faces_address/_INT_SIZE,
             faces_address/_INT_SIZE + 3*nfaces);
 
+        // REFACTORED. NOTE TESTED.
+        geometry.update_geometry1 = function(verts, faces);
+    };
+
+    this.update_geometry1 = function(verts, faces) {
+        //NOT TESTED.
+
+
         //var g_nverts = geometry.attributes.position.count/3;  // Displayed size
         //check allocated space
         var g_nverts = geometry.attributes.position.array.length/3;  // Physical space size.

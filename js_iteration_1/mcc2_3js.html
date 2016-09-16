@@ -40,7 +40,7 @@ Based on MCC1
     'use strict';
 
 
-    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needsFinish
+    //function d(arg){console.log(" ------- HERE "+arg );}  //newPolygonizer.needs_deallocation
     // Exported
 
     var produce_object;
@@ -81,16 +81,16 @@ Based on MCC1
 
         newProducer.about = Module.cwrap('about', null, []);
 
-        newProducer.init = function(){ newProducer.needsFinish = false; }
+        newProducer.init = function(){ newProducer.needs_deallocation = false; }
         newProducer.finish_with = function (){
             //after the last round.
-            if(!newPolygonizer.needsFinish)
+            if(!newPolygonizer.needs_deallocation)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
             //todo: try-catch
             //d(1);
             newPolygonizer.finish_geometry();
-            newPolygonizer.needsFinish = false;
+            newPolygonizer.needs_deallocation = false;
             //todo(sohail):  Why newPolygonizer is used here? We should use 'this'.
         }
         newProducer.set_vect = function (float32Array){
@@ -390,7 +390,7 @@ function make_geometry_old1(newPolygonizer, shape_json, polygonization_json, reu
 
     //d(1);
     newPolygonizer.finish_geometry();
-    newPolygonizer.needsFinish = false;
+    newPolygonizer.needs_deallocation = false;
 
     if(VERBOSE){
         console.log("nverts : "+ nverts);
@@ -589,16 +589,16 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     // reusable_geometry is not used;
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {  // Remove data from last round.
-        //console.log("newPolygonizer.needsFinish " + newPolygonizer.needsFinish);
+    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
+        //console.log("newPolygonizer.needs_deallocation " + newPolygonizer.needs_deallocation);
         //d(1);
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
     else{
         //console.error("Should not get here");
         //newPolygonizer.finish_geometry();
-        //newPolygonizer.needsFinish = false;
+        //newPolygonizer.needs_deallocation = false;
     }
     //newPolygonizer.finish_geometry();
 
@@ -615,7 +615,7 @@ function make_geometry_new2(newPolygonizer, shape_json, polygonization_json, reu
     newPolygonizer.build_geometry( shape_json , polygonization_json);
         //implicit_double_mushroom center will be zero.
 
-    newPolygonizer.needsFinish = true;
+    newPolygonizer.needs_deallocation = true;
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -660,28 +660,29 @@ function update_reused_geometry(newPolygonizer, mp5_json, mc_properties_json, ge
 
     var startTime = new Date();
 
-    //console.log(newPolygonizer.needsFinish);
-    if(newPolygonizer.needsFinish) {  // Remove data from last round.
+    //console.log(newPolygonizer.needs_deallocation);
+    if(newPolygonizer.needs_deallocation) {  // Remove data from last round.
         //d(1);
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
 
-    if(newPolygonizer.needsFinish)
+    if(newPolygonizer.needs_deallocation)
         console.error("not deallocated.");
     try{
 
         newPolygonizer.build_geometry( mp5_json , mc_properties_json);
             //implicit_double_mushroom center will be zero.
 
-        newPolygonizer.needsFinish = true;
+        newPolygonizer.needs_deallocation = true;
     }catch(err){
         console.error("An error occured during MCC C++")
         console.info(err);
     }finally {
     }
 
-    geometry. update_geometry (newPolygonizer);
+    // geometry. update_geometry (newPolygonizer);
+    newPolygonizer. update_geometry (geometry);
 
     var endTime = new Date();
     var timeDiff = endTime - startTime;

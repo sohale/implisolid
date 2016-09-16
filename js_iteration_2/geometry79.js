@@ -240,8 +240,11 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
     This function may return new LiveBufferGeometry79 object, in this case the old geometry has to be replaced (by the new returned object) in the caller function.
     */
 
-    //todo: use verts and faces as input
-    this.update_geometry = function(implicit_service, ignoreNormals) {
+    /* deprecaed. Use ImpliSolid.update_geometry() instead.
+     i.e. swap geometry & implicit_service:
+     geom.update_geometry(IMPLISOLID, true)  ->  IMPLISOLID.update_geometry(geom, true)
+     */
+    this.update_geometry_ = function(implicit_service, ignoreNormals) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
@@ -458,7 +461,8 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         IMPLICIT.finish_geometry();
         var mc_properties_json = JSON.stringify({resolution: CONFIG.implisolid.default_mc_resolution, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
         IMPLICIT.build_geometry(......., mc_properties_json,);
-        g.update_geometry(IMPLICIT, false)
+        //g.update_geometry(IMPLICIT, false)
+        IMPLICIT.update_geometry(g, false)
 
 
         for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT, false);}
@@ -492,11 +496,17 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         implicit_service.set_object(mp5_str, ignore_root_matrix);
         implicit_service.set_vect(x);  // overhead
-        implicit_service.calculate_implicit_gradients(true);
+        implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
         var ptr = implicit_service.get_gradients_ptr();
         var ptr_len = implicit_service.get_gradients_size();
         var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
         //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+        /*
+        for( var i = 0 ; i < ptr_len; i++) {
+            gradients[i] += Math.random() * 0.2;
+        }
+        */
 
         var geom = this;
         geom.update_normals_from_array(gradients);

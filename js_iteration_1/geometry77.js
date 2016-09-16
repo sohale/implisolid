@@ -266,6 +266,7 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
 
     // ThreeJS does not use prototype-based OOP.
 
+    // still not refactored into update_geometry1
     this.update_geometry = function(newPolygonizer) {
         var geometry = this;
         var nverts = newPolygonizer.get_v_size();
@@ -278,6 +279,13 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
         var faces = Module.HEAPU32.subarray(
             faces_address/_INT_SIZE,
             faces_address/_INT_SIZE + 3*nfaces);
+
+        // REFACTORED. NOTE TESTED.
+        this.update_geometry1 = function(verts, faces);
+    };
+
+    this.update_geometry1 = function(verts, faces) {
+        //NOT TESTED.
 
         //var g_nverts = geometry.attributes.position.count/3;  // Displayed size
         //check allocated space

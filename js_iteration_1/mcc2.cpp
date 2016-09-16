@@ -851,6 +851,9 @@ bool set_x(void* verts, int n) {
     current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
     //std::clog << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
     current_grad = new vectorized_vect( shape_t{n, 3}  );
+    #if ASSERT_USED
+    //current_grad  <- some init value
+    #endif
     return true;
 }
 void unset_x() {

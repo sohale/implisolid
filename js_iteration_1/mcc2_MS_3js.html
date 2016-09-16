@@ -44,14 +44,14 @@ Based on MCC1
         // newProducer.about = Module.cwrap('about', null, []);
           // this is used for version purposes in the current html file
 
-        newProducer.init = function(){ newProducer.needsFinish = false; }
+        newProducer.init = function(){ newProducer.needs_deallocation = false; }
         newProducer.finish_with = function (){
-            if(!newPolygonizer.needsFinish)
+            if(!newPolygonizer.needs_deallocation)
                 console.error("cannot `finish_geometry()`. Geometry not produced.");
 
 
             newPolygonizer.finish_geometry();
-            newPolygonizer.needsFinish = false;
+            newPolygonizer.needs_deallocation = false;
         }
 
         newProducer.init();
@@ -145,17 +145,17 @@ function make_geometry_new2(newPolygonizer, subjective_time, reusable_geometry, 
 
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {
+    if(newPolygonizer.needs_deallocation) {
 
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
     else{
 
     }
 
     newPolygonizer.build_geometry( 28, 1.0, subjective_time);
-    newPolygonizer.needsFinish = true;
+    newPolygonizer.needs_deallocation = true;
 
     var nverts = newPolygonizer.get_v_size();
     var nfaces = newPolygonizer.get_f_size();
@@ -192,18 +192,18 @@ function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(te
 function update_reused_geometry(newPolygonizer, subjective_time, geometry) {
     var startTime = new Date();
 
-    if(newPolygonizer.needsFinish) {
+    if(newPolygonizer.needs_deallocation) {
 
         newPolygonizer.finish_geometry();
-        newPolygonizer.needsFinish = false;
+        newPolygonizer.needs_deallocation = false;
     }
 
-    if(newPolygonizer.needsFinish)
+    if(newPolygonizer.needs_deallocation)
         console.error("not deallocated.");
     try{
 
         newPolygonizer.build_geometry( 28, 1.0, subjective_time);
-        newPolygonizer.needsFinish = true;
+        newPolygonizer.needs_deallocation = true;
     }catch(err){
         console.error("An error occured dugin MCC C++")
         console.info(err);

@@ -43,15 +43,19 @@ function init(service) {
     }
     */
 
-    service.init = function(){ service.needsFinish = false; }
+    service.init = function(){
+        service.needs_deallocation = false;
+    }
+
     service.finish_with = function (){
         //after the last round.
-        if(!this.needsFinish){
+        if(!this.needs_deallocation){
             console.error("cannot `finish_geometry()`. Geometry not produced.");
         }
         service.finish_geometry();
-        service.needsFinish = false;
+        service.needs_deallocation = false;
     }
+
     service.set_vect = function (float32Array) {
         // Accesses module
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -63,8 +67,41 @@ function init(service) {
         console.log("result: "+result);
         Module._free( verts_space );
 
-    }
+    };
+
+    service.update_geometry = function(geometry, ignoreNormals) {
+
+        var implicit_service = this;
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+        const POINTS_PER_FACE = 3;
+
+        var nverts = implicit_service.get_v_size();
+        var nfaces = implicit_service.get_f_size();
+
+        if(nfaces > 0){
+            var verts_address = implicit_service.get_v_ptr();
+            var faces_address = implicit_service.get_f_ptr();
+
+            var verts = Module.HEAPF32.subarray(
+                verts_address/_FLOAT_SIZE,
+                verts_address/_FLOAT_SIZE + 3*nverts);
+
+            var faces = Module.HEAPU32.subarray(
+                faces_address/_INT_SIZE,
+                faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+        }
+        else{
+            console.log("empty implicit");
+            var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+
+        return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+    };
+
     service.init();
+
     return service;
 }
 
@@ -76,9 +113,9 @@ var ImplicitService = function(){
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
 
-        if(this.needsFinish) {
+        if(this.needs_deallocation) {
             this.finish_geometry();
-            this.needsFinish = false;
+            this.needs_deallocation = false;
         }
 
         //console.log("mc_params.resolution " + mc_params.resolution);
@@ -86,7 +123,7 @@ var ImplicitService = function(){
 
         var mp5_str = JSON.stringify(shape_params);
         this.build_geometry(mp5_str, JSON.stringify(mc_params));
-        this.needsFinish = true;
+        this.needs_deallocation = true;
 
         var nverts = this.get_v_size();
         var nfaces = this.get_f_size();
@@ -247,7 +284,7 @@ function test_update1(t, mesh, dict){
     var g = mesh.geometry;
 
     IMPLICIT.finish_geometry();
-    IMPLICIT.needsFinish = false;
+    IMPLICIT.needs_deallocation = false;
 
     var s = Math.sin(t)*3+3;
     console.log("s="+s);
@@ -279,13 +316,14 @@ function test_update1(t, mesh, dict){
         JSON.stringify(mc_properties));
 
 
-    IMPLICIT.needsFinish = true;
+    IMPLICIT.needs_deallocation = true;
 
     if(new_geometry){
         mesh.geometry = new_geometry;
         g = new_geometry;
     }
-    g.update_geometry(IMPLICIT, true);
+    // g.update_geometry(IMPLICIT, true);
+    IMPLICIT.update_geometry(g, true);
     g.update_normals(IMPLICIT);
 
 }
@@ -294,7 +332,8 @@ function test_update1(t, mesh, dict){
 function test_update2(t){
     var g = currentMeshes[0].geometry;
 
-    var new_geometry = g.update_geometry(IMPLICIT, false);
+    // var new_geometry = g.update_geometry(IMPLICIT, false);
+    var new_geometry = IMPLICIT.update_geometry(g, false);
     g.update_normals(IMPLICIT);
     if(new_geometry){
         currentMeshes[0].geometry = new_geometry;
