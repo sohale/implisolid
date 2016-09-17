@@ -65,6 +65,9 @@ function init(service) {
         Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
         var result = this.set_x(verts_space, nverts);
         console.log("result: "+result);
+        if (!result) {
+            console.error("Something went wrong: ", result);
+        }
         Module._free( verts_space );
 
     };
@@ -103,13 +106,19 @@ function init(service) {
 
     //was: geom. update_normals (service ..)
     service.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
+        geom.removeAttribute('normal');
+        geom.computeVertexNormals();
+        geom.__set_needsUpdate_flag(false);
+        return;
+
 
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-        console.error(x);
-
+        // console.error(x);
+        /*
         for( var i = 0 ; i < x.length; i++) {
             x[i] += Math.random() * 0.9;
         }
+        */
 
         service.set_object(mp5_str, ignore_root_matrix);
         service.set_vect(x);  // overhead
@@ -124,6 +133,10 @@ function init(service) {
         //}
 
         geom.update_normals_from_array(gradients);
+
+        service.unset_x();
+        service.unset_object();
+
     };
 
 

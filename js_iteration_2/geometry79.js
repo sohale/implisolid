@@ -80,6 +80,17 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
     const GROWTH_FACTOR = 1.5;
     const GROWTH_ADDITIONAL = 1;
 
+    if (pre_allocate_ == "Deliberately Empty") {
+        //  todo => set some flags, dont create this box, etc.
+        // for now, it creates the box, which will be replaced with something else => it's fine.
+        // But if I dont create anything, things might go wrong.
+        // Also we should not allow update() to zero faces. i.e.
+        this.deliberately_empty = true;
+    } else {
+        this.deliberately_empty = false;
+    }
+    pre_allocate_ = !!pre_allocate_;
+
     //_expect(min_faces_capacity_);
     //_expect(min_verts_capacity_);
     //console.log("verts : "+ min_verts_capacity_ + " faces : "+ min_faces_capacity_);
@@ -89,8 +100,10 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             Allocates buffers, also copies. Can be used to update the geometry object.
         */
 
-        if(faces.length == 0){
-            console.log("emptyimplicit");
+        if(faces.length == 0) {
+            if (!this.deliberately_empty) {
+                console.error("emptyimplicit");
+            }
             var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
             var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
@@ -100,7 +113,14 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         }
         */
         if (faces.length == 0 || verts.length == 0 ) {
-            console.error("faces.length, verts.length == 0");
+            if (this.deliberately_empty) {
+                // ok
+            } else {
+                console.error("faces.length, verts.length == 0");
+            }
+        }
+        if (this.deliberately_empty) {
+            // assert certain things
         }
 
         var POINTS_PER_FACE = 3;
@@ -492,11 +512,17 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
     };
 
     this.update_normals_from_array = function(normals) {
+        this.computeVertexNormals();
+        this.__set_needsUpdate_flag(false);
+        return;
+
         //i.e. setNormals()
         // Only called after updateGeometry(), or after LiveGeometry()
         var geometry = this;
         // assert ensure length
         geometry.attributes.normal.array.set(normals);
+
+        geometry.computeVertexNormals();
         geometry.attributes.normal.needsUpdate = true;
     };
 

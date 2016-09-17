@@ -220,6 +220,7 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
             var result = this.set_x(verts_space, nverts);
             console.log("set_x() result: "+result);
+            if (!result) {console.error("Something went wrong: ", result);}
             Module._free( verts_space );
         }
 
@@ -641,13 +642,45 @@ function release_gradients1(implicit_service) {
     implicit_service.unset_object();
 }
 
-function clone_varray(verts) {
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (verts.length/3) * 3);
+// DRY 6 folds!
+function clone_array_float(verts) {
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * verts.length);
     var g = new Float32Array(raw_buffer);
     g.subarray(0, verts.length).set(new Float32Array(verts));
     return g;
 }
 
+function concatenate_array_float(verts1, verts2) {
+    var n1 = verts1.length;
+    var n2 = verts2.length;
+    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) );
+    var verts12 = new Float32Array(raw_buffer);
+    verts12.subarray(0, n1).set(new Float32Array(verts1));
+    verts12.subarray(n1, (n1+n2)).set(new Float32Array(verts2));  // deliberate bug for TDD
+    return verts12;
+}
+
+function make_indices_for_n1_n2(n) {
+    var n1 = n;
+    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
+    var indices12 = new Uint32Array(raw_buffer);
+    for (var i=0; i < n1; i++) {
+        indices12[i * 3] = i;
+        indices12[i * 3 + 1] = i + n1; //i + n1;
+        indices12[i * 3 + 2] = i; //i + n1;
+    }
+    assert(indices12.length == n1 * 3);
+    return indices12;
+}
+
+/*
+function clone_array_int(indices) {
+    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * indices.length);
+    var g = new Uint32Array(raw_buffer);
+    g.subarray(0, indices.length).set(new Uint32Array(indices));
+    return g;
+}
+*/
 
 /*
 Three ways:
@@ -716,8 +749,8 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
     /*
             // Uncomment for visualising the mesh's normals when set according to Implicit gradients.
             var gradients = prepare_gradients1(implisolid_, shape_json, verts);
-            global_verts_copy = clone_varray(verts);
-            global_gradients_copy = clone_varray(gradients);
+            global_verts_copy = clone_array_float(verts);
+            global_gradients_copy = clone_array_float(gradients);
     */
 
 
@@ -859,7 +892,7 @@ function make_lines_mesh_v1(verts12, indices12, color) {
     }
     var re_allocate_buffers;
     //var geom = new LiveBufferGeometry79( verts12, indices12, re_allocate_buffers=true, 0, 0);
-    var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers=true, 0, 0);
+    var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers="Deliberately Empty", 0, 0);
     geom.update_geometry1(verts12, indices12, true, true);
 
 
@@ -900,11 +933,14 @@ function make_vectorfield_flow_lines_v1(implisolid_, name1, name2, point_size) {
     verts2 = verts2.subarray(0, n2 * 3);
     */
 
+    var verts12 = concatenate_array_float(verts1, verts2);
+    /*
     var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
     var verts12 = new Float32Array(raw_buffer);
     // var verts12 = new Float32Array(n1 + n2);
     verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
     verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
+    */
 
     /*
     for( var i=0; i<n2; i++) {
@@ -934,8 +970,9 @@ function make_vectorfield_flow_lines_v1(implisolid_, name1, name2, point_size) {
     */
 
 
+    var indices12 = make_indices_for_n1_n2(n1);
 
-
+    /*
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
     var indices12 = new Uint32Array(raw_buffer);
     for (var i=0; i < n1; i++) {
@@ -944,6 +981,7 @@ function make_vectorfield_flow_lines_v1(implisolid_, name1, name2, point_size) {
         indices12[i * 3 + 2] = i; //i + n1;
     }
     assert(indices12.length == n1 * 3);
+    */
 
 
     var wire_msh = make_lines_mesh_v1(verts12, indices12, 0xffffff);
@@ -985,11 +1023,14 @@ function make_vectorfield_flow_lines_v2(implisolid_, name1, name2, point_size) {
 
     assert(n1 > 0);
 
+    var verts12 = concatenate_array_float(verts1, verts2);
+    /*
     var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
     var verts12 = new Float32Array(raw_buffer);
     // var verts12 = new Float32Array(n1 + n2);
     verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
     verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
+    */
 
 
     if (n1 !== n2) {
@@ -1039,10 +1080,8 @@ function hairy_object_based_on_vectors(vects, gradients, alpha1, alpha2, color) 
     var n1 = vects.length / 3;
     assert(n == n1);
 
-    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
-    var arrow_tips = new Float32Array(raw_buffer);
-    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
-    var arrow_bases = new Float32Array(raw_buffer);
+    var arrow_tips = new Float32Array(new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT));
+    var arrow_bases = new Float32Array(new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT));
     for (var i = 0; i < n; ++i) {
         for (var d = 0; d < 3; d++) {
             var j = (i * 3) + d;
@@ -1051,12 +1090,17 @@ function hairy_object_based_on_vectors(vects, gradients, alpha1, alpha2, color) 
         }
     }
 
+    var verts12 = concatenate_array_float(arrow_bases, arrow_tips);
+    /*
     // repeated code
     var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n + n) * 3);
     var verts12 = new Float32Array(raw_buffer);
     verts12.subarray(0, n * 3).set(new Float32Array(arrow_bases));
     verts12.subarray(n * 3, (n+n) * 3).set(new Float32Array(arrow_tips));  //
+    */
 
+    var indices12 = make_indices_for_n1_n2(n);
+    /*
     //repeated code
     var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n) * 3 );
     var indices12 = new Uint32Array(raw_buffer);
@@ -1066,12 +1110,13 @@ function hairy_object_based_on_vectors(vects, gradients, alpha1, alpha2, color) 
         indices12[i * 3 + 2] = i + n; //i + n;
     }
     assert(indices12.length == n * 3);
+    */
 
     var wire_msh = make_lines_mesh_v1(verts12, indices12, color)
     return wire_msh;
 }
 
-function make_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, color) {
+function visualise_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, color) {
     /*
         Draws lines from alpha1*grad to alpha2*grad.
         alpha1,2 are the start and end of the lines parallel to the gradients. Most likely negative alpha values are used.
@@ -1314,7 +1359,7 @@ var global_normals;
 
 var global_arrows;
 
-const CHOSEN_MATERIAL_INDEX = 13;
+const CHOSEN_MATERIAL_INDEX = 14;
     //2; nice //3;
     // 7 = colourful
     // 3 = ?
@@ -1331,6 +1376,7 @@ const CHOSEN_MATERIAL_INDEX = 13;
     //11: changing cyan
     //12: ??? white?
     //13: proper Phong (As in WeDesign.Live)
+    //14: Phong but semi-transparent
 
 var chosen_matrial;
 
@@ -1438,7 +1484,7 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
 
     var alpha1 = -0.3, alpha2 = -0.6;
-    var norms_ = make_normals(implisolid_, shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
+    var norms_ = visualise_normals(implisolid_, shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
     global_normals = norms_;
 
@@ -1680,7 +1726,7 @@ function update_mc(implisolid_, delta_t){
         global_normals = null
     }
     var alpha = 60.0;
-    var norms_ = make_normals(implisolid_, global_mp5, "post_p_centroids", 0, alpha, 0x009900); //  0x00ff00  // 0x88ff00
+    var norms_ = visualise_normals(implisolid_, global_mp5, "post_p_centroids", 0, alpha, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
     global_normals = norms_;
     */
@@ -1799,7 +1845,11 @@ function look_nice(){
     materials.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, shading: THREE.SmoothShading, opacity: 0.9, transparent: true } ) );
     materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
 
+    // 13 : Standard WeDesignLive
     materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true })  );
+    // 14
+    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true, shading: THREE.FlatShading })  );
+///opacity: 0.7,
 
     console.log("Choose material "+(materials.length-1));
 
