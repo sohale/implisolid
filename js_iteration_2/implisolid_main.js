@@ -45,6 +45,9 @@ function init(service) {
 
     service.init = function(){
         service.needs_deallocation = false;
+
+        this.use_II = true;
+        this.use_II_qem = true;
     }
 
     service.finish_with = function (){
@@ -278,8 +281,18 @@ var ImplicitService = function(){
         _expect(bb["zmin"], "boundingbox has null");
         _expect(bb["zmax"], "boundingbox has null");
 
+
         var mc_res = CONFIG.implisolid.default_mc_resolution;
-        var mc_properties = {resolution: getResolution(bb), box: bb, ignore_root_matrix: ignore_root_matrix};
+        var mc_properties = {
+            resolution: getResolution(bb),
+            box: bb,
+            ignore_root_matrix: ignore_root_matrix,
+
+            vresampl: {iters: this.use_II?1:0, c: 1.0},
+            projection: {enabled: this.use_II?1:0},
+            qem: {enabled: (this.use_II && this.use_II_qem)?1:0},
+
+        };
 
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));
