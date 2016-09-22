@@ -286,11 +286,36 @@ extern "C" {
 
 
 
+// typedef    std::tuple<std::vector<REAL>, std::vector<vectorized_vect::index>> verts_faces_t;
+// typedef    std::tuple<vectorized_vect, std::vector<vectorized_vect::index>> verts_faces_t;
+
+typedef   std::tuple< vectorized_vect, vectorized_faces > vertsfaces_type;
+
+class polygoniser {
+    mp5_implicit::implicit_function const *  object;
+
+    vertsfaces_type vertsfaces;  // not good
+
+    /*
+    std::vector<REAL> verts;
+    std::vector<int> faces;
+    const verts_t & centroids,
+    */
+
+public:
+    polygoniser(mp5_implicit::implicit_function const * ifunc_object)
+        :   object(ifunc_object)  // copy constructor
+    {
+        ;
+    }
+};
+
+
 class state_t {
 public:
     bool active = 0;
     MarchingCubes* mc = 0;
-    std::tuple<> verts_faces;
+    polygoniser pgonizer();
 
 public:
     bool check_state() {
@@ -336,34 +361,14 @@ int get_pointset_size(char* id) {
 
 #include "../js_iteration_2/object_factory.hpp"
 
+// The only usage of marching cubes
 
-// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
-void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
-    if (!_state.check_state_null()) {
-        clog << "build_geometry() called in a bad state.";
-        return;
-    }
-    // std::clog << "In build_geometry obj_name : " << obj_name << std::endl;
-    // std::clog << "Mc_params : " << mc_parameters_json << endl;
-    // std::clog << "shape_json : " << shape_parameters_json << endl;
+std::pair< std::vector<REAL>, std::vector<int>>  mc_start (mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
 
-    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
-
-    bool use_metaball;
-    std::string shape_parameters_json_str = std::string(shape_parameters_json);
-    bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
-
-    //unique_pointer<mp5_implicit::implicit_function> object = ...;
-
-    mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
-
-    // std::clog << "Leak-free : new" << std::endl;
-
-    // dim_t resolution = 28;
     bool enableUvs = true;
     bool enableColors = true;
 
-    _state.mc = new MarchingCubes(mc_settings_from_json.resolution, mc_settings_from_json.box, enableUvs, enableColors);
+    _state.mc = new MarchingCubes(resolution_, box_, enableUvs, enableColors);
 
     _state.mc -> isolation = 80.0/4*0;
 
@@ -403,6 +408,47 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     */
     }
 
+    return std::make_pair(_state.mc -> result_verts, _state.mc->result_faces);
+}
+
+
+std::vector<REAL> _state_mc_result_verts;
+std::vector<int> _state_mc_result_faces;
+
+
+
+// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
+    if (!_state.check_state_null()) {
+        clog << "build_geometry() called in a bad state.";
+        return;
+    }
+    // std::clog << "In build_geometry obj_name : " << obj_name << std::endl;
+    // std::clog << "Mc_params : " << mc_parameters_json << endl;
+    // std::clog << "shape_json : " << shape_parameters_json << endl;
+
+    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+
+    std::string shape_parameters_json_str = std::string(shape_parameters_json);
+    bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
+
+    //unique_pointer<mp5_implicit::implicit_function> object = ...;
+
+    bool use_metaball;  // output
+    mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
+
+    // std::clog << "Leak-free : new" << std::endl;
+
+    // dim_t resolution = 28;
+
+    auto vertsfaces_pair = mc_start(object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
+    // std::vector<REAL>, std::vector<int>
+
+    // auto  _state_mc_result_verts = _state.mc -> result_verts;
+    // auto  _state_mc_result_faces = _state.mc->result_faces;
+    _state_mc_result_verts = std::move(vertsfaces_pair.first);
+    _state_mc_result_faces = std::move(vertsfaces_pair.second);
+
 
     /*
     int vresamp_iters = 0; //3;
@@ -417,6 +463,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     mc_settings_from_json.vresampl.iters = 1;
     mc_settings_from_json.qem.enabled = true;
     */
+
 
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
@@ -440,7 +487,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     for (int i=0; i < vresamp_iters; i++) {
         timer t1;
         // result_verts is modified
-        apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc -> result_verts, _state.mc->result_faces, false );
+        apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state_mc_result_verts, _state_mc_result_faces, false );
         t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
         timr.report_and_continue("vertex resampling");
     }
@@ -449,7 +496,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         /*
         if (STORE_POINTSETS)
         {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);
+            verts_t v = convert_vectorverts_to_vectorized_vect( _state_mc_result_verts);
             STORE_POINTSET("pre_p_centroid", v);
         }
         if (STORE_POINTSETS) {
@@ -460,7 +507,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         if (mc_settings_from_json.projection.enabled) {
             std::clog << "centroids_projection:" << std::endl;
             // Dn't send mc_settings_from_json as an argument
-            centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces, mc_settings_from_json.qem.enabled);
+            centroids_projection(object, _state.mc->result_verts, _state_mc_result_faces, mc_settings_from_json.qem.enabled);
             timr.report_and_continue("centroids_projection");
         } else {
             // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
@@ -468,7 +515,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         /*
         if (STORE_POINTSETS) {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc -> result_verts);
+            verts_t v = convert_vectorverts_to_vectorized_vect( _state_mc_result_verts);
             STORE_POINTSET("post_p_centroids", v);
         }
         */
@@ -485,10 +532,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         for (int i=0; i < REPEATS_VR; i++){
             apply_vertex_resampling_to_MC_buffers__VMS(object, c,  //    *(_state.mc));
-                _state.mc->result_verts, _state.mc->result_faces, ??);
+                _state.mc->result_verts, _state_mc_result_faces, ??);
         }
 
-        centroids_projection(object, _state.mc->result_verts, _state.mc->result_faces);
+        centroids_projection(object, _state.mc->result_verts, _state_mc_result_faces);
     }
     */
 
@@ -499,11 +546,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     _state.active = true;
 
     _state.check_state();
-    // std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
+    // std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state_mc_result_faces.size() << std::endl;
 }
 int get_f_size() {
     if (!_state.check_state()) return -1;
-    return _state.mc->result_faces.size()/3;
+    return _state_mc_result_faces.size()/3;
 }
 int get_v_size() {
     if (!_state.check_state()) return -1;
@@ -536,7 +583,7 @@ void get_f(int* f_out, int fcount) {
         return;
     // int nf = get_f_size();
     int ctr = 0;
-    for ( std::vector<int>::iterator it=_state.mc->result_faces.begin(); it < _state.mc->result_faces.end(); it+=3 ) {
+    for ( std::vector<int>::iterator it=_state_mc_result_faces.begin(); it < _state_mc_result_faces.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
             f_out[ctr] = *(it + di);
             // if(ctr<3*3*3)
@@ -559,7 +606,7 @@ void* get_v_ptr() {
 void* get_f_ptr() {
     if (!_state.check_state())
         return NULL;
-    return reinterpret_cast<void*>(_state.mc->result_faces.data());
+    return reinterpret_cast<void*>(_state_mc_result_faces.data());
 }
 
 
