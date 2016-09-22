@@ -285,30 +285,35 @@ extern "C" {
 };
 
 
-typedef struct {
+class state_t {
+public:
     bool active = 0;
     MarchingCubes* mc = 0;
-} state_t;
+
+public:
+    bool check_state() {
+        if (!this->active) {
+            std::clog << "Error: There are no allocated geometry resources to deallocate.";
+            return false;
+        }
+        return true;
+    }
+    bool check_state_null() {
+        if (this->active) {
+            std::clog << "Error: There are non-deallocated geometry resources. Call finit_geometry() first. Not doing anything.";
+            return false;
+        }
+        return true;
+    }
+
+};
 
 state_t _state;
 
 // _state.active = false;
 // _state.mc = 0;
 
-bool check_state() {
-    if (!_state.active) {
-        std::clog << "Error: There are no allocated geometry resources to deallocate.";
-        return false;
-    }
-    return true;
-}
-bool check_state_null() {
-    if (_state.active) {
-        std::clog << "Error: There are non-deallocated geometry resources. Call finit_geometry() first. Not doing anything.";
-        return false;
-    }
-    return true;
-}
+
 
 //polygoniser_settings
 
@@ -332,8 +337,10 @@ int get_pointset_size(char* id) {
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
-    if (!check_state_null())
+    if (!_state.check_state_null()) {
+        clog << "build_geometry() called in a bad state.";
         return;
+    }
     // std::clog << "In build_geometry obj_name : " << obj_name << std::endl;
     // std::clog << "Mc_params : " << mc_parameters_json << endl;
     // std::clog << "shape_json : " << shape_parameters_json << endl;
@@ -489,19 +496,19 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     _state.active = true;
 
-    check_state();
+    _state.check_state();
     // std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state.mc->result_faces.size() << std::endl;
 }
 int get_f_size() {
-    if (!check_state()) return -1;
+    if (!_state.check_state()) return -1;
     return _state.mc->result_faces.size()/3;
 }
 int get_v_size() {
-    if (!check_state()) return -1;
+    if (!_state.check_state()) return -1;
     return _state.mc->result_verts.size()/3;
 }
 void get_v(REAL* v_out, int vcount) {
-    if (!check_state())
+    if (!_state.check_state())
         return;
 
     // int nf = get_f_size();
@@ -523,7 +530,7 @@ void get_v(REAL* v_out, int vcount) {
 
 
 void get_f(int* f_out, int fcount) {
-    if (!check_state())
+    if (!_state.check_state())
         return;
     // int nf = get_f_size();
     int ctr = 0;
@@ -542,13 +549,13 @@ void get_f(int* f_out, int fcount) {
 
 /* Data is already there, so why copy it? Also, keep it until next round. */
 void* get_v_ptr() {
-    if (!check_state())
+    if (!_state.check_state())
         return NULL;
     return reinterpret_cast<void*>(_state.mc->result_verts.data());
 }
 
 void* get_f_ptr() {
-    if (!check_state())
+    if (!_state.check_state())
         return NULL;
     return reinterpret_cast<void*>(_state.mc->result_faces.data());
 }
@@ -567,7 +574,7 @@ void* get_f_ptr() {
     Leave behind and forget the current geometry. Ready for a new one.
 */
 void finish_geometry() {
-    if (!check_state())
+    if (!_state.check_state())
         return;
     if (_state.mc == 0) {
         std::cerr << "Error: finish_geometry() before producing the shape()" << std::endl;

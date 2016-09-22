@@ -51,8 +51,10 @@ mp5_implicit::bounding_box generate_random_box(mp5_implicit::bounding_box givenB
 }
 
 void calculate_real_bounding_box(mp5_implicit::bounding_box& box){
-    if(!check_state())
-    return;
+    if(!check_state()) {
+        clog << "calculate_real_bounding_box() called in a bad state.";
+        return;
+    }
     //int nf = get_f_size();
     for(std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ){
         REAL currentval = *( it );
