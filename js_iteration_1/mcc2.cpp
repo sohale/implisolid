@@ -296,6 +296,8 @@ class polygoniser {
 
     vertsfaces_type vertsfaces;  // not good
 
+
+
     /*
     std::vector<REAL> verts;
     std::vector<int> faces;
@@ -314,8 +316,11 @@ public:
 class state_t {
 public:
     bool active = 0;
-    MarchingCubes* mc = 0;
+    // MarchingCubes* mc = 0;
     polygoniser pgonizer();
+    //todo: move this into this-> pgonizer
+    std::vector<REAL> mc_result_verts;
+    std::vector<int> mc_result_faces;
 
 public:
     bool check_state() {
@@ -337,8 +342,6 @@ public:
 
 state_t _state;
 
-// _state.active = false;
-// _state.mc = 0;
 
 
 
@@ -368,33 +371,34 @@ std::pair< std::vector<REAL>, std::vector<int>>  mc_start (mp5_implicit::implici
     bool enableUvs = true;
     bool enableColors = true;
 
-    _state.mc = new MarchingCubes(resolution_, box_, enableUvs, enableColors);
+    MarchingCubes mc {resolution_, box_, enableUvs, enableColors};
+    MarchingCubes * _state_mc = &mc;
 
-    _state.mc -> isolation = 80.0/4*0;
+    _state_mc -> isolation = 80.0/4*0;
 
 
 
     // ****************************
     // Does thismake things slower ?
-    vectorized_vect   mcgrid_vectorized = _state.mc -> prepare_grid();  // 10.0
-    _state.mc -> eval_shape(*object, mcgrid_vectorized);
+    vectorized_vect   mcgrid_vectorized = _state_mc -> prepare_grid();  // 10.0
+    _state_mc -> eval_shape(*object, mcgrid_vectorized);
 
      if (use_metaball) {
          REAL metaball_time = 0;
-         meta_balls(*_state.mc, 4, metaball_time, 1.0);
+         meta_balls(*_state_mc, 4, metaball_time, 1.0);
      }
 
-    _state.mc->seal_exterior(-10000000.0);
+    _state_mc->seal_exterior(-10000000.0);
 
     const callback_t renderCallback;
-    _state.mc->render_geometry(renderCallback);
+    _state_mc->render_geometry(renderCallback);
     // std::clog << "MC executed" << std::endl;
 
     // std::clog << "map4" << std::endl;
 
     if (REPORT_STATS) {
     int mapctr = 0;
-    for (auto& kv_pair : _state.mc->result_e3map) {
+    for (auto& kv_pair : _state_mc->result_e3map) {
         if (0)
             std::clog << " [" << kv_pair.first << ':' << kv_pair.second << ']';
         mapctr++;
@@ -402,18 +406,17 @@ std::pair< std::vector<REAL>, std::vector<int>>  mc_start (mp5_implicit::implici
     /*
     std::clog << "build_geometry(): ";
     std::clog << " e3Map: " << mapctr;
-    std::clog << " Faces: " << _state.mc->result_faces.size()/3;
-    std::clog << " Verts: " << _state.mc->result_verts.size()/3;
+    std::clog << " Faces: " << _state_mc->result_faces.size()/3;
+    std::clog << " Verts: " << _state_mc->result_verts.size()/3;
     std::clog << std::endl;
     */
     }
 
-    return std::make_pair(_state.mc -> result_verts, _state.mc->result_faces);
+    return std::make_pair(_state_mc -> result_verts, _state_mc->result_faces);
 }
 
 
-std::vector<REAL> _state_mc_result_verts;
-std::vector<int> _state_mc_result_faces;
+
 
 
 
@@ -444,10 +447,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     auto vertsfaces_pair = mc_start(object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
 
-    // auto  _state_mc_result_verts = _state.mc -> result_verts;
-    // auto  _state_mc_result_faces = _state.mc->result_faces;
-    _state_mc_result_verts = std::move(vertsfaces_pair.first);
-    _state_mc_result_faces = std::move(vertsfaces_pair.second);
+    // auto  _state.mc_result_verts = _state.mc -> result_verts;
+    // auto  _state.mc_result_faces = _state.mc->result_faces;
+    _state.mc_result_verts = std::move(vertsfaces_pair.first);
+    _state.mc_result_faces = std::move(vertsfaces_pair.second);
 
 
     /*
@@ -487,7 +490,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     for (int i=0; i < vresamp_iters; i++) {
         timer t1;
         // result_verts is modified
-        apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state_mc_result_verts, _state_mc_result_faces, false );
+        apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
         t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
         timr.report_and_continue("vertex resampling");
     }
@@ -496,7 +499,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         /*
         if (STORE_POINTSETS)
         {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state_mc_result_verts);
+            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
             STORE_POINTSET("pre_p_centroid", v);
         }
         if (STORE_POINTSETS) {
@@ -507,7 +510,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         if (mc_settings_from_json.projection.enabled) {
             std::clog << "centroids_projection:" << std::endl;
             // Dn't send mc_settings_from_json as an argument
-            centroids_projection(object, _state.mc->result_verts, _state_mc_result_faces, mc_settings_from_json.qem.enabled);
+            centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
             timr.report_and_continue("centroids_projection");
         } else {
             // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
@@ -515,7 +518,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         /*
         if (STORE_POINTSETS) {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state_mc_result_verts);
+            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
             STORE_POINTSET("post_p_centroids", v);
         }
         */
@@ -532,10 +535,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         for (int i=0; i < REPEATS_VR; i++){
             apply_vertex_resampling_to_MC_buffers__VMS(object, c,  //    *(_state.mc));
-                _state.mc->result_verts, _state_mc_result_faces, ??);
+                _state.mc_result_verts, _state.mc_result_faces, ??);
         }
 
-        centroids_projection(object, _state.mc->result_verts, _state_mc_result_faces);
+        centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces);
     }
     */
 
@@ -546,15 +549,15 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     _state.active = true;
 
     _state.check_state();
-    // std::clog << "MC:: v,f: " << _state.mc->result_verts.size() << " " << _state_mc_result_faces.size() << std::endl;
+    // std::clog << "MC:: v,f: " << _state.mc_result_verts.size() << " " << _state.mc_result_faces.size() << std::endl;
 }
 int get_f_size() {
     if (!_state.check_state()) return -1;
-    return _state_mc_result_faces.size()/3;
+    return _state.mc_result_faces.size()/3;
 }
 int get_v_size() {
     if (!_state.check_state()) return -1;
-    return _state.mc->result_verts.size()/3;
+    return _state.mc_result_verts.size()/3;
 }
 void get_v(REAL* v_out, int vcount) {
     if (!_state.check_state())
@@ -563,7 +566,7 @@ void get_v(REAL* v_out, int vcount) {
     // int nf = get_f_size();
     // Vertices
     int ctr = 0;
-    for ( std::vector<REAL>::iterator it=_state.mc->result_verts.begin(); it < _state.mc->result_verts.end(); it+=3 ) {
+    for ( std::vector<REAL>::iterator it=_state.mc_result_verts.begin(); it < _state.mc_result_verts.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
             v_out[ctr] = *(it + di);
             // if(ctr<3*3*3)
@@ -583,7 +586,7 @@ void get_f(int* f_out, int fcount) {
         return;
     // int nf = get_f_size();
     int ctr = 0;
-    for ( std::vector<int>::iterator it=_state_mc_result_faces.begin(); it < _state_mc_result_faces.end(); it+=3 ) {
+    for ( std::vector<int>::iterator it=_state.mc_result_faces.begin(); it < _state.mc_result_faces.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
             f_out[ctr] = *(it + di);
             // if(ctr<3*3*3)
@@ -600,13 +603,13 @@ void get_f(int* f_out, int fcount) {
 void* get_v_ptr() {
     if (!_state.check_state())
         return NULL;
-    return reinterpret_cast<void*>(_state.mc->result_verts.data());
+    return reinterpret_cast<void*>(_state.mc_result_verts.data());
 }
 
 void* get_f_ptr() {
     if (!_state.check_state())
         return NULL;
-    return reinterpret_cast<void*>(_state_mc_result_faces.data());
+    return reinterpret_cast<void*>(_state.mc_result_faces.data());
 }
 
 
@@ -623,20 +626,17 @@ void* get_f_ptr() {
     Leave behind and forget the current geometry. Ready for a new one.
 */
 void finish_geometry() {
-    if (!_state.check_state())
-        return;
-    if (_state.mc == 0) {
+    if (!_state.check_state()) {
         std::cerr << "Error: finish_geometry() before producing the shape()" << std::endl;
+        return;
     }
-    if (!_state.active) {
-        // std::clog << "Cannot finish_geometry() while still active." << std::endl;
-    } else {
-        // std::clog << "_state.active " << _state.active << "  _state.mc " << _state.mc << std::endl;
-    }
+    assert (_state.active);
+
     // Dos not cause an exception if null. But it causes exception.
-    delete _state.mc;
+    // delete _state.mc;
+    //_state.mc = 0;
+
     _state.active = false;
-    _state.mc = 0;
 }
 
 // information
