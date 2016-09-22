@@ -149,7 +149,8 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
          * Adding the attributes: position
          ***********************************/
 
-
+         // todo:
+         //  if exists (i.e. it's an update) then: geometry.removeAttribute('position')
         assert(padded_verts instanceof Float32Array);
         this.addAttribute( 'position', new THREE.BufferAttribute( padded_verts, 3 ) );  // does this replace the old one?
 

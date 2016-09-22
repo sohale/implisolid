@@ -285,10 +285,12 @@ extern "C" {
 };
 
 
+
 class state_t {
 public:
     bool active = 0;
     MarchingCubes* mc = 0;
+    std::tuple<> verts_faces;
 
 public:
     bool check_state() {
@@ -610,43 +612,125 @@ void about() {
 #include "../js_iteration_2/basic_functions.hpp"
 #include "centroids_projection.cpp"
 
+
+
+// ************************************************************
+// EXPERIMENTAL
+/*
+typedef  char  iobjid_type;
+
+// solids, solid_set, model, solid workers, etc
+class iobject_set {
+
+private:
+    // maximum number of objects
+    std::vector<mp5_implicit::implicit_function> current_objects{};
+public:
+    mp5_implicit::implicit_function* get_current_object_ptr(const iobjid_type id) {
+        std::clog << "Dont use this yet." << std::endl;
+        return NULL;
+    }
+
+public:
+    iobjid_type set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
+        retur -1;
+    }
+
+    void set_matrix(const iobjid_type id, void* m12) {
+    }
+
+    //void set_eye(iobjid_type id) { }
+
+    bool unset_object(const iobjid_type id) {
+        return 0; // failed
+    }
+};
+*/
+
+/*
+The plan is to keep the flow of polygonising of the objects in an object.
+This object is not the SolidObject3D. It is just the polygonisation flow.
+A polygonisation flow can be used using a builder class.
+It has a reference to an object.
+Each polygnisation flow is a task in a polygonisation flow and they are managed by a scheduler.
+The scheduler can be implemented on JavaScript side (clients, not web worker. For now).
+
+*/
+
 typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
-mp5_implicit::implicit_function* current_object = NULL;
+// Query with the implicit object
+// A service that can evaluate X points.
+// Designed for querying with javascript.
+// QueryableObject
+// ifunction_service  pointset_service  iobj_service
+// ifunction_service
+// A service.
+// An object for the implicit function, but not as an object necessarily.
+// Used for evaluation of f() and gradient values.
+// ifunction_service
+// But stores the results too (cahches input and output).
+// Good for asynchronous evaluation.
+// For example: web-workers
+// ifunction_point_service
 
-vectorized_vect* current_x = NULL;
-vectorized_vect* current_grad = NULL;
-vectorized_scalar* current_f = NULL;
+// workers
+struct {
+    mp5_implicit::implicit_function* current_object = NULL;
+
+    vectorized_vect* current_x = NULL;
+    vectorized_vect* current_grad = NULL;
+    vectorized_scalar* current_f = NULL;
+} ifunction_service;
+
+
+/*
+Sets the object ptr of the ifunction_service from a model
+*/
+//void set_object_from_model(iobjid_type id) {}
+
+void set_matrix(void* m12) {
+    // keeps the same object. Just updates the outer matrix.
+    // ifunction_service.current_object->setMatrix(m12);
+    std::clog << "Error: Not implemented." << std::endl;
+}
+
+
+
+
+// *************************************************************************
+
 
 
 void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
-    if(current_object != NULL){
+    if(ifunction_service.current_object != NULL){
         std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;
     }
 
-    //std::clog << "before: current_object " << current_object << std::endl;
+    //std::clog << "before: current_object " << ifunction_service.current_object << std::endl;
 
     std::string str = std::string(shape_parameters_json);
     bool dummy;
-    current_object = object_factory(str , dummy, ignore_root_matrix);
+    ifunction_service.current_object = object_factory(str , dummy, ignore_root_matrix);
 
-    //std::clog << "after: current_object " << current_object << std::endl;
+    //std::clog << "after: current_object " << ifunction_service.current_object << std::endl;
 }
+// unset_object(int id)
 void unset_object() {
-    if(current_object == NULL){
+    if(ifunction_service.current_object == NULL){
         std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
         return;
     }
 
-    //delete current_object;
-    //current_object = NULL;
+    //delete ifunction_service.current_object;
+    //ifunction_service.current_object = NULL;
     gc_objects();
-    current_object = NULL;
+    ifunction_service.current_object = NULL;
 }
 
 bool set_x(void* verts, int n) {
-    if(current_x != NULL){
+    if(ifunction_service.current_x != NULL){
         std::clog << "Error: You set() before unset()ing the previous set()." << std::endl;
         return false;
     }
@@ -655,63 +739,63 @@ bool set_x(void* verts, int n) {
         return false;
     }
 
-    current_x = new vectorized_vect( shape_t{n, 3} );
+    ifunction_service.current_x = new vectorized_vect( shape_t{n, 3} );
     REAL* real_verts = reinterpret_cast<REAL*>(verts);
     for(int i = 0; i < n; i++) {
-        (*current_x)[i][0] = real_verts[i*3 + 0];
-        (*current_x)[i][1] = real_verts[i*3 + 1];
-        (*current_x)[i][2] = real_verts[i*3 + 2];
+        (*ifunction_service.current_x)[i][0] = real_verts[i*3 + 0];
+        (*ifunction_service.current_x)[i][1] = real_verts[i*3 + 1];
+        (*ifunction_service.current_x)[i][2] = real_verts[i*3 + 2];
         /*
         if(i < 10) {
             std::clog
-                << (*current_x)[i][0] << " "
-                << (*current_x)[i][1] << " "
-                << (*current_x)[i][2] << " "
+                << (*(ifunction_service.current_x))[i][0] << " "
+                << (*(ifunction_service.current_x))[i][1] << " "
+                << (*(ifunction_service.current_x))[i][2] << " "
                 << std::endl;
         }
         */
     }
     //std::clog << std::endl;
-    current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
-    //std::clog << "warning: size may be n x 0:  " << current_f->shape()[0] << "x" << current_f->shape()[1] << std::endl;
-    current_grad = new vectorized_vect( shape_t{n, 3}  );
+    ifunction_service.current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
+    //std::clog << "warning: size may be n x 0:  " << ifunction_service.current_f->shape()[0] << "x" << ifunction_service.current_f->shape()[1] << std::endl;
+    ifunction_service.current_grad = new vectorized_vect( shape_t{n, 3}  );
     #if ASSERT_USED
-    //current_grad  <- some init value
+    //ifunction_service.current_grad  <- some init value
     #endif
     return true;
 }
 void unset_x() {
-    if(current_x == NULL){
+    if(ifunction_service.current_x == NULL){
         std::clog << "Error: You cannot unset() before a set()." << std::endl;
         return;
     }
 
-    delete current_x;
-    delete current_f;
-    delete current_grad;
-    current_x = NULL;
-    current_f = NULL;
-    current_grad = NULL;
+    delete ifunction_service.current_x;
+    delete ifunction_service.current_f;
+    delete ifunction_service.current_grad;
+    ifunction_service.current_x = NULL;
+    ifunction_service.current_f = NULL;
+    ifunction_service.current_grad = NULL;
 }
 
 
 void calculate_implicit_values() {
-    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+    if(ifunction_service.current_x == NULL || ifunction_service.current_f == NULL || ifunction_service.current_object == NULL) {
         std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return;
     }
 
-    current_object -> eval_implicit(*current_x, current_f);
+    ifunction_service.current_object -> eval_implicit(*(ifunction_service.current_x), ifunction_service.current_f);
 }
 void* get_values_ptr() {
-    return current_f->data();
+    return ifunction_service.current_f->data();
 }
 int get_values_size() {
-    return current_f->shape()[0];
+    return ifunction_service.current_f->shape()[0];
 }
 
 void calculate_implicit_gradients(bool normalize_and_invert) {
-    if(current_x == NULL || current_grad == NULL || current_object == NULL) {
+    if(ifunction_service.current_x == NULL || ifunction_service.current_grad == NULL || ifunction_service.current_object == NULL) {
         std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return;
     }
@@ -719,17 +803,17 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
     int problems = 0;
 
     clog << "size consistency" ;
-    if (current_x->shape()[0] != current_grad->shape()[0]) {
-        clog << " " << current_x->shape()[0] << "  !=  " << current_grad->shape()[0];
+    if (ifunction_service.current_x->shape()[0] != ifunction_service.current_grad->shape()[0]) {
+        clog << " " << ifunction_service.current_x->shape()[0] << "  !=  " << ifunction_service.current_grad->shape()[0];
             //<< std::endl;
     }
     clog << std::endl;
-    assert(current_x->shape()[0] == current_grad->shape()[0]);
+    assert(ifunction_service.current_x->shape()[0] == ifunction_service.current_grad->shape()[0]);
 
 
-    current_object -> eval_gradient(*current_x, current_grad);
+    ifunction_service.current_object -> eval_gradient(*(ifunction_service.current_x), ifunction_service.current_grad);
     if(normalize_and_invert) {
-        for(auto it = current_grad->begin(); it < current_grad->end(); it++) {
+        for(auto it = ifunction_service.current_grad->begin(); it < ifunction_service.current_grad->end(); it++) {
             REAL x = (*it)[0];
             REAL y = (*it)[1];
             REAL z = (*it)[2];
@@ -755,38 +839,38 @@ void calculate_implicit_gradients(bool normalize_and_invert) {
 
     /*
     std::clog << "calculated grad: "
-        << (*current_grad)[0][0] << " "
-        << (*current_grad)[0][1] << " "
-        << (*current_grad)[0][2] << " "
+        << (*(ifunction_service.current_grad))[0][0] << " "
+        << (*(ifunction_service.current_grad))[0][1] << " "
+        << (*(ifunction_service.current_grad))[0][2] << " "
         << "  calculated from x ="
-        << (*current_x)[0][0] << " "
-        << (*current_x)[0][1] << " "
-        << (*current_x)[0][2] << " "
+        << (*(ifunction_service.current_x))[0][0] << " "
+        << (*(ifunction_service.current_x))[0][1] << " "
+        << (*(ifunction_service.current_x))[0][2] << " "
         << std::endl;
     */
 
 }
 void* get_gradients_ptr() {
-    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+    if(ifunction_service.current_x == NULL || ifunction_service.current_f == NULL || ifunction_service.current_object == NULL) {
         std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return NULL;
     }
     /*
     std::clog << "current_grad: "
-        << (*current_grad)[0][0] << " "
-        << (*current_grad)[0][1] << " "
-        << (*current_grad)[0][2] << " "
+        << (*(ifunction_service.current_grad))[0][0] << " "
+        << (*(ifunction_service.current_grad))[0][1] << " "
+        << (*(ifunction_service.current_grad))[0][2] << " "
         << std::endl;
     */
-    return current_grad->data();
+    return ifunction_service.current_grad->data();
 }
 int get_gradients_size() {
-    if(current_x == NULL || current_f == NULL || current_object == NULL) {
+    if(ifunction_service.current_x == NULL || ifunction_service.current_f == NULL || ifunction_service.current_object == NULL) {
         std::clog << "Error: You need to set_x() and set_object() first." << std::endl;
         return 0;
     }
 
-    return current_grad->shape()[0] * 3;
+    return ifunction_service.current_grad->shape()[0] * 3;
 }
 
 
