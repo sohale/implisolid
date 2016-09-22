@@ -81,6 +81,7 @@ struct CONFIG {
 //}
 */
 
+extern const bool VERBOSE = false;
 
 constexpr bool VERBOSE_QEM = false;
 
