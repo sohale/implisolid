@@ -514,7 +514,7 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2/2 ),
+            resolution: Math.floor(28/2*2/2*2 ),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
@@ -1393,7 +1393,8 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     scene = new THREE.Scene();
 
     //var WIDTH = 300, HEIGHT = 300;
-    var WIDTH = window.innerWidth, HEIGHT = window.innerHeight - 200; //for memory profiler
+    var WIDTH = window.innerWidth,
+        HEIGHT = window.innerHeight - 0*200; //for memory profiler
 
     if (PERSPECTIVE) {
         camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 1, 10000 );
@@ -1489,13 +1490,13 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     global_normals = norms_;
 
 
-    /*
+
     var points2 = make_pointset( implisolid_, "pre_p_centroids", 8.0 / 4.0*2 / 30.0,   0.9, 0.0, 0.0);  // Red: before
     // scene.add( points2 );
 
     var points1 = make_pointset( implisolid_, "post_p_centroids", 10.0 / 4.0 / 30.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
-    */
+
 
 
 /*
@@ -1521,7 +1522,7 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     //points2.visible = false;
     // mesh_wireframe.visible = false;
     // vectorfield.visiable = false;
-    norms_.visible = false;
+    // norms_.visible = false;
     // global_normals.visible = false;
 
 
@@ -1848,8 +1849,8 @@ function look_nice(){
     // 13 : Standard WeDesignLive
     materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true })  );
     // 14
-    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true, shading: THREE.FlatShading })  );
-///opacity: 0.7,
+    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:false, shading: THREE.FlatShading })  );
+    //opacity: 0.7,
 
     console.log("Choose material "+(materials.length-1));
 
