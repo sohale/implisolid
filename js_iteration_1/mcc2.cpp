@@ -768,6 +768,7 @@ int set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     int new_object_id = 1;
     return new_object_id;
 }
+
 bool unset_object(int id) {
     // id is ignored for now
     if(ifunction_service.current_object == NULL){
@@ -776,6 +777,10 @@ bool unset_object(int id) {
     }
     if (id <= 0){
         std::clog << "Incorrect ID: use the same id returned by set_object(json)." << std::endl;
+        return false;
+    }
+    if (id != 1) {
+        std::clog << "Incorrect ID. For now, The only id is 1" << std::endl;
         return false;
     }
 
