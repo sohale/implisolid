@@ -59,7 +59,9 @@ then
     # echo " * * * Development Version * * * "
     # echo Compiling ...
     # echo Error messages, and output information will be sent to "em_compile.log"
-    em++    -I $BOOST_FOLDER -I $GTEST_ROOT/googletest/include \
+    em++    -I $BOOST_FOLDER \
+            -I $GTEST_ROOT/googletest/include \
+            -I $EIGEN_LIB_FOLDER \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
             "$1" main_all_tests.cpp\

@@ -22,11 +22,12 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
-  int num_edges = nfaces*3./2.;
+  int num_edges = (nfaces*3)/2;
 
   edge_pair_type modulo = static_cast<edge_pair_type>( num_edges );
-  edge_pair_type lookup_array_size = modulo*static_cast<edge_pair_type>(num_edges) + static_cast<edge_pair_type>(num_edges);
-  eulookup_map_type  eulookup;
+  edge_pair_type num_edges_l = static_cast<edge_pair_type>( num_edges );
+  edge_pair_type lookup_array_size = modulo * num_edges_l + num_edges_l;
+  eulookup_map_type  eulookup_map;
   eulookup_map_type::iterator iter;
   int edge_counter = 0;
   for (int fi=0; fi<nfaces; fi++){
@@ -45,8 +46,8 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
         eu_pair_int = e2 + e1*modulo;
       }
 
-      iter = eulookup.find(eu_pair_int);
-      if (iter== eulookup.end()){
+      iter = eulookup_map.find(eu_pair_int);
+      if (iter== eulookup_map.end()){
         new_edge = true;
       }
       if (new_edge){
@@ -55,7 +56,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
         faces_of_edges[e_id][0] = fi;
         assert (vj!= v2j);
 
-        eulookup.insert(pair<int,int>(eu_pair_int,e_id));
+        eulookup_map.insert(pair<int,int>(eu_pair_int,e_id));
         edge_counter ++;
         assert(edge_counter <= num_edges);
       }
