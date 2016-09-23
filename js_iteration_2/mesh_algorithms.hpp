@@ -15,30 +15,34 @@ These are efficient graph theoretic algorithms. Most of them involve building da
 #pragma once
 namespace mp5_implicit {
 
+typedef long edge_pair_type; //unique edge_pair
+typedef std::map<edge_pair_type, int>  eulookup_map_type;
+
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
   int num_edges = nfaces*3./2.;
 
-  long modulo = long(num_edges);
-  long lookup_array_size = modulo*num_edges + num_edges;
-  map<int, int> eulookup;
-  map<int, int>::iterator iter;
+  edge_pair_type modulo = static_cast<edge_pair_type>( num_edges );
+  edge_pair_type lookup_array_size = modulo*static_cast<edge_pair_type>(num_edges) + static_cast<edge_pair_type>(num_edges);
+  eulookup_map_type  eulookup;
+  eulookup_map_type::iterator iter;
   int edge_counter = 0;
   for (int fi=0; fi<nfaces; fi++){
     for (int vj=0; vj<3; vj++){
       assert(fi<nfaces);
       bool new_edge = false;
       int v2j = (vj+1)%3;
-      int e1 = faces[fi][vj];
-      int e2 = faces[fi][v2j];
-      int eu_pair_int;
+      // impli
+      edge_pair_type e1 = static_cast<edge_pair_type>( faces[fi][vj] );
+      edge_pair_type e2 = static_cast<edge_pair_type>( faces[fi][v2j] );
+      edge_pair_type eu_pair_int;
       if (e2 > e1){
-        eu_pair_int = int(e1 + e2*modulo);
+        eu_pair_int = e1 + e2*modulo;
       }
       else{
-        eu_pair_int = int(e2 + e1*modulo);
+        eu_pair_int = e2 + e1*modulo;
       }
 
       iter = eulookup.find(eu_pair_int);
