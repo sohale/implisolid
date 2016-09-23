@@ -68,8 +68,8 @@ Based on MCC1
         newProducer.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
 
-        newProducer.set_object = Module.cwrap('set_object', null, ['string', 'number']);
-        newProducer.unset_object = Module.cwrap('unset_object', null, []);
+        newProducer.set_object = Module.cwrap('set_object', 'number', ['string', 'number']);
+        newProducer.unset_object = Module.cwrap('unset_object', 'number', ['number']);
         newProducer.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);
         newProducer.unset_x = Module.cwrap('unset_x', null, []);
         newProducer.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);

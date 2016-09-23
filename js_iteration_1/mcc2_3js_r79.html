@@ -184,8 +184,8 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
         s_service.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
 
-        s_service.set_object = Module.cwrap('set_object', null, ['string', 'number']);
-        s_service.unset_object = Module.cwrap('unset_object', null, []);
+        s_service.set_object = Module.cwrap('set_object', 'number', ['string', 'number']);
+        s_service.unset_object = Module.cwrap('unset_object', 'number', ['number']);
         s_service.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);
         s_service.unset_x = Module.cwrap('unset_x', null, []);
         s_service.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
@@ -260,7 +260,9 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             var implicit_service = s_service;
             const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
 
+var result1 =
             implicit_service.set_object(mp5_str, ignore_root_matrix);
+console.log("SET_OBJECT() RESULTS:", result1);
             implicit_service.set_vect(x);  // overhead
             implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
             var ptr = implicit_service.get_gradients_ptr();
@@ -290,7 +292,9 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             geom.update_normals_from_array(gradients);
 
             implicit_service.unset_x();
-            implicit_service.unset_object();
+var result1 =
+            implicit_service.unset_object(1);
+console.log("UNSET_OBJ() RESULTS:", result1);
         };
 
         s_service.init();
@@ -624,7 +628,9 @@ function prepare_gradients1(implicit_service, shape_json, verts) {
     var ignore_root_matrix = true;
 
     const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+var result1 =
     implicit_service.set_object(shape_json, ignore_root_matrix);
+console.log("SET_OBJECT() RESULTS:", result1);
     implicit_service.set_vect(verts);  // overhead
     implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
     var ptr = implicit_service.get_gradients_ptr();
@@ -639,7 +645,9 @@ function prepare_gradients1(implicit_service, shape_json, verts) {
 }
 function release_gradients1(implicit_service) {
     implicit_service.unset_x();
-    implicit_service.unset_object();
+var result1 =
+    implicit_service.unset_object(1);
+console.log("UNSET_OBJ() RESULTS:", result1);
 }
 
 // DRY 6 folds!
@@ -1138,7 +1146,9 @@ function visualise_normals(implisolid_, shape_json, pointset_label, alpha1, alph
     var ignore_root_matrix = false;
     var mp5_str = shape_json;
     // console.error(mp5_str);
+var result1 =
     implisolid_.set_object(mp5_str, ignore_root_matrix);
+console.log("SET_OBJECT() RESULTS:", result1);
     implisolid_.set_vect(verts);
     implisolid_.calculate_implicit_gradients();
 
@@ -1192,7 +1202,9 @@ function visualise_normals(implisolid_, shape_json, pointset_label, alpha1, alph
     */
 
     implisolid_.unset_x();
-    implisolid_.unset_object();
+var result1 =
+    implisolid_.unset_object(1);
+console.log("UNSET_OBJ() RESULTS:", result1);
     return wire_msh;
 }
 
@@ -1299,7 +1311,9 @@ function update_arrows(arrows, implisolid_, mp5_str, n, ignore_root_matrix) {
     var _verts = vlist;
     assert(_verts instanceof Float32Array);
 
+var result1 =
     implisolid_.set_object(mp5_str, ignore_root_matrix);
+console.log("SET_OBJECT() RESULTS:", result1);
     implisolid_.set_vect(_verts);
     implisolid_.calculate_implicit_gradients();
     const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -1320,7 +1334,7 @@ function update_arrows(arrows, implisolid_, mp5_str, n, ignore_root_matrix) {
         var gy = g[i*3 + 1];
         var gz = g[i*3 + 2];
         //implisolid_.unset_x();
-        //implisolid_.unset_object();
+        //implisolid_.unset_object(1);
 
 
         //console.log("*****************************************")
@@ -1343,7 +1357,9 @@ function update_arrows(arrows, implisolid_, mp5_str, n, ignore_root_matrix) {
     }
 
     implisolid_.unset_x();
-    implisolid_.unset_object();
+var result1 =
+    implisolid_.unset_object(1);
+console.log("UNSET_OBJ() RESULTS:", result1);
 }
 // **************************************************************
 

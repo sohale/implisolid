@@ -254,8 +254,8 @@ extern "C" {
         New API for direct evaluation of implicit functions
     *********************************************************/
     //global variables: mp5_implicit::implicit_function* last_object, last_x, v_results, g_results,
-    void set_object(const char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
-    void unset_object();
+    int set_object(const char* shape_parameters_json, bool ignore_root_matrix);  // call object_factory. Sets a global variable   last_object
+    bool unset_object(int);
 
     bool set_x(void* verts, int n);   // sets last_x, a multi_array.
     void unset_x();
@@ -721,6 +721,9 @@ typedef boost::array<vectorized_vect::index, 2>  shape_t;
 // For example: web-workers
 // ifunction_point_service
 
+// Low-level API to directly query the implicit functions.
+// Implicit_function, implicit solid (CSG), implicit_surfaces (BREP, etc)
+
 // workers
 struct {
     mp5_implicit::implicit_function* current_object = NULL;
@@ -749,10 +752,10 @@ void set_matrix(void* m12) {
 
 
 
-void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
+int set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     if(ifunction_service.current_object != NULL){
         std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
-        return;
+        return 0;
     }
 
     //std::clog << "before: current_object " << ifunction_service.current_object << std::endl;
@@ -762,18 +765,25 @@ void set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
     ifunction_service.current_object = object_factory(str , dummy, ignore_root_matrix);
 
     //std::clog << "after: current_object " << ifunction_service.current_object << std::endl;
+    int new_object_id = 1;
+    return new_object_id;
 }
-// unset_object(int id)
-void unset_object() {
+bool unset_object(int id) {
+    // id is ignored for now
     if(ifunction_service.current_object == NULL){
         std::clog << "Error: You cannot unset() the object before a set_object(json)." << std::endl;
-        return;
+        return false;
+    }
+    if (id <= 0){
+        std::clog << "Incorrect ID: use the same id returned by set_object(json)." << std::endl;
+        return false;
     }
 
     //delete ifunction_service.current_object;
     //ifunction_service.current_object = NULL;
     gc_objects();
     ifunction_service.current_object = NULL;
+    return true;
 }
 
 bool set_x(void* verts, int n) {
@@ -834,6 +844,10 @@ void calculate_implicit_values() {
 
     ifunction_service.current_object -> eval_implicit(*(ifunction_service.current_x), ifunction_service.current_f);
 }
+
+// void calculate_implicit_values_direct(void* start, int size) {}  // size = pointcount * 3
+// void calculate_implicit_gradients_direct(void* start, int points_count) {} // size = pointcount * 3
+
 void* get_values_ptr() {
     return ifunction_service.current_f->data();
 }
