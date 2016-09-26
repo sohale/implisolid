@@ -144,6 +144,25 @@ class array_of_indices_struct {
 typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
+
+// *******************************************************
+/*!
+    Types related to mesh subdivision and mesh_algorithm s
+*/
+typedef long edge_pair_type;
+typedef std::map<edge_pair_type, int>  eulookup_map_type;
+// vertexindex_type
+
+namespace mp5_implicit {
+    constexpr edge_pair_type  edgepair_Base = 1000000L;  // A typical sculpture on MMF has 800 K faces => 400K vertices.
+}
+
+//remove this:
+//typedef boost::multi_array<vectorized_vector::element_type, 1>  array_of_________indices;
+//typedef boost::array<array_of_indices::index, 1>  array_of_indices_shape;
+
+// *******************************************************
+
 // auto& loger = std::cerr;
 
 #include ".//my_assert.hpp"

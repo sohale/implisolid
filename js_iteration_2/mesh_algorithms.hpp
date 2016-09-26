@@ -13,10 +13,31 @@ These are efficient graph theoretic algorithms. Most of them involve building da
 */
 
 #pragma once
+
+#include "basic_data_structures.hpp"
+
 namespace mp5_implicit {
 
+/*
 typedef long edge_pair_type; //unique edge_pair
 typedef std::map<edge_pair_type, int>  eulookup_map_type;
+*/
+
+inline edge_pair_type encode_edge__sort(vertexindex_type e1, vertexindex_type e2) {
+    // assert ... edgepair_Base + edgepair_Base * edgepair_Base < maximum<edge_pair_type>
+    if (e1 <= e2) {
+        return e1 + edgepair_Base * e2;
+    } else {
+        return e2 + edgepair_Base * e1;
+    }
+}
+
+inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2) {
+    // assert ... edgepair_Base + edgepair_Base * edgepair_Base < maximum<edge_pair_type>
+    assert(e1 <= e2);;
+    return e1 + edgepair_Base * e2;
+}
+
 
 void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = faces.shape()[0];

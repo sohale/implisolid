@@ -2458,6 +2458,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #index_of_edges_that_subdiv2
 
+    # x_ is a boolean array. x_[f,j] <=> if edge j of face f is in edges_with_1_side.
     x_ = np.lib.arraysetops.in1d(all_edge_triples_ravel, edges_with_1_side)  # elements of A, A.ravel[x_], that are in B
 
     x_1x3 = x_.reshape(3, -1)
@@ -2494,11 +2495,14 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     #print "THIS FAILS"
     del x3__b_Fx3
 
+    # "array of indices" of faces, {f}, where f has one of those edges_with_1_side. face3_idx is a temporary thing. The columns have to be collapsed.
     #indices of all edges
     face3_idx = np.nonzero(x_)[0]
     assert np.ndim(face3_idx) == 1
 
     #todo(refactor): use np.argwhere()
+
+    # Convert flat indices (face3_idx) into (face,side) pairs.
     idx_xy = np.unravel_index(face3_idx, all_edges_triples.shape)
     #idx_xy is a tuple
     #Triangles subject to be subdivided:
@@ -2527,12 +2531,14 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
 
     # The subdivided edge is between v1 and v2.
+    # problem_side_idx = amount of shift within each face
     vert_idx_1 = problem_side_idx  # The problem_side will be between (v1,v2) vertices. vert_idx_1 is not a vertex index but it is a vertex index within a face i.e. in (0,1,2).
     vert_idx_2 = (problem_side_idx + 1) % 3
     vert_idx_3 = (problem_side_idx + 2) % 3
-    v1 = facets[problem_face_idx, vert_idx_1]
-    v2 = facets[problem_face_idx, vert_idx_2]
-    v3 = facets[problem_face_idx, vert_idx_3]
+    v1 = facets[problem_face_idx, vert_idx_1]  # edge's first
+    v2 = facets[problem_face_idx, vert_idx_2]  # edge's second
+    v3 = facets[problem_face_idx, vert_idx_3]  # the OTHER
+    # sibdivided faces: (v1, v3,mapped), (v2, v3,mapped)
 
     #The sides (vertex pairs) that need to be subdivided
     subdivedges_vertex_pairs = np.vstack((v1, v2))  # size: 2 x F
