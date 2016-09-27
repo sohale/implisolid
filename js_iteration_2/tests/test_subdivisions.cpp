@@ -33,12 +33,13 @@ TEST(Subdivision_1to2, a) {
     // subdivide_1to2();
 
     vectorized_faces facets = make_example_1234();
-    std::vector<edge_pair_type> edges_with_1_side = {
+    std::set<edge_pair_type> edges_with_1_side = {
         encode_edge__sort(1, 2),
         encode_edge__sort(2, 4),
         encode_edge__sort(1, 4),
         encode_edge__sort(99,100)
     };
+
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
 
     midpoint_map[encode_edge__sort(1, 2)] = 9;

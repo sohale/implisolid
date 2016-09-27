@@ -42,7 +42,7 @@ http://stackoverflow.com/questions/762011/let-keyword-vs-var-keyword-in-javascri
 
 
 vectorized_faces subdivide_1to2(const vectorized_faces & facets,
-    const std::vector<edge_pair_type>& edges_with_1_side,
+    const std::set<edge_pair_type>& edges_with_1_side,
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map,
     bool careful_for_twosides=true)
 {
