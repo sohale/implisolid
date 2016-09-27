@@ -57,9 +57,13 @@ struct CONFIG_C {
         constexpr static REAL min_gradient_len = 0.000001;
     };
 
+
+    // A typical sculpture on MMF has 800 K faces => 400K vertices.
+    constexpr static edge_pair_type  edgecode_base = 1000000L;
+
 } CONFIG;
 
-}
+}  // namespace
 
 /*
 //namespace mp5_implicit {

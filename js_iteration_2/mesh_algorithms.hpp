@@ -23,7 +23,7 @@ typedef long edge_pair_type; //unique edge_pair
 typedef std::map<edge_pair_type, int>  eulookup_map_type;
 */
 
-inline edge_pair_type encode_edge__sort(vertexindex_type e1, vertexindex_type e2) {
+inline edge_pair_type encode_edge__sort(vertexindex_type e1, vertexindex_type e2, const edge_pair_type edgepair_Base) {
     // assert ... edgepair_Base + edgepair_Base * edgepair_Base < maximum<edge_pair_type>
     if (e1 <= e2) {
         return e1 + edgepair_Base * e2;
@@ -32,14 +32,14 @@ inline edge_pair_type encode_edge__sort(vertexindex_type e1, vertexindex_type e2
     }
 }
 
-inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2) {
+inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2, const edge_pair_type edgepair_Base) {
     // assert ... edgepair_Base + edgepair_Base * edgepair_Base < maximum<edge_pair_type>
-    assert(e1 <= e2);;
+    assert(e1 <= e2);
     return e1 + edgepair_Base * e2;
 }
 
 
-void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
+void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, faces_t& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);

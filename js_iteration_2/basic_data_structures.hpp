@@ -78,7 +78,7 @@ C::element  is not C::value_type   when C is multi-dimensional
 */
 // typedef  faces_t::value_type  vertexindex_type;
 typedef  faces_t::element  vertexindex_type;
-
+// Also see vertexindex_type_
 
 
 typedef short int bool_t;
@@ -144,6 +144,18 @@ class array_of_indices_struct {
 typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
+typedef vectorized_vect::index vertexindex_type_;
+
+
+/*
+Refactoring todo: replace:
+    vertexindex_type:
+        faces_t::element -> vectorized_vect::index
+    faces_t -> vectorized_faces
+    verts_t -> ...
+    vertexindex_type -> vertexindex_type_
+*/
+
 
 // *******************************************************
 /*!
@@ -153,9 +165,13 @@ typedef long edge_pair_type;
 typedef std::map<edge_pair_type, int>  eulookup_map_type;
 // vertexindex_type
 
+/*
 namespace mp5_implicit {
+    // edgepair_Base  EdgecodeBase
     constexpr edge_pair_type  edgepair_Base = 1000000L;  // A typical sculpture on MMF has 800 K faces => 400K vertices.
 }
+*/
+
 
 //remove this:
 //typedef boost::multi_array<vectorized_vector::element_type, 1>  array_of_________indices;

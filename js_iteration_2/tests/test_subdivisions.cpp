@@ -3,6 +3,9 @@
 #include "../mesh_algorithms.hpp"
 #include "faces_test_tools.hpp"
 
+#include "../configs.hpp"
+
+using mp5_implicit::CONFIG_C;
 
 vectorized_faces make_example_1234() {
     vectorized_faces_shape
@@ -34,18 +37,18 @@ TEST(Subdivision_1to2, a) {
 
     vectorized_faces facets = make_example_1234();
     std::set<edge_pair_type> edges_with_1_side = {
-        encode_edge__sort(1, 2),
-        encode_edge__sort(2, 4),
-        encode_edge__sort(1, 4),
-        encode_edge__sort(99,100)
+        encode_edge__sort(1, 2, CONFIG_C::edgecode_base),
+        encode_edge__sort(2, 4, CONFIG_C::edgecode_base),
+        encode_edge__sort(1, 4, CONFIG_C::edgecode_base),
+        encode_edge__sort(99,100, CONFIG_C::edgecode_base)
     };
 
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
 
-    midpoint_map[encode_edge__sort(1, 2)] = 9;
-    midpoint_map[encode_edge__sort(2, 4)] = 10;
-    midpoint_map[encode_edge__sort(1, 7)] = 12;
-    midpoint_map[encode_edge__sort(99, 100)] = 9;
+    midpoint_map[encode_edge__sort(1, 2, CONFIG_C::edgecode_base)] = 9;
+    midpoint_map[encode_edge__sort(2, 4, CONFIG_C::edgecode_base)] = 10;
+    midpoint_map[encode_edge__sort(1, 7, CONFIG_C::edgecode_base)] = 12;
+    midpoint_map[encode_edge__sort(99, 100, CONFIG_C::edgecode_base)] = 9;
 
     // for any i, midpoint_map[edges_with_1_side[i]] must exist
     bool careful_for_twosides=true;

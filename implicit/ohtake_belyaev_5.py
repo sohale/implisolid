@@ -2545,8 +2545,12 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #subdivedges_vertex_pairs never actually used apart from assertion tests.
 
+    # edge_s_codes:
+    # edge_s_codes = all the edges that must be subdivided.
     #edge_s_codes = A flat array of all the edge codes (For the sides that should be replaced with the sibdivided ones)
-    #?????????????
+    # But why do we need it? It's it available in edges_with_1_side? (or even midpoint_map).
+    # Id ont remember now but it migt be: 1-the edges with 1 side may not be all in the faces. 2-repeats in edges_with_1_side, 2
+
     edge_s_codes = all_edge_triples_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
     #subdivedges_vertex_pairs: those edges that*
 
