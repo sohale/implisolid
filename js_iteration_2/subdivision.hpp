@@ -143,15 +143,14 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         edge_triplets_bool {boost::extents[original_faces_count][3]};
 
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
-        auto q = all_edgecodes[fi][0];
-        edge_pair_type e0 = q;
-        all_edgecodes[fi][0] = (midpoint_map.find(e0) != midpoint_map.end());
-        // all_edgecodes[fi][1] = (midpoint_map.find(all_edgecodes[fi][1]) != midpoint_map.end());
-        // all_edgecodes[fi][2] = (midpoint_map.find(all_edgecodes[fi][2]) != midpoint_map.end());
+        edge_triplets_bool[fi][0] = (midpoint_map.find(all_edgecodes[fi][0]) != midpoint_map.end());
+        edge_triplets_bool[fi][1] = (midpoint_map.find(all_edgecodes[fi][1]) != midpoint_map.end());
+        edge_triplets_bool[fi][2] = (midpoint_map.find(all_edgecodes[fi][2]) != midpoint_map.end());
     }
 
 
     vectorized_faces f{boost::extents[5][3]};
     clog << all_edgecodes[0][0];
+    clog << edge_triplets_bool[0][0];
     return f;
 }
