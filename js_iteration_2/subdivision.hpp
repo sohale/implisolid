@@ -43,6 +43,20 @@ http://stackoverflow.com/questions/762011/let-keyword-vs-var-keyword-in-javascri
 using mp5_implicit::CONFIG_C;
 
 using mp5_implicit::encode_edge__sort;
+
+    template<typename iterator, typename T>
+bool check_minimum(iterator begin, iterator end, T minimum_value) {
+    bool ok = true;
+    for (auto i = begin; i != end; ++i) {
+        ok = ok && (*i > minimum_value);
+        if (!ok) {
+            break;
+        }
+    }
+    return ok;
+}
+
+
 /*  An alternative streategy for subdivide_1to2():
 
     Can be done using a map. When we put in the "set", we can provide the original face index too.
@@ -94,6 +108,10 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     // has M elements.
     // We use an array of the size M, which contains the mapped values.
     // make two new faces arrays that comibne: 1-the mapped index, 2-indices of the original faces of the third vertex, (by shifting them) 3- indices of the original faces: one for each of the remaining vertices (by shifting them).
+
+    /* assertions
+    */
+    assert( check_minimum(edges_with_1_side.begin(), edges_with_1_side.end(), 1) );
 
     /*
     typedef boost::multi_array<vectorized_vect::index, 4>  vectorized_new_faces_type;
