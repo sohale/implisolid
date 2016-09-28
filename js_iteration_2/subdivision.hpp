@@ -204,14 +204,14 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
     // variables: compactified_*  or newface_*
     typedef vectorized_new_faces_type::index  compactified_index_type;
-    vectorized_new_faces_type  compactified_newfaces_LTRM_specs
+    vectorized_new_faces_type  compactified_newfaces_LRTM_specs
         {boost::extents[compactified_faces_indices_effective_size][4]};
-    /* in fact each row in compactified_newfaces_LTRM_specs[][] is
+    /* in fact each row in compactified_newfaces_LRTM_specs[][] is
         an array of tuple: tuple<left,right,third,mid> :
 
     <L,R,T,M>
 
-    compactified_newfaces_LTRM_specs: 0,1,2  contains edges: 0-1, 1-2, 2-0
+    compactified_newfaces_LRTM_specs: 0,1,2  contains edges: 0-1, 1-2, 2-0
     (side,side+1) (side+1,side+2), (side+2, side+0)
     (0,1) (1,2), (2,0)  , where (0,1) is the subsdivided edge. Hence tghe vertices are: (side is subtracted from indices):
 
@@ -225,15 +225,15 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     (LR, RT, TL)
 
 
-    In array: compactified_newfaces_LTRM_specs:
+    In array: compactified_newfaces_LRTM_specs:
         T            2
        /|\          /|\
       / | \        / | \
      /  |  \      /  |  \
     L---M---R    0---3---1
-    The third elements, compactified_newfaces_LTRM_specs[][3], will contain the indeix of the mid-point (M).
+    The third elements, compactified_newfaces_LRTM_specs[][3], will contain the indeix of the mid-point (M).
 
-    Hence, compactified_newfaces_LTRM_specs[cfi][:] contains:
+    Hence, compactified_newfaces_LRTM_specs[cfi][:] contains:
     [L,R,T,M]
 
     */
@@ -254,14 +254,14 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         auto _L = faces[fi][(side)        ];
         auto _R = faces[fi][(side + 1) % 3];
         auto _T = faces[fi][(side + 2) % 3];
-        compactified_newfaces_LTRM_specs[cfi][0] = _L;
-        compactified_newfaces_LTRM_specs[cfi][1] = _R;
+        compactified_newfaces_LRTM_specs[cfi][0] = _L;
+        compactified_newfaces_LRTM_specs[cfi][1] = _R;
         // Third: not in the matched edge:
-        compactified_newfaces_LTRM_specs[cfi][2] = _T;
+        compactified_newfaces_LRTM_specs[cfi][2] = _T;
 
         #if ASSERT_USED
             // Fourth: to be looked up from the map
-            compactified_newfaces_LTRM_specs[cfi][3] = -1;
+            compactified_newfaces_LRTM_specs[cfi][3] = -1;
         #endif
 
         // Keep the side (shift)'s code, because we need to look it up in the next step.
@@ -278,18 +278,21 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         /* Will not work, because a [] access to a map is not read-only.
         assert(midpoint_map.find(edge_code) != midpoint_map.end());
         // will not work because the map midpoint_map[] is const.
-        compactified_newfaces_LTRM_specs[cfi][3] = midpoint_map[edge_code];
+        compactified_newfaces_LRTM_specs[cfi][3] = midpoint_map[edge_code];
         */
 
         auto pair_itr = midpoint_map.find(edge_code);
         assert(pair_itr != midpoint_map.end());
         // auto pair = *pair_itr;
-        compactified_newfaces_LTRM_specs[cfi][3] = pair_itr->second;
+        compactified_newfaces_LRTM_specs[cfi][3] = pair_itr->second;
     }
 
-    // The LRTM array now contains all information needed for subdivision
+    // The LRTM array now contains all information needed for subdivision. (contains vertex indices)
+    // But we also will need compactified_faces_indices[]. (contains face indices)
+    // So the output is: (LRTM, F) <--> SubDiv1-2
 
-    cout << " :  L R T M" << std::endl;
+
+    cout << " :  L R T M   -- F" << std::endl;
     for (
             compactified_index_type cfi = 0;
             cfi < compactified_faces_indices_effective_size;
@@ -297,8 +300,9 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     {
         cout << cfi <<": ";
         for (int j=0; j < 4; ++j) {
-            cout << " " << compactified_newfaces_LTRM_specs[cfi][j];
+            cout << " " << compactified_newfaces_LRTM_specs[cfi][j];
         }
+        cout << "  \t" << "[" << compactified_faces_indices[cfi] << "]";
         cout << std::endl;
     }
 
