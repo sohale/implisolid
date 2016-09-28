@@ -67,7 +67,8 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     //alternative names: edges_with_1_side
     //alternative names: midpoint_map
 
-    // Brief: Forms an aray of  (L,T,T,M) and does lookup in the SET and in the MAP
+    // Brief: Forms an aray of  (L,T,T,M) and does lookup in the SET and in the MAP.
+    // Lookup and compactify, shift, lookup2, and store all in the LRTM array.
 
     //Summry of the algorithm:
     // * lookup face indices in the set
@@ -178,7 +179,6 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         3 subdiv side 3 ([2]).
     */
 
-    cout << "3434343434" << std::endl << std::flush;
 
     // next: 1-make the faces in an array
     // Then, later, or at the same time, circular-shift, and get the 4 indices.
@@ -188,44 +188,30 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
     boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[preallocated_compactified_maximum_size]};
 
-    cout << "3.3.3.3.3=." << std::endl << std::flush;
-    cout << "3.3.3.3.3=." << std::endl << std::flush;
-    cout << "3.3.3.3.3=." << std::endl << std::flush;
-    cout << " cc " << std::endl << std::flush;
-
-    cout << std::flush;
-    cout << " c = " << original_faces_count << std::endl << std::flush;
-    cout << std::flush;
-
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
-        cout << "here" << std::flush;
-        cout << fi << ":" << std::flush;
-        cout << set_lookup_side[fi] << " = " << static_cast<int>(set_lookup_side[fi]) << " " << std::endl << std::flush;;
+        // cout << fi << ":" << std::flush;
+        // cout << set_lookup_side[fi] << " = " << static_cast<int>(set_lookup_side[fi]) << " " << std::endl << std::flush;;
         if (set_lookup_side[fi]) {
-            cout << "if=true" << std::endl << std::flush;;
             auto s = set_lookup_side[fi] - 1;  // careful, it is unsigned
-            cout << "minus one = " << s << std::endl << std::flush;;
 
             compactified_side [compactified_faces_indices_effective_size] = set_lookup_side[fi] - 1;
             compactified_faces_indices [compactified_faces_indices_effective_size] = fi;
             ++compactified_faces_indices_effective_size;
         }
     }
-    cout << std::endl << std::flush;
 
-    cout << "3333333" << std::endl << std::flush;
 
 
     // variables: compactified_*  or newface_*
     typedef vectorized_new_faces_type::index  compactified_index_type;
-    vectorized_new_faces_type  compactified_newfaces_specs
+    vectorized_new_faces_type  compactified_newfaces_LTRM_specs
         {boost::extents[compactified_faces_indices_effective_size][4]};
-    /* in fact each row in compactified_newfaces_specs[][] is
+    /* in fact each row in compactified_newfaces_LTRM_specs[][] is
         an array of tuple: tuple<left,right,third,mid> :
 
     <L,R,T,M>
 
-    compactified_newfaces_specs: 0,1,2  contains edges: 0-1, 1-2, 2-0
+    compactified_newfaces_LTRM_specs: 0,1,2  contains edges: 0-1, 1-2, 2-0
     (side,side+1) (side+1,side+2), (side+2, side+0)
     (0,1) (1,2), (2,0)  , where (0,1) is the subsdivided edge. Hence tghe vertices are: (side is subtracted from indices):
 
@@ -239,15 +225,15 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     (LR, RT, TL)
 
 
-    In array: compactified_newfaces_specs:
+    In array: compactified_newfaces_LTRM_specs:
         T            2
        /|\          /|\
       / | \        / | \
      /  |  \      /  |  \
     L---M---R    0---3---1
-    The third elements, compactified_newfaces_specs[][3], will contain the indeix of the mid-point (M).
+    The third elements, compactified_newfaces_LTRM_specs[][3], will contain the indeix of the mid-point (M).
 
-    Hence, compactified_newfaces_specs[cfi][:] contains:
+    Hence, compactified_newfaces_LTRM_specs[cfi][:] contains:
     [L,R,T,M]
 
     */
@@ -265,17 +251,17 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         vectorized_faces::index fi = compactified_faces_indices[cfi];
         auto side = compactified_side[cfi];
         // First and second nodes of the matched edge.
-        auto _L = faces[fi][side];
+        auto _L = faces[fi][(side)        ];
         auto _R = faces[fi][(side + 1) % 3];
         auto _T = faces[fi][(side + 2) % 3];
-        compactified_newfaces_specs[cfi][0] = _L; //faces[fi][(side)        ];
-        compactified_newfaces_specs[cfi][1] = _R;
+        compactified_newfaces_LTRM_specs[cfi][0] = _L;
+        compactified_newfaces_LTRM_specs[cfi][1] = _R;
         // Third: not in the matched edge:
-        compactified_newfaces_specs[cfi][2] = _T;
+        compactified_newfaces_LTRM_specs[cfi][2] = _T;
 
         #if ASSERT_USED
             // Fourth: to be looked up from the map
-            compactified_newfaces_specs[cfi][3] = -1;
+            compactified_newfaces_LTRM_specs[cfi][3] = -1;
         #endif
 
         // Keep the side (shift)'s code, because we need to look it up in the next step.
@@ -292,15 +278,31 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         /* Will not work, because a [] access to a map is not read-only.
         assert(midpoint_map.find(edge_code) != midpoint_map.end());
         // will not work because the map midpoint_map[] is const.
-        compactified_newfaces_specs[cfi][3] = midpoint_map[edge_code];
+        compactified_newfaces_LTRM_specs[cfi][3] = midpoint_map[edge_code];
         */
 
         auto pair_itr = midpoint_map.find(edge_code);
         assert(pair_itr != midpoint_map.end());
         // auto pair = *pair_itr;
-        compactified_newfaces_specs[cfi][3] = pair_itr->second;
-
+        compactified_newfaces_LTRM_specs[cfi][3] = pair_itr->second;
     }
+
+    // The LRTM array now contains all information needed for subdivision
+
+    cout << " :  L R T M" << std::endl;
+    for (
+            compactified_index_type cfi = 0;
+            cfi < compactified_faces_indices_effective_size;
+            ++cfi )
+    {
+        cout << cfi <<": ";
+        for (int j=0; j < 4; ++j) {
+            cout << " " << compactified_newfaces_LTRM_specs[cfi][j];
+        }
+        cout << std::endl;
+    }
+
+    //
 
     vectorized_faces f{boost::extents[5][3]};
     clog << all_edgecodes[0][0];
