@@ -128,9 +128,11 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
     //"assert edges_with_1_side is subset of co-range of midpoint_map"
     auto belongs_to_midpoint_map = [&midpoint_map](auto v) {return midpoint_map.find(v) != midpoint_map.end();};  // being_found__in_map_ness
+
     assert(std::all_of( edges_with_1_side.begin(), edges_with_1_side.end(),
         belongs_to_midpoint_map
     ));
+
 
     /*
     typedef boost::multi_array<vectorized_vect::index, 4>  vectorized_new_faces_type;

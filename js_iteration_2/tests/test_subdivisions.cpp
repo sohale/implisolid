@@ -39,9 +39,11 @@ TEST(Subdivision_1to2, a) {
     std::set<edge_pair_type> edges_with_1_side = {
         encode_edge__sort(1, 2, CONFIG_C::edgecode_base),
         encode_edge__sort(2, 4, CONFIG_C::edgecode_base),
-        encode_edge__sort(1, 4, CONFIG_C::edgecode_base),
+        encode_edge__sort(1, 4, CONFIG_C::edgecode_base),  // not there
+        // Why is it converting 1,7 ?
         encode_edge__sort(99,100, CONFIG_C::edgecode_base)
     };
+    // if edge e=(1,7) is in the map midpoint_map , but it is not in the map set edges_with_1_side, why does it replace it?
 
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
 
