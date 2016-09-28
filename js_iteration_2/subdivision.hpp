@@ -56,6 +56,18 @@ bool check_minimum(iterator begin, iterator end, T minimum_value) {
     return ok;
 }
 
+/*
+bool (setbegin, setend, map)
+    bool ok = true;
+    for (auto i = begin; i != end; ++i) {
+        ok = ok && (map.find(*i) != end);
+        if (!ok) {
+            break;
+        }
+    }
+    return ok;
+}
+*/
 
 /*  An alternative streategy for subdivide_1to2():
 
@@ -111,7 +123,14 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
     /* assertions
     */
+    // Assert edgeodes are non-zero. No correct edgecode is 0.
     assert( check_minimum(edges_with_1_side.begin(), edges_with_1_side.end(), 1) );
+
+    //"assert edges_with_1_side is subset of co-range of midpoint_map"
+    auto belongs_to_midpoint_map = [&midpoint_map](auto v) {return midpoint_map.find(v) != midpoint_map.end();};  // being_found__in_map_ness
+    assert(std::all_of( edges_with_1_side.begin(), edges_with_1_side.end(),
+        belongs_to_midpoint_map
+    ));
 
     /*
     typedef boost::multi_array<vectorized_vect::index, 4>  vectorized_new_faces_type;
