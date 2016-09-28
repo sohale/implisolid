@@ -62,6 +62,7 @@ then
     em++    -I $BOOST_FOLDER \
             -I $GTEST_ROOT/googletest/include \
             -I $EIGEN_LIB_FOLDER \
+            -s DEMANGLE_SUPPORT=1  \
             -s ASSERTIONS=1 \
             -pedantic -std=c++14 \
             "$1" main_all_tests.cpp\
