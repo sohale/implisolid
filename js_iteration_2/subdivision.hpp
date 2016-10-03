@@ -17,7 +17,7 @@ enum class SubdivType {SD12, SD14, };
 Applies subdivision on multiple facets
 */
 /*
-void subdivide_SD2(faces, edges_with_1_side, midpoint_map, bool careful_for_twosides=true) {
+void subdivide_SD2(faces, requested_1side_edgecode_set, midpoint_map, bool careful_for_twosides=true) {
     ;
 }
 */
@@ -56,6 +56,25 @@ bool check_minimum(iterator begin, iterator end, T minimum_value) {
     return ok;
 }
 
+    template<typename value_type>
+inline value_type bool_to_1(bool x) {
+    return x? static_cast<value_type>(1) : static_cast<value_type>(0);
+}
+
+
+// #if ASSERT_USED
+//     // Assert with an error message
+//     #define assert_message1(x, error_message) { \
+//         if(!(#x)) \
+//             {cerr << "Assertion error:" << std::endl << (#error_message);abort();} \
+//     }
+// #else
+//     // #define assert_message(x, error_message) {}
+// #endif
+//
+// #define assert_message(x, m) assert(#x)
+
+
 /*
 bool (setbegin, setend, map)
     bool ok = true;
@@ -85,12 +104,21 @@ bool (setbegin, setend, map)
 /*!
 */
 vectorized_faces subdivide_1to2(const vectorized_faces & faces,
-    const std::set<edge_pair_type>& edges_with_1_side,
+    const std::set<edge_pair_type>& requested_1side_edgecode_set,
     const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map,
     const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {
-    //alternative names: edges_with_1_side
+    /*
+    This function has strict requirements.
+        subdivide_1to2(F, S, M, b);
+        * S must be a subset of M.keys
+        * b must be >= max(F) + d  # maximum vertex index, d=number of added faces
+        * e3 e3 = edgecode(F[:,:]) (which)
+
+        S = set of edges: single sides of triangles to be sibdivided.
+    */
+    //alternative names: edges_with_1_side requested_1side_edgecode_set
     //alternative names: midpoint_map
 
     // Brief: Forms an aray of  (L,T,T,M) and does lookup in the SET and in the MAP.
@@ -111,7 +139,7 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     // * apply addition and deletion.
 
     // Make an array of ids for edges (edges_triplets). This makes it easy to make requested_faces_indices.
-    // For each edge in the mesh, find whether it belongs to the set edges_with_1_side or not. (the set of requested edges = edges_with_1_side). A boolean for each edge: Fx3x<bool>
+    // For each edge in the mesh, find whether it belongs to the set requested_1side_edgecode_set or not. (the set of requested edges = requested_1side_edgecode_set). A boolean for each edge: Fx3x<bool>
     // - There will be at most one true value for each face.
     // We make a vector of faces indices (relevant_faces_indices) based on that booleans array.
     // Each face will an index (0..2) that specified which side belongs there. Call it relevant_sides.
@@ -123,15 +151,18 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
     /* assertions
     */
-    // Assert edgeodes are non-zero. No correct edgecode is 0.
-    assert( check_minimum(edges_with_1_side.begin(), edges_with_1_side.end(), 1) );
+    // Assert edgceodes are non-zero. No correct edgecode is 0.
+    assert( check_minimum(requested_1side_edgecode_set.begin(), requested_1side_edgecode_set.end(), 1)
+        && "Assert edgecodes are non-zero, i.e. no correct edgecode is 0." );
 
-    //"assert edges_with_1_side is subset of co-range of midpoint_map"
+    //"assert requested_1side_edgecode_set is subset of co-range of midpoint_map"
     auto belongs_to_midpoint_map = [&midpoint_map](auto v) {return midpoint_map.find(v) != midpoint_map.end();};  // being_found__in_map_ness
+    // Make sure there is a mapping for every in requested_1side_edgecode_set
 
-    assert(std::all_of( edges_with_1_side.begin(), edges_with_1_side.end(),
-        belongs_to_midpoint_map
-    ));
+    assert(std::all_of( requested_1side_edgecode_set.begin(), requested_1side_edgecode_set.end(),
+            belongs_to_midpoint_map
+        ) && "Make sure there is a mapping for every in requested_1side_edgecode_set"
+    );
 
 
     /*
@@ -183,18 +214,53 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     triplet_bool_type
         edge_triplets_bool {boost::extents[original_faces_count][3]};
 
-
+    /*
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
         const auto not_found = midpoint_map.end();
         edge_triplets_bool[fi][0] = (midpoint_map.find(all_edgecodes[fi][0]) != not_found);
         edge_triplets_bool[fi][1] = (midpoint_map.find(all_edgecodes[fi][1]) != not_found);
         edge_triplets_bool[fi][2] = (midpoint_map.find(all_edgecodes[fi][2]) != not_found);
     }
+    */
+    // todo: rename: requested_1side_edgecode_set -> requested_edges_with_1_side
+    for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
+        const auto not_found = requested_1side_edgecode_set.end();
+        edge_triplets_bool[fi][0] = (requested_1side_edgecode_set.find(all_edgecodes[fi][0]) != not_found);
+        edge_triplets_bool[fi][1] = (requested_1side_edgecode_set.find(all_edgecodes[fi][1]) != not_found);
+        edge_triplets_bool[fi][2] = (requested_1side_edgecode_set.find(all_edgecodes[fi][2]) != not_found);
+    }
+
+    // Make sure at most one edge is requested per triangle.
+    auto at_most_one_edge_requested = [](auto triple) {
+        return bool_to_1<short>(triple[0]) + bool_to_1<short>(triple[1]) + bool_to_1<short>(triple[2]) <= 1;
+    };  // being_found__in_map_ness
+
+    assert(
+        std::all_of( edge_triplets_bool.begin(), edge_triplets_bool.end(),
+            at_most_one_edge_requested
+        )
+        && "Make sure at most one edge is requested per triangle to be subdivided 1->2."
+    );
 
 
+    for (
+            edgecode_triplets_type::index fi = 0;
+            fi < original_faces_count;
+            ++fi )
+    {
+        cout << fi <<": ";
+        for (int j=0; j < 3; ++j) {
+            cout << " " << (edge_triplets_bool[fi][j]? "Y" : "-");
+        }
+        cout << std::endl;
+    }
+
+    /*
+    // Why does this lookup the set in the map?
+    // why even set lookup?
     boost::multi_array<unsigned char, 1>  set_lookup_side {boost::extents[original_faces_count]};
 
-    // todo (performance): The below method uses lookup in the set as a map (log(N) access time). However, since not only the set is sorted, but also all_edgecodes[] are almost sorted, we May be able to find membership of our item more efficiently.
+    // todo (performance): The below method uses lookup in the set as a map/set (log(N) access time). However, since not only the set is sorted, but also all_edgecodes[] are almost sorted, we May be able to find membership of our item more efficiently.
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
 
         const auto not_found = midpoint_map.end();
@@ -202,14 +268,30 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         // only one side will match
         unsigned char found_side = 0; // zero => not found
         for (int side = 0; side < 3; ++side ) {
-
-            if (midpoint_map.find(all_edgecodes[fi][side]) != not_found) {  // slow
+            // Problem: It first should check if it's in the SET. This doesnt guarantee it is actually requested to be midpoint-mapped, unless it was in the set.
+            auto ll = all_edgecodes[fi][side];
+            if (midpoint_map.find(ll) != not_found) {  // slow
                 found_side = side + 1;  // non-zero => found
                 break;  // skip the other slow parts
             }
         }
         set_lookup_side[fi] = found_side;
     }
+    */
+
+    // Not sure.
+        boost::multi_array<unsigned char, 1>  set_lookup_side {boost::extents[original_faces_count]};
+        for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
+            unsigned char found_side = 0; // zero => not found
+            for (int side = 0; side < 3; ++side ) {
+                if (edge_triplets_bool[fi][side]) {
+                    found_side = side + 1;  // non-zero => found
+                    break;  // skip the other slow parts
+                }
+            }
+            set_lookup_side[fi] = found_side;
+        }
+
     /*!
     set_lookup_side[] values:
         0: no subdivision necessary,
@@ -304,6 +386,7 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         #endif
 
         // Keep the side (shift)'s code, because we need to look it up in the next step.
+        // A bit slow
         compactified_splitting_side_edgecode[cfi] = all_edgecodes[fi][side]; // The LR side.
     }
 
@@ -320,8 +403,11 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         compactified_newfaces_LRTM_specs[cfi][3] = midpoint_map[edge_code];
         */
 
+        // a bit slow
         auto pair_itr = midpoint_map.find(edge_code);
-        assert(pair_itr != midpoint_map.end());
+        assert(pair_itr != midpoint_map.end()
+            && "The midpoint lookup failed. No lookup for the requested edge."
+        );
         // auto pair = *pair_itr;
         compactified_newfaces_LRTM_specs[cfi][3] = pair_itr->second;
     }

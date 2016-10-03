@@ -11,9 +11,10 @@ vectorized_faces make_example_1234() {
     vectorized_faces_shape
         shape = vectorized_faces_shape{6, 3};
 
-    vectorized_faces faces {shape};
 
-    std::vector<std::vector<int>> f = {{1,2,4}, {3,2,4}, {1,4,5}, {2,3,1}, {7,1,5}, {0,1,2}};
+    std::vector<std::vector<int>> f = {{1,2,4}, {3,2,4}, {1,4,5}, {2,3,1}, {7,1,5}, {0,1,3}};
+
+    vectorized_faces faces {shape};
     for(int i=0; i < f.size(); ++i) {
         for(int j=0; j < 3; ++j) {
             faces[i][j] = f[i][j];
@@ -38,19 +39,22 @@ TEST(Subdivision_1to2, a) {
     vectorized_faces facets = make_example_1234();
     std::set<edge_pair_type> edges_with_1_side = {
         encode_edge__sort(1, 2, CONFIG_C::edgecode_base),
-        encode_edge__sort(2, 4, CONFIG_C::edgecode_base),
-        encode_edge__sort(1, 4, CONFIG_C::edgecode_base),  // not there
+        encode_edge__sort(3, 4, CONFIG_C::edgecode_base),
+        //encode_edge__sort(1, 4, CONFIG_C::edgecode_base),  // the mappnig is not there
+        encode_edge__sort(1, 7, CONFIG_C::edgecode_base),
         // Why is it converting 1,7 ?
         encode_edge__sort(99,100, CONFIG_C::edgecode_base)
     };
-    // if edge e=(1,7) is in the map midpoint_map , but it is not in the map set edges_with_1_side, why does it replace it?
+    // if edge e=(1,7)   is in the map midpoint_map , but it is not in the map set edges_with_1_side, why does it replace it?
 
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
 
     midpoint_map[encode_edge__sort(1, 2, CONFIG_C::edgecode_base)] = 9;
     midpoint_map[encode_edge__sort(2, 4, CONFIG_C::edgecode_base)] = 10;
     midpoint_map[encode_edge__sort(1, 7, CONFIG_C::edgecode_base)] = 12;
+    midpoint_map[encode_edge__sort(2, 3, CONFIG_C::edgecode_base)] = 999;  // not used
     midpoint_map[encode_edge__sort(99, 100, CONFIG_C::edgecode_base)] = 9;
+    midpoint_map[encode_edge__sort(4, 3, CONFIG_C::edgecode_base)] = 13;
 
     // for any i, midpoint_map[edges_with_1_side[i]] must exist
     bool careful_for_twosides=true;

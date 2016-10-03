@@ -2416,34 +2416,37 @@ def get_edge_code_triples_of_mesh(facets):
     return all_edges_triples, e012
 
 
-def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, careful_for_twosides=True):
-    """list_edges_with_1_side contains the edges only. The face should be extracted in this function.
-    returns: faces.
-    careful_for_twosides: whe ntwo sides are being asked for subdivision. """
+def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoint_map, careful_for_twosides=True):
+    """requested_1side_edgecode_set contains the edges only. The face should be extracted in this function.
+    requested_edges_singleside_subdivision : requested edgecodes for singleside subdivision (it's a list, interpreted as a set.)
+    @return: faces.
+    careful_for_twosides: check whether two sides are being asked for subdivision. """
     #todo: copy some code from propagated_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
-    #Some edges_with_1_side may not be in facets. They are already subdivided twice.
+    #Some requested_1side_edgecode_set may not be in facets. They are already subdivided twice.
     #remove them and add more.
     #refactor the code copied from propagated_subdiv() into function
     #need to also get the new points. oops!! damn.
     #
-    #There is a guarantee that all faces that the edges_with_1_side belong to, have exactly one edge from this list.
+    #There is a guarantee that all faces that the requested_1side_edgecode_set belong to, have exactly one edge from this list.
     #Note that these edges should be already subdivided
 
 
     #yes of course all of them are there in it
-    #All e in edges_with_1_side, =>, e in midpoint_map
+    #All e in requested_1side_edgecode_set, =>, e in midpoint_map
 
-    assert type(edges_with_1_side) == np.ndarray
-    assert edges_with_1_side.size == 0 or np.min(edges_with_1_side) > 0
-    el = filter(lambda e: not e in midpoint_map, edges_with_1_side)
+    # todo: rename: edges_with_1_side -> requested_edges_with_1_side -> requested_1side_edgecode_set
+
+    assert type(requested_1side_edgecode_set) == np.ndarray
+    assert requested_1side_edgecode_set.size == 0 or np.min(requested_1side_edgecode_set) > 0
+    el = filter(lambda e: not e in midpoint_map, requested_1side_edgecode_set)
     if not len(el) == 0:
         for e in midpoint_map:
             print midpoint_map[e],
         print len(el)
         print "error"
         exit()
-    assert len(el) == 0, "assert edges_with_1_side is subset of midpoint_map"
+    assert len(el) == 0, "assert requested_1side_edgecode_set is subset of midpoint_map"
 
     all_edges_triples, dummy = get_edge_code_triples_of_mesh(facets)
 
@@ -2454,12 +2457,12 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     assert np.all(all_edge_triples_ravel.reshape(-1, 3) == all_edges_triples, axis=None)
 
 
-    #intersec = np.intersect1d(all_edge_triples_ravel, edges_with_1_side)
+    #intersec = np.intersect1d(all_edge_triples_ravel, requested_1side_edgecode_set)
 
     #index_of_edges_that_subdiv2
 
-    # x_ is a boolean array. x_[f,j] <=> if edge j of face f is in edges_with_1_side.
-    x_ = np.lib.arraysetops.in1d(all_edge_triples_ravel, edges_with_1_side)  # elements of A, A.ravel[x_], that are in B
+    # x_ is a boolean array. x_[f,j] <=> if edge j of face f is in requested_1side_edgecode_set.
+    x_ = np.lib.arraysetops.in1d(all_edge_triples_ravel, requested_1side_edgecode_set)  # elements of A, A.ravel[x_], that are in B
 
     x_1x3 = x_.reshape(3, -1)
     assert np.all(x_1x3.ravel() == x_, axis=None)
@@ -2478,7 +2481,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
             print midpoint_map
             print bad2
             print facets[bad2, :]
-            print edges_with_1_side
+            print requested_1side_edgecode_set
             set_trace()
         assert bad2.size == 0
     del bad2
@@ -2495,7 +2498,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     #print "THIS FAILS"
     del x3__b_Fx3
 
-    # "array of indices" of faces, {f}, where f has one of those edges_with_1_side. face3_idx is a temporary thing. The columns have to be collapsed.
+    # "array of indices" of faces, {f}, where f has one of those requested_1side_edgecode_set. face3_idx is a temporary thing. The columns have to be collapsed.
     #indices of all edges
     face3_idx = np.nonzero(x_)[0]
     assert np.ndim(face3_idx) == 1
@@ -2516,7 +2519,7 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
 
     #has repeats, becasue [2]is not resolved before
     #if has_repeats(problem_face_idx):
-    #    intersec = np.intersect1d(all_edge_triples_ravel, edges_with_1_side)
+    #    intersec = np.intersect1d(all_edge_triples_ravel, requested_1side_edgecode_set)
     #    print intersec
     #    print facets
     #    exit()
@@ -2524,8 +2527,8 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     if careful_for_twosides:
         assert not has_repeats(problem_face_idx), "triangles subject to be subdivided"
     for ii in range(problem_face_idx.size):
-        #assert all_edge_triples_ravel[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
-        assert all_edges_triples[problem_face_idx[ii], problem_side_idx[ii]] in edges_with_1_side
+        #assert all_edge_triples_ravel[problem_face_idx[ii], problem_side_idx[ii]] in requested_1side_edgecode_set
+        assert all_edges_triples[problem_face_idx[ii], problem_side_idx[ii]] in requested_1side_edgecode_set
         assert problem_side_idx[ii] < 3
     #all problem_face_idx should be removed
 
@@ -2548,9 +2551,10 @@ def subdivide_1to2_multiple_facets(facets, edges_with_1_side, midpoint_map, care
     # edge_s_codes:
     # edge_s_codes = all the edges that must be subdivided.
     #edge_s_codes = A flat array of all the edge codes (For the sides that should be replaced with the sibdivided ones)
-    # But why do we need it? It's it available in edges_with_1_side? (or even midpoint_map).
-    # Id ont remember now but it migt be: 1-the edges with 1 side may not be all in the faces. 2-repeats in edges_with_1_side, 2
+    # But why do we need it? It's it available in requested_1side_edgecode_set? (or even midpoint_map).
+    # Id ont remember now but it migt be: 1-the edges with 1 side may not be all in the faces anymore. 2-repeats in requested_1side_edgecode_set, 2
 
+    # edge_s_codes := the pre-mapped array of edges (edgecodes) to be subdivided. Since there is one edge, the size will be 1:1 with the compactified relevantfaces: isomorphism: midpoints_third_verts, <-> v1, <-> v2 <-> v3.
     edge_s_codes = all_edge_triples_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
     #subdivedges_vertex_pairs: those edges that*
 
@@ -2657,6 +2661,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
     verts2, facets2, presubdivision_edges = subdivide_multiple_facets(verts, facets, which_facets, midpoint_map)
     global trace_subdivided_facets  # third implicit output
 
+    # preparing "edges_with_1_side" as the main input to subdivide_1to2_multiple_facets()
     list_edges_with_1_side = []
     while True:
         propag_dict, edges_which_in1 = propagated_subdiv(facets2, presubdivision_edges)
