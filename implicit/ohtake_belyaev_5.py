@@ -2464,8 +2464,9 @@ def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoin
     # x_ is a boolean array. x_[f,j] <=> if edge j of face f is in requested_1side_edgecode_set.
     x_ = np.lib.arraysetops.in1d(all_edge_triples_ravel, requested_1side_edgecode_set)  # elements of A, A.ravel[x_], that are in B
 
-    x_1x3 = x_.reshape(3, -1)
-    assert np.all(x_1x3.ravel() == x_, axis=None)
+    #x_1x3 is useless
+    # x_1x3 = x_.reshape(3, -1)
+    # assert np.all(x_1x3.ravel() == x_, axis=None)
 
     #x3__a = x_.reshape(3, -1)  # wrong. bug
     x3__b_Fx3 = x_.reshape(-1, 3)
@@ -2498,6 +2499,7 @@ def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoin
     #print "THIS FAILS"
     del x3__b_Fx3
 
+    # compactify. But the problem is, x_ is "unravel" (flatten-)ed.
     # "array of indices" of faces, {f}, where f has one of those requested_1side_edgecode_set. face3_idx is a temporary thing. The columns have to be collapsed.
     #indices of all edges
     face3_idx = np.nonzero(x_)[0]
@@ -2860,6 +2862,8 @@ def demo_everything(options):
         #"cyl2"
         )
 
+    # IGNORE_THAT = True
+
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2*1.5/1.5  *2. /2.)
     #STEPSIZE = STEPSIZE / 2. /1.5
     #STEPSIZE = STEPSIZE * 2.
@@ -2906,6 +2910,7 @@ def demo_everything(options):
 
     print "STEPSIZE", STEPSIZE
     #set_trace()
+
 
     global giobj
     giobj = iobj

@@ -109,15 +109,6 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {
-    /*
-    This function has strict requirements.
-        subdivide_1to2(F, S, M, b);
-        * S must be a subset of M.keys
-        * b must be >= max(F) + d  # maximum vertex index, d=number of added faces
-        * e3 e3 = edgecode(F[:,:]) (which)
-
-        S = set of edges: single sides of triangles to be sibdivided.
-    */
     //alternative names: edges_with_1_side requested_1side_edgecode_set
     //alternative names: midpoint_map
 
@@ -149,6 +140,7 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     // We use an array of the size M, which contains the mapped values.
     // make two new faces arrays that comibne: 1-the mapped index, 2-indices of the original faces of the third vertex, (by shifting them) 3- indices of the original faces: one for each of the remaining vertices (by shifting them).
 
+//
     /* assertions
     */
     // Assert edgceodes are non-zero. No correct edgecode is 0.
@@ -230,9 +222,11 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         edge_triplets_bool[fi][2] = (requested_1side_edgecode_set.find(all_edgecodes[fi][2]) != not_found);
     }
 
+    #if ASSERT_USED
     // Make sure at most one edge is requested per triangle.
     auto at_most_one_edge_requested = [](auto triple) {
-        return bool_to_1<short>(triple[0]) + bool_to_1<short>(triple[1]) + bool_to_1<short>(triple[2]) <= 1;
+        return bool_to_1<short>(triple[0]) + bool_to_1<short>(triple[1]) + bool_to_1<short>(triple[2])
+            <= 1;
     };  // being_found__in_map_ness
 
     assert(
@@ -241,8 +235,10 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         )
         && "Make sure at most one edge is requested per triangle to be subdivided 1->2."
     );
+    #endif
 
 
+    //#if ASSERT_USED
     for (
             edgecode_triplets_type::index fi = 0;
             fi < original_faces_count;
@@ -254,11 +250,12 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         }
         cout << std::endl;
     }
+    //#endif
 
     /*
     // Why does this lookup the set in the map?
     // why even set lookup?
-    boost::multi_array<unsigned char, 1>  set_lookup_side {boost::extents[original_faces_count]};
+    boost::multi_array<unsigned char, 1>  set_lookup_side_plus1 {boost::extents[original_faces_count]};
 
     // todo (performance): The below method uses lookup in the set as a map/set (log(N) access time). However, since not only the set is sorted, but also all_edgecodes[] are almost sorted, we May be able to find membership of our item more efficiently.
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
@@ -275,12 +272,12 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
                 break;  // skip the other slow parts
             }
         }
-        set_lookup_side[fi] = found_side;
+        set_lookup_side_plus1[fi] = found_side;
     }
     */
 
     // Not sure.
-        boost::multi_array<unsigned char, 1>  set_lookup_side {boost::extents[original_faces_count]};
+        boost::multi_array<unsigned char, 1>  set_lookup_side_plus1 {boost::extents[original_faces_count]};
         for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
             unsigned char found_side = 0; // zero => not found
             for (int side = 0; side < 3; ++side ) {
@@ -289,11 +286,11 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
                     break;  // skip the other slow parts
                 }
             }
-            set_lookup_side[fi] = found_side;
+            set_lookup_side_plus1[fi] = found_side;
         }
 
     /*!
-    set_lookup_side[] values:
+    set_lookup_side_plus1[] values:
         0: no subdivision necessary,
         1:subdiv first side 2 ([0]),
         2: subdiv side 2 ([1]),
@@ -304,24 +301,41 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     // next: 1-make the faces in an array
     // Then, later, or at the same time, circular-shift, and get the 4 indices.
     boost::multi_array<vectorized_faces::index, 1>::size_type preallocated_compactified_maximum_size =
-        original_faces_count; // set_lookup_side.shape()[0] == original_faces_count
+        original_faces_count; // set_lookup_side_plus1.shape()[0] == original_faces_count
     boost::multi_array<vectorized_faces::index, 1>  compactified_faces_indices{boost::extents[preallocated_compactified_maximum_size]};
     boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
     boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[preallocated_compactified_maximum_size]};
 
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
         // cout << fi << ":" << std::flush;
-        // cout << set_lookup_side[fi] << " = " << static_cast<int>(set_lookup_side[fi]) << " " << std::endl << std::flush;;
-        if (set_lookup_side[fi]) {
-            auto s = set_lookup_side[fi] - 1;  // careful, it is unsigned
+        // cout << set_lookup_side_plus1[fi] << " = " << static_cast<int>(set_lookup_side_plus1[fi]) << " " << std::endl << std::flush;;
+        if (set_lookup_side_plus1[fi]) {
+            auto s = set_lookup_side_plus1[fi] - 1;  // careful, it is unsigned
 
-            compactified_side [compactified_faces_indices_effective_size] = set_lookup_side[fi] - 1;
+            compactified_side [compactified_faces_indices_effective_size] = set_lookup_side_plus1[fi] - 1;
             compactified_faces_indices [compactified_faces_indices_effective_size] = fi;
             ++compactified_faces_indices_effective_size;
         }
     }
 
-
+    // Test all compactified_faces_indices[] are in requested_1side_edgecode_set[]
+    #if ASSERT_USED
+        for (auto fi : compactified_faces_indices) {
+            auto notfound = requested_1side_edgecode_set.end();
+            int side = static_cast<int>(set_lookup_side_plus1[fi]) - 1;
+            //bool edgebool = edge_triplets_bool[fi][side];
+            auto edgecode = all_edgecodes[fi][side];
+            cout << fi << ":  edgecode:" << edgecode << " side:"<< side  << "   ";
+            cout << "(";
+            for( int j = 0; j < 3; ++j) {
+                cout <<  all_edgecodes[fi][j] << " ";
+            }
+            cout << ")";
+            cout << std::endl;
+            assert( requested_1side_edgecode_set.find(edgecode) != notfound );
+        }
+        cout << std::endl;
+    #endif
 
     // variables: compactified_*  or newface_*
     typedef vectorized_new_faces_type::index  compactified_index_type;
