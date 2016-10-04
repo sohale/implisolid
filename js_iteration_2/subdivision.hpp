@@ -204,6 +204,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
 
     }
 
+    // contains the result of set lookup
     triplet_bool_type
         edge_triplets_bool {boost::extents[original_faces_count][3]};
 
@@ -282,6 +283,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     */
 
     // Not sure.
+    // set_lookup_side_plus1 contains which side was true after the lookup. It also indicates whether each edge was found in the set lookup.
         boost::multi_array<unsigned char, 1>  set_lookup_side_plus1 {boost::extents[original_faces_count]};
         for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
             unsigned char found_side = 0; // zero => not found
@@ -305,25 +307,51 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
 
     // next: 1-make the faces in an array
     // Then, later, or at the same time, circular-shift, and get the 4 indices.
+
+
+    /*
     boost::multi_array<vectorized_faces::index, 1>::size_type preallocated_compactified_maximum_size =
         original_faces_count; // set_lookup_side_plus1.shape()[0] == original_faces_count
-    // for more memory efficient but less speed effciency, use vector<vectorized_faces::index> (and use capacity)
-    // std::vector<vectorized_faces::index> compactified_faces_indices; compactified_faces_indices.setcapacity(preallocated_compactified_maximum_size);  // but now it can be less
     boost::multi_array<vectorized_faces::index, 1>  compactified_faces_indices{boost::extents[preallocated_compactified_maximum_size]};
     boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
     boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[preallocated_compactified_maximum_size]};
+    */
 
+    // for more memory efficient but less speed effciency, use vector<vectorized_faces::index> (and use capacity)
+    // but now it can be less time-efficient
+    std::vector<vectorized_faces::index> compactified_faces_indices;  // {0} will leave one element, (0) will be empty.
+    auto capacity = requested_1side_edgecode_set.size();  // should be enough given the "single_tiangle edges" condition.
+    compactified_faces_indices.reserve(capacity);
+    boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
+
+
+    cout << "compactified_faces_indices.size() " << compactified_faces_indices.size() << std::endl;
+    assert(compactified_faces_indices.size() == 0);
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
         // cout << fi << ":" << std::flush;
         // cout << set_lookup_side_plus1[fi] << " = " << static_cast<int>(set_lookup_side_plus1[fi]) << " " << std::endl << std::flush;;
         if (set_lookup_side_plus1[fi]) {
-            auto s = set_lookup_side_plus1[fi] - 1;  // careful, it is unsigned
-
-            compactified_side [compactified_faces_indices_effective_size] = set_lookup_side_plus1[fi] - 1;
-            compactified_faces_indices [compactified_faces_indices_effective_size] = fi;
-            ++compactified_faces_indices_effective_size;
+            compactified_faces_indices.push_back(fi);
+            assert(compactified_faces_indices [compactified_faces_indices_effective_size] == fi);
+            ++ compactified_faces_indices_effective_size;
         }
     }
+    // consolidate compactified_faces_indices_effective_size; i.e. make it const
+
+    boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[compactified_faces_indices_effective_size]};
+
+    // since we know the final size, it is more efficient not to use vector
+    edgecode_triplets_type::index cfi = 0;
+    for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
+        if (set_lookup_side_plus1[fi]) {
+            compactified_side [cfi] = set_lookup_side_plus1[fi] - 1; // careful, it is unsigned
+            ++ cfi;
+        }
+    }
+    assert(compactified_faces_indices_effective_size == cfi);
+    // del cfi
+    assert(compactified_faces_indices.size() >= compactified_faces_indices_effective_size);
+    assert(compactified_side.shape()[0] >= compactified_faces_indices_effective_size);
 
     // Test all compactified_faces_indices[] are in requested_1side_edgecode_set[]
     #if ASSERT_USED
@@ -477,7 +505,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
         cout << "  \t" << "[" << compactified_faces_indices[cfi] << "]";
         cout << std::endl;
     }
-    assert(compactified_faces_indices.shape()[0] >= compactified_faces_indices_effective_size);
+    assert(compactified_faces_indices.size() >= compactified_faces_indices_effective_size);
     #endif
 
     // note that compactified_faces_indices does not have the right size.
