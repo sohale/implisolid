@@ -531,10 +531,10 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
         // now add two triangles, LTM and RTM, based on LRTM.
 
-        // replace the new faces: TLM
+        // replace the new faces: TLM (but in the order: preserve the counter-clockwise order)
         newfaces[fi][0] = _L;
-        newfaces[fi][1] = _T;
-        newfaces[fi][2] = _M;
+        newfaces[fi][1] = _M;
+        newfaces[fi][2] = _T;
 
         // insert the new faces: RTM
         newfaces[newface_ctr][0] = _R;
