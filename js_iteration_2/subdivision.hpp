@@ -140,7 +140,8 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     // We use an array of the size M, which contains the mapped values.
     // make two new faces arrays that comibne: 1-the mapped index, 2-indices of the original faces of the third vertex, (by shifting them) 3- indices of the original faces: one for each of the remaining vertices (by shifting them).
 
-//
+    // Another direction of movement can be based on the fact that in that algorithm, each edge appears only in one triangle. Becasue the other triangles is already subdivided, probably by subdivide1->4.
+    //
     /* assertions
     */
     // Assert edgceodes are non-zero. No correct edgecode is 0.
@@ -306,6 +307,8 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     // Then, later, or at the same time, circular-shift, and get the 4 indices.
     boost::multi_array<vectorized_faces::index, 1>::size_type preallocated_compactified_maximum_size =
         original_faces_count; // set_lookup_side_plus1.shape()[0] == original_faces_count
+    // for more memory efficient but less speed effciency, use vector<vectorized_faces::index> (and use capacity)
+    std::vector<vectorized_faces::index> compactified_faces_indices; compactified_faces_indices.setcapacity(preallocated_compactified_maximum_size);  // but now it can be less
     boost::multi_array<vectorized_faces::index, 1>  compactified_faces_indices{boost::extents[preallocated_compactified_maximum_size]};
     boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
     boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[preallocated_compactified_maximum_size]};
@@ -343,7 +346,9 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
 
     #if ASSERT_USED
         // never test this. Looks like an incorrect assertion. However I use it since it was on the Python side.
-        if (false) {
+        // This test is necessary only if we are sure one side is subdivided already with subdivide1->4, hance, each edge is subdivided only once (as opposed to twice).
+        constexpr bool SINGLE_TRIANGLE_ONLY = false;
+        if (SINGLE_TRIANGLE_ONLY) {
         std::set<edge_pair_type> unique_edges_found;
         for (auto fi : compactified_faces_indices) {
             int side = static_cast<int>(set_lookup_side_plus1[fi]) - 1;
@@ -458,6 +463,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     // So the output is: (LRTM, F) <--> SubDiv1-2
 
 
+    #if VERBOSE_SUBDIV
     cout << " :  L R T M   -- F" << std::endl;
     for (
             compactified_index_type cfi = 0;
@@ -471,8 +477,15 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
         cout << "  \t" << "[" << compactified_faces_indices[cfi] << "]";
         cout << std::endl;
     }
+    assert(compactified_faces_indices.shape()[0] >= compactified_faces_indices_effective_size);
+    #endif
 
-    return std::make_tuple(compactified_faces_indices, compactified_newfaces_LRTM_specs);
+    // note that compactified_faces_indices does not have the right size.
+
+    // uses std::move
+    // note: the size of compactified_faces_indices is not right
+    return std::make_tuple(compactified_newfaces_LRTM_specs, compactified_faces_indices);
+
     /*
     return std::tuple<
         boost::multi_array<vectorized_faces::index, 1>,
@@ -497,8 +510,53 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 {
     auto tupl = subdivide_1to2_LRTM(faces, requested_1side_edgecode_set, midpoint_map, EdgecodeBase, careful_for_twosides);
 
-    auto compactified_faces_indices = std::get<0>(tupl);
-    auto compactified_newfaces_LRTM_specs = std::get<1>(tupl);
-    vectorized_faces f{boost::extents[5][3]};
-    return f;
+    auto compactified_faces_indices = std::get<1>(tupl);
+    auto compactified_newfaces_LRTM_specs = std::get<0>(tupl);
+
+    auto nfaces_old = faces.shape()[0];
+    auto nfaces_new = compactified_newfaces_LRTM_specs.shape()[0];
+    std::cout << "nfaces_old + nfaces_new = " << nfaces_old <<  " + " << nfaces_new << std::endl;
+    vectorized_faces newfaces =  vectorized_faces{boost::extents[nfaces_old + nfaces_new][3]};
+    // newfaces = faces;
+    std::copy(faces.begin(), faces.end(), newfaces.begin());
+
+    auto newface_ctr = nfaces_old;
+    for (int i = 0; i < compactified_newfaces_LRTM_specs.shape()[0]; ++i) {
+        const auto _L = compactified_newfaces_LRTM_specs[i][0];
+        const auto _R = compactified_newfaces_LRTM_specs[i][1];
+        const auto _T = compactified_newfaces_LRTM_specs[i][2];
+        const auto _M = compactified_newfaces_LRTM_specs[i][3];
+
+        const auto fi = compactified_faces_indices[i];
+
+        // now add two triangles, LTM and RTM, based on LRTM.
+
+        // replace the new faces: TLM
+        newfaces[fi][0] = _L;
+        newfaces[fi][1] = _T;
+        newfaces[fi][2] = _M;
+
+        // insert the new faces: RTM
+        newfaces[newface_ctr][0] = _R;
+        newfaces[newface_ctr][1] = _T;
+        newfaces[newface_ctr][2] = _M;
+        ++newface_ctr;
+    }
+
+    cout << "NOK " << newfaces.shape()[0] << " " <<  VERBOSE_SUBDIV << std::endl;
+    #if VERBOSE_SUBDIV
+    cout << "OK" << std::endl;
+    for (int i = 0; i < newfaces.shape()[0]; ++i )
+    {
+        cout << i <<": ";
+        for (int j=0; j < 3; ++j) {
+            cout << " " << newfaces[i][j];
+        }
+        if (i == nfaces_old-1 )
+            cout << " <--- last old";
+        cout << std::endl;
+    }
+    #endif
+
+    return newfaces;
 }
