@@ -2560,6 +2560,11 @@ def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoin
     edge_s_codes = all_edge_triples_ravel[x_]  # Intersection from actual edges in mesh and edges requested to get removed/subdivided.
     #subdivedges_vertex_pairs: those edges that*
 
+    #####################################################
+    # This assert may not be correct. Becasuse not only each edge is repeated multiple times in edge_s_codes, but it is also repeated in subdivedges_vertex_pairs
+    # Because each edge (always) is between two triangles, hence it is always repeated more than once (but in different triangles).
+    #####################################################
+
     #observation: edge_s_codes is (up to morphism) a subset of, but not equal to, subdivedges_vertex_pairs
     if careful_for_twosides:
         assert np.unique(edge_s_codes).size == subdivedges_vertex_pairs.shape[1]  # before applying unique
@@ -2582,6 +2587,7 @@ def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoin
     eid10 = edge_s_codes.copy()
     eid10.sort()
     assert np.all(eid10 == eid9)
+    del eid9
     del subdivedges_vertex_pairs
 
     #exit()

@@ -93,14 +93,13 @@ TEST(Subdivision_1to2, a) {
 }
 
 TEST(Subdivision_1to2, square) {
+
     auto vf = testcase_square();
     auto faces = vf.second;
     // {0, 1, 2}, {0, 2, 3}
 
-    //vector<int> edges_with_1_side = {1};
 
-
-    std::set<edge_pair_type> edges_with_1_side = {
+    std::set<edge_pair_type> edges_to_subdivide = {
         encode_edge__sort(1, 2, CONFIG_C::edgecode_base),
     };
 
@@ -110,5 +109,5 @@ TEST(Subdivision_1to2, square) {
 
     bool careful_for_twosides=true;
 
-    vectorized_faces result = subdivide_1to2(faces, edges_with_1_side, midpoint_map, careful_for_twosides);
+    vectorized_faces result = subdivide_1to2(faces, edges_to_subdivide, midpoint_map, careful_for_twosides);
 }

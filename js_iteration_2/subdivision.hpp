@@ -103,7 +103,7 @@ bool (setbegin, setend, map)
 
 /*!
 */
-vectorized_faces subdivide_1to2(const vectorized_faces & faces,
+auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
     const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map,
     const edge_pair_type EdgecodeBase,
@@ -248,6 +248,10 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         for (int j=0; j < 3; ++j) {
             cout << " " << (edge_triplets_bool[fi][j]? "Y" : "-");
         }
+        cout << "   ";
+        for (int j=0; j < 3; ++j) {
+            cout << " " << faces[fi][j];
+        }
         cout << std::endl;
     }
     //#endif
@@ -325,16 +329,37 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
             int side = static_cast<int>(set_lookup_side_plus1[fi]) - 1;
             //bool edgebool = edge_triplets_bool[fi][side];
             auto edgecode = all_edgecodes[fi][side];
-            cout << fi << ":  edgecode:" << edgecode << " side:"<< side  << "   ";
-            cout << "(";
+            //cout << fi << ":  edgecode:" << edgecode << " side:"<< side  << "   ";
+            //cout << "(";
             for( int j = 0; j < 3; ++j) {
-                cout <<  all_edgecodes[fi][j] << " ";
+                //cout <<  all_edgecodes[fi][j] << " ";
             }
-            cout << ")";
-            cout << std::endl;
+            //cout << ")";
+            //cout << std::endl;
             assert( requested_1side_edgecode_set.find(edgecode) != notfound );
         }
+        //cout << std::endl;
+    #endif
+
+    #if ASSERT_USED
+        // never test this. Looks like an incorrect assertion. However I use it since it was on the Python side.
+        if (false) {
+        std::set<edge_pair_type> unique_edges_found;
+        for (auto fi : compactified_faces_indices) {
+            int side = static_cast<int>(set_lookup_side_plus1[fi]) - 1;
+            auto edgecode = all_edgecodes[fi][side];
+            unique_edges_found.insert(edgecode);
+        }
+        // Coretto
+        for (auto ec : unique_edges_found)
+            cout << ec << " ";
         cout << std::endl;
+
+        // Why
+        cout << compactified_faces_indices_effective_size << std::endl;
+        cout << " == " << unique_edges_found.size() << std::endl;
+        assert(compactified_faces_indices_effective_size == unique_edges_found.size());
+        }
     #endif
 
     // variables: compactified_*  or newface_*
@@ -404,6 +429,8 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         compactified_splitting_side_edgecode[cfi] = all_edgecodes[fi][side]; // The LR side.
     }
 
+
+
     for (
             compactified_index_type cfi = 0;
             cfi < compactified_faces_indices_effective_size;
@@ -445,10 +472,33 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
         cout << std::endl;
     }
 
-    //
+    return std::make_tuple(compactified_faces_indices, compactified_newfaces_LRTM_specs);
+    /*
+    return std::tuple<
+        boost::multi_array<vectorized_faces::index, 1>,
+        vectorized_new_faces_type
+    >(compactified_faces_indices, compactified_newfaces_LRTM_specs);
+    */
+
+    /*
 
     vectorized_faces f{boost::extents[5][3]};
     clog << all_edgecodes[0][0];
     clog << edge_triplets_bool[0][0];
+    return f;
+    */
+}
+
+vectorized_faces subdivide_1to2(const vectorized_faces & faces,
+    const std::set<edge_pair_type>& requested_1side_edgecode_set,
+    const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map,
+    const edge_pair_type EdgecodeBase,
+    bool careful_for_twosides=true)
+{
+    auto tupl = subdivide_1to2_LRTM(faces, requested_1side_edgecode_set, midpoint_map, EdgecodeBase, careful_for_twosides);
+
+    auto compactified_faces_indices = std::get<0>(tupl);
+    auto compactified_newfaces_LRTM_specs = std::get<1>(tupl);
+    vectorized_faces f{boost::extents[5][3]};
     return f;
 }
