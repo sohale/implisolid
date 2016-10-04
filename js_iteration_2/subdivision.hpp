@@ -308,7 +308,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     boost::multi_array<vectorized_faces::index, 1>::size_type preallocated_compactified_maximum_size =
         original_faces_count; // set_lookup_side_plus1.shape()[0] == original_faces_count
     // for more memory efficient but less speed effciency, use vector<vectorized_faces::index> (and use capacity)
-    std::vector<vectorized_faces::index> compactified_faces_indices; compactified_faces_indices.setcapacity(preallocated_compactified_maximum_size);  // but now it can be less
+    // std::vector<vectorized_faces::index> compactified_faces_indices; compactified_faces_indices.setcapacity(preallocated_compactified_maximum_size);  // but now it can be less
     boost::multi_array<vectorized_faces::index, 1>  compactified_faces_indices{boost::extents[preallocated_compactified_maximum_size]};
     boost::multi_array<vectorized_faces::index, 1>::size_type compactified_faces_indices_effective_size = 0;
     boost::multi_array<unsigned char, 1>  compactified_side{boost::extents[preallocated_compactified_maximum_size]};
