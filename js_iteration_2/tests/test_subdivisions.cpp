@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../subdivision.hpp"
+#include "../subdivision/subdiv1to2.hpp"
 #include "../mesh_algorithms.hpp"
 #include "faces_test_tools.hpp"
 

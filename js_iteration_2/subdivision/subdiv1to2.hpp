@@ -37,8 +37,8 @@ http://stackoverflow.com/questions/762011/let-keyword-vs-var-keyword-in-javascri
 */
 
 
-#include "basic_data_structures.hpp"
-#include "mesh_algorithms.hpp"
+#include "../basic_data_structures.hpp"
+#include "../mesh_algorithms.hpp"
 
 using mp5_implicit::CONFIG_C;
 
