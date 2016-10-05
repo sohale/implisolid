@@ -21,7 +21,7 @@ inline REAL norm_2_squared(REAL x, REAL y, REAL z){
         Leave the vectors that are too small remain as they are.
 
 */
-void normalise_inplace(verts_t& A, REAL minimum_acceptable_norm) {
+void normalise_inplace(vectorized_vect& A, REAL minimum_acceptable_norm) {
     assert(A.shape()[1] == 3);
 
     for (int i = 0, e = A.shape()[0]; i < e; i++) {
@@ -55,7 +55,7 @@ void normalise_inplace(verts_t& A, REAL minimum_acceptable_norm) {
     Normalisation method 2:
         Simply divide by norm. Perhaps it assumes that the length is neither zero nor near zero.
 */
-void normalize_1111(verts_t & A) {
+void normalize_1111(vectorized_vect & A) {
     for (int i = 0; i < A.shape()[0]; i++) {
         REAL norm = norm_2(A[i][0], A[i][1], A[i][2]);
         assert(norm != 0.);
@@ -76,7 +76,7 @@ void normalize_1111(verts_t & A) {
 
 
 
-void normalise_forced_inplace(verts_t & v, REAL min_len) {
+void normalise_forced_inplace(vectorized_vect & v, REAL min_len) {
     const REAL default_min_norm_sq = mp5_implicit::CONFIG.MIN_PRINTABLE_LENGTH * mp5_implicit::CONFIG.MIN_PRINTABLE_LENGTH;
 
     REAL min_len_sq = (min_len <= 0.0)? default_min_norm_sq : (min_len * min_len);

@@ -65,19 +65,19 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 typedef array1d::index  index_t;
 
 /* define types for vertices, faces and indexes of them */
-typedef boost::multi_array<REAL, 2> verts_t;
-typedef boost::multi_array<int, 2> faces_t;
+// typedef boost::multi_array<REAL, 2> verts_t;
+//typedef boost::multi_array<int, 2> faces_t;
 
-typedef verts_t::index vindex_t;   // used for arrays of verts or centroids
+//typedef verts_t::index vindex_t;   // used for arrays of verts or centroids
 //typedef verts_t::size_type vindex_t;
-typedef verts_t::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
+//typedef verts_t::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
 
 
 /*
 C::element  is not C::value_type   when C is multi-dimensional
 */
-// typedef  faces_t::value_type  vertexindex_type;
-typedef  faces_t::element  vertexindex_type;
+//typedef  faces_t::value_type  vertexindex_type;
+//typedef  faces_t::element  vertexindex_type;
 // Also see vertexindex_type_
 
 
@@ -145,14 +145,18 @@ typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
 typedef vectorized_vect::index vertexindex_type_;
+typedef vectorized_faces::element  vertexindex_type;
 
+// The following are used in MarchingCubes
+typedef vectorized_vect::index vindex_t;   // used for arrays of verts or centroids
+typedef vectorized_vect::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
 
 /*
 Refactoring todo: replace:
     vertexindex_type:
         faces_t::element -> vectorized_vect::index
     faces_t -> vectorized_faces
-    verts_t -> ...
+    verts_t -> vectorized_vect
     vertexindex_type -> vertexindex_type_
 */
 

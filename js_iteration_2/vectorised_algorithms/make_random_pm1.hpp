@@ -12,9 +12,9 @@ namespace vectorised_algorithms {
 
 namespace vectorised_algorithms {
 
-verts_t make_random_pm1(vindex_t n, int dims, REAL amplitude) {
-    //verts_t result {n, dims};
-    verts_t result {boost::extents[n][dims]};
+vectorized_vect make_random_pm1(vindex_t n, int dims, REAL amplitude) {
+    //vectorized_vect result {n, dims};
+    vectorized_vect result {boost::extents[n][dims]};
     //mt11213b r = boost::mt11213b();
     int seed = vectorised_algorithms::global_rng_seed;
     boost::random::mt11213b rngen(seed);

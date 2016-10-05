@@ -48,7 +48,7 @@ vectorized_scalar get_signs(const vectorized_scalar& scalars, REAL ROOT_TOLERANC
     normalise1_(v, min_len)
 */
 
-verts_t
+vectorized_vect
 produce_facet_normals(
     boost::multi_array<int, 2> faces,
     vectorized_vect  verts,
@@ -57,7 +57,7 @@ produce_facet_normals(
     const REAL min_norm_sq = mp5_implicit::CONFIG_C::MIN_AREA * mp5_implicit::CONFIG_C::MIN_AREA;   // why squared?
     const REAL osqrt3 = 1.0 / std::sqrt((REAL)3.0);
     auto numfaces = faces.shape()[0];
-    verts_t facet_normals = verts_t(boost::extents[numfaces][3]);
+    vectorized_vect facet_normals = vectorized_vect(boost::extents[numfaces][3]);
     for (int fi = 0; fi < numfaces; ++fi) {
         auto f0 = faces[fi][0];
         auto f1 = faces[fi][1];
@@ -134,7 +134,7 @@ produce_facet_normals(
 
 
 
-void print_vector(const std::string heading, const verts_t& v, int count) {
+void print_vector(const std::string heading, const vectorized_vect& v, int count) {
     clog << heading << ": ";
     int e = v.shape()[0];
     if (count < e) {
@@ -149,7 +149,7 @@ void print_vector(const std::string heading, const verts_t& v, int count) {
 
 
 
-void compute_centroid_gradient(const verts_t& X, verts_t& N, implicit_function* gradou) {
+void compute_centroid_gradient(const vectorized_vect& X, vectorized_vect& N, implicit_function* gradou) {
     std::clog << "Using this function is discouraged. Can cause bugs." << std::endl;
 
     gradou->eval_gradient(X, &N);
@@ -158,7 +158,7 @@ void compute_centroid_gradient(const verts_t& X, verts_t& N, implicit_function* 
 
 
 // The only compute_centroids() function
-void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
+void compute_centroids(const vectorized_faces& faces, const vectorized_vect& verts, vectorized_vect& centroids) {
     int nt = faces.shape()[0];
     for (int j = 0; j < nt; j++) {
         const int f0 = faces[j][0];

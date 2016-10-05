@@ -63,7 +63,7 @@ using namespace std;
 namespace mp5_implicit {
 
 
-REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
+REAL compute_average_edge_length(const vectorized_faces& faces, const vectorized_vect& verts) {
     int nfaces = faces.shape()[0];
     REAL edge_length;
     for (int j=0; j < nfaces; j++) {
@@ -78,7 +78,7 @@ REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
 }
 
 
-/*void compute_centroids(const faces_t& faces, const verts_t& verts, verts_t& centroids) {
+/*void compute_centroids(const vectorized_faces& faces, const vectorized_vect& verts, vectorized_vect& centroids) {
     int nt = faces.shape()[0];
     for (int j=0; j < nt; j++) {
         auto f0 = faces[j][0];
@@ -100,9 +100,9 @@ REAL compute_average_edge_length(const faces_t& faces, const verts_t& verts) {
 namespace mp5 {
     int global_rng_seed = 12;
 };
-verts_t make_random_pm1(vindex_t n, int dims, REAL amplitude) {
-    //verts_t result {n, dims};
-    verts_t result {boost::extents[n][dims]};
+vectorized_vect make_random_pm1(vindex_t n, int dims, REAL amplitude) {
+    //vectorized_vect result {n, dims};
+    vectorized_vect result {boost::extents[n][dims]};
     //mt11213b r = boost::mt11213b();
     int seed = mp5::global_rng_seed;
     boost::random::mt11213b rngen(seed);
@@ -194,9 +194,9 @@ void create_directions_bundle(
     //inputs
     const int iter_type, const std::vector<REAL>& alpha_list_full,
     const vectorized_vect   & directions_basedon_gradient, const vectorized_vect   & facet_normals_directions,
-    const verts_t & last_dxc,
+    const vectorized_vect & last_dxc,
     //outputs
-    verts_t & dxc_output, std::string & name_output, std::vector<REAL> & alpha_list_output
+    vectorized_vect & dxc_output, std::string & name_output, std::vector<REAL> & alpha_list_output
 ) {
     /*
         soetimes alpha_list_output is not changed. It assumes that it has been changes in previous iterations and  has a correct value. Hence, does nto need update.
@@ -243,9 +243,9 @@ void create_directions_bundle(
         int count = directions_basedon_gradient.shape()[0];
         REAL R = 0.000001; // too small
         //REAL R = 0.001;
-        verts_t perturb = vectorised_algorithms::make_random_pm1(count, 3, R);
+        vectorized_vect perturb = vectorised_algorithms::make_random_pm1(count, 3, R);
         vectorised_algorithms::add_inplace(perturb, directions_basedon_gradient);
-        verts_t z = verts_t(vector_shape);
+        vectorized_vect z = vectorized_vect(vector_shape);
         assert(assert_are_normalised(facet_normals_directions) && "*mesh normals*");
 
         vectorised_algorithms::cross_product(facet_normals_directions, perturb, z);
@@ -290,15 +290,15 @@ void create_directions_bundle(
         int count = directions_basedon_gradient.shape()[0];
         //facet_normals_directions: should be (already) normalised, but allowing some to have zero length
         //missing = indices_of_zero_normals(facet_normals_directions);
-        verts_t mesh_normals_modifiable = facet_normals_directions;
+        vectorized_vect mesh_normals_modifiable = facet_normals_directions;
         replace_zero_normals_with_gaussian_random(mesh_normals_modifiable);
-        verts_t z2 = verts_t(vector_shape);
+        vectorized_vect z2 = vectorized_vect(vector_shape);
         assert(z2.shape()[0] == mesh_normals_modifiable.shape()[0]);
         assert(z2.shape()[1] == mesh_normals_modifiable.shape()[1]);
         //z = ???????????????????
         //set_vector_from(z, dxc_output); // last dxc_output
-        //verts_t z = dxc_output;  // copy
-        const verts_t& z = last_dxc; // last dxc_output
+        //vectorized_vect z = dxc_output;  // copy
+        const vectorized_vect& z = last_dxc; // last dxc_output
         // print_vector("mesh_normals_modifiable", mesh_normals_modifiable, 100);
         // print_vector("z", z, 10);
         vectorised_algorithms::cross_product(mesh_normals_modifiable, z, z2);
@@ -416,12 +416,12 @@ void print_out_array_of_vectors(const vectorized_vect& A, int count_elements, co
 // main function version v3s002
 void  set_centers_on_surface(
       mp5_implicit::implicit_function* object,
-      const verts_t & centroids,
+      const vectorized_vect & centroids,
       const REAL average_edge,
       //nones_map
-      const verts_t & facet_normals_directions,
+      const vectorized_vect & facet_normals_directions,
       //vectorized_bool& treated,
-      verts_t & centroids_output) {
+      vectorized_vect & centroids_output) {
 
     /*
     Note that it's allowed to use centroids for centroids_output
@@ -436,7 +436,7 @@ void  set_centers_on_surface(
     constexpr bool USE_MESH_NORMALS = true;
     constexpr bool EXTREME_ALPHA = false;  // keep false
 
-    const verts_t& X = centroids;
+    const vectorized_vect& X = centroids;
 
     REAL max_dist = average_edge;
 
@@ -452,7 +452,7 @@ void  set_centers_on_surface(
     // g_direction_a:
     // g_a:
     boost::array<int, 2> g_a_shape = { n , 3 };
-    verts_t  g_a(g_a_shape);
+    vectorized_vect  g_a(g_a_shape);
     // compute_centroid_gradient(X, g_a, object);
     object->eval_gradient(X, &g_a);
     mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
@@ -592,14 +592,14 @@ void  set_centers_on_surface(
         cases = std::vector<int>{0};
     }
 
-    verts_t dxc = verts_t(vector_shape);
+    vectorized_vect dxc = vectorized_vect(vector_shape);
 
     // todo: move alpha_list here
     for (auto iter_type : cases) {
 
         std::vector<REAL> alpha_list1;
         // always copy
-        //verts_t dxc = verts_t(vector_shape);
+        //vectorized_vect dxc = vectorized_vect(vector_shape);
         std::string iter_type_name;
 
         #if DEBUG_VERBOSE
@@ -1286,7 +1286,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     // bug resolved: treated was not initialised
     // bug revolved: mesh_normals (facet_normals) was not initialised.
 
-    verts_t facet_normals = produce_facet_normals(faces, verts, true);
+    vectorized_vect facet_normals = produce_facet_normals(faces, verts, true);
     assert(assert_are_normalised(facet_normals));
 
     mp5_implicit::set_centers_on_surface(object, centroids, average_edge, facet_normals, centroids);

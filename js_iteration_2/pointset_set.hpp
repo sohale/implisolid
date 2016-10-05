@@ -8,10 +8,10 @@ constexpr bool STORE_POINTSETS = true;
 std::map< std::string, vectorized_vect > point_set_set;
 
 // LOG_POINTSET
-inline void STORE_POINTSET(std::string key_name, const verts_t & centroids)
+inline void STORE_POINTSET(std::string key_name, const vectorized_vect & centroids)
 {
     if (STORE_POINTSETS) {
-        verts_t ps2 = centroids;  // make a copy
+        vectorized_vect ps2 = centroids;  // make a copy
         if (VERBOSE_QEM) {
             clog << "STORE_POINTSET" << key_name << ": "  // "3.centroids: "
                 << ps2.shape()[0] << "x" << ps2.shape()[1] << " : " << ps2[0][0] << std::endl;

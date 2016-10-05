@@ -1,7 +1,7 @@
 namespace mp5_implicit {
 namespace vectorised_algorithms {
 
-void cross_product(const verts_t& A, const verts_t& B, verts_t &C) {
+void cross_product(const vectorized_vect& A, const vectorized_vect& B, vectorized_vect &C) {
     assert(A.shape()[0] == B.shape()[0]);
     assert(A.shape()[1] == B.shape()[1]);
     assert(A.shape()[1] == 3);

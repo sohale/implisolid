@@ -3,7 +3,7 @@ This file contains functions as building blocks ("code blocks") that implement a
 
 These functions are not organised in classes. An OOP design can call these, but should not include the bodies.
 
-No function should use any "verts". These are operations that are done on a "faces_t" variable.
+No function should use any "verts". These are operations that are done on a "vectorized_faces" variable.
 
 These are efficient graph theoretic algorithms. Most of them involve building data structures involved in graph adjancency structure.
 
@@ -39,7 +39,7 @@ inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2
 }
 
 
-void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, faces_t& faces_of_edges){
+void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
@@ -95,7 +95,7 @@ void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, 
 
 }
 
-void build_faces_of_faces(const faces_t& edges_of_faces, const faces_t& faces_of_edges, faces_t& faces_of_faces){
+void build_faces_of_faces(const vectorized_faces& edges_of_faces, const vectorized_faces& faces_of_edges, vectorized_faces& faces_of_faces){
   for(int face = 0; face < edges_of_faces.shape()[0]; face++){
     for(int edge = 0; edge < 3; edge++){
       if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
@@ -115,7 +115,7 @@ void build_faces_of_faces(const faces_t& edges_of_faces, const faces_t& faces_of
 }
 
 
-void print_faces(const faces_t& faces) {
+void print_faces(const vectorized_faces& faces) {
     for( int i = 0 ; i < faces.size(); i++) {
         std::clog << "Face " << i << ": ";
         for( int j = 0 ; j < 3; j++) {
@@ -159,7 +159,7 @@ void print_vertex_neighbourhood(const std::vector< std::vector<int>> & vertex_ne
     */
 }
 
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const faces_t& faces, vertexindex_type  max_vert_index) {
+std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const vectorized_faces& faces, vertexindex_type  max_vert_index) {
     /*
     note: max_vert_index could be derived from maximum index in faces, but 1-It is safer, may prevent future capacity increase? (not really needed though) 2- It will not be much smaller enyway
     This will be replaced by the more efficient "sparse" matrices (or equivalent data structures) anyway.
@@ -174,7 +174,7 @@ std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const faces_t& fac
     // std::vector< std::vector<int>> neighbour_faces_of_vertex(max_vert_index);
 
     // static_assert(vertexindex_type == neighbour_faces_of_vertex::index_type);
-    // static_assert(faces_t::value_type == vertexindex_type);
+    // static_assert(vectorized_faces::value_type == vertexindex_type);
 
     int num_faces = faces.shape()[0];
     for (int fi=0; fi < num_faces; fi++) {

@@ -31,16 +31,16 @@ using mp5_implicit::vectorised_algorithms::norm_2;
 
 
 typedef boost::multi_array<REAL, 2> verts_t;
-typedef boost::multi_array<int, 2> faces_t;
+//typedef boost::multi_array<int, 2> faces_t;
 typedef std::vector<int> vector_int;
 typedef std::vector<std::vector<int>> neighbour;
-typedef pair<verts_t, faces_t> vf_t;
+typedef pair<verts_t, vectorized_faces> vf_t;
 
 
 
 
 
-void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_edges){
+void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
@@ -94,7 +94,7 @@ void make_edge_lookup(faces_t faces, faces_t& edges_of_faces, faces_t& faces_of_
 
 }
 
-void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, faces_t& faces_of_faces){
+void build_faces_of_faces(vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges, vectorized_faces& faces_of_faces){
   for(int face = 0; face < edges_of_faces.shape()[0]; face++){
     for(int edge = 0; edge < 3; edge++){
       if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
@@ -113,7 +113,7 @@ void build_faces_of_faces(faces_t& edges_of_faces, faces_t& faces_of_edges, face
   }
 }
 
-inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_normals_normalized){
+inline REAL kij(int i, int j, const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized){
   assert (i!=j);
   REAL pi_x = centroids[i][0];
   REAL pi_y = centroids[i][1];
@@ -145,7 +145,7 @@ inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_
   return kij;
 }
 
-REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_normals_normalized, float c){
+REAL wi(int i, vectorized_faces& faces_of_faces, vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float c){
   REAL ki = 0;
   for (int j_faces=0; j_faces<3; j_faces ++){
     ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
@@ -155,8 +155,8 @@ REAL wi(int i, faces_t& faces_of_faces, verts_t& centroids, verts_t& centroid_no
 
 }
 
-void vertex_resampling(verts_t& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, faces_t& faces_of_faces,
-verts_t& centroids, verts_t& centroid_normals_normalized, float c){
+void vertex_resampling(vectorized_vect& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, vectorized_faces& faces_of_faces,
+vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float c){
   clog << "Vv2=" << std::endl;
   exit(1);
 
@@ -198,11 +198,11 @@ verts_t& centroids, verts_t& centroid_normals_normalized, float c){
 // main function
 void process2_vertex_resampling_relaxation_v2(
         // outputs
-        verts_t& new_verts,
+        vectorized_vect& new_verts,
         // input
-        const faces_t& faces, verts_t& verts,
+        const vectorized_faces& faces, vectorized_vect& verts,
         // output
-        verts_t& centroids,
+        vectorized_vect& centroids,
         // inputs
         mp5_implicit::implicit_function* object, float c
     )

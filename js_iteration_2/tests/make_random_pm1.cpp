@@ -27,7 +27,7 @@
 
 TEST(VectorizsedAlgorithmsTests, make_random_pm1__mean) {
 
-    verts_t result = mp5_implicit::vectorised_algorithms::make_random_pm1(4, 3, 1);
+    vectorized_vect result = mp5_implicit::vectorised_algorithms::make_random_pm1(4, 3, 1);
     for (vindex_t i = 0; i < std::min<unsigned int>(result.shape()[0], 10); ++i) {
         std::clog
             << result[i][0] << " "
@@ -38,7 +38,7 @@ TEST(VectorizsedAlgorithmsTests, make_random_pm1__mean) {
 
     unsigned int n = 400000/100;
 
-    verts_t A = mp5_implicit::vectorised_algorithms::make_random_pm1(n, 3, 1);
+    vectorized_vect A = mp5_implicit::vectorised_algorithms::make_random_pm1(n, 3, 1);
     REAL x=0, y=0, z=0;
     REAL x2=0, y2=0, z2=0;
     for (vindex_t i = 0; i < std::min<unsigned int>(A.shape()[0], 10); ++i) {

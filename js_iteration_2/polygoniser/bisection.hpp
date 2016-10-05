@@ -9,7 +9,7 @@ void here(T arg) {
     std::clog << arg << std::endl << std::flush;
 }
 
-inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign, bool accept_zeros) {
+inline bool test_points_sign(vectorized_vect& x_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, REAL sign, bool accept_zeros) {
     assert(sign == +1 || sign == -1); // || sign == 0.0);
 
     clog << "test_points_sign" << endl;
@@ -40,10 +40,10 @@ inline bool test_points_sign(verts_t& x_vectorized, const mp5_implicit::implicit
     return everything_alright;
 }
 
-inline bool test_if_points_are_inside(verts_t& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
+inline bool test_if_points_are_inside(vectorized_vect& x2_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
     return test_points_sign(x2_vectorized, object, ROOT_TOLERANCE, +1, accept_zeros);
 }
-inline bool test_if_points_are_outside(verts_t& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
+inline bool test_if_points_are_outside(vectorized_vect& x1_vectorized, const mp5_implicit::implicit_function& object, REAL ROOT_TOLERANCE, bool accept_zeros) {
     return test_points_sign(x1_vectorized, object, ROOT_TOLERANCE, -1, accept_zeros);
 }
 
@@ -96,7 +96,7 @@ inline void check_bisection_input_signs(
 
 
 
-REAL mean_distance(const verts_t& x1, const verts_t& x2) {
+REAL mean_distance(const vectorized_vect& x1, const vectorized_vect& x2) {
     REAL sum = 0.0;
     int n = x1.shape()[0];
     assert (x1.shape()[0] == x2.shape()[0]);
@@ -116,9 +116,9 @@ REAL mean_distance(const verts_t& x1, const verts_t& x2) {
 */
 void bisection(
     mp5_implicit::implicit_function* object,
-    verts_t& res_x_arr,
-    verts_t& x1_arr,
-    verts_t& x2_arr,
+    vectorized_vect& res_x_arr,
+    vectorized_vect& x1_arr,
+    vectorized_vect& x2_arr,
     REAL ROOT_TOLERANCE
     //vectorized_bool& treated
     )

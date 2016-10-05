@@ -6,9 +6,9 @@ namespace mp5_implicit {
 namespace vectorised_algorithms {
 
 
-// void indices_of_zero_normals(verts_t& normals)
+// void indices_of_zero_normals(vectorized_vect& normals)
 
-void replace_zero_normals_with_gaussian_random(verts_t& normals) {
+void replace_zero_normals_with_gaussian_random(vectorized_vect& normals) {
     assert(normals.shape()[1] == 3);
 
     /*
@@ -39,11 +39,11 @@ void replace_zero_normals_with_gaussian_random(verts_t& normals) {
 
 
 // Will not work: template <REAL x, REAL y, REAL z>
-//inline void set_vector(verts_t& vect, REAL x, REAL y, REAL z) {
+//inline void set_vector(vectorized_vect& vect, REAL x, REAL y, REAL z) {
 //    satic_assert(vect.shape()[1] == 3);
 //                set_vector<1, 0, 0>(dxc, 1, 0, 0);
 
-inline void fill_vector(verts_t& vect, REAL x, REAL y, REAL z) {
+inline void fill_vector(vectorized_vect& vect, REAL x, REAL y, REAL z) {
     assert(vect.shape()[1] == 3);
     for (auto i = vect.begin(), e = vect.end(); i < e; i++) {
         (*i)[0] = x;
@@ -53,7 +53,7 @@ inline void fill_vector(verts_t& vect, REAL x, REAL y, REAL z) {
 
 }
 /*
-inline void set_vector_from(verts_t& target, const verts_t& source) {
+inline void set_vector_from(vectorized_vect& target, const vectorized_vect& source) {
     assert(target.shape()[1] == 3);
     auto i = target.begin();
     auto e = target.end();
@@ -67,11 +67,11 @@ inline void set_vector_from(verts_t& target, const verts_t& source) {
 */
 
 
-inline bool sizes_are_equal(const verts_t & A, const verts_t & B) {
+inline bool sizes_are_equal(const vectorized_vect & A, const vectorized_vect & B) {
     return A.shape()[0] == B.shape()[0]  && A.shape()[1] == B.shape()[1];
 }
 
-inline bool sizes_are_equal(const verts_t & A, const faces_t & B) {
+inline bool sizes_are_equal(const vectorized_vect & A, const vectorized_faces & B) {
     return A.shape()[0] == B.shape()[0]  && A.shape()[1] == B.shape()[1];
 }
 

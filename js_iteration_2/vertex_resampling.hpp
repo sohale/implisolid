@@ -44,7 +44,7 @@ using mp5_implicit::make_edge_lookup;
 #include "pointset_set.hpp"
 
 
-inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_normals_normalized){
+inline REAL kij(int i, int j, const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized){
   assert (i!=j);
   REAL pi_x = centroids[i][0];
   REAL pi_y = centroids[i][1];
@@ -76,7 +76,7 @@ inline REAL kij(int i, int j, const verts_t& centroids, const verts_t& centroid_
   return kij;
 }
 
-REAL wi(int i, const faces_t& faces_of_faces, const verts_t& centroids, const verts_t& centroid_normals_normalized, float c){
+REAL wi(int i, const vectorized_faces& faces_of_faces, const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, float c){
     //clog << "wi1" << std::endl;  // called 2696 times
 
   REAL ki = 0;
@@ -89,9 +89,9 @@ REAL wi(int i, const faces_t& faces_of_faces, const verts_t& centroids, const ve
 }
 
 void vertex_resampling_VV1(
-        verts_t& new_verts,
-        const std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, const faces_t& faces_of_faces,
-        const verts_t& centroids, const verts_t& centroid_normals_normalized, const float c
+        vectorized_vect& new_verts,
+        const std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, const vectorized_faces& faces_of_faces,
+        const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, const float c
     ) {
     clog << "VV1" << std::endl;
     // exit(1);
@@ -144,11 +144,11 @@ void vertex_resampling_VV1(
 */
 void process2_vertex_resampling_relaxation_v1(
         // outputs
-        verts_t& new_verts,
+        vectorized_vect& new_verts,
         // input
-        const faces_t& faces, verts_t& verts,
+        const vectorized_faces& faces, vectorized_vect& verts,
         // output
-        verts_t& centroids, // overwritten! It's output-only
+        vectorized_vect& centroids, // overwritten! It's output-only
         // inputs
         mp5_implicit::implicit_function* object, float c
     )
@@ -167,7 +167,7 @@ void process2_vertex_resampling_relaxation_v1(
 
     if (STORE_POINTSETS)
     {
-    verts_t ps1 = verts;
+    vectorized_vect ps1 = verts;
     point_set_set.emplace(std::make_pair(std::string("pre_resampling_vertices"), ps1));
     }
 
@@ -188,9 +188,9 @@ void process2_vertex_resampling_relaxation_v1(
 
     if (STORE_POINTSETS)
     {
-    // verts_t ps1 = centroids;
+    // vectorized_vect ps1 = centroids;
     // point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
-    // verts_t ps1 = new_verts;
+    // vectorized_vect ps1 = new_verts;
     // point_set_set.emplace(std::make_pair(std::string("pre_p_centroid"), ps1));
     }
 
@@ -200,11 +200,11 @@ void process2_vertex_resampling_relaxation_v1(
 
     if (STORE_POINTSETS)
     {
-    verts_t ps2 = new_verts;
+    vectorized_vect ps2 = new_verts;
     point_set_set.emplace(std::make_pair(std::string("post_resampling_vertices"), ps2));
     }
 
-    // verts_t ps2 = centroids;
+    // vectorized_vect ps2 = centroids;
     /*
     for (int i=0;i<ps2.shape()[0]; ++i) {
         ps2[i][0] += (rand01()*2.0-1.0)*0.2;

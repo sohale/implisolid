@@ -301,7 +301,7 @@ class polygoniser {
     /*
     std::vector<REAL> verts;
     std::vector<int> faces;
-    const verts_t & centroids,
+    const vectorized_vect & centroids,
     */
 
 public:
@@ -499,7 +499,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         /*
         if (STORE_POINTSETS)
         {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
+            vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
             STORE_POINTSET("pre_p_centroid", v);
         }
         if (STORE_POINTSETS) {
@@ -518,7 +518,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         /*
         if (STORE_POINTSETS) {
-            verts_t v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
+            vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
             STORE_POINTSET("post_p_centroids", v);
         }
         */

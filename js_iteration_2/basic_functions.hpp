@@ -249,7 +249,7 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
  */
 
 
-void SVD__old(const verts_t& A, verts_t& u, verts_t& s, verts_t& v){
+void SVD__old(const vectorized_vect& A, vectorized_vect& u, vectorized_vect& s, vectorized_vect& v){
 
   boost::numeric::ublas::matrix < REAL > QQL(3,3);
   boost::numeric::ublas::matrix < REAL > QQW(3,3);
@@ -296,7 +296,7 @@ inline void matrix_product_3x3 (
     // cz = m02 * x + m12 * y + m22 * z;
 }
 
-bool test_svd(const verts_t& A, const verts_t& u, const verts_t& s, const verts_t& v) {
+bool test_svd(const vectorized_vect& A, const vectorized_vect& u, const vectorized_vect& s, const vectorized_vect& v) {
   return true;
 }
 */

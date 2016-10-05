@@ -11,7 +11,7 @@ namespace mp5_implicit {
 bool super_quiet =true;
 
 // get the matrix A and b used in vertex_apply_qem
-void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const verts_t& centroid_gradients, verts_t* A, vectorized_scalar* b) {
+void get_A_b__old(const std::vector<int> & nai, const vectorized_vect& centroids, const vectorized_vect& centroid_gradients, vectorized_vect* A, vectorized_scalar* b) {
 
     int m = nai.size();
 
@@ -116,10 +116,10 @@ void get_A_b__old(const std::vector<int> & nai, const verts_t& centroids, const 
  */
 
 void vertex_apply_qem__old(
-    verts_t* verts, const faces_t faces,
-    const verts_t centroids,
+    vectorized_vect* verts, const vectorized_faces faces,
+    const vectorized_vect centroids,
     const std::vector< std::vector<int>> vertex_neighbours_list,
-    const verts_t centroid_gradients
+    const vectorized_vect centroid_gradients
     //const vectorized_bool& treated
     )
 {
@@ -140,10 +140,10 @@ void vertex_apply_qem__old(
     vectorized_scalar y(b_shape);
     vectorized_scalar utb(b_shape);
     vectorized_scalar new_x(b_shape);
-    verts_t u(A_shape);
-    verts_t s(A_shape);
-    verts_t v(A_shape);
-    verts_t A(A_shape);
+    vectorized_vect u(A_shape);
+    vectorized_vect s(A_shape);
+    vectorized_vect v(A_shape);
+    vectorized_vect A(A_shape);
     for (int vi=0; vi < nverts; vi++) {
         std::vector<int> nlist;
         for (int i=0; i < vertex_neighbours_list[vi].size(); i++) {
@@ -255,8 +255,8 @@ inline bool check_normality_for_qem(REAL nx, REAL ny, REAL nz) {
 // Todo: vectorized version.
 void get_A_b(
     const std::vector<int> & neighbours_faces,
-    const verts_t& centroids,
-    const verts_t& centroid_normals,
+    const vectorized_vect& centroids,
+    const vectorized_vect& centroid_normals,
     const Matrix<REAL, 3, 1> & qem_origin,
     Matrix<REAL, 3, 3> *A, Matrix<REAL, 3, 1> * b) {
 
@@ -319,11 +319,11 @@ void get_A_b(
 
 
 void vertex_apply_qem(
-    verts_t* verts
-    , const faces_t faces
-    , const verts_t centroids
+    vectorized_vect* verts
+    , const vectorized_faces faces
+    , const vectorized_vect centroids
     , const std::vector< std::vector<int>> vertex_neighbours_list
-    , const verts_t centroid_gradients
+    , const vectorized_vect centroid_gradients
     , array_of_indices *ranks_output
     , REAL maximum_displacement_distance
     )
