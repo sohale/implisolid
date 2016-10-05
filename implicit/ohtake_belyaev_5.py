@@ -2125,12 +2125,12 @@ def propagated_subdiv(facets, subdivided_edges):
 
 
 
-
-def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indices, midpoint_map):
+# todo: refactor tobe_subdivided_face_indices -> requested_face_indices
+def subdivide_multiple_facets(verts_old, facets_old, requested_face_indices, midpoint_map):
     """
     midpoint_map is modified (is input and output).
     midpoint_map is a dictionary that given an edge's unique_int_id, gives you the vertex in the midpoint. It may contain midpoints that are not used anymore.
-    Use compute_facets_subdivision_curvatures() to calculate tobe_subdivided_face_indices.
+    Use compute_facets_subdivision_curvatures() to calculate requested_face_indices.
     Does not remove vertices => will be valid. But vertices will change: new elements will be appended to it.
     Returns: new vertices and faces.
     Returns: presubdivision_edges: The edges that have been removed.
@@ -2172,8 +2172,8 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
     verts_old_old = verts_old.copy()
 
     # Allocate space for the new faces and vertices
-    provisional_new_verts_count = 3*len(tobe_subdivided_face_indices)
-    provisional_new_facets_count = 3*len(tobe_subdivided_face_indices)
+    provisional_new_verts_count = 3*len(requested_face_indices)
+    provisional_new_facets_count = 3*len(requested_face_indices)
     nverts_old = verts_old.shape[0]
     nfaces_old = facets_old.shape[0]
     new_verts = np.zeros((nverts_old + provisional_new_verts_count, 3), dtype=float)
@@ -2192,9 +2192,9 @@ def subdivide_multiple_facets(verts_old, facets_old, tobe_subdivided_face_indice
 
     new_vertex_counter = nverts_old
     new_facet_counter = nfaces_old
-    for subdiv_i in range(len(tobe_subdivided_face_indices)):
+    for subdiv_i in range(len(requested_face_indices)):
 
-        fi = tobe_subdivided_face_indices[subdiv_i]
+        fi = requested_face_indices[subdiv_i]
         triangle_old = verts_old[facets_old[fi, :], :]  # numverts x 3
         assert triangle_old.shape == (3, 3)
 
