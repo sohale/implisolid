@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../configs.hpp"
+
 namespace mp5_implicit {
 namespace vectorised_algorithms {
 

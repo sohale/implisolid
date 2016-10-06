@@ -8,8 +8,8 @@
  */
 
 #pragma once
-#include "basic_data_structures.hpp"
-#include "basic_functions.hpp"
+//#include "basic_data_structures.hpp"
+//#include "basic_functions.hpp"
 
 
 /* part of the namespace mp5_implicit */
@@ -26,12 +26,12 @@ protected:
         const REAL x2, const REAL y2, const REAL z2,
         const REAL x3, const REAL y3, const REAL z3,
         REAL& a, REAL& b, REAL& c, REAL& d) const {
-        
+
         a = y1 * z2 - y1 * z3 - y2 * z1 + y2 * z3 + y3 * z1 - y3 * z2;
         b = x1 * z3 - x1 * z2 + x2 * z1 - x2 * z3 - x3 * z1 + x3 * z2;
         c = x1 * y2 - x1 * y3 - x2 * y1 + x2 * y3 + x3 * y1 - x3 * y2;
         d = x1 * y3 * z2 - x1 * y2 * z3 + x2 * y1 * z3 - x2 * y3 * z1 - x3 * y1 * z2 + x3 * y2 * z1;
-    
+
     }
 
     vectorized_vect getPlanes() const {
@@ -132,7 +132,7 @@ public:
 
     tetrahedron(std::vector<boost::array<REAL,3>> points, REAL matrix12[12]) {
         // we need to apply matrix to all 4 points
-        
+
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 3; j++) {
                 this->p[i][j] = points[i][j];
@@ -238,15 +238,15 @@ public:
             }
         }
 
-        if (!integrity) 
+        if (!integrity)
             return integrity;
 
         // check if we can build plane through each 3 points
         // Task: we have 3 points, A, B, C. Check if the are at the same line
-        // Solution: use cross product of AB x AC, compare to (0,0,0), if positive => then 
+        // Solution: use cross product of AB x AC, compare to (0,0,0), if positive => then
         // they are in one line
 
-        // Cross product formula : U x V = (u2*v3 - u3*v2, u3*v1 - u1*v3, u1*v2 - u2*v1) 
+        // Cross product formula : U x V = (u2*v3 - u3*v2, u3*v1 - u1*v3, u1*v2 - u2*v1)
         int i_1;
         int i_2;
         int i_3;
@@ -281,7 +281,7 @@ public:
             }
         }
 
-        if (!integrity) 
+        if (!integrity)
             return integrity;
 
         // check if distance from each point to opposite face is not too small
@@ -293,9 +293,9 @@ public:
         vectorized_vect planes = getPlanes();
 
         for (i = 0; i < 4 && integrity; i++) {
-            d = planes[i][0] * this->p[i][0] + 
-                planes[i][1] * this->p[i][1] + 
-                planes[i][2] * this->p[i][2] + 
+            d = planes[i][0] * this->p[i][0] +
+                planes[i][1] * this->p[i][1] +
+                planes[i][2] * this->p[i][2] +
                 planes[i][3];
 
             d /= sqrt(

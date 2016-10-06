@@ -85,6 +85,9 @@ struct CONFIG {
 //}
 */
 
+/* *************************
+DEBUG, assertion, verbosity settings
+*/
 extern const bool VERBOSE = false;
 
 constexpr bool VERBOSE_QEM = false;
@@ -98,6 +101,6 @@ constexpr REAL  MAGIC_VALUE_FOR_DEBUG = -10000.0;
 
 #endif
 
-// constexpr bool STORE_POINTSETS = true;
-// Now: see pointset_set.hpp
+constexpr bool STORE_POINTSETS = true;
+// see: pointset_set.hpp
 

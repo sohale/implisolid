@@ -60,8 +60,7 @@ class TwistedObject::ImplicitObject(){
 #include "implicit_function.hpp"
 #include "transformation.hpp"
 
-#include "basic_functions.hpp"
-
+#include "linearly_transformed.hpp"
 
 //#include "unit_sphere.hpp"
 //
@@ -72,7 +71,7 @@ class TwistedObject::ImplicitObject(){
 #include "honey_comb.hpp"
 #include "double_mushroom.hpp"
 #include "egg.hpp"
-#include "implicit_functions/cube.hpp"
+#include "cube.hpp"
 #include "super_bowl.hpp"
 #include "scone.hpp"
 #include "scylinder.hpp"
