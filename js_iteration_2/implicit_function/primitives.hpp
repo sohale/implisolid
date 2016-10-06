@@ -1,10 +1,11 @@
 #pragma once
 
-#include "basic_data_structures.hpp"
-#include "basic_functions.hpp"
-
 #include <iostream>
-#include "my_assert.hpp"
+
+#include "../basic_data_structures.hpp"
+#include "../basic_functions.hpp"
+
+#include "../my_assert.hpp"
 
 inline bool assert_implicit_function_io(const vectorized_vect& x, const vectorized_scalar& output){
     //std::clog << x.shape()[1] << " " << x.shape()[0] << " " << output->shape()[0] << std::endl;
@@ -59,8 +60,7 @@ class TwistedObject::ImplicitObject(){
 #include "implicit_function.hpp"
 #include "transformation.hpp"
 
-#include "basic_functions.hpp"
-
+#include "linearly_transformed.hpp"
 
 //#include "unit_sphere.hpp"
 //
@@ -71,7 +71,7 @@ class TwistedObject::ImplicitObject(){
 #include "honey_comb.hpp"
 #include "double_mushroom.hpp"
 #include "egg.hpp"
-#include "implicit_functions/cube.hpp"
+#include "cube.hpp"
 #include "super_bowl.hpp"
 #include "scone.hpp"
 #include "scylinder.hpp"

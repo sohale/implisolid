@@ -4,9 +4,9 @@
 #include "boost/property_tree/json_parser.hpp"
 
 //#include "unit_sphere.hpp"
-#include "primitives.hpp"
-#include "crisp_subtract.hpp"
-#include "linearly_transformed.hpp"
+#include "implicit_function/primitives.hpp"
+//#include "implicit_function/crisp_subtract.hpp"
+//#include "implicit_function/linearly_transformed.hpp"
 
 #include "object_collector.hpp"
 //using namespace mp5_implicit;

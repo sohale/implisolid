@@ -3,7 +3,7 @@
 */
 #pragma once
 
-constexpr bool STORE_POINTSETS = true;
+#include "configs.hpp"
 
 std::map< std::string, vectorized_vect > point_set_set;
 

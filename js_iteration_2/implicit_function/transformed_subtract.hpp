@@ -1,32 +1,35 @@
 #pragma once
 #include <vector>
-#include "basic_data_structures.hpp"
-#include "basic_functions.hpp"
+//#include "basic_data_structures.hpp"
+//#include "basic_functions.hpp"
+
 #include "transformed.hpp"
 
 namespace mp5_implicit {
 
-class transformed_intersection : public transformed {
+class transformed_subtract : public transformed {
 
     std::vector<implicit_function*> children;
 
 public:
-    transformed_intersection (std::vector<implicit_function*> children, REAL matrix[12])
+    transformed_subtract (std::vector<implicit_function*> children, REAL matrix[12])
         : transformed(matrix), children(children)
     {
         my_assert(children.size() == 2, "for now only works on two objects.");
 
         /*
-      this->transf_matrix = new REAL [12];
-      this->inv_transf_matrix = new REAL [12];
+        // Already done
+        this->transf_matrix = new REAL [12];
+        this->inv_transf_matrix = new REAL [12];
 
-      for (int i=0; i<12; i++){
-          transf_matrix[i] = matrix12[i];
-      }
+        for (int i=0; i<12; i++){
+            transf_matrix[i] = matrix12[i];
+        }
 
-      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-      my_assert(this->integrity_invariant(), "");
-      */
+        invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+        my_assert(this->integrity_invariant(), "");
+        */
+
     }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
@@ -43,9 +46,9 @@ public:
         children[1]->eval_implicit(local_x, &f2);
 
         vectorized_scalar::index output_ctr = 0;
-        auto e = local_x.end();
-        for (auto i = local_x.begin(); i < e; i++, output_ctr++){
-            (*f_output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (f2[output_ctr]): f1[output_ctr];
+        auto e = x.end();
+        for (auto i = x.begin(); i < e; i++, output_ctr++){
+            (*f_output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (f1[output_ctr]): -f2[output_ctr];
         }
     };
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -68,12 +71,17 @@ public:
       children[0]->eval_gradient(local_x, &grad1);
       children[1]->eval_gradient(local_x, &grad2);
 
+
+      for (auto i = grad2.begin(), e = grad2.end(); i < e; i++) {
+              (*i)[0] =  -(*i)[0];
+              (*i)[1] =  -(*i)[1];
+              (*i)[2] =  -(*i)[2];
+      }
+
       vectorized_scalar::index output_ctr = 0;
 
-      auto e = local_x.end();
-
-      for (auto i = local_x.begin(); i < e; i++, output_ctr++){
-          (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad2[output_ctr]): grad1[output_ctr];
+      for (auto i = local_x.begin(), e = local_x.end(); i < e; i++, output_ctr++){
+          (*output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
 
           REAL gx = (*output)[output_ctr][0];
           REAL gy = (*output)[output_ctr][1];
@@ -84,20 +92,24 @@ public:
       }
     };
     bool integrity_invariant() const {
-
-        //transformed(this).integrity_invariant();
-        //???????????
-
         //TODO(sohail): Check the minimum size based on the SVD of the matrix.
-        return true;
+
+        REAL svd_s1 = 1;
+        REAL svd_s2 = 1;
+        REAL svd_s3 = 1;
+        if(
+          svd_s1 < MIN_PRINTABLE_LENGTH ||
+          svd_s2 < MIN_PRINTABLE_LENGTH ||
+          svd_s3 < MIN_PRINTABLE_LENGTH
+        )
+            return false;
+        else
+            return true;
     }
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        for ( auto it = children.begin(); it < children.end(); it++ ){
-
-        }
-        REAL max_size = norm_squared(transf_matrix[0], transf_matrix[4], transf_matrix[8]);
-        return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
+        REAL incorrect_dummy = 1;
+        return mp5_implicit::bounding_box{-incorrect_dummy,incorrect_dummy,-incorrect_dummy,incorrect_dummy,-incorrect_dummy,incorrect_dummy};
     }
 
 };

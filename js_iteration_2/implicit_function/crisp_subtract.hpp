@@ -1,39 +1,39 @@
 #pragma once
 
 #include "implicit_function.hpp"
-#include "basic_data_structures.hpp"
-#include "basic_functions.hpp"
+#include "../basic_data_structures.hpp"
+#include "../basic_functions.hpp"
 
 /**
- * File: crisp_intersection.hpp
- * -----------------------------
+ * File: crisp_subtract.hpp
+ * -------------------------
 
- * Defines the class CrispIntersection which implements the csg intersection
+ * Defines the class CrispSubtract which implements the csg subtraction
 
  * operation between two implicit functions in accordance to the formula:
 
- * 	f(x) = min(f1(x),f2(x)). Functions f1 and f2 are implicit functions whose intersection
+ * 	f(x) = min(f1(x), -f2(x)) . Functions f1 and f2 are implicit functions whose substraction
 
  * 	we want to compute.
- *
+
  */
 
 namespace mp5_implicit{
-class CrispIntersection: public implicit_function {
+class CrispSubtract: public implicit_function {
 public:
 
     /**
      * Function Declarations:
-     * CrispIntersection(a, b) --> The constructor of the class.
+     * CrispSubtract(a, b) --> The constructor of the class.
      * 		a and b are of type implicit_function, and need to be evaluated
      * 		on a grid or vector.
      *
      * eval_implicit --> evaluation of the implicit function.
      * eval_gradient --> evaluation of the implicit gradient.
-     * ~CrispIntersection --> Deconstructor of the class.
+     * ~CrispSubtract --> Deconstructor of the class.
      */
 
-    CrispIntersection(const implicit_function & a_, const implicit_function & b_)
+    CrispSubtract(const implicit_function & a_, const implicit_function & b_)
     : a(a_),b(b_)  // <-- member initialization list
                    // http://stackoverflow.com/questions/7665021/c-member-initialization-list
     {
@@ -59,23 +59,8 @@ public:
         auto e = x.end();
 
         for (auto i = x.begin(); i < e; i++, output_ctr++){
-            (*f_output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (f2[output_ctr]): f1[output_ctr];
+            (*f_output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (f1[output_ctr]): -f2[output_ctr];
         }
-
-        // for (auto i = x.begin(); i < e; i++, output_ctr++){
-        //     if(f1[output_ctr] >=0. && f2[output_ctr] >= 0.){
-        //       (*f_output)[output_ctr] = (f1[output_ctr]+ f2[output_ctr])/2.;
-        //     }
-        //     else if(f1[output_ctr] < 0. && f2[output_ctr] < 0.){
-        //       (*f_output)[output_ctr] = (f1[output_ctr]+f2[output_ctr])/2.;
-        //     }
-        //     else if (f1[output_ctr] < 0.){
-        //       (*f_output)[output_ctr] = f1[output_ctr];
-        //     }
-        //     else if(f2[output_ctr] < 0.){
-        //       (*f_output)[output_ctr] = f2[output_ctr];
-        //     }
-        // }
     }
 
     void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -96,17 +81,22 @@ public:
         a.eval_gradient(x, &grad1);
         b.eval_gradient(x, &grad2);
 
-        vectorized_scalar::index output_ctr = 0;
+
+        for (auto i = grad2.begin(); i < grad2.end(); i++) {
+                (*i)[0] =  -(*i)[0];
+                (*i)[1] =  -(*i)[1];
+                (*i)[2] =  -(*i)[2];
+        }
 
         auto e = x.end();
-
-        for (auto i = x.begin(); i < e; i++, output_ctr++){
-            (*output)[output_ctr] = (f1[output_ctr] > f2[output_ctr]) ? (grad2[output_ctr]): grad1[output_ctr];
+        vectorized_scalar::index output_ctr = 0;
+        for (auto i = x.begin(); i < e; i++, output_ctr++) {
+            (*output)[output_ctr] = (f1[output_ctr] < -f2[output_ctr]) ? (grad1[output_ctr]): grad2[output_ctr];
         }
 
     }
 
-    // ~CrispIntersection();   // will this compile with no warning?
+    // ~CrispSubtract();   // will this compile with no warning?
 
 private:
     const implicit_function &a, &b;  // reference a and b, this should be considered again.

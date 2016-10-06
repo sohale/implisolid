@@ -199,7 +199,7 @@ namespace mp5_implicit {
 
 // auto& loger = std::cerr;
 
-#include ".//my_assert.hpp"
+#include "./my_assert.hpp"
 
 
 inline array_shape_t make_shape_1d(array1d::index size) {
@@ -224,4 +224,4 @@ namespace mp5_implicit {
 
 }
 
-#include "configs.hpp"
+//#include "configs.hpp"
