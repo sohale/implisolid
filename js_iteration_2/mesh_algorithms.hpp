@@ -39,7 +39,7 @@ inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2
 }
 
 
-void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges){
+void make_edge_lookup(vectorized_faces faces, boost::multi_array<int, 2>& edges_of_faces, vectorized_faces& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
