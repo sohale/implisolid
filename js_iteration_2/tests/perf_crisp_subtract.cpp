@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "../primitives.cpp"
+#include "../primitives.hpp"
 #include "../../js_iteration_1/timer.hpp"	// provides a timer class
 #include "../crisp_subtract.hpp"	// provides crisp_subtract class
 #include "../object_factory.hpp" 	// provides object_factory function

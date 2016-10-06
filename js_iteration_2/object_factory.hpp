@@ -4,7 +4,7 @@
 #include "boost/property_tree/json_parser.hpp"
 
 //#include "unit_sphere.hpp"
-#include "primitives.cpp"
+#include "primitives.hpp"
 #include "crisp_subtract.hpp"
 #include "linearly_transformed.hpp"
 

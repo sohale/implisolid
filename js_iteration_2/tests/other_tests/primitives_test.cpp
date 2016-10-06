@@ -5,7 +5,7 @@ Hence, this test should be compiled using optiisation turned on (another differe
 
 */
 
-#include "../primitives.cpp"
+#include "../primitives.hpp"
 #include "../../js_iteration_1/timer.hpp"
 
 using namespace mp5_implicit;

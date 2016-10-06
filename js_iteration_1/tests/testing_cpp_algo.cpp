@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "../js_iteration_2/primitives.cpp"
+#include "../js_iteration_2/primitives.hpp"
 #include "../js_iteration_2/vertex_resampling.hpp"
 #include <fstream>
 #include "boost/multi_array.hpp"

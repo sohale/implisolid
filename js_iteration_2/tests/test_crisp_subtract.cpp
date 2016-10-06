@@ -5,7 +5,7 @@
 * In this file there are tests for the crisp subtraction operation.
 */
 
-#include "../primitives.cpp"
+#include "../primitives.hpp"
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
 #include "../crisp_subtract.hpp"

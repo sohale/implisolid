@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 // #include "../implicit_function.hpp"
-#include "../primitives.cpp"
+#include "../primitives.hpp"
 #include "../vectorised_algorithms/make_random_pm1.hpp"
 #include "../vectorised_algorithms/normalise_inplace.hpp"
 #include "../vectorised_algorithms/assert_are_normalised.hpp"

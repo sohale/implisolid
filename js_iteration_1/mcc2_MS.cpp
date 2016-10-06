@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "../js_iteration_2/primitives.cpp"
+#include "../js_iteration_2/primitives.hpp"
 #include "../js_iteration_2/vertex_resampling.hpp"
 #include "../js_iteration_2/apply_v_s_to_mc_buffers.hpp"
 #include "centroids_projection.cpp"
