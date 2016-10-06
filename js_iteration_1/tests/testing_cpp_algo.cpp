@@ -31,7 +31,7 @@ typedef array1d::index  index_t;
 
 typedef index_t index3_t; //Range of the element type has to be large enough, larger than (size^3)*3.
 typedef boost::multi_array<index3_t, 1>   array1d_e3;
-typedef std::map<index3_t,int>  e3map_t;
+//typedef std::map<index3_t,int>  e3map_t;
 
 
 #include "mcc2_marching_cubes_MS.hpp"

@@ -17,7 +17,7 @@ ofstream debug_part_1(string filename, std::vector<REAL>& result_verts) {
 }
 
 
-void debug_part_2(ofstream& f_out, std::vector<REAL>& result_verts, std::vector<int>& result_faces, vectorized_vect & centroids) {
+void debug_part_2(ofstream& f_out, std::vector<REAL>& result_verts, std::vector<vertexindex_type>& result_faces, vectorized_vect & centroids) {
       f_out << "n3w vertex :" << endl;
       for (int i=0; i< result_verts.size()/3.; i++){
           f_out << result_verts[3*i];
@@ -55,7 +55,7 @@ void debug_part_2(ofstream& f_out, std::vector<REAL>& result_verts, std::vector<
 
 void writing_test_file_(
         string  output_file_name,
-        std::vector<REAL>&result_verts, std::vector<int>&result_faces,
+        std::vector<REAL>&result_verts, std::vector<vertexindex_type>&result_faces,
         vectorized_vect & new_verts, vectorized_vect & centroids
     )
 {

@@ -16,6 +16,7 @@ REAL lerp(REAL a, REAL b, REAL t ) {
     (MC_table_loopup) --> *list_buffer --> *Queue --> result_*
 */
 class MarchingCubes{
+
     bool enableUvs, enableColors;
     //dim_t resolution;
     index_t resolution, size2, size3; //todo: non-equal grid sizes
@@ -39,6 +40,8 @@ class MarchingCubes{
     static const int skip_count_l = 2; // -2
     static const int skip_count_h = 3;
 
+public:
+    typedef std::map<index3_t, int>  e3map_t;
 
  protected:
     //Buffers:
@@ -93,7 +96,7 @@ public:
     REAL isolation;
 
     //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<faceindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
@@ -122,7 +125,7 @@ public:
     std::vector<REAL> result_normals;
 
     std::vector<REAL> result_verts;
-    std::vector<int> result_faces;
+    std::vector<vertexindex_type> result_faces;
     e3map_t result_e3map;
     int next_unique_vect_counter = 0;
 };
@@ -786,7 +789,7 @@ static int resultqueue_faces_start = 0;  // static
 static std::vector<REAL> result_normals(4100*3);  // static
 
 static std::vector<REAL> result_verts;  // static
-static std::vector<int> result_faces; // static
+static std::vector<vertexindex_type> result_faces; // static
 */
 
 // Takes the vales from the queue:
@@ -1102,14 +1105,14 @@ void MarchingCubes::reset_result() {
 
     /*
     this->next_unique_vect_counter = 0;
-    this->result_faces = std::vector<int>();
+    this->result_faces = std::vector<vertexindex_type>();
     this->result_verts = std::vector<REAL>();
     this->result_normals = std::vector<REAL>();
     this->result_e3map = e3map_t();
     */
 
     this->next_unique_vect_counter = 0;
-    //this->result_faces = std::vector<int>();
+    //this->result_faces = std::vector<vertexindex_type>();
     //this->result_verts = std::vector<REAL>();
     //this->result_normals = std::vector<REAL>();
     //this->result_e3map = e3map_t();
@@ -1611,8 +1614,8 @@ const bool VERTS_FROM_MAP = true;
 typedef struct {
     std::vector<REAL> &normals;
     std::vector<REAL> &verts3;
-    std::vector<int> &faces3;
-    e3map_t &e3map;
+    std::vector<vertexindex_type> &faces3;
+    MarchingCubes::e3map_t &e3map;
     int& next_unique_vect_counter;
 } result_state;
 
@@ -1620,7 +1623,7 @@ typedef struct {
 
 void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
     //outputs:
-    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
+    std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<faceindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
     //todo: receive a facces and verts vector.
     /** consumes the queue. (sow)*/

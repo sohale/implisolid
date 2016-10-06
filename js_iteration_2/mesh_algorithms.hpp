@@ -39,7 +39,13 @@ inline edge_pair_type encode_edge__fast(vertexindex_type e1, vertexindex_type e2
 }
 
 
-void make_edge_lookup(vectorized_faces faces, boost::multi_array<int, 2>& edges_of_faces, vectorized_faces& faces_of_edges){
+void make_edge_lookup(
+    vectorized_faces faces,
+    edges_of_xxx_type& edges_of_faces,
+    faces_of_xxx_type& faces_of_edges
+)
+{
+
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
@@ -94,8 +100,10 @@ void make_edge_lookup(vectorized_faces faces, boost::multi_array<int, 2>& edges_
   }
 
 }
-
-void build_faces_of_faces(const vectorized_faces& edges_of_faces, const vectorized_faces& faces_of_edges, vectorized_faces& faces_of_faces){
+void build_faces_of_faces(const edges_of_xxx_type& edges_of_faces, const faces_of_xxx_type& faces_of_edges, faces_of_xxx_type& faces_of_faces){
+  assert(edges_of_faces.shape()[1] == 3);
+  assert(faces_of_edges.shape()[1] == 2);
+  assert(faces_of_faces.shape()[1] == 3);
   for(int face = 0; face < edges_of_faces.shape()[0]; face++){
     for(int edge = 0; edge < 3; edge++){
       if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
@@ -125,9 +133,9 @@ void print_faces(const vectorized_faces& faces) {
     }
 }
 
-void print_vertex_neighbourhood(const std::vector< std::vector<int>> & vertex_neighbours_list) {
+void print_vertex_neighbourhood(const std::vector< std::vector<faceindex_type>> & vertex_neighbours_list) {
     for( int i = 0 ; i < vertex_neighbours_list.size(); i++) {
-        const std::vector<int> & na = vertex_neighbours_list[i];
+        const std::vector<faceindex_type> & na = vertex_neighbours_list[i];
         if (na.size() > 0) {
             std::clog << "Vertex " << i << ": ";
             for( int j = 0 ; j < na.size(); j++) {
@@ -159,19 +167,19 @@ void print_vertex_neighbourhood(const std::vector< std::vector<int>> & vertex_ne
     */
 }
 
-std::vector< std::vector<int>> make_neighbour_faces_of_vertex(const vectorized_faces& faces, vertexindex_type  max_vert_index) {
+std::vector< std::vector<faceindex_type>> make_neighbour_faces_of_vertex(const vectorized_faces& faces, vertexindex_type  max_vert_index) {
     /*
     note: max_vert_index could be derived from maximum index in faces, but 1-It is safer, may prevent future capacity increase? (not really needed though) 2- It will not be much smaller enyway
     This will be replaced by the more efficient "sparse" matrices (or equivalent data structures) anyway.
     */
     vertexindex_type num_verts = max_vert_index;  // verts.shape()[0];
-    std::vector< std::vector<int>> neighbour_faces_of_vertex;
+    std::vector< std::vector<faceindex_type>> neighbour_faces_of_vertex;
     for (vertexindex_type vi=0; vi < num_verts; vi++) {
-        neighbour_faces_of_vertex.push_back(std::vector<int>());
+        neighbour_faces_of_vertex.push_back(std::vector<faceindex_type>());
     }
 
     // todo: initialise using C++ RAII principle:
-    // std::vector< std::vector<int>> neighbour_faces_of_vertex(max_vert_index);
+    // std::vector< std::vector<faceindex_type>> neighbour_faces_of_vertex(max_vert_index);
 
     // static_assert(vertexindex_type == neighbour_faces_of_vertex::index_type);
     // static_assert(vectorized_faces::value_type == vertexindex_type);

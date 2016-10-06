@@ -10,6 +10,7 @@ REAL lerp(REAL a, REAL b, REAL t ) {
 
 
 class MarchingCubes{
+    typedef std::map<index3_t, int>  e3map_t;
     bool enableUvs, enableColors;
     dim_t resolution;
 

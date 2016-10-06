@@ -8,7 +8,7 @@ namespace mp5_implicit {
 
 namespace vectorised_algorithms {
     int global_rng_seed = 12;
-};
+}
 
 namespace vectorised_algorithms {
 

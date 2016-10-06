@@ -1,11 +1,13 @@
 class MarchingCubesMock {
+public:
+    typedef std::map<index3_t, int>  e3map_t;
 
 public:
     MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
     ~MarchingCubesMock() {}; //why does this have to be public: ?
 
     //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubesMock::e3map_t &e3map, int& next_unique_vect_counter)
         {};
 
     inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
@@ -29,6 +31,5 @@ public:
     int resultqueue_faces_start = 0;
     std::vector<REAL> result_normals;
     std::vector<REAL> result_verts;
-    std::vector<int> result_faces;
+    std::vector<vertexindex_type> result_faces;
 };
-

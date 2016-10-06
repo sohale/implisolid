@@ -24,7 +24,7 @@ vectorized_vect convert_vectorverts_to_vectorized_vect(const std::vector<REAL> &
     return verts;
 }
 
-vectorized_faces  convert_vectorfaces_to_vectorized_faces(const std::vector<int> & result_faces) {
+vectorized_faces  convert_vectorfaces_to_vectorized_faces(const std::vector<vertexindex_type> & result_faces) {
 
     vectorized_faces_shape  faces_shape = { static_cast<int>( result_faces.size()/3 ) , 3 };
     vectorized_faces  faces(faces_shape);

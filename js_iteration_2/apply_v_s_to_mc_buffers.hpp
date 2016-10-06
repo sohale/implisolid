@@ -40,7 +40,7 @@ typedef pair<verts_t, vectorized_faces> vf_t;
 
 
 
-void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges){
+void make_edge_lookup(vectorized_faces faces, edges_of_xxx_type& edges_of_faces, faces_of_xxx_type& faces_of_edges){
   int nfaces = faces.shape()[0];
   cout << "nfaces is : " << nfaces << endl;
   assert(nfaces % 2 == 0);
@@ -94,7 +94,7 @@ void make_edge_lookup(vectorized_faces faces, vectorized_faces& edges_of_faces, 
 
 }
 
-void build_faces_of_faces(vectorized_faces& edges_of_faces, vectorized_faces& faces_of_edges, vectorized_faces& faces_of_faces){
+void build_faces_of_faces(edges_of_xxx_type& edges_of_faces, faces_of_xxx_type& faces_of_edges, faces_of_xxx_type& faces_of_faces){
   for(int face = 0; face < edges_of_faces.shape()[0]; face++){
     for(int edge = 0; edge < 3; edge++){
       if(faces_of_edges[edges_of_faces[face][edge]][0]!=face)
@@ -145,7 +145,7 @@ inline REAL kij(int i, int j, const vectorized_vect& centroids, const vectorized
   return kij;
 }
 
-REAL wi(int i, vectorized_faces& faces_of_faces, vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float c){
+REAL wi(int i, faces_of_xxx_type& faces_of_faces, vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float c){
   REAL ki = 0;
   for (int j_faces=0; j_faces<3; j_faces ++){
     ki += kij(i, faces_of_faces[i][j_faces], centroids, centroid_normals_normalized);
@@ -155,7 +155,7 @@ REAL wi(int i, vectorized_faces& faces_of_faces, vectorized_vect& centroids, vec
 
 }
 
-void vertex_resampling(vectorized_vect& new_verts, std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, vectorized_faces& faces_of_faces,
+void vertex_resampling(vectorized_vect& new_verts, std::vector< std::vector<faceindex_type>>& faceslist_neighbours_of_vertex, faces_of_xxx_type& faces_of_faces,
 vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float c){
   clog << "Vv2=" << std::endl;
   exit(1);
@@ -170,7 +170,7 @@ vectorized_vect& centroids, vectorized_vect& centroid_normals_normalized, float 
     wi_total_array[i_faces] = w;
   }
   for (int i=0; i< new_verts.shape()[0]; i++){
-    std::vector<int> umbrella_faces = faceslist_neighbours_of_vertex[i];
+    std::vector<faceindex_type> umbrella_faces = faceslist_neighbours_of_vertex[i];
     std::vector<REAL> w;
     REAL sum_w = 0;
 
@@ -215,9 +215,9 @@ void process2_vertex_resampling_relaxation_v2(
     boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
     boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
 
-    boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
-    boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
-    boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
+    edges_of_xxx_type  edges_of_faces(edges_of_faces_shape);
+    faces_of_xxx_type  faces_of_edges(faces_of_edges_shape);
+    faces_of_xxx_type  faces_of_faces(edges_of_faces_shape);
 
     compute_centroids(faces, verts, centroids);
 
@@ -226,7 +226,7 @@ void process2_vertex_resampling_relaxation_v2(
 
     compute_centroid_gradient(centroids, centroid_normals_normalized, object);
 
-    std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
+    std::vector< std::vector<faceindex_type>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
     make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 
@@ -244,7 +244,7 @@ void apply_vertex_resampling_to_MC_buffers_vVV2(
         mp5_implicit::implicit_function* object,
         const REAL c,
         std::vector<REAL>&result_verts,
-        std::vector<int>& result_faces,
+        std::vector<vertexindex_type>& result_faces,
         bool writing_test_file
     )
 {
@@ -282,7 +282,7 @@ void apply_vertex_resampling_to_MC_buffers__VMS(
         const REAL c,
         // MarchingCubes& mc
         std::vector<REAL>& result_verts,
-        std::vector<int>& result_faces,
+        std::vector<vertexindex_type>& result_faces,
         bool writing_test_file
     )
 {

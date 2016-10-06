@@ -144,11 +144,18 @@ class array_of_indices_struct {
 typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
-typedef vectorized_vect::index vertexindex_type_;
+typedef vectorized_vect::index  vertexindex_type_;
 typedef vectorized_faces::element  vertexindex_type;
+
+typedef vectorized_faces::index  faceindex_type;
+
+//assert_static(vertexindex_type_ == vertexindex_type);
+//assert_static(vindex_t == vertexindex_type);
+
 
 // The following are used in MarchingCubes
 typedef vectorized_vect::index vindex_t;   // used for arrays of verts or centroids
+// wrong:
 typedef vectorized_vect::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
 
 /*
@@ -166,8 +173,15 @@ Refactoring todo: replace:
     Types related to mesh subdivision and mesh_algorithm s
 */
 typedef long edge_pair_type;
-typedef std::map<edge_pair_type, int>  eulookup_map_type;
+typedef std::map<edge_pair_type, vertexindex_type>  eulookup_map_type;
 // vertexindex_type
+
+
+typedef short int short_edge_type;
+typedef boost::multi_array<short_edge_type, 2>   edges_of_xxx_type;
+
+
+typedef boost::multi_array<faceindex_type, 2>   faces_of_xxx_type;
 
 /*
 namespace mp5_implicit {

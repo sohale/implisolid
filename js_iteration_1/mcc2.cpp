@@ -70,7 +70,6 @@ typedef array1d::index  index_t;
 
 typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
 typedef boost::multi_array<index3_t, 1>   array1d_e3;
-typedef std::map<index3_t, int>  e3map_t;
 
 
 struct callback_t { void call(void*) const { } callback_t(){} };
@@ -207,7 +206,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
 
     // Faces
     ctr = 0;
-    for ( std::vector<int>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ) {
+    for ( std::vector<vertexindex_type>::iterator it=mc.result_faces.begin(); it < mc.result_faces.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
             faces[ctr] = *(it + di);
             ctr++;
@@ -282,7 +281,7 @@ extern "C" {
     // bad: one instance only.
     //     Solution 1:  MarchingCubes* build_geometry();
     //     Solution 2: ids (for workers! ; a statically determined number of them (slots/workers/buckets).).
-};
+}
 
 
 
@@ -320,7 +319,7 @@ public:
     polygoniser pgonizer();
     //todo: move this into this-> pgonizer
     std::vector<REAL> mc_result_verts;
-    std::vector<int> mc_result_faces;
+    std::vector<vertexindex_type> mc_result_faces;
 
 public:
     bool check_state() {
@@ -366,7 +365,7 @@ int get_pointset_size(char* id) {
 
 // The only usage of marching cubes
 
-std::pair< std::vector<REAL>, std::vector<int>>  mc_start (mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
 
     bool enableUvs = true;
     bool enableColors = true;
@@ -568,7 +567,7 @@ void get_v(REAL* v_out, int vcount) {
     int ctr = 0;
     for ( std::vector<REAL>::iterator it=_state.mc_result_verts.begin(); it < _state.mc_result_verts.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
-            v_out[ctr] = *(it + di);
+            v_out[ctr] = *(it + di);  // static_cast<REAL>()
             // if(ctr<3*3*3)
             //    std::clog << v_out[ctr] << " ";
             ctr++;
@@ -586,9 +585,9 @@ void get_f(int* f_out, int fcount) {
         return;
     // int nf = get_f_size();
     int ctr = 0;
-    for ( std::vector<int>::iterator it=_state.mc_result_faces.begin(); it < _state.mc_result_faces.end(); it+=3 ) {
+    for ( std::vector<vertexindex_type>::iterator it=_state.mc_result_faces.begin(); it < _state.mc_result_faces.end(); it+=3 ) {
         for (int di=0; di < 3; di++) {
-            f_out[ctr] = *(it + di);
+            f_out[ctr] = static_cast<int>(*(it + di));
             // if(ctr<3*3*3)
             //    std::clog << f_out[ctr] << " ";
             ctr++;

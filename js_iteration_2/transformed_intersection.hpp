@@ -102,4 +102,4 @@ public:
 
 };
 
-};
+}  // namespace mp5_implicit

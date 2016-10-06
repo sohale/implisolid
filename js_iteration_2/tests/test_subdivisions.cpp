@@ -8,7 +8,7 @@
 
 using mp5_implicit::CONFIG_C;
 
-vectorized_faces f2f(const std::vector<std::vector<int>>& f) {
+vectorized_faces f2f(const std::vector<std::vector<vertexindex_type>>& f) {
     vectorized_faces_shape
         shape =
             vectorized_faces_shape{static_cast<vectorized_faces::index>(f.size()), 3};
@@ -38,7 +38,7 @@ vectorized_vect v2v(const std::vector<std::vector<REAL>>& v, REAL scale) {
 
 vectorized_faces make_example_1234() {
 
-    std::vector<std::vector<int>> f = {{1,2,4}, {3,2,4}, {1,4,5}, {2,3,1}, {7,1,5}, {0,1,3}};
+    std::vector<std::vector<vertexindex_type>> f = {{1,2,4}, {3,2,4}, {1,4,5}, {2,3,1}, {7,1,5}, {0,1,3}};
     vectorized_faces faces = f2f(f);
 
     return faces;
@@ -51,7 +51,7 @@ auto testcase_square() {
     };
     vectorized_vect v = v2v(vv, 1.0 * 10.0 / 4.0 );
 
-    vectorized_faces f = f2f(std::vector<std::vector<int>>{
+    vectorized_faces f = f2f(std::vector<std::vector<vertexindex_type>>{
         {0, 1, 2}, {0, 2, 3}
     });
 

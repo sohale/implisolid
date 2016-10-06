@@ -76,8 +76,10 @@ inline REAL kij(int i, int j, const vectorized_vect& centroids, const vectorized
   return kij;
 }
 
-REAL wi(int i, const vectorized_faces& faces_of_faces, const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, float c){
+REAL wi(int i, const faces_of_xxx_type& faces_of_faces, const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, float c){
     //clog << "wi1" << std::endl;  // called 2696 times
+
+  assert(faces_of_faces.shape()[1] == 3);  // turns dyanmic (runtime) into constexpr (literal 3)
 
   REAL ki = 0;
   for (int j_faces=0; j_faces<3; j_faces ++){
@@ -90,12 +92,13 @@ REAL wi(int i, const vectorized_faces& faces_of_faces, const vectorized_vect& ce
 
 void vertex_resampling_VV1(
         vectorized_vect& new_verts,
-        const std::vector< std::vector<int>>& faceslist_neighbours_of_vertex, const vectorized_faces& faces_of_faces,
+        const std::vector< std::vector<faceindex_type>>& faceslist_neighbours_of_vertex, const faces_of_xxx_type& faces_of_faces,
         const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, const float c
     ) {
     clog << "VV1" << std::endl;
     // exit(1);
     int nfaces = centroids.shape()[0];
+    assert(faces_of_faces.shape()[0] == 3);
 
     boost::array<int, 2> wi_total_array_shape = {nfaces, 1 };
     boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);
@@ -107,7 +110,7 @@ void vertex_resampling_VV1(
     for (int i=0; i< new_verts.shape()[0]; i++){
 
         // todo: DONT USE  std::vector<?>
-        const std::vector<int> & umbrella_faces = faceslist_neighbours_of_vertex[i];
+        const std::vector<faceindex_type> & umbrella_faces = faceslist_neighbours_of_vertex[i];
         REAL sum_w = 0;
         for (int j=0; j< umbrella_faces.size(); j++){
             sum_w += wi_total_array[umbrella_faces[j]];
@@ -161,9 +164,10 @@ void process2_vertex_resampling_relaxation_v1(
     boost::array<int, 2> faces_of_edges_shape = { num_edges, 2 };
     boost::array<int, 2> faces_of_faces_shape = { nfaces, 3 };
 
-    boost::multi_array<int, 2>  edges_of_faces(edges_of_faces_shape);
-    boost::multi_array<int, 2>  faces_of_edges(faces_of_edges_shape);
-    boost::multi_array<int, 2>  faces_of_faces(edges_of_faces_shape);
+
+    edges_of_xxx_type  edges_of_faces(edges_of_faces_shape);
+    faces_of_xxx_type  faces_of_edges(faces_of_edges_shape);
+    faces_of_xxx_type  faces_of_faces(edges_of_faces_shape);
 
     if (STORE_POINTSETS)
     {
@@ -180,7 +184,7 @@ void process2_vertex_resampling_relaxation_v1(
     object->eval_gradient(centroids, &centroid_normals_normalized);
     vectorised_algorithms::normalize_1111(centroid_normals_normalized);
 
-    std::vector< std::vector<int>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
+    std::vector< std::vector<faceindex_type>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
     make_edge_lookup(faces, edges_of_faces, faces_of_edges);
 

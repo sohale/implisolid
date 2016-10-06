@@ -50,7 +50,7 @@ vectorized_scalar get_signs(const vectorized_scalar& scalars, REAL ROOT_TOLERANC
 
 vectorized_vect
 produce_facet_normals(
-    boost::multi_array<int, 2> faces,
+    vectorized_faces faces,
     vectorized_vect  verts,
     bool force_normalisation)
 {

@@ -385,7 +385,7 @@ int try_that()
 const REAL NaN = std::numeric_limits<REAL>::quiet_NaN();
 //const REAL NaN = std::numeric_limits<REAL>::signaling_NaN();
 
-inline bool isNaN(REAL x){return std::isnan(x);};
+inline bool isNaN(REAL x){return std::isnan(x);}
 
 /* detects NaN or Inf, etc */
 inline bool is_bad_number(REAL x) {

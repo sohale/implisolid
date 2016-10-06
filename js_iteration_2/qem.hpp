@@ -11,7 +11,7 @@ namespace mp5_implicit {
 bool super_quiet =true;
 
 // get the matrix A and b used in vertex_apply_qem
-void get_A_b__old(const std::vector<int> & nai, const vectorized_vect& centroids, const vectorized_vect& centroid_gradients, vectorized_vect* A, vectorized_scalar* b) {
+void get_A_b__old(const std::vector<faceindex_type> & nai, const vectorized_vect& centroids, const vectorized_vect& centroid_gradients, vectorized_vect* A, vectorized_scalar* b) {
 
     int m = nai.size();
 
@@ -83,7 +83,7 @@ void get_A_b__old(const std::vector<int> & nai, const vectorized_vect& centroids
 }
 
 
-/*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_list, centroid_gradients, treated)
+/*  Function: vertex_apply_qem(verts, faces, centroids, vertex_neighbours_facelist, centroid_gradients, treated)
 
     Description:
         This function follows the projection finding and applies the QEM process, to an array of verts,
@@ -103,7 +103,7 @@ void get_A_b__old(const std::vector<int> & nai, const vectorized_vect& centroids
       centroids:
           the centroids of the mesh, immutable
 
-      vertex_neighbours_list:
+      vertex_neighbours_facelist:
           Holds neighbouring faces/triangles for all the vertices.
 
 
@@ -118,7 +118,7 @@ void get_A_b__old(const std::vector<int> & nai, const vectorized_vect& centroids
 void vertex_apply_qem__old(
     vectorized_vect* verts, const vectorized_faces faces,
     const vectorized_vect centroids,
-    const std::vector< std::vector<int>> vertex_neighbours_list,
+    const std::vector< std::vector<faceindex_type>> vertex_neighbours_facelist,
     const vectorized_vect centroid_gradients
     //const vectorized_bool& treated
     )
@@ -127,11 +127,11 @@ void vertex_apply_qem__old(
     /* The next asserts have no significance in C++, only Python */
 
     /* assert centroids is not None */
-    /* assert vertex_neighbours_list is not None */
+    /* assert vertex_neighbours_facelist is not None */
     /* assert centroids_gradients is not None */
 
     int nverts = verts->shape()[0];
-    /* assert nvert = len(vertex_neighbours_list) */
+    /* assert nvert = len(vertex_neighbours_facelist) */
 
     boost::array<int, 2> A_shape = { 3 , 3 };
 
@@ -145,23 +145,23 @@ void vertex_apply_qem__old(
     vectorized_vect v(A_shape);
     vectorized_vect A(A_shape);
     for (int vi=0; vi < nverts; vi++) {
-        std::vector<int> nlist;
-        for (int i=0; i < vertex_neighbours_list[vi].size(); i++) {
-            nlist.push_back(vertex_neighbours_list[vi][i]);
+        std::vector<faceindex_type> nlist;
+        for (int i=0; i < vertex_neighbours_facelist[vi].size(); i++) {
+            nlist.push_back(vertex_neighbours_facelist[vi][i]);
         }
 
         /*
         if (true) {
             std::clog << " remove 'treated' " << std::endl;
             bool skip = false;
-            for (int g = 0; g < vertex_neighbours_list[vi].size()-1; g++) {
-                if (!treated[vertex_neighbours_list[vi][g]]) {
+            for (int g = 0; g < vertex_neighbours_facelist[vi].size()-1; g++) {
+                if (!treated[vertex_neighbours_facelist[vi][g]]) {
                     skip = true;
                 }
-                for (int g1 = g+1 ; g1 < vertex_neighbours_list[vi].size()-1; g1++) {
-                    if ((abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][0]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][0])) < 0.000001)
-                    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][1]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][1])) < 0.000001)
-                    &&(abs(abs(centroid_gradients[vertex_neighbours_list[vi][g]][2]) - abs(centroid_gradients[vertex_neighbours_list[vi][g1]][2])) < 0.000001))
+                for (int g1 = g+1 ; g1 < vertex_neighbours_facelist[vi].size()-1; g1++) {
+                    if ((abs(abs(centroid_gradients[vertex_neighbours_facelist[vi][g]][0]) - abs(centroid_gradients[vertex_neighbours_facelist[vi][g1]][0])) < 0.000001)
+                    &&(abs(abs(centroid_gradients[vertex_neighbours_facelist[vi][g]][1]) - abs(centroid_gradients[vertex_neighbours_facelist[vi][g1]][1])) < 0.000001)
+                    &&(abs(abs(centroid_gradients[vertex_neighbours_facelist[vi][g]][2]) - abs(centroid_gradients[vertex_neighbours_facelist[vi][g1]][2])) < 0.000001))
                     skip = true;
                 }
             }
@@ -254,7 +254,7 @@ inline bool check_normality_for_qem(REAL nx, REAL ny, REAL nz) {
 // Calculates A nd b for a selection of centroids only (an umbrella).
 // Todo: vectorized version.
 void get_A_b(
-    const std::vector<int> & neighbours_faces,
+    const std::vector<faceindex_type> & neighbours_faces,
     const vectorized_vect& centroids,
     const vectorized_vect& centroid_normals,
     const Matrix<REAL, 3, 1> & qem_origin,
@@ -322,7 +322,7 @@ void vertex_apply_qem(
     vectorized_vect* verts
     , const vectorized_faces faces
     , const vectorized_vect centroids
-    , const std::vector< std::vector<int>> vertex_neighbours_list
+    , const std::vector< std::vector<faceindex_type>> vertex_neighbours_facelist
     , const vectorized_vect centroid_gradients
     , array_of_indices *ranks_output
     , REAL maximum_displacement_distance
@@ -332,10 +332,12 @@ void vertex_apply_qem(
     REAL tau = 680;
     REAL svd_threshold = 1.0 / tau;
 
+    // note: vertex_neighbours_facelist contains face indices
+
     // assert (verts != nullptr);
 
     int nverts = verts->shape()[0];
-    assert(nverts = vertex_neighbours_list.size());
+    assert(nverts = vertex_neighbours_facelist.size());
 
     bool store_ranks = (ranks_output != nullptr);
     if (store_ranks) {
@@ -343,7 +345,7 @@ void vertex_apply_qem(
     }
     assert(centroid_gradients.shape()[0] == centroids.shape()[0]);
 
-    // print_vertex_neighbourhood(vertex_neighbours_list);
+    // print_vertex_neighbourhood(vertex_neighbours_facelist);
     /*
     // Seems incorrect.
         0: 0, 1, 2, 3.
@@ -355,9 +357,9 @@ void vertex_apply_qem(
     */
 
     /*
-    for( int j = 0; j <vertex_neighbours_list.size(); j++) {
-        // clog << vertex_neighbours_list[j] << " "
-        for( auto v : vertex_neighbours_list[j]) {
+    for( int j = 0; j <vertex_neighbours_facelist.size(); j++) {
+        // clog << vertex_neighbours_facelist[j] << " "
+        for( auto v : vertex_neighbours_facelist[j]) {
             clog << v << " ";
         }
         clog << std::endl;
@@ -377,7 +379,8 @@ void vertex_apply_qem(
 
     for (int vi=0; vi < nverts; vi++) {
 
-        const std::vector<int> & nlist = vertex_neighbours_list[vi];
+        // array of faces
+        const std::vector<faceindex_type> & nlist = vertex_neighbours_facelist[vi];
 
         Matrix<REAL, 3, 1> qem_origin;
         qem_origin << (*verts)[vi][0], (*verts)[vi][1], (*verts)[vi][2];  // old verts

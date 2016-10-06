@@ -1235,13 +1235,14 @@ void set_vectorverts_from_vectorised_verts(std::vector<REAL>& result_verts, cons
     }
 }
 
-boost::multi_array<int, 2> copy_faces_from_vectorfaces(const std::vector<int> & mesh_faces) {
+// converts std::vector<> into boost::multi_array<>
+boost::multi_array<vertexindex_type, 2> copy_faces_from_vectorfaces(const std::vector<vertexindex_type> & mesh_faces) {
     // boost::multi_array<int, 2> faces = ;
 
     vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
 
     boost::array<vectorized_vect::index, 2> faces_shape = { num_faces , 3 };
-    boost::multi_array<int, 2> faces(faces_shape);
+    vectorized_faces faces(faces_shape);
 
     int output_faces = 0;
     auto i_f = mesh_faces.begin();
@@ -1260,14 +1261,14 @@ boost::multi_array<int, 2> copy_faces_from_vectorfaces(const std::vector<int> & 
 
 
 // rename: project_points_on_surface. (output_points)
-void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<int>& mesh_faces, bool enable_qem) {
+void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<vertexindex_type>& mesh_faces, bool enable_qem) {
 
     // clog << "mesh_faces.size():" << mesh_faces.size() << std::endl;
 
     vectorized_vect  verts = vects2vects(result_verts);
 
 
-    boost::multi_array<int, 2> faces = copy_faces_from_vectorfaces(mesh_faces);
+    boost::multi_array<vertexindex_type, 2> faces = copy_faces_from_vectorfaces(mesh_faces);
 
     REAL average_edge;
     average_edge = compute_average_edge_length(faces,  verts);
@@ -1300,7 +1301,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     */
 
 
-    std::vector< std::vector<int>> vertex_neighbours_list;
+    std::vector< std::vector<faceindex_type>> vertex_neighbours_list;
     vertex_neighbours_list = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
     vectorized_vect  centroid_gradients(centroids_shape);

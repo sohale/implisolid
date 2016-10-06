@@ -64,17 +64,13 @@ if [ $SAVE_BC -eq 1 ]
 then
 
     echo "Optimized version, bytecode will be emitted in the file " mcc2.ll
-    em++ \
+    g++ \
             --save-bc mcc2.bc \
             -I $BOOST_FOLDER   \
             -I $EIGEN_LIB_FOLDER \
             -O3   \
             --profiling     \
-            -s DEMANGLE_SUPPORT=1  \
-            -s ASSERTIONS=1  \
             -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
-            -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', _about' ]" \
-            -s NO_EXIT_RUNTIME=1          \
             -Winline         \
             -s TOTAL_MEMORY=30100100    \
             -s ABORTING_MALLOC=0 \
@@ -93,14 +89,8 @@ then
 
     EMCC_DEBUG=1
 
-    em++ -I $BOOST_FOLDER  \
-         -I $EIGEN_LIB_FOLDER \
-        -s TOTAL_MEMORY=30100100 \
-        -s ABORTING_MALLOC=0 \
-        -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_about' ]" \
-        -s NO_EXIT_RUNTIME=1 \
-        -s DEMANGLE_SUPPORT=1 \
-         -s ASSERTIONS=1 \
+    g++ -I $BOOST_FOLDER  \
+        -I $EIGEN_LIB_FOLDER \
         -pedantic -std=c++14 \
         mcc2.cpp -o mcc2.compiled.js
 #        --profiling \
@@ -112,20 +102,12 @@ if [ $OPTIM -eq 1 ]
 then
     echo "** optimised version **"
 
-    em++ \
+    g++ \
         -I $BOOST_FOLDER   \
         -I $EIGEN_LIB_FOLDER \
         -O3   \
-        --profiling     \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
-        -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_about' ]" \
-        -s NO_EXIT_RUNTIME=1          \
         -Winline         \
-        -s TOTAL_MEMORY=30100100    \
-        -s ABORTING_MALLOC=0 \
-        -s ALLOW_MEMORY_GROWTH=1 \
-        -s DISABLE_EXCEPTION_CATCHING=0  \
-        -s DEMANGLE_SUPPORT=1 \
         -pedantic -std=c++14  \
     mcc2.cpp  \
         -o  mcc2.compiled.js
