@@ -2,7 +2,7 @@
 
 #include <typeinfo>
 
-#include "implicit_function.hpp"
+#include "implicit_function/implicit_function.hpp"
 
 std::vector<mp5_implicit::implicit_function*> garbage_collector;
 

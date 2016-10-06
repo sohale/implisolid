@@ -1,10 +1,11 @@
 #pragma once
 
-#include "basic_data_structures.hpp"
-#include "basic_functions.hpp"
-
 #include <iostream>
-#include "my_assert.hpp"
+
+#include "../basic_data_structures.hpp"
+#include "../basic_functions.hpp"
+
+#include "../my_assert.hpp"
 
 inline bool assert_implicit_function_io(const vectorized_vect& x, const vectorized_scalar& output){
     //std::clog << x.shape()[1] << " " << x.shape()[0] << " " << output->shape()[0] << std::endl;

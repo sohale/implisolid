@@ -3,7 +3,7 @@
 
 #include "../js_iteration_2/basic_data_structures.hpp"
 #include "../js_iteration_2/basic_functions.hpp"
-#include "../js_iteration_2/implicit_function.hpp"
+#include "../js_iteration_2/implicit_function/implicit_function.hpp"
 
 REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;

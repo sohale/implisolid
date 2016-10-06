@@ -655,6 +655,7 @@ void about() {
 
 
 #include "../js_iteration_2/basic_data_structures.hpp"
+//#include "../js_iteration_2/configs.hpp"
 #include "../js_iteration_2/basic_functions.hpp"
 #include "centroids_projection.cpp"
 
