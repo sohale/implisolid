@@ -8,7 +8,7 @@ add_subdirectory(./lib/pybind11)
 #find_package(Boost)
 #include_directories(${Boost_INCLUDE_DIRS})
 include_directories("/usr/include/boost/boost_1_61_0/")
-include_directories("./lib")
+include_directories("./lib/eigen")
 #add_compile_options(-stdlib=libstdc++)
 #add_compile_options(-lc++abi)
 
