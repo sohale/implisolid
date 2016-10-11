@@ -57,6 +57,8 @@ using mp5_implicit::check_all_are_root;
 
 // #include "../js_iteration_2/qem.hpp"
 
+#include "../js_iteration_2/v2v_f2f.hpp"
+
 
 using namespace std;
 
@@ -1209,55 +1211,7 @@ void  set_centers_on_surface(
 
 }
 
-vectorized_vect  vects2vects(const std::vector<REAL>& result_verts) {
-    boost::array<vectorized_vect::index, 2> verts_shape = { (vectorized_vect::index)(result_verts.size()/3) , 3 };
-    vectorized_vect  verts(verts_shape);
-
-    int output_verts = 0;
-    auto i = result_verts.begin();
-    auto e = result_verts.end();
-    for ( ; i != e; i++, output_verts++) {
-        verts[output_verts][0] = (*i);
-        i++;
-        verts[output_verts][1] = (*i);
-        i++;
-        verts[output_verts][2] = (*i);
-    }
-    return verts;
-}
-
-void set_vectorverts_from_vectorised_verts(std::vector<REAL>& result_verts, const vectorized_vect & verts) {
-    auto n = verts.shape()[0];
-    for (int i=0; i < n; i++) {
-        result_verts[i*3+0] = verts[i][0];
-        result_verts[i*3+1] = verts[i][1];
-        result_verts[i*3+2] = verts[i][2];
-    }
-}
-
-// converts std::vector<> into boost::multi_array<>
-boost::multi_array<vertexindex_type, 2> copy_faces_from_vectorfaces(const std::vector<vertexindex_type> & mesh_faces) {
-    // boost::multi_array<int, 2> faces = ;
-
-    vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
-
-    boost::array<vectorized_vect::index, 2> faces_shape = { num_faces , 3 };
-    vectorized_faces faces(faces_shape);
-
-    int output_faces = 0;
-    auto i_f = mesh_faces.begin();
-    auto e_f = mesh_faces.end();
-    for ( ; i_f != e_f; i_f++, output_faces++) {
-        faces[output_faces][0] = (*i_f);
-        i_f++;
-        faces[output_faces][1] = (*i_f);
-        i_f++;
-        faces[output_faces][2] = (*i_f);
-    }
-    assert(num_faces == output_faces);
-
-    return faces;
-}
+// #include "v2v_f2f.hpp"
 
 
 // rename: project_points_on_surface. (output_points)
