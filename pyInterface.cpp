@@ -8,32 +8,34 @@
 namespace py = pybind11;
 using namespace std;
 
-py::array_t<float> getVerts(){
-    float* verts = (float *)get_v_ptr();
+py::array_t<REAL> getVerts(){
+    REAL* verts = (REAL *)get_v_ptr();
     unsigned int array_size;
     array_size = get_v_size();
 
 
     return py::array(py::buffer_info(verts,
-                    sizeof(float),
-                    py::format_descriptor<float>::value,
+                    sizeof(REAL),
+                    py::format_descriptor<REAL>::value,
                     2,
                     {array_size, 3},
-                    {sizeof(float)*3, sizeof(float)}));
+                    {sizeof(REAL)*3, sizeof(REAL)}));
 
 }
 
+// tomorrow
 py::array_t<int>  getFaces(){
 
-    int* faces = (int *)get_f_ptr();
+    vertexindex_type* faces = (vertexindex_type *)get_f_ptr();
     unsigned int array_size;
     array_size = get_f_size();
 
-    return py::array(py::buffer_info(faces, sizeof(int),
-                   py::format_descriptor<int>::value,
+    return py::array(py::buffer_info(faces, 
+                   sizeof(vertexindex_type),
+                   py::format_descriptor<vertexindex_type>::value,
                    2,
                    {array_size, 3},
-                   {sizeof(int)*3,sizeof(int) }));
+                   {sizeof(vertexindex_type)*3,sizeof(vertexindex_type) }));
 }
 
 void buildGeometry(std::string shape_parameters_json, std::string mc_parameters_json){
