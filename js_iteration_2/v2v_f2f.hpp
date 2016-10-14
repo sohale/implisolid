@@ -1,5 +1,35 @@
 #pragma once
 
+//#pragma message ( "*******************************" )
+
+vectorized_faces f2f(const std::vector<std::vector<vertexindex_type>>& f) {
+    vectorized_faces_shape
+        shape =
+            vectorized_faces_shape{static_cast<vectorized_faces::index>(f.size()), 3};
+
+    vectorized_faces faces {shape};
+    for(int i=0; i < f.size(); ++i) {
+        for(int j=0; j < 3; ++j) {
+            faces[i][j] = f[i][j];
+        }
+    }
+    return faces;
+}
+
+vectorized_vect v2v(const std::vector<std::vector<REAL>>& v, REAL scale) {
+    vectorized_vect_shape
+        shape =
+            vectorized_vect_shape{static_cast<vectorized_vect::index>(v.size()), 3};
+
+    vectorized_vect vects {shape};
+    for(int i=0; i < v.size(); ++i) {
+        for(int j=0; j < 3; ++j) {
+            vects[i][j] = v[i][j] * scale;
+        }
+    }
+    return vects;
+}
+
 vectorized_vect  vects2vects(
     const std::vector<REAL>& result_verts
 ) {

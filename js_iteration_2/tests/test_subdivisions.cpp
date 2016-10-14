@@ -3,38 +3,15 @@
 #include "../subdivision/subdiv_1to4.hpp"
 #include "../mesh_algorithms.hpp"
 #include "faces_test_tools.hpp"
-
 #include "../configs.hpp"
 
+#include "../v2v_f2f.hpp"
+
 using mp5_implicit::CONFIG_C;
+using mp5_implicit::easy_edge;
 
-vectorized_faces f2f(const std::vector<std::vector<vertexindex_type>>& f) {
-    vectorized_faces_shape
-        shape =
-            vectorized_faces_shape{static_cast<vectorized_faces::index>(f.size()), 3};
+// using mp5_implicit::subdivide_multiple_facets_1to4;
 
-    vectorized_faces faces {shape};
-    for(int i=0; i < f.size(); ++i) {
-        for(int j=0; j < 3; ++j) {
-            faces[i][j] = f[i][j];
-        }
-    }
-    return faces;
-}
-
-vectorized_vect v2v(const std::vector<std::vector<REAL>>& v, REAL scale) {
-    vectorized_vect_shape
-        shape =
-            vectorized_vect_shape{static_cast<vectorized_vect::index>(v.size()), 3};
-
-    vectorized_vect vects {shape};
-    for(int i=0; i < v.size(); ++i) {
-        for(int j=0; j < 3; ++j) {
-            vects[i][j] = v[i][j] * scale;
-        }
-    }
-    return vects;
-}
 
 vectorized_faces make_example_1234() {
 
@@ -105,10 +82,37 @@ TEST(Subdivision_1to2, square) {
     };
 
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
-
     midpoint_map[encode_edge__sort(1, 2, CONFIG_C::edgecode_base)] = 99;
 
     bool careful_for_twosides=true;
 
     vectorized_faces result = subdivide_1to2(faces, edges_to_subdivide, midpoint_map, careful_for_twosides);
+}
+
+
+TEST(Subdivision_1to4, square) {
+
+    auto vf = testcase_square();
+    auto faces = vf.second;
+    auto verts = vf.first;
+
+    /*
+    std::set<edge_pair_type> edges_to_subdivide = {
+        easy_edge(1, 2),
+    };
+    */
+    std::set<faceindex_type> triangles_to_subdivide {0};
+
+    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+
+    std::cout << "a" << std::endl;
+
+    midpoint_map[easy_edge(1, 2)] = 99;
+
+    std::cout << "b" << std::endl;
+
+    bool careful_for_twosides=true;
+
+    auto result = subdivide_multiple_facets_1to4 (
+        faces, verts, triangles_to_subdivide, midpoint_map);
 }
