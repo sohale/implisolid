@@ -47,21 +47,35 @@ auto subdivide_multiple_facets_1to4 (
      * output: new_faces = contiguous from "the concat"   # from content
      * output: vector<> presubdivision_edges  # source = transformation "xyz"
      */
+
+    /*
     auto expected_number_of_new_verts = requested_face_indices.size() * (6-3);
     std::vector<REAL> updatable_vertices(
         old_verts.shape()[0] * 3 + 3 * expected_number_of_new_verts
     );  // 9 elements for each: xyz for 3 points.
     copy_vertices_into_stdvector_incomplete(old_verts, updatable_vertices);  // leaves it half empty
+    */
 
 
     typedef tuple<vertexindex_type,vertexindex_type,vertexindex_type> face_triple;
 
-    std::vector<face_triple> new_faces;
-    // capacity, expected_number_of_new_faces, provisional_new_facets_count
-    auto expected_number_of_new_faces = requested_face_indices.size() * (4-1);
-    new_faces.reserve(expected_number_of_new_faces);
+    /*
+    std::vector<face_triple> new_faces__additional;
+    // new_faces__additional.reserve(exact_total_number_of_new_faces);
+    new_faces.resize(exact_total_number_of_new_faces);
+    expected_number_of_new_faces  ...   requested_face_indices.size(); // * (4-1);
+    */
+    /*
+    // capacity, exact_total_number_of_new_faces, provisional_new_facets_count
+    // The exactly size is known
+    const auto exact_total_number_of_new_faces = requested_face_indices.size(); // * (4-1);
+    vectorized_faces   new_faces  {boost::extents[exact_total_number_of_new_faces][3]};
+    */
+
+
     //new_faces_effective_size = old_faces.shape()[0];
 
+    /*
     {
         int ctr = 0;
         for (auto f3 : old_faces ) {
@@ -72,12 +86,12 @@ auto subdivide_multiple_facets_1to4 (
         }
         assert( ctr == old_faces.shape()[0]);
     }
-
+    */
 
     // trace_subdivided_facets
     // if (trace_subdivided_facets) trace_subdivided_facets->resize();
 
-    auto req_count = requested_face_indices.size();
+    const auto req_count = requested_face_indices.size();
 
     #if USE_PSDE
     /**
@@ -91,7 +105,7 @@ auto subdivide_multiple_facets_1to4 (
     #endif
 
     // what does it count? faces or vertices?
-    int rcounter = 0;  // i.e. presubdivision_edges_counter
+    int req_fcounter = 0;  // i.e. presubdivision_edges_counter
     int fcounter = 0;
 
     // wasting space with hope of speed!
@@ -101,9 +115,11 @@ auto subdivide_multiple_facets_1to4 (
 
     boost::multi_array<edge_pair_type, 1> edge_triplet_buffer{boost::extents[3]};  // i.e. e0e1e2
 
-    // vectorized_faces fia
+    // indices of request faces in the original one. i.e. a vectorised version of requested_face_indices for speed.
+    boost::multi_array<vectorized_faces::index, 1> fia {boost::extents[ req_count ]};
+
     // will be updated
-    vertexindex_type  new_verts_effective_size = old_verts.shape()[0];
+    vertexindex_type  new_verts_effective_total_size = old_verts.shape()[0];
 
     #if USE_ASSERT
         int redundancy_counter = 0;
@@ -113,8 +129,9 @@ auto subdivide_multiple_facets_1to4 (
     for (auto fi : requested_face_indices) {
         cout << fi << " ";
     }
-    cout << " count: " << requested_face_indices.size() << std::endl;
+    cout << " count: " << req_count << std::endl;  // req_count
 
+    // req_count
     for (auto fi : requested_face_indices) {
 
         /*
@@ -123,13 +140,20 @@ auto subdivide_multiple_facets_1to4 (
         const auto v2 = new_faces[fi][2];
         */
         assert(fi < old_faces.shape()[0]);
+        /*
         const auto v0 = std::get<0>(new_faces[fi]);
         const auto v1 = std::get<1>(new_faces[fi]);
         const auto v2 = std::get<2>(new_faces[fi]);
+        */
+        const auto v0 = old_faces[fi][0];
+        const auto v1 = old_faces[fi][1];
+        const auto v2 = old_faces[fi][2];
         //std::cout << "fi = " << fi << std::endl;
         //std::cout << "v012 " << v0 << " " << v1 << " " << v2 << std::endl;
 
         // fia[++fcounter] = fi;  // no need to store fi
+        fia [fcounter] = fi;
+
         original_vertexindices_used [fcounter][0] = v0;
         original_vertexindices_used [fcounter][1] = v1;
         original_vertexindices_used [fcounter][2] = v2;
@@ -145,19 +169,19 @@ auto subdivide_multiple_facets_1to4 (
         edge_triplet_buffer[2] = e2;
 
         #if USE_PSDE
-            presubdivision_edges[rcounter] = edge_triplet_buffer;
+            presubdivision_edges[req_fcounter] = edge_triplet_buffer;
             for (int ai = 0; ai < 3; ++ai) {
                 assert (
-                    presubdivision_edges[rcounter][ai]
+                    presubdivision_edges[req_fcounter][ai]
                     == edge_triplet_buffer[ai]);   // should fail
             }
 
             /*
-            presubdivision_edges[rcounter][0] = e0;
-            presubdivision_edges[rcounter][1] = e1;
-            presubdivision_edges[rcounter][2] = e2;
+            presubdivision_edges[req_fcounter][0] = e0;
+            presubdivision_edges[req_fcounter][1] = e1;
+            presubdivision_edges[req_fcounter][2] = e2;
             */
-            // rcounter == presubdivision_edges_counter
+            // req_fcounter == presubdivision_edges_counter
             // ++presubdivision_edges_counter;
         #endif
 
@@ -165,7 +189,7 @@ auto subdivide_multiple_facets_1to4 (
 
         // INCORRECT:
         // or, can be merged
-        vertexindex_type newvtx_counter = new_verts_effective_size; // this keeps updated
+        vertexindex_type newvtx_counter = new_verts_effective_total_size; // this keeps updated
 
         for (unsigned char vii = 0; vii < 3; ++vii) {
             cout << "edge_triplet_buffer[vii]=" << edge_triplet_buffer[vii] << " ";
@@ -175,37 +199,42 @@ auto subdivide_multiple_facets_1to4 (
             const bool edge_in_map = (finder != midpoint_map.end());
 
 
-            cout << " [vii=" << (int)vii << "] ";
+            //cout << " [vii=" << (int)vii << "] ";
             if (edge_in_map) {
                 const vertexindex_type  midpoint_aslookedup = finder->second;
                 #if USE_ASSERT
                     ++redundancy_counter;
                 #endif
 
-                insert_which_verts [rcounter][vii] = false;
-                actual_vertexindices_used [rcounter][vii] = midpoint_aslookedup;
+                insert_which_verts [req_fcounter][vii] = false;
+                actual_vertexindices_used [req_fcounter][vii] = midpoint_aslookedup;
 
             } else {
-                insert_which_verts [rcounter][vii] = true;
-                actual_vertexindices_used [rcounter][vii] = newvtx_counter;
+                insert_which_verts [req_fcounter][vii] = true;
+                actual_vertexindices_used [req_fcounter][vii] = newvtx_counter;
+                //actual_vertexindices_used[requested_triangle_index][side]
 
                 // update the midpoint_map
                 midpoint_map [edge_triplet_buffer[vii]] = newvtx_counter;
 
-                cout << " [*] ";
+                //cout << " [*] ";
 
                 ++newvtx_counter;  // idx_counter
             }
 
-            auto what = actual_vertexindices_used [rcounter];
+            //auto what = actual_vertexindices_used [req_fcounter];
         }
 
-        // ++fcounter;
+        ++ req_fcounter;
+
+        assert (fcounter == req_fcounter);
 
         // was missing. why?
-        new_verts_effective_size = newvtx_counter;
+        new_verts_effective_total_size = newvtx_counter;
         // consolidate it.
     }
+    assert(fcounter == req_count);
+
 
     // actual_vertexindices_used ---> used for adding new faces
     // insert_which_verts   ---> used for adding new vertices
@@ -215,11 +244,17 @@ auto subdivide_multiple_facets_1to4 (
         == insert_which_verts.shape()[0]);
 
     //vertexindex_type
-    //    newvtx_counter = new_verts_effective_size;
+    //    newvtx_counter = new_verts_effective_total_size;
 
     //vectorized_vect new_additional_vertices {newvtx_counter};
     vectorized_vect
-        new_vertices {boost::extents[new_verts_effective_size][3]}; // size includes the older vertices
+        new_vertices {boost::extents[new_verts_effective_total_size][3]}; // size includes the older vertices
+
+    //#copy old_vertices new_vertices
+
+    for (vectorized_vect::index fi = 0, e = old_verts.shape()[0]; fi < e; ++fi) {
+        new_vertices[fi] = old_verts[fi];
+    }
 
     //boost::multi_array<REAL, 2>
     //    new_3_midpoint_vertices {boost::extents[3][3]};
@@ -236,32 +271,20 @@ auto subdivide_multiple_facets_1to4 (
     //triangle_vertices << ;
     // new_vert_maker * triangle_vertices
 
-    /*
-            O         .
-           / \        .
-          /___\       .
-         M     M      .
-        /\     /\     .
-       /  \   /  \    .
-      /    \ /    \   .
-     1------M------2  .
-
-    */
-
     const int nt = insert_which_verts.shape()[0];
     assert (fcounter == nt);
 
     cout << "nt:" << nt << std::endl;
 
     int nv_ctr = 0;  // index just in the new vertices only (probably not needed)
-    int nvctr_total = nt;  // global index
-    for (int fii = 0; fii < nt ; ++fii) {
+    int nvctr_total = nt;  // global (total) index
+    for (int req_fii = 0; req_fii < nt ; ++req_fii) {
         // auto n1 = newvtx_counter;
         //
-        //auto fi = fia[fii];
-        auto v0 = original_vertexindices_used[fii][0];
-        auto v1 = original_vertexindices_used[fii][1];
-        auto v2 = original_vertexindices_used[fii][2];
+        //auto fi = fia[req_fii];
+        auto v0 = original_vertexindices_used[req_fii][0];
+        auto v1 = original_vertexindices_used[req_fii][1];
+        auto v2 = original_vertexindices_used[req_fii][2];
 
         triangle_vertices <<
             old_verts[v0][0], old_verts[v1][0], old_verts[v2][0],
@@ -276,7 +299,7 @@ auto subdivide_multiple_facets_1to4 (
         v3x3 new_3_midpoint_vertices = new_vert_maker * triangle_vertices;
 
         for (unsigned char vii = 0; vii < 3; ++vii) {
-            if (insert_which_verts[fii][vii]) {
+            if (insert_which_verts[req_fii][vii]) {
                 new_vertices[nvctr_total][0] = new_3_midpoint_vertices(vii, 0);
                 new_vertices[nvctr_total][1] = new_3_midpoint_vertices(vii, 1);
                 new_vertices[nvctr_total][2] = new_3_midpoint_vertices(vii, 2);
@@ -299,7 +322,71 @@ auto subdivide_multiple_facets_1to4 (
     //nv_ctr = number of certices added, which is < nt*3
     assert(nv_ctr <= nt*3);
 
+    // The exactly size is known
+    const auto exact_total_number_of_new_faces = requested_face_indices.size() + old_faces.shape()[0];
+    vectorized_faces   new_faces  {boost::extents[exact_total_number_of_new_faces][4-1]};
 
+    {
+        int ctr = 0;
+        for (auto f3 : old_faces ) {
+            new_faces[ctr] = f3;
+            ctr++;
+        }
+        assert( ctr == old_faces.shape()[0]);
+    }
+
+    int nf_ctr = 0;
+    int nfctr_total = nt;  // global (total) index
+    for (int req_fii = 0; req_fii < nt ; ++req_fii) {  // request index
+
+        auto fi_originalface = fia [req_fii];  // originalface
+
+        auto v0 = original_vertexindices_used [fi_originalface][0];
+        auto v1 = original_vertexindices_used [fi_originalface][1];
+        auto v2 = original_vertexindices_used [fi_originalface][2];
+
+        // midpoints
+        auto m01 = actual_vertexindices_used[req_fii][0];
+        auto m12 = actual_vertexindices_used[req_fii][1];
+        auto m20 = actual_vertexindices_used[req_fii][2];
+
+        // old_faces:
+        new_faces[fi_originalface][0] = m12;
+        new_faces[fi_originalface][1] = m01;
+        new_faces[fi_originalface][2] = m20;
+
+        new_faces[nfctr_total][0] = v0;
+        new_faces[nfctr_total][1] = m20;
+        new_faces[nfctr_total][2] = m01;
+        ++nfctr_total;
+        ++nf_ctr;
+
+        new_faces[nfctr_total][0] = v1;
+        new_faces[nfctr_total][1] = m01;
+        new_faces[nfctr_total][2] = m12;
+        ++nfctr_total;
+        ++nf_ctr;
+
+        new_faces[nfctr_total][0] = v2;
+        new_faces[nfctr_total][1] = m12;
+        new_faces[nfctr_total][2] = m20;
+        ++nfctr_total;
+        ++nf_ctr;
+
+        /*
+
+                    v0         .
+                    .          .
+                   /.\         .
+                  /___\        .
+                m01   m20      .
+                /\     /\      .
+               /  \   /  \     .
+              /    \ /    \    .
+            v1-----m12-----v2  .
+        */
+
+    }
 
     return std::make_tuple(new_vertices, new_faces, presubdivision_edges);
 }
