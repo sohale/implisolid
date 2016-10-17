@@ -247,6 +247,7 @@ auto subdivide_multiple_facets_1to4 (
     //vertexindex_type
     //    newvtx_counter = new_verts_effective_total_size;
 
+    cout << "-------------------- new_verts_effective_total_size  ============ " << new_verts_effective_total_size << std::endl;
     //vectorized_vect new_additional_vertices {newvtx_counter};
     vectorized_vect
         new_vertices {boost::extents[new_verts_effective_total_size][3]}; // size includes the older vertices
@@ -421,6 +422,8 @@ auto subdivide_multiple_facets_1to4 (
 
     cout << "nfctr_total_index=" << nfctr_total_index << "   exact_total_number_of_new_faces=" << exact_total_number_of_new_faces<<  std::endl;
     assert( nfctr_total_index == exact_total_number_of_new_faces);
+
+    cout << "-------------------- ============ " << new_vertices.shape()[0] << std::endl;
 
     return std::make_tuple(new_vertices, new_faces, presubdivision_edges);
 }

@@ -356,30 +356,65 @@ TEST(Subdivision_1to4, triangle) {
 
 }
 
-
+/*
+    Cannot make it a loop in C++. How do you update a multi_array?
+         faces_old = std::move(result_faces); ? Doesn't work
+*/
 std::pair<vectorized_faces, vectorized_vect> subdivide_recursively(
-    const std::pair<vectorized_faces, vectorized_vect>& vf,
+    const std::pair<vectorized_faces, vectorized_vect>& fv,
     int fi,
     int n,
     std::map<edge_pair_type, vectorized_vect::index>& midpoint_map
 ) {
     if (n==0) {
-        return vf;
+        return fv;
     }
 
-    std::set<faceindex_type> triangles_to_subdivide {fi};
+    std::set<faceindex_type> triangles_to_subdivide {0};  // one face only
+    if (bool all_faces = true) {
+        for (int i = 0; i < fv.first.shape()[0]; ++i) {  // all faces
+            triangles_to_subdivide.insert(i);
+        }
+    }
 
-    auto result = subdivide_multiple_facets_1to4 (
-        vf.first, vf.second, triangles_to_subdivide, midpoint_map);
-    auto result_faces = std::get<1>(result);
-    auto result_verts = std::get<0>(result);
-    auto result_vf = std::make_pair(result_faces, result_verts);
+    cout << "Going to subdivide the follinwg faces: ";
+    for (auto i = triangles_to_subdivide.begin(); i != triangles_to_subdivide.end(); ++i) {
+        cout << *i << ", ";
+    }
+    cout << std::endl;
 
-    print_faces(vf.first, vf.first.shape()[0]-1);
-    cout << " --> " << std::endl;
-    print_faces(result_vf.first, vf.first.shape()[0]-1);
+    auto result_vf_tuple = subdivide_multiple_facets_1to4 (
+        fv.first, fv.second, triangles_to_subdivide, midpoint_map);
+    auto result_verts = std::get<0>(result_vf_tuple);
+    auto result_faces = std::get<1>(result_vf_tuple);
+    auto result_vf_pair = std::make_pair(result_faces, result_verts);
 
-    return subdivide_recursively(result_vf, fi, n-1, midpoint_map);
+    if (bool verbose = false) {
+        print_faces(fv.first, fv.first.shape()[0]-1);
+        cout << " --> " << std::endl;
+        print_faces(result_vf_pair.first, fv.first.shape()[0]-1);
+        cout << "faces: " <<  result_vf_pair.second.shape()[0] << std::endl;
+        cout << "vertices: " <<  result_vf_pair.first.shape()[0] << std::endl;
+    }
+
+    return subdivide_recursively(result_vf_pair, fi, n-1, midpoint_map);
+}
+
+int serpinski_expected_f(int n) {
+    if (n==0)
+        return 1;
+    return serpinski_expected_f(n-1) * 4;
+}
+
+/*
+    f(n) = (f==0? 1 ) || (f(n-1) * 4)   // faces of serpinski
+    v(n) = (v==0? 3 ) || (v(n-1) * 4 - (3 + p(n-1) ) )  // vertices of serpinski
+    p(n) = 3*2**n  // perimeter of the serpinski triangle
+*/
+int serpinski_expected_v(int n) {
+    if (n==0)
+        return 3;
+    return serpinski_expected_v(n-1) * 4 - ( 3 + 3 * std::pow(2, n-1) );
 }
 
 TEST(Subdivision_1to4, randomised_iterative) {
@@ -388,23 +423,16 @@ TEST(Subdivision_1to4, randomised_iterative) {
     auto faces_old = vf.second;
     auto verts = vf.first;
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
-    auto fv2 = subdivide_recursively(std::make_pair(vf.second, vf.first), 0, 5, midpoint_map);
-    print_faces(fv2.first, vf.second.shape()[0]-1);
-
+    int NREC = 4;
+    auto fv2 = subdivide_recursively(std::make_pair(vf.second, vf.first), 0, NREC, midpoint_map);
     /*
-
-    for (int i=0; i<5; i++) {
-        cout << "[[[[[[[[[ " << i<< " ]]]]]]]]]" << std::endl;
-        auto result = subdivide_multiple_facets_1to4 (
-            faces_old, verts, triangles_to_subdivide, midpoint_map);
-        auto result_faces = std::get<1>(result);
-
-
-        cout << "111111111111111" << std::endl;
-        faces_old = std::move(result_faces);
-        cout << "222222222222" << std::endl;
-
-    }
+    print_faces(fv2.first, vf.second.shape()[0]-1);
+    cout << "vertices: " <<  fv2.second.shape()[0] << std::endl;
+    cout << "faces: " <<  fv2.first.shape()[0] << std::endl;
     */
-}
+
+    EXPECT_EQ(serpinski_expected_v(NREC), fv2.second.shape()[0]) << "number of vertices is incorrect";
+    EXPECT_EQ(serpinski_expected_f(NREC), fv2.first.shape()[0]) << "number of faces is incorrect";
+
+ }
 
