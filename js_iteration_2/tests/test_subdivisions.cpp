@@ -101,6 +101,14 @@ TEST(Subdivision_1to2, square) {
     vectorized_faces result = subdivide_1to2(faces, edges_to_subdivide, midpoint_map, careful_for_twosides);
 }
 
+
+
+
+
+/**
+ * @brief      {Prints a faces array in the columnar format}
+ * @param[in]  mark   index of the item that is highlighted. Useful for separating the last index of the original faces. Use -1 to avoid this demarcation.
+ */
 void print_faces (const vectorized_faces& faces, int mark) {
     cout << "#faces: " << faces.shape()[0] << std::endl;
     for (int i = 0; i < faces.shape()[0]; ++i ) {
@@ -248,11 +256,12 @@ bool check_faces_equality (const vectorized_faces& faces1, const vectorized_face
 TEST(Subdivision_1to4, square) {
 
     cout << "=============================" << std::endl;
+    cout << ">>>>>>>>>>>>>>>>>>>>>" << std::endl;
 
     auto vf = testcase_square();
     auto faces = vf.second;
     auto verts = vf.first;
-    print_faces(faces, -1);
+    print_faces(faces, faces.shape()[0]-1);
 
     /*
     std::set<edge_pair_type> edges_to_subdivide = {
@@ -268,10 +277,16 @@ TEST(Subdivision_1to4, square) {
 
     std::cout << "b" << std::endl;
 
-    bool careful_for_twosides=true;
+    //bool careful_for_twosides=true;
 
-    //auto result = subdivide_multiple_facets_1to4 (
-    //    faces, verts, triangles_to_subdivide, midpoint_map);
+    auto result = subdivide_multiple_facets_1to4 (
+        faces, verts, triangles_to_subdivide, midpoint_map);
+
+    print_faces(std::get<1>(result), faces.shape()[0]-1);
+
+    cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    cout << "=============================" << std::endl;
+
 }
 
 TEST(Subdivision_Utils, test_check_faces_equality) {
@@ -300,17 +315,19 @@ TEST(Subdivision_1to4, triangle) {
     auto vf = testcase_triangle();
     auto faces_old = vf.second;
     auto verts = vf.first;
-    print_faces(faces_old, -1);
+    // print_faces(faces_old, -1);
     std::set<faceindex_type> triangles_to_subdivide {0};
 
     std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
     midpoint_map[easy_edge(1, 2)] = 99;
-    bool careful_for_twosides = true;
+    //bool careful_for_twosides = true;
     assert(check_verts_faces(faces_old, verts));
     auto result = subdivide_multiple_facets_1to4 (
         faces_old, verts, triangles_to_subdivide, midpoint_map);
     auto result_faces = std::get<1>(result);
-    print_faces(result_faces, -1);
+    // print_faces(result_faces, -1);
+
+
 
     EXPECT_FALSE( check_faces_equality(result_faces,
         f2f(std::vector<std::vector<vertexindex_type>> {
@@ -328,5 +345,66 @@ TEST(Subdivision_1to4, triangle) {
         {0, 3, 4}, {1,3,99}, {2,4,99}, {3,4,99}
     });
     EXPECT_TRUE( check_faces_equality(desired, result_faces) );
+
+
+    // {{0, 1, 2}} ->  {{4, 3, 5},  {0, 5, 3},  {1, 3, 4},  {2, 4, 5}}
+    auto f1 = f2f(std::vector<std::vector<vertexindex_type>> {{0, 1, 2}} );
+    auto f2 = f2f(std::vector<std::vector<vertexindex_type>> {{4, 3, 5},  {0, 5, 3},  {1, 3, 4},  {2, 4, 5}} );
+    //EXPECT_TRUE( check_faces_equality(f2, std::get<1>(subdivide_multiple_facets_1to4 (f1, verts, triangles_to_subdivide, midpoint_map)) ));
     cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+
+
 }
+
+
+std::pair<vectorized_faces, vectorized_vect> subdivide_recursively(
+    const std::pair<vectorized_faces, vectorized_vect>& vf,
+    int fi,
+    int n,
+    std::map<edge_pair_type, vectorized_vect::index>& midpoint_map
+) {
+    if (n==0) {
+        return vf;
+    }
+
+    std::set<faceindex_type> triangles_to_subdivide {fi};
+
+    auto result = subdivide_multiple_facets_1to4 (
+        vf.first, vf.second, triangles_to_subdivide, midpoint_map);
+    auto result_faces = std::get<1>(result);
+    auto result_verts = std::get<0>(result);
+    auto result_vf = std::make_pair(result_faces, result_verts);
+
+    print_faces(vf.first, vf.first.shape()[0]-1);
+    cout << " --> " << std::endl;
+    print_faces(result_vf.first, vf.first.shape()[0]-1);
+
+    return subdivide_recursively(result_vf, fi, n-1, midpoint_map);
+}
+
+TEST(Subdivision_1to4, randomised_iterative) {
+
+    auto vf = testcase_triangle();
+    auto faces_old = vf.second;
+    auto verts = vf.first;
+    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    auto fv2 = subdivide_recursively(std::make_pair(vf.second, vf.first), 0, 5, midpoint_map);
+    print_faces(fv2.first, vf.second.shape()[0]-1);
+
+    /*
+
+    for (int i=0; i<5; i++) {
+        cout << "[[[[[[[[[ " << i<< " ]]]]]]]]]" << std::endl;
+        auto result = subdivide_multiple_facets_1to4 (
+            faces_old, verts, triangles_to_subdivide, midpoint_map);
+        auto result_faces = std::get<1>(result);
+
+
+        cout << "111111111111111" << std::endl;
+        faces_old = std::move(result_faces);
+        cout << "222222222222" << std::endl;
+
+    }
+    */
+}
+

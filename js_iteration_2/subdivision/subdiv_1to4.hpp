@@ -125,11 +125,11 @@ auto subdivide_multiple_facets_1to4 (
         int redundancy_counter = 0;
     #endif
 
-    cout << "requested_face_indices ";
+    cout << "Requested_face_indices {";
     for (auto fi : requested_face_indices) {
-        cout << fi << " ";
+        cout << fi << ", ";
     }
-    cout << " count: " << req_count << std::endl;  // req_count
+    cout << "}. req_count=" << req_count << std::endl;  // req_count
 
     // req_count
     for (auto fi : requested_face_indices) {
@@ -234,7 +234,7 @@ auto subdivide_multiple_facets_1to4 (
         // consolidate it.
     }
     assert(fcounter == req_count);
-    const auto req_count__ = req_count;
+    assert(req_fcounter == req_count);
 
 
     // actual_vertexindices_used ---> used for adding new faces
@@ -253,8 +253,8 @@ auto subdivide_multiple_facets_1to4 (
 
     //#copy old_vertices new_vertices
 
-    for (vectorized_vect::index fi = 0, e = old_verts.shape()[0]; fi < e; ++fi) {
-        new_vertices[fi] = old_verts[fi];
+    for (vectorized_vect::index vi = 0, e = old_verts.shape()[0]; vi < e; ++vi) {
+        new_vertices[vi] = old_verts[vi];
     }
 
     //boost::multi_array<REAL, 2>
@@ -272,14 +272,14 @@ auto subdivide_multiple_facets_1to4 (
     //triangle_vertices << ;
     // new_vert_maker * triangle_vertices
 
+    {
     const int nt = insert_which_verts.shape()[0];
-    assert (fcounter == nt);
-
-    cout << "nt:" << nt << std::endl;
+    assert (req_count == nt);
+    }
 
     int nv_ctr = 0;  // index just in the new vertices only (probably not needed)
-    int nvctr_total = nt;  // global (total) index
-    for (int req_fii = 0; req_fii < req_count__ ; ++req_fii) {
+    int nvctr_total = old_verts.shape()[0];  // global (total) index
+    for (int req_fii = 0; req_fii < req_count ; ++req_fii) {
         // auto n1 = newvtx_counter;
         //
         //auto fi = fia[req_fii];
@@ -317,34 +317,33 @@ auto subdivide_multiple_facets_1to4 (
         }
         */
     }
-    cout << nv_ctr << " <= " <<  nt  << ", len(newverts)=" << new_vertices.shape()[0] << std::endl;
+    cout << nv_ctr << " <= " <<  req_count*3  << "?, len(newverts)=" << new_vertices.shape()[0] << std::endl;
     //assert(nv_ctr + nt == nvctr_total);  // not needed
     //assert(nv_ctr + nt == new_vertices.shape()[0]);  // no!
     //nv_ctr = number of certices added, which is < nt*3
-    assert(nv_ctr <= nt*3);
+    // assert(nv_ctr <= nt*3);
+    assert(nv_ctr <= req_count*3);
 
+    cout << "number of new verices:  " << nv_ctr << std::endl;
 
     cout <<
         requested_face_indices.size()
         << "*" << "(4-1) + " << old_faces.shape()[0]
         << std::endl;
     cout << "req_count " << req_count << std::endl;
-    cout << "nt " << nt << std::endl;
     cout << "old_faces.shape()[0] " << old_faces.shape()[0] << std::endl;
-    cout << "req_count__ " << req_count__ << std::endl;
 
 
-    assert(old_faces.shape()[0] == nt);
-    assert(old_faces.shape()[0] == req_count);
+    // assert(old_faces.shape()[0] == nt);
+    // assert(old_faces.shape()[0] == req_count);
     assert(requested_face_indices.size() == req_count);
-    assert( req_count__ == req_count);
 
     // The exactly size is known
     const auto exact_total_number_of_new_faces =
         requested_face_indices.size()*(4-1) + old_faces.shape()[0];
     vectorized_faces   new_faces  {boost::extents[exact_total_number_of_new_faces][3]};
 
-    assert(requested_face_indices.size() == req_count__);
+    assert(requested_face_indices.size() == req_count);
 
     {
         int ctr = 0;
@@ -357,15 +356,14 @@ auto subdivide_multiple_facets_1to4 (
     cout << "new_faces: initial part copied" << std::endl;
 
     cout << "new_faces: size= "  << new_faces.shape()[0] << std::endl;
-    cout << "filled by old_faces: nt="  << nt << std::endl;
-    cout << "expected new: "  << (new_faces.shape()[0] - nt) << std::endl;
-    cout << "loop size: "  << req_count__ << std::endl;
-
+    cout << "filled by old_faces: "  << old_faces.shape()[0] << std::endl;
+    cout << "expected new faces: "  << (new_faces.shape()[0] - old_faces.shape()[0]) << std::endl;
+    cout << "loop size: "  << req_count << std::endl;
 
 
     int nf_ctr = 0;
-    int nfctr_total_index = nt;  // global (total) index
-    for (int req_fii = 0; req_fii < req_count__ ; ++req_fii) {  // request index
+    int nfctr_total_index = old_faces.shape()[0];  // global (total) index
+    for (int req_fii = 0; req_fii < req_count ; ++req_fii) {  // request index
 
         auto fi_originalface = fia [req_fii];  // originalface
 
