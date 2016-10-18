@@ -419,6 +419,9 @@ int serpinski_expected_v(int n) {
 
 TEST(Subdivision_1to4, randomised_iterative) {
 
+    // to randomise:
+    // http://stackoverflow.com/questions/6942273/get-random-element-from-container
+
     auto vf = testcase_triangle();
     auto faces_old = vf.second;
     auto verts = vf.first;

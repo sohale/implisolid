@@ -16,7 +16,12 @@ using mp5_implicit::easy_edge;
  * @param[in]  requested_face_indices  set of triagles requested to be subdivided
  * @param[in]  midpoint_map            The map of the edges that are already subdivided. Updated by this algorithm.
  *
- * @return     { tuple<> of the new faces and new verts }
+ * @return     { tuple<> of the new faces, the new verts, and PSDE }
+ * PSDE: presubdivision_edges will contain all the edges
+ * of all the requested triangles, as they were before the
+ * subdivision. It is a list/array of (pair of vertices). It will be
+ * used for ... .
+ * Why do we need this although we have midpoint_map?
  * renamed: subdivide_multiple_facets -> subdivide_multiple_facets_1to4
  */
 auto subdivide_multiple_facets_1to4 (
@@ -98,8 +103,10 @@ auto subdivide_multiple_facets_1to4 (
      *   third output.
      *   Keeps a copy of e0,e1,e2
      */
+
+    // Why does it have two dimensions?
     // std::vector<edge_pair_type> presubdivision_edges;
-    boost::multi_array<edge_pair_type, 2> presubdivision_edges{boost::extents[req_count][3]};
+    boost::multi_array<edge_pair_type, 1> presubdivision_edges {boost::extents[req_count * 3]};
     // presubdivision_edges
     //int presubdivision_edges_counter = 0;
     #endif
@@ -169,10 +176,12 @@ auto subdivide_multiple_facets_1to4 (
         edge_triplet_buffer[2] = e2;
 
         #if USE_PSDE
-            presubdivision_edges[req_fcounter] = edge_triplet_buffer;
+            presubdivision_edges[req_fcounter*3    ] = edge_triplet_buffer[0];
+            presubdivision_edges[req_fcounter*3 + 1] = edge_triplet_buffer[1];
+            presubdivision_edges[req_fcounter*3 + 2] = edge_triplet_buffer[2];
             for (int ai = 0; ai < 3; ++ai) {
                 assert (
-                    presubdivision_edges[req_fcounter][ai]
+                    presubdivision_edges[req_fcounter*3 + ai]
                     == edge_triplet_buffer[ai]);   // should fail
             }
 

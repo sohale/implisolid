@@ -2073,6 +2073,9 @@ def propagated_subdiv(facets, subdivided_edges):
     Each edge belongs to two triangles, hence this contradiction sometimes exit.
     The function returns the edges that remain to be dealt with."""
 
+
+    ################################### (1)
+    # TODO: Pass edges as encoded. Lots of code to elimintate. (1)
     if len(subdivided_edges) == 0:
         subdivided_edges = np.zeros((0, 2), dtype=np.int64)
     else:
@@ -2086,7 +2089,13 @@ def propagated_subdiv(facets, subdivided_edges):
     assert subdivided_edges_codes.dtype == np.int64
     assert subdivided_edges_codes.size == 0 or np.min(subdivided_edges_codes) >= 0
     assert np.max(facets, axis=None) < B
+    # end of (1)
+    ################################### (1)
 
+
+    ################################### (2)
+    # Code identical to subdivide_1to2. Until (2). See function make_edge_triplets_bool() on C++ implementation.
+    # calculates "all_edges_codes"
     fc0 = facets.copy()
     f0 = facets[:, np.newaxis, [0, 1]]
     f1 = facets[:, np.newaxis, [1, 2]]
@@ -2097,7 +2106,6 @@ def propagated_subdiv(facets, subdivided_edges):
     all_edges_codes = np.dot(f012, BB)  # *x3
 
     # now look for subdivided_edges_codes in all_edges_codes
-
     # todo: refactor: intersec seems to be not used anymore
     intersec = np.intersect1d(all_edges_codes, subdivided_edges_codes)
     # x_ indicates those edges taht are in the mesh's edges, hence remain there.
@@ -2109,6 +2117,10 @@ def propagated_subdiv(facets, subdivided_edges):
     edges_need_subdivision = all_edges_codes.ravel()[x_]  # all edges_need_subdivision are in intersec
 
     sides_booleans_Fx3 = x_.reshape(all_edges_codes.shape)  # *x3
+    # end (2)  (up to here, can be factored out from thsi and subdiv1to2)
+    ################################### (2)
+
+
     numsides = np.sum(sides_booleans_Fx3, axis=1)  # numsides_needsubdivision: number of sides that need subdivision. index=face index
     assert sides_booleans_Fx3.shape == (facets.shape[0], 3)
 
