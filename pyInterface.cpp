@@ -39,11 +39,15 @@ py::array_t<int>  getFaces(){
 }
 
 void buildGeometry(std::string shape_parameters_json, std::string mc_parameters_json){
+
+    std::clog.tie (&cerr);
+    std::cout.tie (&cerr);
     const char* shapeParams = shape_parameters_json.data();
     const char* mcParams = mc_parameters_json.data();
     build_geometry(shapeParams, mcParams);
 
 }
+
 
 
 namespace py = pybind11;
