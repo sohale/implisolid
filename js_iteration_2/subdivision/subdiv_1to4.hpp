@@ -6,6 +6,7 @@
 
 
 using mp5_implicit::easy_edge;
+using mp5_implicit::subdivision::midpointmap_type;
 
 #define USE_PSDE true
 /**
@@ -28,7 +29,7 @@ auto subdivide_multiple_facets_1to4 (
     const vectorized_faces & old_faces,
     const vectorized_vect & old_verts,
     const std::set<faceindex_type>& requested_face_indices,
-    std::map<edge_pair_type, vectorized_vect::index>& midpoint_map
+    midpointmap_type& midpoint_map
     )
 {
     /*!

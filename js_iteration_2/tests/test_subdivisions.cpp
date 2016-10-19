@@ -9,6 +9,7 @@
 
 using mp5_implicit::CONFIG_C;
 using mp5_implicit::easy_edge;
+using mp5_implicit::subdivision::midpointmap_type;
 
 // using mp5_implicit::subdivide_multiple_facets_1to4;
 
@@ -64,7 +65,7 @@ TEST(Subdivision_1to2, a) {
     };
     // if edge e=(1,7)   is in the map midpoint_map , but it is not in the map set edges_with_1_side, why does it replace it?
 
-    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    midpointmap_type  midpoint_map;
 
     midpoint_map[encode_edge__sort(1, 2, CONFIG_C::edgecode_base)] = 9;
     midpoint_map[encode_edge__sort(2, 4, CONFIG_C::edgecode_base)] = 10;
@@ -93,7 +94,7 @@ TEST(Subdivision_1to2, square) {
         encode_edge__sort(1, 2, CONFIG_C::edgecode_base),
     };
 
-    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    midpointmap_type midpoint_map;
     midpoint_map[encode_edge__sort(1, 2, CONFIG_C::edgecode_base)] = 99;
 
     bool careful_for_twosides=true;
@@ -270,7 +271,7 @@ TEST(Subdivision_1to4, square) {
     */
     std::set<faceindex_type> triangles_to_subdivide {0};
 
-    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    midpointmap_type  midpoint_map;
 
 
     midpoint_map[easy_edge(1, 2)] = 99;
@@ -318,7 +319,7 @@ TEST(Subdivision_1to4, triangle) {
     // print_faces(faces_old, -1);
     std::set<faceindex_type> triangles_to_subdivide {0};
 
-    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    midpointmap_type  midpoint_map;
     midpoint_map[easy_edge(1, 2)] = 99;
     //bool careful_for_twosides = true;
     assert(check_verts_faces(faces_old, verts));
@@ -364,7 +365,7 @@ std::pair<vectorized_faces, vectorized_vect> subdivide_recursively(
     const std::pair<vectorized_faces, vectorized_vect>& fv,
     int fi,
     int n,
-    std::map<edge_pair_type, vectorized_vect::index>& midpoint_map
+    midpointmap_type& midpoint_map
 ) {
     if (n==0) {
         return fv;
@@ -425,7 +426,7 @@ TEST(Subdivision_1to4, randomised_iterative) {
     auto vf = testcase_triangle();
     auto faces_old = vf.second;
     auto verts = vf.first;
-    std::map<edge_pair_type, vectorized_vect::index> midpoint_map;
+    midpointmap_type   midpoint_map;
     int NREC = 4;
     auto fv2 = subdivide_recursively(std::make_pair(vf.second, vf.first), 0, NREC, midpoint_map);
     /*
@@ -439,3 +440,29 @@ TEST(Subdivision_1to4, randomised_iterative) {
 
  }
 
+
+#include "../subdivision/propagate_subdiv.hpp"
+#include "../subdivision/edge_triplets.hpp"
+
+TEST(propagate_subdiv_, trivial_example) {
+
+    auto vf = testcase_triangle();
+    auto faces = vf.second;
+
+/*
+    midpointmap_type   midpoint_map;
+    midpoint_map[easy_edge(1, 2)] = 99;
+*/
+
+    std::set<edge_pair_type> requested_edges = {
+        easy_edge(1, 2),
+        easy_edge(3, 4)
+    };
+
+    auto r = mp5_implicit::subdivision::propagated_subdiv (
+        faces,
+        requested_edges
+        // midpoint_map  //we should not need this
+    );
+
+}

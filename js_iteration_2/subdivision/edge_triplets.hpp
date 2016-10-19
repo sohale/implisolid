@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>   // for std::nullptr only
+
 namespace mp5_implicit {
 namespace subdivision {
 
@@ -32,14 +34,25 @@ typedef boost::multi_array<bool_t, 2>  triplet_bool_type;
 
 // typedef boost::array<edgecode_triplets_type::index, 2>  edgecode_triplets_shape_type;
 
-
+/**
+ * @brief      Makes an edge triplets bool based on a given set of edges.
+ *
+ * @param[in]  faces                         The facets of the mesh.
+ * @param[in]  requested_1side_edgecode_set  A std::set of edges specified by edgecodes.
+ * @param[in]  midpoint_map_ptr              only for checking the consistency: whether requested_1side_edgecode_set is a subset of this map.
+ *
+ * @return     { two arrays, one containing all the edge codes, the other contains 3xF booleans for whether that edge is among the requested edges}
+ */
 std::tuple<triplet_bool_type, edgecode_triplets_type>
 make_edge_triplets_bool (
     const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
-    const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map
+    const subdivision::midpointmap_type* midpoint_map_ptr = nullptr
 ) {
     /* assertions */
+
+    if (midpoint_map_ptr != nullptr) {
+    const subdivision::midpointmap_type&  midpoint_map = *midpoint_map_ptr;
 
     // Assert edgceodes are non-zero. No correct edgecode is 0.
     assert( check_minimum(requested_1side_edgecode_set.begin(), requested_1side_edgecode_set.end(), 1)
@@ -53,6 +66,7 @@ make_edge_triplets_bool (
             belongs_to_midpoint_map
         ) && "Make sure there is a mapping for every in requested_1side_edgecode_set"
     );
+    }
 
 
 
@@ -128,20 +142,22 @@ make_edge_triplets_bool (
 
 
     //#if ASSERT_USED
-    for (
-            edgecode_triplets_type::index fi = 0;
-            fi < original_faces_count;
-            ++fi )
-    {
-        cout << fi <<": ";
-        for (int j=0; j < 3; ++j) {
-            cout << " " << (edge_triplets_bool[fi][j]? "Y" : "-");
+    if (bool debug_print_triplets = true) {
+        for (
+                edgecode_triplets_type::index fi = 0;
+                fi < original_faces_count;
+                ++fi )
+        {
+            cout << fi <<": ";
+            for (int j=0; j < 3; ++j) {
+                cout << " " << (edge_triplets_bool[fi][j]? "Y" : "-");
+            }
+            cout << "   ";
+            for (int j=0; j < 3; ++j) {
+                cout << " " << faces[fi][j];
+            }
+            cout << std::endl;
         }
-        cout << "   ";
-        for (int j=0; j < 3; ++j) {
-            cout << " " << faces[fi][j];
-        }
-        cout << std::endl;
     }
     //#endif
 

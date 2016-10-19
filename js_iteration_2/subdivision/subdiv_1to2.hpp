@@ -50,7 +50,7 @@ using mp5_implicit::subdivision::make_edge_triplets_bool;
 using mp5_implicit::subdivision::vectorized_new_faces_type;
 using mp5_implicit::subdivision::edgecode_triplets_type;
 using mp5_implicit::subdivision::triplet_bool_type;
-
+using mp5_implicit::subdivision::midpointmap_type;
 
 
 // #if ASSERT_USED
@@ -96,7 +96,7 @@ bool (setbegin, setend, map)
 */
 auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
-    const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map,
+    const midpointmap_type& midpoint_map,
     const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {
@@ -138,9 +138,8 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     auto et = make_edge_triplets_bool (
         faces,
         requested_1side_edgecode_set,
-        midpoint_map
+        &midpoint_map
     );
-
     triplet_bool_type   edge_triplets_bool = std::move(std::get<0>(et));
     edgecode_triplets_type  all_edgecodes   = std::move(std::get<1>(et));
 
@@ -420,7 +419,7 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
 
 vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
-    const std::map<edge_pair_type, vectorized_vect::index>& midpoint_map,
+    const midpointmap_type& midpoint_map,
     const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {

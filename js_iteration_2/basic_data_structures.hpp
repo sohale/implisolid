@@ -83,8 +83,8 @@ C::element  is not C::value_type   when C is multi-dimensional
 
 typedef short int bool_t;
 
-const bool_t b_true = 1;
-const bool_t b_false = 0;
+const bool_t  b_true = 1;
+const bool_t  b_false = 0;
 
 //typedef boost::array<vectorized_vect::index, 2>  shape_t;
 
@@ -99,8 +99,12 @@ typedef array1d::index  vertex_t;
  *
  */
 
+// Used for implicit values only
 typedef boost::multi_array<REAL, 1>  vectorized_scalar;
 typedef boost::array<int, 1>  vectorized_scalar_shape;
+
+// Used for curvatures, etc.
+typedef boost::multi_array<REAL, 1>  vectrorized_real;
 
 /** Implementation Note
  * Data type: vectorized_vect
@@ -184,6 +188,15 @@ typedef boost::multi_array<short_edge_type, 2>   edges_of_xxx_type;
 
 typedef boost::multi_array<faceindex_type, 2>   faces_of_xxx_type;
 
+/* Subdivision */
+namespace mp5_implicit {
+namespace subdivision {
+
+    typedef std::map<edge_pair_type, vertexindex_type> midpointmap_type;
+
+} // namespace subdivision
+} // namespace mp5_implicit
+
 /*
 namespace mp5_implicit {
     // edgepair_Base  EdgecodeBase
@@ -209,7 +222,7 @@ inline array_shape_t make_shape_1d(array1d::index size) {
     return shape;
 }
 
-
+// don't use. deprecate.
 typedef boost::multi_array<REAL, 2>  array2d;
 
 
