@@ -1,17 +1,25 @@
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include "js_iteration_1/mcc2.cpp"
 #include <string>
 #include <array>
 #include <iostream>
+#include <fstream>
 
 namespace py = pybind11;
 using namespace std;
 
 py::array_t<REAL> getVerts(){
+
+    ofstream myfile;
+    myfile.open ("solimod.log", std::ios_base::app);
+
     REAL* verts = (REAL *)get_v_ptr();
     unsigned int array_size;
     array_size = get_v_size();
+
+    myfile.close();
 
 
     return py::array(py::buffer_info(verts,
@@ -26,9 +34,14 @@ py::array_t<REAL> getVerts(){
 // tomorrow
 py::array_t<int>  getFaces(){
 
+    ofstream myfile;
+    myfile.open ("solimod.log", std::ios_base::app);
+
     vertexindex_type* faces = (vertexindex_type *)get_f_ptr();
     unsigned int array_size;
     array_size = get_f_size();
+
+    myfile.close();
 
     return py::array(py::buffer_info(faces, 
                    sizeof(vertexindex_type),
@@ -40,11 +53,14 @@ py::array_t<int>  getFaces(){
 
 void buildGeometry(std::string shape_parameters_json, std::string mc_parameters_json){
 
-    std::clog.tie (&cerr);
-    std::cout.tie (&cerr);
+    ofstream myfile;
+    myfile.open ("solimod.log", std::ios_base::app);
+
     const char* shapeParams = shape_parameters_json.data();
     const char* mcParams = mc_parameters_json.data();
     build_geometry(shapeParams, mcParams);
+
+    myfile.close();
 
 }
 
