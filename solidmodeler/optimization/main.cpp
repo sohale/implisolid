@@ -1,8 +1,12 @@
 #include <dlib/optimization.h>
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 using namespace dlib;
+
+typedef std::chrono::high_resolution_clock Time;
+typedef std::chrono::duration<float> fsec;
 
 /*
     Optimization tests for egg
@@ -108,16 +112,32 @@ int main()
         
         starting_point = 0, 0, 0;
 
+        auto start = Time::now();
+        
         find_min_using_approximate_derivatives(bfgs_search_strategy(),
                                                objective_delta_stop_strategy(1e-7),
                                                min_z_egg_eval_implicit, starting_point, -1);
 
+        auto end = Time::now();
+        fsec duration = end - start;
+
+        std::cout << "Duration : " << duration.count() << endl;
+
         cout << starting_point << endl;
 
         starting_point = 0, 0, 0;
+
+        start = Time::now();
+
         find_min(bfgs_search_strategy(),
                  objective_delta_stop_strategy(1e-7),
                  min_z_egg_eval_implicit, min_z_egg_eval_gradient, starting_point, -1);
+
+
+        end = Time::now();
+        duration = end - start;
+
+        std::cout << "Duration : " << duration.count() << endl;
 
         cout << starting_point << endl;
     }
