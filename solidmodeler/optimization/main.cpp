@@ -36,9 +36,9 @@ double egg_eval_implicit (const column_vector& m)
     const double y = m(1);
     const double z = m(2);
 
-    double res = 1 - norm_squared((x - center_x)/a, (y - center_y)/b, (z - center_z)/c);
+    double egg_i = 1 - norm_squared((x - center_x)/a, (y - center_y)/b, (z - center_z)/c);
        
-    return res;
+    return egg_i;
 }
 
 const column_vector egg_eval_gradient  (const column_vector& m)
@@ -51,13 +51,13 @@ const column_vector egg_eval_gradient  (const column_vector& m)
     const double b2 = squared(b);
     const double c2 = squared(c);
 
-    column_vector res(3);
+    column_vector egg_g(3);
 
-    res(0) = -2. * (x - center_x)/a2;
-    res(1) = -2. * (y - center_y)/b2;
-    res(2) = -2. * (z - center_z)/c2;
+    egg_g(0) = -2. * (x - center_x)/a2;
+    egg_g(1) = -2. * (y - center_y)/b2;
+    egg_g(2) = -2. * (z - center_z)/c2;
 
-    return res;
+    return egg_g;
 }
 
 double min_z_egg_eval_implicit (const column_vector& m)
@@ -66,12 +66,12 @@ double min_z_egg_eval_implicit (const column_vector& m)
     const double y = m(1);
     const double z = m(2);
 
-    double res = egg_eval_implicit(m);
-    res = my_abs(res);
+    double egg_i = egg_eval_implicit(m);
+    egg_i = my_abs(egg_i);
 
-    double res_z = z + huge_number * res;
+    double min_z_egg_i = z + huge_number * egg_i;
        
-    return res_z;
+    return min_z_egg_i;
 }
 
 const column_vector min_z_egg_eval_gradient  (const column_vector& m)
@@ -80,22 +80,22 @@ const column_vector min_z_egg_eval_gradient  (const column_vector& m)
     const double y = m(1);
     const double z = m(2);
 
-    column_vector res_grad_z(3);
+    column_vector min_z_egg_g(3);
 
-    double res = egg_eval_implicit(m); 
+    double egg_i = egg_eval_implicit(m); 
     double sign = 1.;
     
-    if (res < 0) {
+    if (egg_i < 0) {
         sign = -1.;
     }
 
-    const column_vector res_grad = egg_eval_gradient(m);
+    const column_vector egg_g = egg_eval_gradient(m);
 
-    res_grad_z(0) = sign * huge_number * res_grad(0);
-    res_grad_z(1) = sign * huge_number * res_grad(1);
-    res_grad_z(2) = 1 + sign * huge_number * res_grad(2);
+    min_z_egg_g(0) = sign * huge_number * egg_g(0);
+    min_z_egg_g(1) = sign * huge_number * egg_g(1);
+    min_z_egg_g(2) = 1 + sign * huge_number * egg_g(2);
 
-    return res_grad_z;
+    return min_z_egg_g;
 }
 
 
@@ -105,23 +105,9 @@ int main()
     {
 
         column_vector starting_point(3);
-        /*
-        starting_point = 1, 0, 0;
-
-        cout << egg_eval_implicit(starting_point) << endl;
-        cout << egg_eval_gradient(starting_point) << endl;
-*/
+        
         starting_point = 0, 0, 0;
-/*
-        cout << egg_eval_implicit(starting_point) << endl;
-        cout << egg_eval_gradient(starting_point) << endl;
 
-
-        starting_point = 1, 1, 1;
-
-        cout << egg_eval_implicit(starting_point) << endl;
-        cout << egg_eval_gradient(starting_point) << endl;
-*/
         find_min_using_approximate_derivatives(bfgs_search_strategy(),
                                                objective_delta_stop_strategy(1e-7),
                                                min_z_egg_eval_implicit, starting_point, -1);
