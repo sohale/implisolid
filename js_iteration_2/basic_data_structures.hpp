@@ -146,7 +146,10 @@ class array_of_indices_struct {
 };
 
 
-typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
+// typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
+// typedef boost::multi_array<short int, 2>  vectorized_faces;
+typedef boost::multi_array<short int, 2>  vectorized_faces;
+
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
 typedef vectorized_vect::index  vertexindex_type_;

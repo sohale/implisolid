@@ -2136,7 +2136,7 @@ def propagated_subdiv(facets, subdivided_edges):
     return propag_dict, edges_need_subdivision
 
 
-
+# rename: subdivide_multiple_facets -> subdivide_multiple_facets_1to4
 # todo: refactor tobe_subdivided_face_indices -> requested_face_indices
 def subdivide_multiple_facets(verts_old, facets_old, requested_face_indices, midpoint_map):
     """

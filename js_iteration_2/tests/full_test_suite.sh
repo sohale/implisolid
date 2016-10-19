@@ -51,6 +51,8 @@ bash build_tests.sh test_subdivisions.cpp
 
 exit
 
+bash build_tests.sh test_utils.cpp
+
 bash build_tests.sh sparse_works.cpp
 
 exit

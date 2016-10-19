@@ -406,3 +406,64 @@ inline bool is_bad_number(REAL x) {
     return false;
 }
 
+
+
+/*
+template<typename T>
+std::vector<T> choose_random_subset(const std::vector<T>& array, int count) {
+
+    auto seed = vectorised_algorithms::global_rng_seed;
+    boost::random::mt11213b rngen(seed);
+    //boost::random::uniform_
+    boost::random::uniform_01<REAL> distr;
+
+    ;
+}
+*/
+
+
+//
+/**
+   Fisher-Yates shuffle (stop after M iterations).
+   Note that it works if num_random is > size of the iterator.
+   Based on http://stackoverflow.com/a/9345144/4374258
+*/
+template<class ITER>
+ITER Fisher_Yates_random_unique(ITER begin, ITER end, size_t num_random) {
+    assert(num_random <= RAND_MAX);
+    size_t left = std::distance(begin, end);
+    while (num_random-- && left > 0) {
+        ITER r = begin;
+        std::advance(r, rand() % left);   // I dislike rand()
+        std::swap(*begin, *r);
+        ++begin;
+        --left;
+    }
+    return begin;
+}
+
+
+/*
+template<class ITER>
+bidiiter Fisher_Yates_random_unique_bidir(ITER begin, ITER end, size_t num_random) {
+    size_t left = std::distance(begin, end);
+    ITER last = end-1;
+    ITER r;
+    while (num_random-- && left > 0) {
+        r = begin;
+        std::advance(r, rand() % left);   // I dislike rand()
+        std::swap(*last, *r);
+        --last;
+        --left;
+    }
+    return begin;
+}
+*/
+
+// not tested
+template<typename T>
+void chisle_random_subset(std::vector<T>& array, int count) {
+    auto e = Fisher_Yates_random_unique(array.begin(), array.end(), count);
+    // cut away
+    array.resize(std::distance(array.begin(), e));
+}

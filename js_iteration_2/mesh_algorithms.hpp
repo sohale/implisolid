@@ -15,6 +15,7 @@ These are efficient graph theoretic algorithms. Most of them involve building da
 #pragma once
 
 #include "basic_data_structures.hpp"
+#include "configs.hpp"
 
 namespace mp5_implicit {
 

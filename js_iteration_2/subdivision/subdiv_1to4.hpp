@@ -3,6 +3,7 @@
 #include <map>
 #include "Eigen/Core"
 #include "../v2v_f2f.hpp"
+#include "../mesh_algorithms.hpp"
 
 
 using mp5_implicit::easy_edge;

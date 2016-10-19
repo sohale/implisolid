@@ -465,4 +465,32 @@ TEST(propagate_subdiv_, trivial_example) {
         // midpoint_map  //we should not need this
     );
 
+
+
+    #define reportsize(typenam) {std::cout << (#typenam) << ": " << sizeof((#typenam)) << "<" <<  (#typenam) << std::endl;}
+    std::cout << "Hello world" << std::endl;
+
+    std::cout  << "(int): " << sizeof(int) << std::endl;
+    reportsize(unsigned char);
+    reportsize(int);
+    reportsize(short  int);
+    reportsize(unsigned int);
+    reportsize(long int);
+    reportsize(long);
+    reportsize(long long);
+    reportsize(char);
+    reportsize(unsigned char);
+
+    std::cout  << "(unsigned char): " << sizeof(unsigned char) << std::endl;
+
+    /*
+int: 4
+short int: 10
+unsigned int: 13
+long int: 9
+long: 5
+long long: 10
+char: 5
+unsigned char: 14
+    */
 }

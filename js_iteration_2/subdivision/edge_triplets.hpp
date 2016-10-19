@@ -39,7 +39,7 @@ typedef boost::multi_array<bool_t, 2>  triplet_bool_type;
  *
  * @param[in]  faces                         The facets of the mesh.
  * @param[in]  requested_1side_edgecode_set  A std::set of edges specified by edgecodes.
- * @param[in]  midpoint_map_ptr              only for checking the consistency: whether requested_1side_edgecode_set is a subset of this map.
+ * @param[in]  midpoint_map_ptr              (optional) Used only for assertion. Checking the consistency: whether requested_1side_edgecode_set is a subset of this map.
  *
  * @return     { two arrays, one containing all the edge codes, the other contains 3xF booleans for whether that edge is among the requested edges}
  */
