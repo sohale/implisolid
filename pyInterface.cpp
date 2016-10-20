@@ -14,7 +14,7 @@ py::array_t<REAL> getVerts(){
 
     ofstream myfile;
     myfile.open ("solimod.log", std::ios_base::app);
-    std::clog.tie (myfile);
+    std::clog.tie (&myfile);
 
     REAL* verts = (REAL *)get_v_ptr();
     unsigned int array_size;
@@ -35,7 +35,8 @@ py::array_t<REAL> getVerts(){
 // tomorrow
 py::array_t<int>  getFaces(){
 
-    ofstream myfile;
+    std::streambuf *psbuf, *backup;
+    ofstream filestr;
     filestr.open ("solimod.log", std::ios_base::app);
 
     backup = std::cout.rdbuf();     // back up cout's streambuf
@@ -61,8 +62,8 @@ py::array_t<int>  getFaces(){
 
 void buildGeometry(std::string shape_parameters_json, std::string mc_parameters_json){
 
-
-    ofstream myfile;
+    std::streambuf *psbuf, *backup;
+    ofstream filestr;
     filestr.open ("solimod.log", std::ios_base::app);
 
     backup = std::cout.rdbuf();     // back up cout's streambuf
