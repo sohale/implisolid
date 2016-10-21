@@ -638,10 +638,29 @@ void finish_geometry() {
     _state.active = false;
 }
 
-// information
+/* Set the default about string in case it is not provided by the compile script.
+ */
+#ifndef MORE_ABOUT_INFO
+
+#define MORE_ABOUT_INFO  "-"
+
+#endif
+
+/** Show build information, e.g. when it was compiled.
+ * Usage: Type in browser console:
+ *      IMPLICIT.about()
+ * Shows build time and date.
+ * More information regarding the build script and build environment can be passed.
+ * In compiler commandline (em++, g++, etc) use:
+ *   -DMORE_ABOUT_INFO='"mytext"'
+ * Useful for sending the hostname, IP, etc (if compiled within a docker container).
+ * Note the extra '' necessary. Inside the '', use another ""
+ * is used becasue it has to be a valid C++ expression (a C++ string).
+ */
 void about() {
     std::clog << "Build 1" << std::endl;
     std::clog << __DATE__ << " " << __TIME__ << std::endl;
+    std::clog << MORE_ABOUT_INFO << std::endl;
 }
 
 
