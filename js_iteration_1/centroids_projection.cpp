@@ -1255,8 +1255,8 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     */
 
 
-    std::vector< std::vector<faceindex_type>> vertex_neighbours_list;
-    vertex_neighbours_list = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
+    std::vector< std::vector<faceindex_type>> face_neighbours_of_vertex_list;
+    face_neighbours_of_vertex_list = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
     vectorized_vect  centroid_gradients(centroids_shape);
 
@@ -1274,7 +1274,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
         array_of_indices  ranks {boost::extents[num_faces]};
         REAL maximum_qem_displacement = average_edge;
 
-        vertex_apply_qem(&verts, faces, centroids, vertex_neighbours_list, centroid_gradients, &ranks, maximum_qem_displacement);
+        vertex_apply_qem(&verts, faces, centroids, face_neighbours_of_vertex_list, centroid_gradients, &ranks, maximum_qem_displacement);
 
         if (STORE_POINTSETS)
         {
