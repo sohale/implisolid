@@ -11,6 +11,7 @@ typedef std::chrono::duration<float> fsec;
 
 /*
     Optimization tests for egg
+    Method of penalty
 */
 
 const double huge_number = 10000000.;
