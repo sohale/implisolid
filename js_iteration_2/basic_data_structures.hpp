@@ -148,12 +148,19 @@ class array_of_indices_struct {
 
 // typedef boost::multi_array<vectorized_vect::index, 2>  vectorized_faces;
 // typedef boost::multi_array<short int, 2>  vectorized_faces;
-typedef boost::multi_array<short int, 2>  vectorized_faces;
+
+/* Note that this type is also used in Marching Cubes. But MC should use a different versionof the type, internally.
+ * short int did not work, and it may be because of this reason.
+ */
+typedef  int  vertexindex_type;
+// history: int, short int, int
+
+typedef boost::multi_array<vertexindex_type, 2>  vectorized_faces;
 
 typedef boost::array<vectorized_faces::index, 2>  vectorized_faces_shape;
 
-typedef vectorized_vect::index  vertexindex_type_;
-typedef vectorized_faces::element  vertexindex_type;
+// typedef vectorized_vect::index  vertexindex_type_;
+//typedef vectorized_faces::element  vertexindex_type;
 
 typedef vectorized_faces::index  faceindex_type;
 
