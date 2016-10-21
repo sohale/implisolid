@@ -92,13 +92,17 @@ REAL wi(int i, const faces_of_xxx_type& faces_of_faces, const vectorized_vect& c
 
 void vertex_resampling_VV1(
         vectorized_vect& new_verts,
-        const std::vector< std::vector<faceindex_type>>& faceslist_neighbours_of_vertex, const faces_of_xxx_type& faces_of_faces,
-        const vectorized_vect& centroids, const vectorized_vect& centroid_normals_normalized, const float c
+        const std::vector< std::vector<faceindex_type>>& faceslist_neighbours_of_vertex,
+        const faces_of_xxx_type& faces_of_faces,
+        const vectorized_vect& centroids,
+        const vectorized_vect& centroid_normals_normalized,
+        const float c
     ) {
     clog << "VV1" << std::endl;
     // exit(1);
     int nfaces = centroids.shape()[0];
-    assert(faces_of_faces.shape()[0] == 3);
+
+    assert(faces_of_faces.shape()[1] == 3);
 
     boost::array<int, 2> wi_total_array_shape = {nfaces, 1 };
     boost::multi_array<REAL, 1> wi_total_array(wi_total_array_shape);

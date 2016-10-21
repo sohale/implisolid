@@ -111,19 +111,23 @@ void do_subdivision (
 
 }  // namespace mp5_implicit
 
-#include <iostream>
+/*
 
-int main() {
-    #define reportsize(typenam) {std::cout << #typenam << ": " << sizeof(#typenam) << std::endl;}
-    std::cout << "Hello world" << std::endl;
-    /*
-    reportsize(int);
-    reportsize(short  int);
-    reportsize(unsigned int);
-    reportsize(long int);
-    reportsize(long);
-    reportsize(long long);
-    reportsize(char);
-    reportsize(unsigned char);
-    */
-}
+-#include <iostream>
+-
+ int main() {
+-    #define reportsize(typenam) {std::cout << #typenam << ": " << sizeof(#typenam) << std::endl;}
+-    std::cout << "Hello world" << std::endl;
+-
+-    reportsize(int);
+-    reportsize(short  int);
+-    reportsize(unsigned int);
+-    reportsize(long int);
+-    reportsize(long);
+-    reportsize(long long);
+-    reportsize(char);
+-    reportsize(unsigned char);
+-
+ }
+
+*/
