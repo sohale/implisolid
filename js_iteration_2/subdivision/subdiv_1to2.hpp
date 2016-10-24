@@ -1,3 +1,5 @@
+#pragma once
+
 // Each method does the subdivision on multiple triangles.
 
 /*
@@ -53,6 +55,11 @@ using mp5_implicit::subdivision::triplet_bool_type;
 using mp5_implicit::subdivision::midpointmap_type;
 
 
+
+namespace mp5_implicit {
+namespace subdivision {
+
+
 // #if ASSERT_USED
 //     // Assert with an error message
 //     #define assert_message1(x, error_message) { \
@@ -97,7 +104,7 @@ bool (setbegin, setend, map)
 auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
     const midpointmap_type& midpoint_map,
-    const edge_pair_type EdgecodeBase,
+    // const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {
     //alternative names: edges_with_1_side requested_1side_edgecode_set
@@ -417,13 +424,14 @@ auto subdivide_1to2_LRTM(const vectorized_faces & faces,
     */
 }
 
-vectorized_faces subdivide_1to2(const vectorized_faces & faces,
+//subdivide_1to2_multiple_facets
+vectorized_faces  subdivide_1to2 (const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
     const midpointmap_type& midpoint_map,
-    const edge_pair_type EdgecodeBase,
+    //const edge_pair_type EdgecodeBase,
     bool careful_for_twosides=true)
 {
-    auto tupl = subdivide_1to2_LRTM(faces, requested_1side_edgecode_set, midpoint_map, EdgecodeBase, careful_for_twosides);
+    auto tupl = subdivide_1to2_LRTM(faces, requested_1side_edgecode_set, midpoint_map, careful_for_twosides);
 
     auto compactified_faces_indices = std::get<1>(tupl);
     auto compactified_newfaces_LRTM_specs = std::get<0>(tupl);
@@ -475,3 +483,6 @@ vectorized_faces subdivide_1to2(const vectorized_faces & faces,
 
     return newfaces;
 }
+
+}  // namespace subdivision
+}  // namespace mp5_implicit

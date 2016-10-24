@@ -86,9 +86,9 @@ make_edge_triplets_bool (
 
 
     for (edgecode_triplets_type::index fi = 0; fi < original_faces_count; ++fi ) {
-        vertexindex_type_ v0 = faces[fi][0];
-        vertexindex_type_ v1 = faces[fi][1];
-        vertexindex_type_ v2 = faces[fi][2];
+        vertexindex_type v0 = faces[fi][0];
+        vertexindex_type v1 = faces[fi][1];
+        vertexindex_type v2 = faces[fi][2];
 
         edge_pair_type e0 = encode_edge__sort(v0, v1, CONFIG_C::edgecode_base);
         edge_pair_type e1 = encode_edge__sort(v1, v2, CONFIG_C::edgecode_base);

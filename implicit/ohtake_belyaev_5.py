@@ -1667,7 +1667,7 @@ def compute_facets_subdivision_curvatures_old(verts, facets, iobj):
     """ Calculates a measure of deviation of the Triangle from object gradients.
     returns: curvature for all triangles.
     This function does not create the subdivisions.
-    It just computes. The function subdivide_multiple_facets() does the actual subdivision. """
+    It just computes. The function subdivide_multiple_facets_1to4() does the actual subdivision. """
     facet_areas, facet_normals = compute_triangle_areas(verts, facets, return_normals=True)
 
     #simple_histogram(facet_areas, "facet_areas")
@@ -2061,7 +2061,7 @@ def compute_facets_subdivision_curvatures(verts, facets, iobj):
 #jk = 0
 
 
-def propagated_subdiv(facets, subdivided_edges):
+def propagate_subdiv(facets, subdivided_edges):
     """ Reports the indices triangles that are to be subdivided
     as a propagation of a previous subdivision.
     It returns separatesly the (not-yet-subdivided) triangles
@@ -2120,7 +2120,9 @@ def propagated_subdiv(facets, subdivided_edges):
     # end (2)  (up to here, can be factored out from thsi and subdiv1to2)
     ################################### (2)
 
-
+    # numsides: The number of Leftover sides of each triangle. The number of sides that definitely need subdivision (because they are in the codes of subdivided_edges. Each is NOT subdivided yet and has to be subdivided. If a small edge is a result of subdivision in the current round (the current call to do_subdivision(); the function which called this function), it will not appear here. But the original edge which was broken into that one may exist here, if it is still unsubdivided.)
+    # I feel this can be simplified, because each edge is subdivded exactly twice. So when it is subdivided, we can simplly remove it from the set. But that might not be fast. A sparse matrix for this would use a map, which will need an RB-tree. What about a hashmap? (unordered_set)
+    # Leftover sides. The numer of leftover sides in each triangle.
     numsides = np.sum(sides_booleans_Fx3, axis=1)  # numsides_needsubdivision: number of sides that need subdivision. index=face index
     assert sides_booleans_Fx3.shape == (facets.shape[0], 3)
 
@@ -2133,12 +2135,12 @@ def propagated_subdiv(facets, subdivided_edges):
         propag_dict[c] = idx
         del idx
 
+    # propag_dict = categorising the triaangles based on the number of "leftover edges" (see above comment) that they actually contain.  edges_need_subdivision: The edge codes for them, as opposed to the face/triangle index. All edges_need_subdivision are necessary.
     return propag_dict, edges_need_subdivision
 
 
-# rename: subdivide_multiple_facets -> subdivide_multiple_facets_1to4
-# todo: refactor tobe_subdivided_face_indices -> requested_face_indices
-def subdivide_multiple_facets(verts_old, facets_old, requested_face_indices, midpoint_map):
+
+def subdivide_multiple_facets_1to4(verts_old, facets_old, requested_face_indices, midpoint_map):
     """
     midpoint_map is modified (is input and output).
     midpoint_map is a dictionary that given an edge's unique_int_id, gives you the vertex in the midpoint. It may contain midpoints that are not used anymore.
@@ -2433,11 +2435,11 @@ def subdivide_1to2_multiple_facets(facets, requested_1side_edgecode_set, midpoin
     requested_edges_singleside_subdivision : requested edgecodes for singleside subdivision (it's a list, interpreted as a set.)
     @return: faces.
     careful_for_twosides: check whether two sides are being asked for subdivision. """
-    #todo: copy some code from propagated_subdiv()
+    #todo: copy some code from propagate_subdiv()
     #check which of these edges still exist in faces. (Each should be there only once. In this context.)
     #Some requested_1side_edgecode_set may not be in facets. They are already subdivided twice.
     #remove them and add more.
-    #refactor the code copied from propagated_subdiv() into function
+    #refactor the code copied from propagate_subdiv() into function
     #need to also get the new points. oops!! damn.
     #
     #There is a guarantee that all faces that the requested_1side_edgecode_set belong to, have exactly one edge from this list.
@@ -2650,6 +2652,7 @@ def simple_histogram(c, title=None, special_values=[]):
 
 global highlight
 highlight = []
+# Does one "round" of subdivision on the selected triangles. It also propagates the subdivisions to avoid T-junction inconsistencies in the mesh.
 def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probability=1.):
     assert not np.any(np.isnan(facets.ravel()))
     assert not np.any(np.isnan(verts.ravel()))  # fails
@@ -2677,27 +2680,35 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
 
     print which_facets.shape
     print "applying subdivision on %d triangles."%(int(which_facets.shape[0]))
+    # 1- subdivide those pages. Keep a map of the edges that you break. returns the list of edges that are broken as presubdivision_edges. This will be used in next steps to see if they still exist in the mesh (i.e. have neoughbouring triangles that are not subdivided, we will propagate the subdivision.)
     midpoint_map = {}
-    verts2, facets2, presubdivision_edges = subdivide_multiple_facets(verts, facets, which_facets, midpoint_map)
+    verts2, facets2, presubdivision_edges = subdivide_multiple_facets_1to4(verts, facets, which_facets, midpoint_map)
     global trace_subdivided_facets  # third implicit output
 
     # preparing "edges_with_1_side" as the main input to subdivide_1to2_multiple_facets()
     list_edges_with_1_side = []
     while True:
-        propag_dict, edges_which_in1 = propagated_subdiv(facets2, presubdivision_edges)
+        # 2-Take those edges, and return those edges that need subdivision (only those which actually exist in the mesh). The propag_dict will contains the list of faces, categorised according to their broken faces i.e. leftover edges (Will contain only those that actually need subdivision in facets2, not anything from previous steps int he current loop)
+        # edges_which_in1 = The edgecodes (not the face code/indices) of the edgtes that abosolutely need subdivision if we request edges in presubdivision_edges. In other words, this function will predict which other edges will need subdivision if we requestion the given edges (edges->edges).
+        # Note that requested "edges" (presubdivision_edges) will contain all previous iterations (in the current round).
+        # in: edges. out: edges + faces.  presubdivision_edges -> edges_which_in1.
+        propag_dict, edges_which_in1 = propagate_subdiv(facets2, presubdivision_edges)
+        # 3- Collect the indices of those faces (actually) in the mesh that have wither 2 or 3 leftover sides/edges. These are the triangles that need further subdivision in the current "round" of subdivision.
         facets_with_2_or_3_sides = np.concatenate((propag_dict[2], propag_dict[3]), axis=0)
-        # what if those faces dont exist anymore in the next round?
+        # What if those faces dont exist anymore in the next round?
+        # list_edges_with_1_side only keeps them for counding in the end of do_subdivision (?). Are the elements unique?
+        # Note that list_edges_with_1_side is a list of lists:
         list_edges_with_1_side += [edges_which_in1]
         #print facets_with_2_or_3_sides.shape
         if facets_with_2_or_3_sides.size == 0:
             break
-        verts2, facets2, old_edges2 = subdivide_multiple_facets(verts2, facets2, facets_with_2_or_3_sides, midpoint_map)
+        verts2, facets2, new_edges2 = subdivide_multiple_facets_1to4(verts2, facets2, facets_with_2_or_3_sides, midpoint_map)
         presubdivision_edges += old_edges2  # bug fixed!
 
-    # Finished with 2 or 3 sides.
+    # Finished with 2 or 3 sides, now 1 sides: (i.e. triangles with 1 side).
 
-    # Now 1 side:
-    #Append all the lists in list_edges_with_1_side
+    #Turn (flatten) the list of lists into a list. Append all the lists in list_edges_with_1_side.
+    # Not all of them will be necessary here anymore. Also there may be repeats But all will be sent to that (1->2subdiv) function.
     n1 = 0
     for i in range(len(list_edges_with_1_side)):
         farr = list_edges_with_1_side[i]
@@ -2714,6 +2725,7 @@ def do_subdivision(verts, facets, iobj, curvature_epsilon, randomized_probabilit
     #todo: if length zero dont do it
     assert edges_with_1_side.size == 0 or np.min(edges_with_1_side) > 0
 
+    # The 1->2 subdivision is done only once at end. The loop only does the 1->4 subdivisions.
     facets2 = subdivide_1to2_multiple_facets(facets2, edges_with_1_side, midpoint_map)
 
     ###################
@@ -3268,7 +3280,7 @@ def demo_everything(options):
         if False:
             chosen_facet_indices = np.array(total_subdivided_facets, dtype=int)
             #centroids2, new_centroids2 = old_centroids[chosen_facet_indices], new_centroids[chosen_facet_indices]
-            # move the following code into subdivide_multiple_facets() (?)
+            # move the following code into subdivide_multiple_facets_1to4() (?)
             if chosen_facet_indices.size == 0:
                 chosen_subset_of_facets = np.zeros((0,), dtype=np.int64)
             else:

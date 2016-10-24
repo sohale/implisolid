@@ -21,7 +21,7 @@
 
 
 
-using namespace boost::numeric::ublas;
+//using namespace boost::numeric::ublas;
 using namespace std;
 
 
@@ -203,6 +203,9 @@ namespace mp5_implicit {
 namespace subdivision {
 
     typedef std::map<edge_pair_type, vertexindex_type> midpointmap_type;
+
+
+    typedef  boost::multi_array<faceindex_type, 1>  faces_subset_type;
 
 } // namespace subdivision
 } // namespace mp5_implicit

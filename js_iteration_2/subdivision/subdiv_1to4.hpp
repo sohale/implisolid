@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <set>
 #include <map>
@@ -8,6 +10,8 @@
 
 using mp5_implicit::easy_edge;
 using mp5_implicit::subdivision::midpointmap_type;
+// bool VERBOSE_SUBDIV = false;
+
 
 #define USE_PSDE true
 /**
@@ -134,11 +138,14 @@ auto subdivide_multiple_facets_1to4 (
         int redundancy_counter = 0;
     #endif
 
-    cout << "Requested_face_indices {";
-    for (auto fi : requested_face_indices) {
-        cout << fi << ", ";
+    if (VERBOSE_SUBDIV) {
+        cout << "Requested_face_indices {";
+        for (auto fi : requested_face_indices) {
+            cout << fi << ", ";
+        }
+        cout << "}. req_count=" << req_count << std::endl;  // req_count
     }
-    cout << "}. req_count=" << req_count << std::endl;  // req_count
+
 
     // req_count
     for (auto fi : requested_face_indices) {
@@ -203,6 +210,7 @@ auto subdivide_multiple_facets_1to4 (
         vertexindex_type newvtx_counter = new_verts_effective_total_size; // this keeps updated
 
         for (unsigned char vii = 0; vii < 3; ++vii) {
+            if (VERBOSE_SUBDIV)
             cout << "edge_triplet_buffer[vii]=" << edge_triplet_buffer[vii] << " ";
             // auto& midpoint_aslookedup = midpoint_map[edge_triplet_buffer[vii]];  // inserts if it doesnt exist
             // note that midpoint_map is updated inside the loop
@@ -258,6 +266,7 @@ auto subdivide_multiple_facets_1to4 (
     //vertexindex_type
     //    newvtx_counter = new_verts_effective_total_size;
 
+    if (VERBOSE_SUBDIV)
     cout << "-------------------- new_verts_effective_total_size  ============ " << new_verts_effective_total_size << std::endl;
     //vectorized_vect new_additional_vertices {newvtx_counter};
     vectorized_vect
@@ -329,21 +338,26 @@ auto subdivide_multiple_facets_1to4 (
         }
         */
     }
-    cout << nv_ctr << " <= " <<  req_count*3  << "?, len(newverts)=" << new_vertices.shape()[0] << std::endl;
+    if (VERBOSE_SUBDIV) {
+        cout << nv_ctr << " <= " <<  req_count*3  << "?, len(newverts)=" << new_vertices.shape()[0] << std::endl;
+    }
     //assert(nv_ctr + nt == nvctr_total);  // not needed
     //assert(nv_ctr + nt == new_vertices.shape()[0]);  // no!
     //nv_ctr = number of certices added, which is < nt*3
     // assert(nv_ctr <= nt*3);
     assert(nv_ctr <= req_count*3);
 
-    cout << "number of new verices:  " << nv_ctr << std::endl;
+    if (VERBOSE_SUBDIV) {
 
-    cout <<
-        requested_face_indices.size()
-        << "*" << "(4-1) + " << old_faces.shape()[0]
-        << std::endl;
-    cout << "req_count " << req_count << std::endl;
-    cout << "old_faces.shape()[0] " << old_faces.shape()[0] << std::endl;
+        cout << "number of new verices:  " << nv_ctr << std::endl;
+
+        cout <<
+            requested_face_indices.size()
+            << "*" << "(4-1) + " << old_faces.shape()[0]
+            << std::endl;
+        cout << "req_count " << req_count << std::endl;
+        cout << "old_faces.shape()[0] " << old_faces.shape()[0] << std::endl;
+    }
 
 
     // assert(old_faces.shape()[0] == nt);
@@ -365,12 +379,14 @@ auto subdivide_multiple_facets_1to4 (
         }
         assert( ctr == old_faces.shape()[0]);
     }
-    cout << "new_faces: initial part copied" << std::endl;
+    if (VERBOSE_SUBDIV) {
+        cout << "new_faces: initial part copied" << std::endl;
 
-    cout << "new_faces: size= "  << new_faces.shape()[0] << std::endl;
-    cout << "filled by old_faces: "  << old_faces.shape()[0] << std::endl;
-    cout << "expected new faces: "  << (new_faces.shape()[0] - old_faces.shape()[0]) << std::endl;
-    cout << "loop size: "  << req_count << std::endl;
+        cout << "new_faces: size= "  << new_faces.shape()[0] << std::endl;
+        cout << "filled by old_faces: "  << old_faces.shape()[0] << std::endl;
+        cout << "expected new faces: "  << (new_faces.shape()[0] - old_faces.shape()[0]) << std::endl;
+        cout << "loop size: "  << req_count << std::endl;
+    }
 
 
     int nf_ctr = 0;
@@ -392,28 +408,36 @@ auto subdivide_multiple_facets_1to4 (
         new_faces[fi_originalface][0] = m12;
         new_faces[fi_originalface][1] = m01;
         new_faces[fi_originalface][2] = m20;
-        cout << "new_faces: updated the old face" << fi_originalface << "," <<  std::endl;
+        if (VERBOSE_SUBDIV) {
+            cout << "new_faces: updated the old face" << fi_originalface << "," <<  std::endl;
+        }
 
         new_faces[nfctr_total_index][0] = v0;
         new_faces[nfctr_total_index][1] = m20;
         new_faces[nfctr_total_index][2] = m01;
         ++nfctr_total_index;
         ++nf_ctr;
-        cout << "new_faces: added" << (nfctr_total_index-1) << " (a)," <<  std::endl;
+        if (VERBOSE_SUBDIV) {
+            cout << "new_faces: added" << (nfctr_total_index-1) << " (a)," <<  std::endl;
+        }
 
         new_faces[nfctr_total_index][0] = v1;
         new_faces[nfctr_total_index][1] = m01;
         new_faces[nfctr_total_index][2] = m12;
         ++nfctr_total_index;
         ++nf_ctr;
-        cout << "new_faces: added" << (nfctr_total_index-1) << " (b)," <<  std::endl;
+        if (VERBOSE_SUBDIV) {
+            cout << "new_faces: added" << (nfctr_total_index-1) << " (b)," <<  std::endl;
+        }
 
         new_faces[nfctr_total_index][0] = v2;
         new_faces[nfctr_total_index][1] = m12;
         new_faces[nfctr_total_index][2] = m20;
         ++nfctr_total_index;
         ++nf_ctr;
-        cout << "new_faces: added" << (nfctr_total_index-1) << " (c)." <<  std::endl;
+        if (VERBOSE_SUBDIV) {
+            cout << "new_faces: added" << (nfctr_total_index-1) << " (c)." <<  std::endl;
+        }
 
         /*
 
@@ -431,10 +455,14 @@ auto subdivide_multiple_facets_1to4 (
 
     }
 
-    cout << "nfctr_total_index=" << nfctr_total_index << "   exact_total_number_of_new_faces=" << exact_total_number_of_new_faces<<  std::endl;
+    if (VERBOSE_SUBDIV) {
+        cout << "nfctr_total_index=" << nfctr_total_index << "   exact_total_number_of_new_faces=" << exact_total_number_of_new_faces<<  std::endl;
+    }
     assert( nfctr_total_index == exact_total_number_of_new_faces);
 
-    cout << "-------------------- ============ " << new_vertices.shape()[0] << std::endl;
+    if (VERBOSE_SUBDIV) {
+        cout << "-------------------- ============ " << new_vertices.shape()[0] << std::endl;
+    }
 
     return std::make_tuple(new_vertices, new_faces, presubdivision_edges);
 }

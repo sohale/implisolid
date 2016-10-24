@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cmath>  // for isnan
+void m() {
+auto q = std::isnan(0);
+}
+
 inline REAL squared(REAL x) {
     return x*x;
 }
@@ -60,6 +65,10 @@ vectorized_vect  make_empty_x(const int nsize){
 
 bool invert_matrix(const REAL input_A[], REAL inverse_A[])
 {
+  using boost::numeric::ublas::permutation_matrix;
+  using boost::numeric::ublas::matrix;
+  using boost::numeric::ublas::identity_matrix;
+
 	typedef permutation_matrix<std::size_t> pmatrix;
 
   matrix<REAL> input(4,4);
@@ -203,6 +212,9 @@ void Cross_Vector_Product(const REAL vec1[], const REAL vec2[], REAL vec3[]){
 
 bool matrix_matrix_product(REAL m1[],const REAL m2[])
 {
+  using boost::numeric::ublas::permutation_matrix;
+  using boost::numeric::ublas::matrix;
+
 	typedef permutation_matrix<std::size_t> pmatrix;
 
   matrix<REAL> M1(4,4);
@@ -250,6 +262,8 @@ bool matrix_matrix_product(REAL m1[],const REAL m2[])
 
 
 void SVD__old(const vectorized_vect& A, vectorized_vect& u, vectorized_vect& s, vectorized_vect& v){
+
+  using boost::numeric::ublas::matrix;
 
   boost::numeric::ublas::matrix < REAL > QQL(3,3);
   boost::numeric::ublas::matrix < REAL > QQW(3,3);
@@ -407,7 +421,6 @@ inline bool is_bad_number(REAL x) {
 }
 
 
-
 /*
 template<typename T>
 std::vector<T> choose_random_subset(const std::vector<T>& array, int count) {
@@ -467,3 +480,40 @@ void chisle_random_subset(std::vector<T>& array, int count) {
     // cut away
     array.resize(std::distance(array.begin(), e));
 }
+
+
+namespace mp5_implicit {
+
+// namespace subdivision {
+
+template <typename T>
+bool bad_numbers_in_multi_array(const ::boost::multi_array<T, 2>& a) {
+    // static_assert();
+    for (auto j = a.begin(), e1 = a.end(); j != e1; ++j) {
+    for (auto i = j->begin(), e = j->end(); i != e; ++i) {
+        bool ok = ::std::isnan(*i) || ::std::isinf(*i) || (!::std::isfinite(*i));
+        if (!ok)
+            return false;
+    }}
+    return true;
+}
+
+
+bool sanity_check_verts(const vectorized_vect& a) {
+    bool ok = bad_numbers_in_multi_array(a);
+    return ok;
+}
+bool sanity_check_faces(const vectorized_faces& a) {
+    bool ok = true;
+    ok = ok &&
+        std::all_of( a.begin(), a.end(),
+            [](auto f123) {
+                return f123[0] >= 0 && f123[1] >= 0 && f123[2] >= 0;
+            }
+        );
+    // std::numeric_limits
+    // BB
+    return ok;
+}
+
+}  // namespace mp5_implicit

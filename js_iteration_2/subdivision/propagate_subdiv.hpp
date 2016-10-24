@@ -14,7 +14,8 @@
 namespace mp5_implicit {
 namespace subdivision {
 
-auto propagated_subdiv (
+
+auto propagate_subdiv (
     const vectorized_faces &faces,
     //const boost::multi_array<edge_pair_type, 1>& subdivided_edges_codes,  // list of pair tuples?
     const std::set<edge_pair_type>& requested_1side_edgecode_set
@@ -64,6 +65,17 @@ auto propagated_subdiv (
         }
     }
 
+    {
+        // combine 2 and 3
+        auto it = numsides.begin(),
+             e = numsides.end();
+        for (; it != e; ++it) {
+            if (*it == 3) {
+                *it = 2;
+            }
+        }
+    }
+
     boost::multi_array<edge_pair_type, 1>  edges_need_subdivision {boost::extents[total_edges]};
     {
         // Copy the edges into a flat array, those whole bool is true in edge_triplets_bool.
@@ -88,11 +100,10 @@ auto propagated_subdiv (
     int capacity = nfaces / 5;
     faces_subset.reserve(capacity);  // Use 75% median
 
-    typedef  boost::multi_array<faceindex_type, 1> faces_subset_type;
+    std::map<int, subdivision::faces_subset_type>  propag_dict;
 
-    std::map<int, faces_subset_type> propag_dict;
-
-    for (int c = 1; c <= 3; ++c ) {
+    // no need for 3!  Insrtead if 1,2,3 ---> 1, "2,3", i.e. 1,2.
+    for (int c = 1; c <= 2; ++c ) {
         // Reuse the vector for performance. Reset the size from the previous iteration.
         faces_subset.resize(0);
         for (faceindex_type fi = 0; fi < nfaces; ++fi) {
@@ -101,7 +112,7 @@ auto propagated_subdiv (
             }
         }
 
-        faces_subset_type   subset_rigid_size {boost::extents[faces_subset.size()]};
+        subdivision::faces_subset_type   subset_rigid_size {boost::extents[faces_subset.size()]};
         assert (subset_rigid_size.shape()[0] == faces_subset.size());
         std::copy(faces_subset.begin(), faces_subset.end(), subset_rigid_size.begin());
 

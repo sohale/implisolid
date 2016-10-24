@@ -51,6 +51,8 @@ auto testcase_triangle() {
 
 using mp5_implicit::encode_edge__sort;
 
+using mp5_implicit::subdivision::subdivide_1to2;
+
 TEST(Subdivision_1to2, a) {
     // subdivide_1to2();
 
@@ -459,7 +461,7 @@ TEST(propagate_subdiv_, trivial_example) {
         easy_edge(3, 4)
     };
 
-    auto r = mp5_implicit::subdivision::propagated_subdiv (
+    auto r = mp5_implicit::subdivision::propagate_subdiv (
         faces,
         requested_edges
         // midpoint_map  //we should not need this
@@ -467,30 +469,38 @@ TEST(propagate_subdiv_, trivial_example) {
 
 
 
-    #define reportsize(typenam) {std::cout << (#typenam) << ": " << sizeof((#typenam)) << "<" <<  (#typenam) << std::endl;}
-    std::cout << "Hello world" << std::endl;
+}
 
-    std::cout  << "(int): " << sizeof(int) << std::endl;
-    reportsize(unsigned char);
-    reportsize(int);
-    reportsize(short  int);
-    reportsize(unsigned int);
-    reportsize(long int);
-    reportsize(long);
-    reportsize(long long);
-    reportsize(char);
-    reportsize(unsigned char);
 
-    std::cout  << "(unsigned char): " << sizeof(unsigned char) << std::endl;
+#include "../subdivision/do_subdivision.hpp"
+#include "../object_factory.hpp"
 
-    /*
-int: 4
-short int: 10
-unsigned int: 13
-long int: 9
-long: 5
-long long: 10
-char: 5
-unsigned char: 14
-    */
+using mp5_implicit::subdivision::do_subdivision;
+
+TEST(full_subdivision, trivial_example) {
+
+    auto vf = testcase_triangle();
+    auto faces = vf.second;
+    auto verts = vf.first;
+
+    bool use_metaball;
+    //    std::string json = R"( {"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]})";
+    std::string json = R"({"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922})";
+    std::cout << json << std::endl;
+    implicit_function* implicit_func = object_factory(json, use_metaball, true);
+
+    REAL curvature_epsilon = 0.01;
+
+    auto fv2 = do_subdivision (
+        faces,
+        verts,
+        *implicit_func,
+        curvature_epsilon,
+        1.0  // randomized_probability = 1.0
+    );
+    auto f = std::get<0>(fv2);
+    auto v = std::get<1>(fv2);
+    cout << "new sizes: "<< f.shape()[0] << " " << v.shape()[0] << std::endl;
+
+    gc_objects();
 }

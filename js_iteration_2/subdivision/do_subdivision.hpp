@@ -1,3 +1,4 @@
+#pragma once
 
 #include <vector>
 #include <map>
@@ -5,17 +6,21 @@
 #include "../implicit_function/implicit_function.hpp"
 #include "../basic_functions.hpp"   // for chisle_random_subset only
 #include "subdiv_1to4.hpp"
+#include "propagate_subdiv.hpp"
 #include "compute_curvetures.hpp"
+#include "subdiv_1to2.hpp"
 
 using mp5_implicit::implicit_function;
+using mp5_implicit::bad_numbers_in_multi_array;
+using ::mp5_implicit::subdivision::propagate_subdiv;
+using ::mp5_implicit::subdivision::subdivide_1to2;
 
 namespace mp5_implicit {
-// namespace subdivision {
-
+namespace subdivision {
 
 // based on mp5-private/solidmodeler/implicit/ohtake_belyaev_5.py
 
-void do_subdivision (
+auto do_subdivision (
     const vectorized_faces & old_faces,
     const vectorized_vect & old_verts,
     const implicit_function& iobj,
@@ -23,6 +28,8 @@ void do_subdivision (
     REAL randomized_probability = 1.0
 ) {
     REAL  EXPECTED_SUBDIVISION_PERCENTAGE = 10.0;
+
+    assert(! bad_numbers_in_multi_array(old_verts));
 
     //check NaN in old_verts. Can fail.
     vectrorized_real  curvatures = ::mp5_implicit::subdivision::
@@ -87,47 +94,120 @@ void do_subdivision (
         which_facets_set.insert(*i);
     }
 
-    subdivision::midpointmap_type midpoint_map;
+    subdivision::midpointmap_type  midpoint_map;  // empty
+    assert(midpoint_map.size() == 0);
 
     // return std::make_tuple
-    // (new_vertices, new_faces, presubdivision_edges);
+    // (verts2, faces2, presubdivision_edges);
 
     auto tuple_ = subdivide_multiple_facets_1to4(old_faces, old_verts, which_facets_set, midpoint_map);
-    // verts2, facets2, presubdivision_edges = tuple;
+    // verts2, faces2, presubdivision_edges = tuple;
 
-    vectorized_vect new_vertices = std::get<0>(tuple_);
-    vectorized_faces new_faces = std::get<1>(tuple_);
-    boost::multi_array<edge_pair_type, 1>
-        presubdivision_edges = std::get<2>(tuple_);
+    // get<0> is not used!
+    vectorized_vect verts2 = std::move(std::get<0>(tuple_));
+
+    vectorized_faces faces2 = std::move(std::get<1>(tuple_));
+    //boost::multi_array<edge_pair_type, 1>
+    std::set<edge_pair_type>
+        presubdivision_edges;  // = std::get<2>(tuple_);
     // todo: presubdivision_edges is not assigned to.
+    auto & psde = std::get<2>(tuple_);
+    presubdivision_edges.insert(psde.begin(), psde.end());
+    std::move(std::get<2>(tuple_));
+
+    // todo: data-fate of this and the map
+    std::vector<edge_pair_type> list_edges_with_1_side(0);  // empty
+    assert(list_edges_with_1_side.size() == 0);
 
     while (true) {
 
-        // propag_dict, edges_which_in1 = propagated_subdiv(facets2, presubdivision_edges)
+        // propag_dict, edges_which_in1 = propagate_subdiv(faces2, presubdivision_edges)
 
+        /*
+        std::set<edge_pair_type>
+         //boost::multi_array<edge_pair_type, 1>   // ?
+           requested_1side_edgecode_set = presubdivision_edges;
+
+           // note: the definition of requested_1side_edgecode_set has changed since the Python version.
+        tuple_3= propagate_subdiv ( faces2, requested_1side_edgecode_set);  // why not requested_1side_edgecode_set
+        //*/
+        // tuple : propag_dict, edges_need_subdivision
+        //tuple(std::map<int, faces_subset_type>, boost::multi_array<edge_pair_type, 1>)
+
+        auto tuple_3 = propagate_subdiv ( faces2, presubdivision_edges);
+
+        // faceindices and edgeindices of leftover edges. The faceindices are categorized based on the number of sides.
+        // Maybe not all need to be separate.
+        // Future improvement: To avoid separating and joining them back we can have have an entry "2or3" and another entry "1", instead of key entried for "1", "2" & "3".
+
+        auto propag_dict = std::move(std::get<0>(tuple_3));
+        auto edges_which_in1 = std::move(std::get<1>(tuple_3)); // check what it is
+
+        //list_edges_with_1_side += [std::move(edges_which_in1)]
+        list_edges_with_1_side.insert(list_edges_with_1_side.end(), edges_which_in1.begin(), edges_which_in1.end());
+
+        if (propag_dict[2].shape()[0] == 0 && propag_dict[3].shape()[0] == 0) {
+            // nothing to propagate
+            break;
+        }
+
+        /*
+        subdivision::faces_subset_type
+            facets_with_2_or_3_sides = std::move(propag_dict[2]);
+        */
+        std::set<faceindex_type> facets_with_2_or_3_sides;
+        facets_with_2_or_3_sides.insert(propag_dict[2].begin(), propag_dict[2].end());
+
+        auto& p3 = propag_dict[3];
+        assert(p3.begin() == p3.end());
+        // facets_with_2_or_3_sides.insert(p3.begin(), p3.end());
+
+        auto tuple_2 = subdivide_multiple_facets_1to4 (
+            faces2,
+            verts2,
+            facets_with_2_or_3_sides,
+            midpoint_map);
+
+        // replace
+        // replace(verts2_, std::move(std::get<0>(tuple_2)));
+
+        // should we do a move on a ref (LVALUE reference) ?
+        auto& verts2_ = std::get<0>(tuple_2);
+        auto& faces2_ = std::get<1>(tuple_2);
+        auto& old_edges2 = std::get<2>(tuple_2); // std::move()
+        //replace them back
+        // faces2 = faces2_;
+        // verts2 = verts2_;
+        verts2.resize(boost::extents[verts2_.shape()[0]][verts2_.shape()[1]]);
+        verts2 = verts2_;
+        faces2.resize(boost::extents[faces2_.shape()[0]][faces2_.shape()[1]]);
+        faces2 = faces2_;
+
+        presubdivision_edges.insert(old_edges2.begin(), old_edges2.end());
         break;
-     }
+    }
+    // Now we are finished with the triangles with 2-3 sides.
+
+    //why not save THAT as vector? (see above)
+
+    std::set<edge_pair_type>  requested_1side_edgecode_set;
+    // edges_with_1_side_set
+    // requested_1side_edgecode_set
+
+    requested_1side_edgecode_set.insert(list_edges_with_1_side.begin(), list_edges_with_1_side.end());
+
+    auto facets2 = subdivide_1to2(faces2, requested_1side_edgecode_set, midpoint_map, true);
+
+    /*vectorized_faces subdivide_1to2(const vectorized_faces & faces,
+    const std::set<edge_pair_type>& requested_1side_edgecode_set,
+    const midpointmap_type& midpoint_map,
+    const edge_pair_type EdgecodeBase,
+    bool careful_for_twosides=true)
+    */
+
+    // return facets2;
+    return std::make_tuple(facets2, verts2);
 }
 
+}  // namespace subdivision
 }  // namespace mp5_implicit
-
-/*
-
--#include <iostream>
--
- int main() {
--    #define reportsize(typenam) {std::cout << #typenam << ": " << sizeof(#typenam) << std::endl;}
--    std::cout << "Hello world" << std::endl;
--
--    reportsize(int);
--    reportsize(short  int);
--    reportsize(unsigned int);
--    reportsize(long int);
--    reportsize(long);
--    reportsize(long long);
--    reportsize(char);
--    reportsize(unsigned char);
--
- }
-
-*/
