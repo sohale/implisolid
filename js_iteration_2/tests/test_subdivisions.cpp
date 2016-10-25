@@ -258,8 +258,8 @@ bool check_faces_equality (const vectorized_faces& faces1, const vectorized_face
 
 TEST(Subdivision_1to4, square) {
 
-    cout << "=============================" << std::endl;
-    cout << ">>>>>>>>>>>>>>>>>>>>>" << std::endl;
+    // cout << "=============================" << std::endl;
+    // cout << ">>>>>>>>>>>>>>>>>>>>>" << std::endl;
 
     auto vf = testcase_square();
     auto faces = vf.second;
@@ -287,8 +287,8 @@ TEST(Subdivision_1to4, square) {
 
     print_faces(std::get<1>(result), faces.shape()[0]-1);
 
-    cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    cout << "=============================" << std::endl;
+    //cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    //cout << "=============================" << std::endl;
 
 }
 
@@ -476,7 +476,9 @@ TEST(propagate_subdiv_, trivial_example) {
 #include "../object_factory.hpp"
 
 using mp5_implicit::subdivision::do_subdivision;
+using mp5_implicit::subdivision::subdivide_given_faces;
 
+/*
 TEST(full_subdivision, trivial_example) {
 
     auto vf = testcase_triangle();
@@ -503,4 +505,31 @@ TEST(full_subdivision, trivial_example) {
     cout << "new sizes: "<< f.shape()[0] << " " << v.shape()[0] << std::endl;
 
     gc_objects();
+}
+*/
+
+void test_no_subdivision() {
+
+}
+
+TEST(full_subdivision, specific_triangles) {
+
+    auto vf = testcase_triangle();
+    auto faces = vf.second;
+    auto verts = vf.first;
+
+    std::set<faceindex_type>  which_facets_set;
+    which_facets_set.insert(0);
+
+    auto fv2 = subdivide_given_faces (
+        faces,
+        verts,
+        which_facets_set
+    );
+    auto f2 = std::get<0>(fv2);
+    auto v2 = std::get<1>(fv2);
+    // cout << "new sizes: "<< f2.shape()[0] << " " << v2.shape()[0] << std::endl;
+    bool b = check_faces_equality(f2, faces);
+    EXPECT_TRUE(b);
+    // EXPECT_EQ(verts, v2);
 }

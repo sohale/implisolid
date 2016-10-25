@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "../anecdote.hpp"
 #include "../implicit_function/implicit_function.hpp"
 #include "../basic_functions.hpp"   // for chisle_random_subset only
 #include "subdiv_1to4.hpp"
@@ -15,84 +16,21 @@ using mp5_implicit::bad_numbers_in_multi_array;
 using ::mp5_implicit::subdivision::propagate_subdiv;
 using ::mp5_implicit::subdivision::subdivide_1to2;
 
+
 namespace mp5_implicit {
 namespace subdivision {
 
 // based on mp5-private/solidmodeler/implicit/ohtake_belyaev_5.py
 
-auto do_subdivision (
+
+auto subdivide_given_faces (
     const vectorized_faces & old_faces,
     const vectorized_vect & old_verts,
-    const implicit_function& iobj,
+    const std::set<faceindex_type>&  which_facets_set
+    /*const implicit_function& iobj,
     REAL curvature_epsilon,
-    REAL randomized_probability = 1.0
+    REAL randomized_probability = 1.0*/
 ) {
-    REAL  EXPECTED_SUBDIVISION_PERCENTAGE = 10.0;
-
-    assert(! bad_numbers_in_multi_array(old_verts));
-
-    //check NaN in old_verts. Can fail.
-    vectrorized_real  curvatures = ::mp5_implicit::subdivision::
-        compute_facets_subdivision_curvatures(old_faces, old_verts, iobj);
-    //check NaN in curvatures.
-    // Convert NaN into 0.0
-
-    /*
-    vectrorized_faceindex  which_facets = find_greater_than(curvatures);
-
-    std::transform(
-        curvatures.begin(), curvatures.end(),
-        which_facets.begin(), [](REAL curvature) { return curvature > curvature_epsilon;});
-    */
-    int expected_subdivisions = old_faces.shape()[0] * (EXPECTED_SUBDIVISION_PERCENTAGE) / 100.0;
-    std::vector<faceindex_type> which_facets(0);  // zero elements, non-zero capacity
-    which_facets.reserve(expected_subdivisions);
-
-    /*
-    std::transform(
-        curvatures.begin(), curvatures.end(),
-        std::back_inserter(name_sizes),
-        [](REAL& curvature) { if (curvature > curvature_epsilon) return &curvature-begin });
-    */
-    /*
-    for (faceindex_type fi = 0; fi < old_faces.shape()[0]; ++fi) {
-        if (curvature_epsilon[fi] > curvature_epsilon) {
-            which_facets.push_back(fi);
-        }
-    }
-    */
-    {
-        faceindex_type  fi = 0;
-        auto it = curvatures.begin(), e = curvatures.end();
-        for (; it != e; ++it, ++fi) {
-            if (*it > curvature_epsilon) {
-                which_facets.push_back(fi);
-            }
-        }
-        assert (fi == old_faces.shape()[0]);
-        assert (curvatures.shape()[0] == old_faces.shape()[0]);
-    }
-
-    if (randomized_probability < 1.0) {
-        assert(randomized_probability >= 0.0);
-        assert(randomized_probability <= 1.0);
-        int n0 = which_facets.size();
-        int m0 = static_cast<int>(std::ceil(randomized_probability * (REAL)n0 ));
-
-        chisle_random_subset(which_facets, m0);
-
-        /*
-        // choose_randomly()
-        // which_facets = choose_random_subset(which_facets, randomized_probability);
-        which_facets = choose_random_subset(which_facets, m0);
-        */
-    }
-
-    std::set<faceindex_type>  which_facets_set;
-    // which_facets_set.reserve(...);
-    for (auto i = which_facets.begin(); i != which_facets.end(); ++i) {
-        which_facets_set.insert(*i);
-    }
 
     subdivision::midpointmap_type  midpoint_map;  // empty
     assert(midpoint_map.size() == 0);
@@ -209,5 +147,102 @@ auto do_subdivision (
     return std::make_tuple(facets2, verts2);
 }
 
+
+
+auto do_subdivision (
+    const vectorized_faces & old_faces,
+    const vectorized_vect & old_verts,
+    const implicit_function& iobj,
+    REAL curvature_epsilon,
+    REAL randomized_probability = 1.0
+) {
+    REAL  EXPECTED_SUBDIVISION_PERCENTAGE = 10.0;
+
+    assert(! bad_numbers_in_multi_array(old_verts));
+
+    //check NaN in old_verts. Can fail.
+    vectrorized_real  curvatures = ::mp5_implicit::subdivision::
+        compute_facets_subdivision_curvatures(old_faces, old_verts, iobj);
+    //check NaN in curvatures.
+    // Convert NaN into 0.0
+
+
+    /*
+    vectrorized_faceindex  which_facets = find_greater_than(curvatures);
+
+    std::transform(
+        curvatures.begin(), curvatures.end(),
+        which_facets.begin(), [](REAL curvature) { return curvature > curvature_epsilon;});
+    */
+    int expected_subdivisions = old_faces.shape()[0] * (EXPECTED_SUBDIVISION_PERCENTAGE) / 100.0;
+    std::vector<faceindex_type> which_facets(0);  // zero elements, non-zero capacity
+    which_facets.reserve(expected_subdivisions);
+
+    /*
+    std::transform(
+        curvatures.begin(), curvatures.end(),
+        std::back_inserter(name_sizes),
+        [](REAL& curvature) { if (curvature > curvature_epsilon) return &curvature-begin });
+    */
+    /*
+    for (faceindex_type fi = 0; fi < old_faces.shape()[0]; ++fi) {
+        if (curvature_epsilon[fi] > curvature_epsilon) {
+            which_facets.push_back(fi);
+        }
+    }
+    */
+    {
+        faceindex_type  fi = 0;
+        auto it = curvatures.begin(), e = curvatures.end();
+        for (; it != e; ++it, ++fi) {
+            if (*it > curvature_epsilon) {
+                which_facets.push_back(fi);
+            }
+            cout << "  fi=" << fi << std::endl;
+        }
+        cout << fi << " == " << old_faces.shape()[0] << std::endl;
+        cout << "[] " << curvatures.shape()[0] << " == " << old_faces.shape()[0] << std::endl;
+        assert (fi == old_faces.shape()[0]);
+        assert (curvatures.shape()[0] == old_faces.shape()[0]);
+    }
+
+    if (randomized_probability < 1.0) {
+        assert(randomized_probability >= 0.0);
+        assert(randomized_probability <= 1.0);
+        int n0 = which_facets.size();
+        int m0 = static_cast<int>(std::ceil(randomized_probability * (REAL)n0 ));
+
+        chisle_random_subset(which_facets, m0);
+
+        /*
+        // choose_randomly()
+        // which_facets = choose_random_subset(which_facets, randomized_probability);
+        which_facets = choose_random_subset(which_facets, m0);
+        */
+    }
+
+    std::set<faceindex_type>  which_facets_set;
+    // which_facets_set.reserve(...);
+    for (auto i = which_facets.begin(); i != which_facets.end(); ++i) {
+        which_facets_set.insert(*i);
+    }
+    if (which_facets_set.size() == 0) {
+        anecdote("Number of subdivided triangles is zero. Nothing to do. \n");
+        anecdote_c(which_facets.begin(), which_facets.end());
+    }
+
+
+    anecdote("Going to subdivide the following face(s): ");
+    anecdote_c(which_facets_set.begin(), which_facets_set.end());
+    anecdote("\n");
+
+    return subdivide_given_faces (
+        old_faces,
+        old_verts,
+        which_facets_set
+    );
+}
+
 }  // namespace subdivision
 }  // namespace mp5_implicit
+
