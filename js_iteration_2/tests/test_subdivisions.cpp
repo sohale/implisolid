@@ -113,7 +113,7 @@ TEST(Subdivision_1to2, square) {
  * @param[in]  mark   index of the item that is highlighted. Useful for separating the last index of the original faces. Use -1 to avoid this demarcation.
  */
 void print_faces (const vectorized_faces& faces, int mark) {
-    cout << "#faces: " << faces.shape()[0] << std::endl;
+    cout << "count=" << faces.shape()[0] << std::endl;
     for (int i = 0; i < faces.shape()[0]; ++i ) {
         cout << i <<": ";
         for (int j=0; j < 3; ++j) {
@@ -225,6 +225,19 @@ boost::multi_array<long, 1> faces_indices(const vectorized_faces& faces) {
     return faces_idx;
 }
 
+template <typename V>
+void pf(V faces1) {
+    int ctr = 0;
+    for( auto i = faces1.begin(), e = faces1.end(); i!= e; ++i) {
+        cout << *i << " ";
+        if (ctr % 3 == 2) {
+            cout << " | ";
+        }
+        ctr++;
+    }
+    cout << std::endl;
+}
+
 bool check_faces_equality (const vectorized_faces& faces1, const vectorized_faces& faces2 ) {
     const bool verbose_about_mismatches = false;
     // auto cfaces = sort_faces(faces);
@@ -235,6 +248,15 @@ bool check_faces_equality (const vectorized_faces& faces1, const vectorized_face
     std::sort(faces_indices1.begin(), faces_indices1.end());
     std::sort(faces_indices2.begin(), faces_indices2.end());
 
+    cout << "faces1: ";
+    print_faces(faces1, -1);
+    cout << "faces2: ";
+    print_faces(faces2, -1);
+    cout << "faces_indices1: ";
+    pf(faces_indices1);
+    cout << "faces_indices2: ";
+    pf(faces_indices2);
+    cout << "; " << std::endl;
 
     //cout << "-.1-" << std::endl;
     bool ok = true;
@@ -250,6 +272,65 @@ bool check_faces_equality (const vectorized_faces& faces1, const vectorized_face
         if (verbose_about_mismatches) {
             if (!(faces_indices1[i] == faces_indices2[i])) {
                 cout << faces_indices1[i] << " != " << faces_indices2[i] << std::endl;
+            }
+        }
+    }
+    return ok;
+}
+
+std::vector<REAL> flatten_verts(const vectorized_vect& verts) {
+    std::vector<REAL> flat;
+    for (auto v3 : verts) {
+        // flat.insert(v3.begin(), v3.end());
+
+        flat.push_back(v3[0]);
+        flat.push_back(v3[1]);
+        flat.push_back(v3[2]);
+
+    }
+    assert(flat.size() == verts.shape()[0] * 3);
+    return flat;
+}
+
+
+template <typename V>
+void pv(V flat_verts1) {
+    int ctr = 0;
+    for( auto i = flat_verts1.begin(), e = flat_verts1.end(); i!= e; ++i) {
+        cout << *i;
+        ++ctr;
+        if (ctr % 3 != 0) {
+            cout << ",";
+        } else {
+            cout  << ";  ";
+        }
+    }
+    cout << std::endl;
+}
+
+
+
+bool check_verts_equality (const vectorized_vect& verts1, const vectorized_vect& verts2 ) {
+    const bool verbose_about_mismatches = true;
+    std::vector<REAL>  flat_verts1 = flatten_verts(verts1);
+    std::vector<REAL>  flat_verts2 = flatten_verts(verts2);
+
+    cout << "flat_verts1: ";
+    pv(flat_verts1);
+    cout << "flat_verts2: ";
+    pv(flat_verts2);
+    cout << "; " << std::endl;
+
+    bool ok = true;
+    ok = ok && verts1.shape()[0] == verts2.shape()[0];
+    ok = ok && verts1.shape()[1] == verts2.shape()[1];
+    ok = ok && flat_verts1.size() == flat_verts2.size();
+    int m = std::min(flat_verts1.size(), flat_verts2.size());
+    for (int i = 0; i < m; ++i ) {
+        ok = ok && (flat_verts1[i] == flat_verts2[i]);
+        if (verbose_about_mismatches) {
+            if (!(flat_verts1[i] == flat_verts2[i])) {
+                cout << flat_verts1[i] << " != " << flat_verts2[i] << std::endl;
             }
         }
     }
@@ -512,7 +593,22 @@ void test_no_subdivision() {
 
 }
 
-TEST(full_subdivision, specific_triangles) {
+TEST(full_subdivision, no_triangles) {
+    auto vf = testcase_triangle();
+    auto faces = vf.second;
+    auto verts = vf.first;
+
+    std::set<faceindex_type>  which_facets_set;
+
+    auto fv2 = subdivide_given_faces (faces, verts, which_facets_set);
+    auto f2 = std::get<0>(fv2);
+    auto v2 = std::get<1>(fv2);
+
+    EXPECT_TRUE(check_faces_equality(f2, faces)) << "Faces should not change after 0 subdivisions";
+    EXPECT_TRUE(check_verts_equality(v2, verts)) << "Vertices should not change after 0 subdivisions";
+}
+
+TEST(full_subdivision, one_triangle) {
 
     auto vf = testcase_triangle();
     auto faces = vf.second;
@@ -521,15 +617,17 @@ TEST(full_subdivision, specific_triangles) {
     std::set<faceindex_type>  which_facets_set;
     which_facets_set.insert(0);
 
-    auto fv2 = subdivide_given_faces (
-        faces,
-        verts,
-        which_facets_set
-    );
+    auto fv2 = subdivide_given_faces (faces, verts, which_facets_set);
     auto f2 = std::get<0>(fv2);
     auto v2 = std::get<1>(fv2);
-    // cout << "new sizes: "<< f2.shape()[0] << " " << v2.shape()[0] << std::endl;
-    bool b = check_faces_equality(f2, faces);
-    EXPECT_TRUE(b);
-    // EXPECT_EQ(verts, v2);
+
+    pv(flatten_verts(verts));
+    pv(flatten_verts(v2));
+
+    print_faces(faces, -1);
+    print_faces(f2, -1);
+    EXPECT_EQ(f2.shape()[0], 1+(4-1));
+    EXPECT_EQ(v2.shape()[0], 3+3);
+    // EXPECT_TRUE(check_faces_equality(f2, faces));
+    // EXPECT_TRUE(check_verts_equality(v2, verts));
 }
