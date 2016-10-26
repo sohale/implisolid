@@ -46,9 +46,9 @@ auto subdivide_given_faces (
 
     vectorized_faces faces2 = std::move(std::get<1>(tuple_));
 
-    //cout << "premature" << std::endl;
-    //return std::make_tuple(faces2, verts2);
-    //cout << "not premature" << std::endl;
+    cout << "premature" << std::endl;
+    return std::make_tuple(faces2, verts2);
+    cout << "not premature" << std::endl;
 
     //boost::multi_array<edge_pair_type, 1>
     std::set<edge_pair_type>

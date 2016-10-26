@@ -533,7 +533,7 @@ function provide_input (subjective_time, is_update_mode) {
             subdiv: {enabled: 1},
 
             debug: {
-                enabled_pointsets:1
+                enabled_pointsets:0
                 // only_rank
             },
 
@@ -867,8 +867,10 @@ function make_pointset(implisolid_, name, point_size, color_r, color_g, color_b)
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3 * point_count);
     */
     var point_count = implisolid_.get_pointset_size(name);
-    if (point_count == 0)
+    if (point_count == 0) {
         return make_empty_lines_mesh();
+    }
+
     var verts = get_emc_array(implisolid_.get_pointset_ptr(name), 3 * point_count );
     // console.error(verts);
 
@@ -932,6 +934,9 @@ function make_vectorfield_flow_lines_v1(implisolid_, name1, name2, point_size) {
     color_b = color_b !== undefined? color_b : 0.9;
     */
 
+    if (implisolid_.get_pointset_ptr(name1) == 0) {
+
+    }
     var verts1 = get_emc_array(implisolid_.get_pointset_ptr(name1)+120*3*4*0, 3 * implisolid_.get_pointset_size(name1) + 0  );
     var verts2 = get_emc_array(implisolid_.get_pointset_ptr(name2)+120*3*4*0, 3 * implisolid_.get_pointset_size(name2) + 0 );
 

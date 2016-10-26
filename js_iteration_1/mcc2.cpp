@@ -420,7 +420,43 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (mp5_impl
 
 
 
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_cube(REAL size) {
+    std::vector<REAL> verts = {
+        0,0,0, 1,0,0, 1,1,0, 0,1,0,
+        0,0,1, 1,0,1, 1,1,1, 0,1,1};
 
+    std::vector<vertexindex_type> faces = {
+        0,2,1, 0,3,2,
+        0,5,4, 0,1,5,
+        1,6,5, 1,2,6,
+        2,3,6, 6,3,7,
+        4,3,0, 4,7,3,
+        4,5,6, 4,6,7};
+
+    for (auto& v : verts) {
+        v -= 0.5;
+        v *= size;
+    }
+
+    return std::make_pair(verts, faces);
+}
+
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL size) {
+    std::vector<REAL> verts = {
+        0,0,0, 1,0,0, 1,1,0, 0,1,0
+    };
+
+    std::vector<vertexindex_type> faces = {
+        0,2,1, 0,3,2,
+    };
+
+    for (auto& v : verts) {
+        v -= 0.5;
+        v *= size;
+    }
+
+    return std::make_pair(verts, faces);
+}
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
@@ -449,10 +485,17 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     auto vertsfaces_pair = mc_start(object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
 
+    /*
+    TEST a SQUARE
+    //auto
+    vertsfaces_pair = make_a_square(10.0);
+    */
+
     // auto  _state.mc_result_verts = _state.mc -> result_verts;
     // auto  _state.mc_result_faces = _state.mc->result_faces;
     _state.mc_result_verts = std::move(vertsfaces_pair.first);
     _state.mc_result_faces = std::move(vertsfaces_pair.second);
+
 
 
     /*

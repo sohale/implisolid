@@ -53,6 +53,10 @@ using mp5_implicit::encode_edge__sort;
 
 using mp5_implicit::subdivision::subdivide_1to2;
 
+// #define uncommented false
+
+#ifdef uncommented
+
 TEST(Subdivision_1to2, a) {
     // subdivide_1to2();
 
@@ -104,7 +108,7 @@ TEST(Subdivision_1to2, square) {
     vectorized_faces result = subdivide_1to2(faces, edges_to_subdivide, midpoint_map, careful_for_twosides);
 }
 
-
+#endif
 
 
 
@@ -337,6 +341,8 @@ bool check_verts_equality (const vectorized_vect& verts1, const vectorized_vect&
     return ok;
 }
 
+#ifdef uncommented
+
 TEST(Subdivision_1to4, square) {
 
     // cout << "=============================" << std::endl;
@@ -393,6 +399,7 @@ TEST(Subdivision_Utils, test_check_faces_equality) {
 
 #define FACES_LITERAL(a, brackets) (f2f(std::vector<std::vector<vertexindex_type>> brackets))
 
+
 TEST(Subdivision_1to4, triangle) {
 
     cout << ">>>>>>>>>>>>>>>>>>>>>" << std::endl;
@@ -439,6 +446,7 @@ TEST(Subdivision_1to4, triangle) {
 
 
 }
+#endif
 
 /*
     Cannot make it a loop in C++. How do you update a multi_array?
@@ -589,6 +597,9 @@ TEST(full_subdivision, trivial_example) {
 }
 */
 
+
+#ifdef uncommented
+
 void test_no_subdivision() {
 
 }
@@ -628,6 +639,56 @@ TEST(full_subdivision, one_triangle) {
     print_faces(f2, -1);
     EXPECT_EQ(f2.shape()[0], 1+(4-1));
     EXPECT_EQ(v2.shape()[0], 3+3);
+    // EXPECT_TRUE(check_faces_equality(f2, faces));
+    // EXPECT_TRUE(check_verts_equality(v2, verts));
+}
+#endif
+
+
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL size) {
+    std::vector<REAL> verts = {
+        0,0,0, 1,0,0, 1,1,0, 0,1,0
+    };
+
+    std::vector<vertexindex_type> faces = {
+        0,2,1, 0,3,2,
+    };
+
+    for (auto& v : verts) {
+        v -= 0.5;
+        v *= size;
+    }
+
+    return std::make_pair(verts, faces);
+}
+
+TEST(subdivision_1to4, square) {
+
+    cout << "SQUARE******************" << std::endl;
+
+    auto vf = make_a_square(10.0);
+
+    auto verts = vects2vects(vf.first);
+    auto faces = copy_faces_from_vectorfaces(vf.second);
+    pv(flatten_verts(verts));
+    print_faces(faces, -1);
+    cout << "****************" << std::endl;
+
+
+    std::set<faceindex_type>  which_facets_set;
+    which_facets_set.insert(0);
+
+    auto fv2 = subdivide_given_faces (faces, verts, which_facets_set);
+    auto f2 = std::get<0>(fv2);
+    auto v2 = std::get<1>(fv2);
+
+    pv(flatten_verts(verts));
+    pv(flatten_verts(v2));
+
+    print_faces(faces, -1);
+    print_faces(f2, -1);
+    EXPECT_EQ(f2.shape()[0], 2-1+4);
+    EXPECT_EQ(v2.shape()[0], 4+3);
     // EXPECT_TRUE(check_faces_equality(f2, faces));
     // EXPECT_TRUE(check_verts_equality(v2, verts));
 }

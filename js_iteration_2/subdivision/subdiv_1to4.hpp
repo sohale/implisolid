@@ -107,7 +107,7 @@ auto subdivide_multiple_facets_1to4 (
     #if USE_PSDE
     /**
      *   third output.
-     *   Keeps a copy of e0,e1,e2
+     *   Keeps a copy of e01,e12,e20
      */
 
     // Why does it have two dimensions?
@@ -175,14 +175,14 @@ auto subdivide_multiple_facets_1to4 (
         original_vertexindices_used [fcounter][2] = v2;
         ++fcounter;
 
-        const edge_pair_type e0 = easy_edge(v0, v1);
-        const edge_pair_type e1 = easy_edge(v1, v2);
-        const edge_pair_type e2 = easy_edge(v2, v0);
+        const edge_pair_type e01 = easy_edge(v0, v1);
+        const edge_pair_type e12 = easy_edge(v1, v2);
+        const edge_pair_type e20 = easy_edge(v2, v0);
 
         // The three edges codes
-        edge_triplet_buffer[0] = e0;
-        edge_triplet_buffer[1] = e1;
-        edge_triplet_buffer[2] = e2;
+        edge_triplet_buffer[0] = e01;
+        edge_triplet_buffer[1] = e12;
+        edge_triplet_buffer[2] = e20;
 
         #if USE_PSDE
             presubdivision_edges[req_fcounter*3    ] = edge_triplet_buffer[0];
@@ -195,9 +195,9 @@ auto subdivide_multiple_facets_1to4 (
             }
 
             /*
-            presubdivision_edges[req_fcounter][0] = e0;
-            presubdivision_edges[req_fcounter][1] = e1;
-            presubdivision_edges[req_fcounter][2] = e2;
+            presubdivision_edges[req_fcounter][0] = e01;
+            presubdivision_edges[req_fcounter][1] = e12;
+            presubdivision_edges[req_fcounter][2] = e20;
             */
             // req_fcounter == presubdivision_edges_counter
             // ++presubdivision_edges_counter;
@@ -209,6 +209,7 @@ auto subdivide_multiple_facets_1to4 (
         // or, can be merged
         vertexindex_type newvtx_counter = new_verts_effective_total_size; // this keeps updated
 
+        // 01, 12, 20
         for (unsigned char vii = 0; vii < 3; ++vii) {
             if (VERBOSE_SUBDIV)
             cout << "edge_triplet_buffer[vii]=" << edge_triplet_buffer[vii] << " ";
@@ -229,6 +230,7 @@ auto subdivide_multiple_facets_1to4 (
                 actual_vertexindices_used [req_fcounter][vii] = midpoint_aslookedup;
 
             } else {
+
                 insert_which_verts [req_fcounter][vii] = true;
                 actual_vertexindices_used [req_fcounter][vii] = newvtx_counter;
                 //actual_vertexindices_used[requested_triangle_index][side]
@@ -237,7 +239,12 @@ auto subdivide_multiple_facets_1to4 (
                 midpoint_map [edge_triplet_buffer[vii]] = newvtx_counter;
 
                 //cout << " [*] ";
+                #if VERBOSE_SUBDIV
 
+                vector<std::string> namemap {"m01", "m12", "m20"};
+                cout << "Inserting edge edge_triplet_buffer[" << static_cast<int>(vii) << "]  " <<
+                   "into map[" << edge_triplet_buffer[vii] << "] = vertex " <<newvtx_counter << " : " << namemap[vii] << std::endl;
+                #endif
                 ++newvtx_counter;  // idx_counter
             }
 
@@ -289,9 +296,9 @@ auto subdivide_multiple_facets_1to4 (
     Eigen::Matrix<REAL, NEW_VERT_COUNT3, 3> new_vert_maker;
     const REAL H_ = 0.5, F_ = 1.0, O_ = 0.0;
     // new_vert_maker << H_,H_,O_,  O_,H_,H_,  H_,O_,H_;  // simple assignment
-    new_vert_maker << H_,H_,O_,  O_,H_,H_,  H_,O_,H_;  // simple assignment
+    new_vert_maker << H_,O_,H_,  H_,H_,O_,  O_,H_,H_;  // simple assignment
     //  new_vert_maker = new_vert_maker.transpose();
-    //new_vert_maker << F_,O_,O_,  O_,F_,O_,  O_,O_,F_;  // simple assignment
+    // new_vert_maker << F_,O_,O_,  O_,F_,O_,  O_,O_,F_;  // simple assignment
     v3x3 triangle_vertices;
     //triangle_vertices << ;
     // new_vert_maker * triangle_vertices
@@ -414,6 +421,11 @@ auto subdivide_multiple_facets_1to4 (
         auto m12 = actual_vertexindices_used[req_fii][1];
         auto m20 = actual_vertexindices_used[req_fii][2];
 
+        #if VERBOSE_SUBDIV
+            cout << "v0, v1, v2: " << v0 << "," << v1 << "," << v2 << std::endl;
+            cout << "m01, m12, m20: " << m01 << "," << m12 << "," << m20 << std::endl;
+        #endif
+
         assert(v0 < old_verts_count);
         assert(v1 < old_verts_count);
         assert(v2 < old_verts_count);
@@ -424,15 +436,15 @@ auto subdivide_multiple_facets_1to4 (
 
         // old_faces:
         new_faces[fi_originalface][0] = m12;
-        new_faces[fi_originalface][1] = m01;
-        new_faces[fi_originalface][2] = m20;
+        new_faces[fi_originalface][1] = m20;
+        new_faces[fi_originalface][2] = m01;
         if (VERBOSE_SUBDIV) {
             cout << "new_faces: updated the old face" << fi_originalface << "," <<  std::endl;
         }
 
         new_faces[nfctr_total_index][0] = v0;
-        new_faces[nfctr_total_index][1] = m20;
-        new_faces[nfctr_total_index][2] = m01;
+        new_faces[nfctr_total_index][1] = m01;
+        new_faces[nfctr_total_index][2] = m20;
         ++nfctr_total_index;
         ++nf_ctr;
         if (VERBOSE_SUBDIV) {
@@ -440,8 +452,8 @@ auto subdivide_multiple_facets_1to4 (
         }
 
         new_faces[nfctr_total_index][0] = v1;
-        new_faces[nfctr_total_index][1] = m01;
-        new_faces[nfctr_total_index][2] = m12;
+        new_faces[nfctr_total_index][1] = m12;
+        new_faces[nfctr_total_index][2] = m01;
         ++nfctr_total_index;
         ++nf_ctr;
         if (VERBOSE_SUBDIV) {
@@ -449,8 +461,8 @@ auto subdivide_multiple_facets_1to4 (
         }
 
         new_faces[nfctr_total_index][0] = v2;
-        new_faces[nfctr_total_index][1] = m12;
-        new_faces[nfctr_total_index][2] = m20;
+        new_faces[nfctr_total_index][1] = m20;
+        new_faces[nfctr_total_index][2] = m12;
         ++nfctr_total_index;
         ++nf_ctr;
         if (VERBOSE_SUBDIV) {

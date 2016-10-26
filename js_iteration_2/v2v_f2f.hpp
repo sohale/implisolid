@@ -75,6 +75,9 @@ void set_vectorfaces_from_vectorised_faces(
     }
 }
 
+
+//todo: rename copy_faces_from_vectorfaces() and pair with vects2vects()
+
 // converts std::vector<> into boost::multi_array<>
 boost::multi_array<vertexindex_type, 2> copy_faces_from_vectorfaces(
     const std::vector<vertexindex_type> & mesh_faces

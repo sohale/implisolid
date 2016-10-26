@@ -1347,7 +1347,7 @@ void my_subdiv_(
 
     cout << "now randomizing" << std::endl;
 
-    randomize_verts(verts, 0.00);
+    // randomize_verts(verts, 0.00);
 
     cout << "convertings back" << std::endl;
 
