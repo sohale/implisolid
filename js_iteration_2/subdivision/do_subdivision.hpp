@@ -45,13 +45,19 @@ auto subdivide_given_faces (
     vectorized_vect verts2 = std::move(std::get<0>(tuple_));
 
     vectorized_faces faces2 = std::move(std::get<1>(tuple_));
+
+    //cout << "premature" << std::endl;
+    //return std::make_tuple(faces2, verts2);
+    //cout << "not premature" << std::endl;
+
     //boost::multi_array<edge_pair_type, 1>
     std::set<edge_pair_type>
         presubdivision_edges;  // = std::get<2>(tuple_);
     // todo: presubdivision_edges is not assigned to.
     auto & psde = std::get<2>(tuple_);
     presubdivision_edges.insert(psde.begin(), psde.end());
-    std::move(std::get<2>(tuple_));
+    std::move(std::get<2>(tuple_));  // does nothing
+
 
     // todo: data-fate of this and the map
     std::vector<edge_pair_type> list_edges_with_1_side(0);  // empty
@@ -134,7 +140,7 @@ auto subdivide_given_faces (
 
     requested_1side_edgecode_set.insert(list_edges_with_1_side.begin(), list_edges_with_1_side.end());
 
-    auto facets2 = subdivide_1to2(faces2, requested_1side_edgecode_set, midpoint_map, true);
+    auto facets3 = subdivide_1to2(faces2, requested_1side_edgecode_set, midpoint_map, true);
 
     /*vectorized_faces subdivide_1to2(const vectorized_faces & faces,
     const std::set<edge_pair_type>& requested_1side_edgecode_set,
@@ -143,8 +149,8 @@ auto subdivide_given_faces (
     bool careful_for_twosides=true)
     */
 
-    // return facets2;
-    return std::make_tuple(facets2, verts2);
+    // return facets3;
+    return std::make_tuple(facets3, verts2);
 }
 
 

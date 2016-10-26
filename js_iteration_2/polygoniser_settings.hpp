@@ -2,6 +2,8 @@
 
 namespace mp5_implicit{
 
+namespace prtree = boost::property_tree;
+
 /* Holds all MC information that is transferred through json. Separate from the shape json (i.e. the MP5 Json). */
 struct mc_settings {
     mp5_implicit::bounding_box box;
@@ -18,8 +20,63 @@ struct mc_settings {
         // projection of centroids, not vertices
         bool enabled;
     } projection;  // cproj
+    struct {
+        bool enabled;
+    } subdiv;
 };
 
+}
+
+/**
+ * @brief      Reads a bool from a json. If can tolerate integers as bool.
+ * Without this function, using <bool>, it must be true/false, otherwise, it will fail.
+ *
+ * @param[in]  mcparams_dict    The json dictionary
+ * @param[in]  fieldname        The fieldname, e.g. "qem.enabled"
+ * @param[in]  default_value    The default value, e.g. false
+ * @param      needs_abort      The needs abort. A bool which is set to true if we cannot continue and an exception should be raised or the program abort()ed.
+ * @param[in]  forbidden_names  The forbidden field names, the firlds that are likely to be mistaken with our fiel, or the deprecated field.
+ *
+ * @return     { a bool }
+ */
+bool read_bool_from_json(
+    const prtree::ptree& mcparams_dict,
+    std::string fieldname,
+    bool default_value,
+    bool *needs_abort,
+    std::vector<std::string> forbidden_names
+        = std::vector<std::string>()  //
+) {
+    // default is false. dont use boolean in Json for *.enabled
+
+    // todo: interpret as <bool>
+    // This goes to the default when I use "false" or "true"?
+    int MAGICAL_NUMBER_DEFAULT = -1;
+    int field_int = mcparams_dict.get<int>(fieldname, MAGICAL_NUMBER_DEFAULT);
+    if (VERBOSE)
+        clog << "json: " << fieldname << " : " << field_int << std::endl;
+
+    bool fieldval = !!field_int;
+
+    // If you write 'false' or 'true' it is an error, in both cases it will be false.
+    // to handle the default cases seaprately. "true", "false" in Json both mean error.
+    if (field_int == MAGICAL_NUMBER_DEFAULT) {
+        fieldval = default_value;
+        if (VERBOSE) {
+            clog << "Value not specified: " << fieldname << " : Using " << fieldval << std::endl;
+        }
+    }
+
+    // Used for correcting invalide bool numbers. Now we just use int.
+    for (std::string  invalid_name : forbidden_names) {
+        int MAGICALNUMBER = 9123456;
+        // Check if the wrong spelling is used.
+        if(mcparams_dict.get<int>(invalid_name, MAGICALNUMBER) != MAGICALNUMBER) {
+            std::cerr << "Error: Use "<< fieldname << " instead of using" << invalid_name << ". Aborting! " << std::endl;
+            *needs_abort = true;
+        }
+    }
+    return fieldval;
 }
 
 /*void print_mc_settings() {
@@ -30,17 +87,16 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     std::stringstream mc_json_stream;
     mc_json_stream << mc_parameters_json;
 
-    namespace pt = boost::property_tree;
-    pt::ptree mcparams_dict;
+    prtree::ptree mcparams_dict;
 
 
     bool needs_abort = false;
 
     // MC settings:
 
-    // TODO(charles): find an alternativ to catch exceptions pt::json_parser::json_parser_error pt::ptree_bad_path
+    // TODO(charles): find an alternativ to catch exceptions prtree::json_parser::json_parser_error prtree::ptree_bad_path
     // try{
-    pt::read_json(mc_json_stream, mcparams_dict);
+    prtree::read_json(mc_json_stream, mcparams_dict);
 
     REAL xmin = mcparams_dict.get<REAL>("box.xmin", NaN);
     REAL xmax = mcparams_dict.get<REAL>("box.xmax", NaN);
@@ -73,13 +129,13 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     // std::clog << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " " << resolution << " " << std::endl;
 
 
-    /*}catch(pt::json_parser::json_parser_error parse_exception){
+    /*}catch(prtree::json_parser::json_parser_error parse_exception){
         std::clog << "parse_exception"<< std::endl ;
 
-    }catch(pt::ptree_bad_data bad_data_exception){
+    }catch(prtree::ptree_bad_data bad_data_exception){
         std::clog << "bad_data_exception"<< std::endl ;
 
-    }catch(pt::ptree_bad_path bad_path_exception){1
+    }catch(prtree::ptree_bad_path bad_path_exception){1
         std::clog << "bad_path_exception" << std::endl ;
 
     }catch(...){
@@ -106,30 +162,54 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 
     // handling the default cases is frustrating. Also it's very difficult to use bool and int.
 
+    /*
     // default is false. dont use boolean in Json for *.enabled
     int qem_enabled_int = mcparams_dict.get<int>("qem.enabled", -1);
     if (VERBOSE)
         clog << "json: qem.enabled : " << qem_enabled_int << std::endl;
     bool qem_enabled = !!qem_enabled_int;
-    if (qem_enabled_int == -1)   // If you write 'false' or 'true' it is an error, in both cases it will be false.
+    if (qem_enabled_int == -1) {   // If you write 'false' or 'true' it is an error, in both cases it will be false.
         qem_enabled = false;
-    // todo: interpret as <bool>
-    int projection_enabled_int = mcparams_dict.get<int>("projection.enabled", -1);  // Why this goes to the default when I use "false" or "true"?
-    if (VERBOSE)
-        clog << "projection_enabled : " << projection_enabled_int << std::endl;
-    bool projection_enabled = !!projection_enabled_int;
-    if (projection_enabled_int == -1)  // to handle the default cases seaprately. "true", "false" in Json both mean error.
-        projection_enabled = false;
+    }
+    */
 
+    bool projection_enabled = read_bool_from_json(mcparams_dict, "projection.enabled", false, &needs_abort, std::vector<std::string>{"projection.enable"});
+    bool qem_enabled = read_bool_from_json(mcparams_dict, "qem.enabled", false, &needs_abort, std::vector<std::string>{"qem.enable"});
+
+    // Used for correcting invalide bool numbers. Now we just use int.
+
+    /*
+    int MAGICALNUMBER = 9123456;
     // Check if the wrong spelling is used.
-    if(mcparams_dict.get<int>("projection.enable", 9123456) != 9123456) {
+    if(mcparams_dict.get<int>("projection.enable", MAGICALNUMBER) != MAGICALNUMBER) {
         std::cerr << "Error: Use projection.enabled instead of use projection.enable" << std::endl;
         needs_abort = true;
     }
-    if(mcparams_dict.get<int>("qem.enable", 9123456) != 9123456) {
+    if(mcparams_dict.get<int>("qem.enable", MAGICALNUMBER) != MAGICALNUMBER) {
         std::cerr << "Error: Use qem.enabled instead of use qem.enable" << std::endl;
         needs_abort = true;
     }
+    */
+
+    bool subdiv_enabled = read_bool_from_json(mcparams_dict, "subdiv.enabled", false, &needs_abort, std::vector<std::string>{"subdiv.enable"});
+
+    /*
+    // todo: make this a macro
+    // todo: interpret as <bool>
+    int subdiv_enabled_int = mcparams_dict.get<int>("projection.enabled", -1);  // Why this goes to the default when I use "false" or "true"?
+    if (VERBOSE)
+        clog << "subdiv_enabled : " << subdiv_enabled_int << std::endl;
+    bool subdiv_enabled = !!subdiv_enabled_int;
+    if (subdiv_enabled_int == -1) {
+        subdiv_enabled = false;
+    }
+    if(mcparams_dict.get<int>("subdiv.enabled", MAGICALNUMBER) != MAGICALNUMBER) {
+        std::cerr << "Error: Use subdiv.enabled instead of use subdiv.enable" << std::endl;
+        needs_abort = true;
+    }
+    */
+
+
 
     if (needs_abort) {
         abort();
@@ -150,6 +230,8 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     if (mc_settings_from_json.qem.enabled && !mc_settings_from_json.projection.enabled) {
         std::clog << "Warning: QEM will not be applied if centroid projection is disabled" << std::endl;
     }
+
+    mc_settings_from_json.subdiv.enabled = subdiv_enabled;
 
     // Shape settings
 

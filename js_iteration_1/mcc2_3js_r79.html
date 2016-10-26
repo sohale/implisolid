@@ -522,9 +522,15 @@ function provide_input (subjective_time, is_update_mode) {
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
+            /*
             vresampl: {iters: 3, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
+            */
+            vresampl: {iters: 0, c: 1.0},
+            projection: {enabled: 0},
+            qem: {enabled: 0},
+            subdiv: {enabled: 1},
 
             debug: {
                 enabled_pointsets:1
@@ -814,6 +820,7 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
     return geom;
 }
 
+// todo: should work with point_count==0
 function get_emc_array(verts_address, point_count) {
     // var verts_address = implisolid_.get_pointset_ptr(name);
     // var point_count = implisolid_.get_pointset_size(name);
@@ -823,10 +830,9 @@ function get_emc_array(verts_address, point_count) {
     // console.error(float_array);
 
     if (point_count == 0) {
-        console.warn("Error: zero points", n);
-        return make_empty_lines_mesh();
+        console.warn("Error: zero points", point_count);
+        //return // null; // make_empty_lines_mesh();
     }
-
 
     return float_array;
 }
@@ -861,6 +867,8 @@ function make_pointset(implisolid_, name, point_size, color_r, color_g, color_b)
     var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3 * point_count);
     */
     var point_count = implisolid_.get_pointset_size(name);
+    if (point_count == 0)
+        return make_empty_lines_mesh();
     var verts = get_emc_array(implisolid_.get_pointset_ptr(name), 3 * point_count );
     // console.error(verts);
 
@@ -1135,6 +1143,9 @@ function visualise_normals(implisolid_, shape_json, pointset_label, alpha1, alph
 
     // todo: refactor
     var n = implisolid_.get_pointset_size(pointset_label);
+    if (n == 0) {
+        return make_empty_lines_mesh();
+    }
     var verts = get_emc_array(implisolid_.get_pointset_ptr(pointset_label),
         n * 3 );
 
@@ -1502,7 +1513,9 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
     var alpha1 = -0.3, alpha2 = -0.6;
     var norms_ = visualise_normals(implisolid_, shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
-    scene.add(norms_);
+    if (norms_) {
+        scene.add(norms_);
+    }
     global_normals = norms_;
 
 

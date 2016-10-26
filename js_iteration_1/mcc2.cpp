@@ -350,6 +350,9 @@ state_t _state;
 // std::map< std::string, vectorized_vect > point_set_set;
 
 void* get_pointset_ptr(char* id) {
+    if (point_set_set.find(std::string(id)) == point_set_set.end()) {
+        return static_cast<void*>(0);  // Javascript interface mess
+    }
     void* p = point_set_set[std::string(id)].origin();
     return p;
 }
@@ -480,6 +483,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         clog << "vresamp_iters: " << vresamp_iters << std::endl;
         clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
         clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
+        clog << ".subdiv.enabled: " << mc_settings_from_json.subdiv.enabled << std::endl;
     }
 
 
@@ -508,16 +512,26 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
         if (mc_settings_from_json.projection.enabled) {
             std::clog << "centroids_projection:" << std::endl;
-            // Dn't send mc_settings_from_json as an argument
+            // Never send mc_settings_from_json as an argument
             centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
-
-            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces);
-            std::clog << "outisde my_subdiv_." << std::endl;
 
             timr.report_and_continue("centroids_projection");
         } else {
             // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
         }
+
+
+        if (mc_settings_from_json.subdiv.enabled) {
+            std::clog << "Subdivision:" << std::endl;
+
+            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces);
+            std::clog << "outisde my_subdiv_." << std::endl;
+
+            timr.report_and_continue("subdivisions");
+        } else {
+            std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
+        }
+
 
         /*
         if (STORE_POINTSETS) {

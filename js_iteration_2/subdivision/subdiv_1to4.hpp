@@ -287,8 +287,11 @@ auto subdivide_multiple_facets_1to4 (
     typedef Eigen::Matrix<REAL, 3, 1> vector3d;
     typedef Eigen::Matrix<REAL, 3, 3> v3x3;
     Eigen::Matrix<REAL, NEW_VERT_COUNT3, 3> new_vert_maker;
-    const REAL H_ = 0.5, _F = 1.0, O_ = 0.0;
+    const REAL H_ = 0.5, F_ = 1.0, O_ = 0.0;
+    // new_vert_maker << H_,H_,O_,  O_,H_,H_,  H_,O_,H_;  // simple assignment
     new_vert_maker << H_,H_,O_,  O_,H_,H_,  H_,O_,H_;  // simple assignment
+    //  new_vert_maker = new_vert_maker.transpose();
+    //new_vert_maker << F_,O_,O_,  O_,F_,O_,  O_,O_,F_;  // simple assignment
     v3x3 triangle_vertices;
     //triangle_vertices << ;
     // new_vert_maker * triangle_vertices
@@ -312,19 +315,22 @@ auto subdivide_multiple_facets_1to4 (
             old_verts[v0][0], old_verts[v1][0], old_verts[v2][0],
             old_verts[v0][1], old_verts[v1][1], old_verts[v2][1],
             old_verts[v0][2], old_verts[v1][2], old_verts[v2][2];
+        // triangle_vertices = triangle_vertices.transpose();
 
         // not all will be used:
         //boost::multi_array<REAL, 2>
         //    new_3_midpoint_vertices {boost::extents[3][3]};
         // new_3_midpoint_vertices  // new_midpoints
         //    new_3_midpoint_vertices;
-        v3x3 new_3_midpoint_vertices = new_vert_maker * triangle_vertices;
+        // v3x3 new_3_midpoint_vertices = new_vert_maker * triangle_vertices;
+        v3x3 new_3_midpoint_vertices = triangle_vertices * new_vert_maker;
 
         for (unsigned char vii = 0; vii < 3; ++vii) {
             if (insert_which_verts[req_fii][vii]) {
-                new_vertices[nvctr_total][0] = new_3_midpoint_vertices(vii, 0);
-                new_vertices[nvctr_total][1] = new_3_midpoint_vertices(vii, 1);
-                new_vertices[nvctr_total][2] = new_3_midpoint_vertices(vii, 2);
+                // bug fixed.
+                new_vertices[nvctr_total][0] = new_3_midpoint_vertices(0, vii);
+                new_vertices[nvctr_total][1] = new_3_midpoint_vertices(1, vii);
+                new_vertices[nvctr_total][2] = new_3_midpoint_vertices(2, vii);
 
                 ++nvctr_total;
                 ++nv_ctr;
@@ -389,6 +395,10 @@ auto subdivide_multiple_facets_1to4 (
     }
 
 
+    #if ASSERT_USED
+        const int old_verts_count = old_verts.shape()[0];
+    #endif
+
     int nf_ctr = 0;
     int nfctr_total_index = old_faces.shape()[0];  // global (total) index
     for (int req_fii = 0; req_fii < req_count ; ++req_fii) {  // request index
@@ -403,6 +413,14 @@ auto subdivide_multiple_facets_1to4 (
         auto m01 = actual_vertexindices_used[req_fii][0];
         auto m12 = actual_vertexindices_used[req_fii][1];
         auto m20 = actual_vertexindices_used[req_fii][2];
+
+        assert(v0 < old_verts_count);
+        assert(v1 < old_verts_count);
+        assert(v2 < old_verts_count);
+
+        assert(m01 >= old_verts_count);
+        assert(m12 >= old_verts_count);
+        assert(m20 >= old_verts_count);
 
         // old_faces:
         new_faces[fi_originalface][0] = m12;
@@ -464,5 +482,6 @@ auto subdivide_multiple_facets_1to4 (
         cout << "-------------------- ============ " << new_vertices.shape()[0] << std::endl;
     }
 
+    // new_faces.resize(boost::extents[old_faces.shape()[0]][3]);
     return std::make_tuple(new_vertices, new_faces, presubdivision_edges);
 }
