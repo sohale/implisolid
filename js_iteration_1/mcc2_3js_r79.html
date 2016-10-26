@@ -527,14 +527,15 @@ function provide_input (subjective_time, is_update_mode) {
             projection: {enabled: 1},
             qem: {enabled: 1},
             */
-            vresampl: {iters: 0, c: 1.0},
-            projection: {enabled: 0},
-            qem: {enabled: 0},
+            vresampl: {iters: 1, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
             subdiv: {enabled: 1},
 
             debug: {
-                enabled_pointsets:0
+                enabled_pointsets: 0,
                 // only_rank
+                post_subdiv_noise: 0.1,
             },
 
 

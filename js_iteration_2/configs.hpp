@@ -93,8 +93,8 @@ extern const bool VERBOSE = false;
 constexpr bool VERBOSE_QEM = false;
 // constexpr bool VERBOSE_SUBDIV = true;
 
-#define VERBOSE_SUBDIV true
-// false
+#define VERBOSE_SUBDIV false
+
 
 #if ASSERT_USED
 

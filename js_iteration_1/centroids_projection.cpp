@@ -1311,7 +1311,8 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
 void my_subdiv_(
         std::vector<REAL>& given_verts,
-        std::vector<vertexindex_type>& given_faces
+        std::vector<vertexindex_type>& given_faces,
+        REAL post_subdiv_noise
     ) {
     //todo: vector_to_multi_array(given_verts);
     //todo: vector_to_multi_array(given_faces);
@@ -1347,7 +1348,7 @@ void my_subdiv_(
 
     cout << "now randomizing" << std::endl;
 
-    // randomize_verts(verts, 0.00);
+    randomize_verts(verts, post_subdiv_noise);
 
     cout << "convertings back" << std::endl;
 

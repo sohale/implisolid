@@ -23,6 +23,14 @@ struct mc_settings {
     struct {
         bool enabled;
     } subdiv;
+
+
+    struct {
+        // not used:
+        // bool enabled_pointsets
+        REAL post_subdiv_noise;
+    } debug;
+
 };
 
 }
@@ -49,7 +57,7 @@ bool read_bool_from_json(
 ) {
     // default is false. dont use boolean in Json for *.enabled
 
-    // todo: interpret as <bool>
+    // todo: Also try to interpret as <bool> to begin with.
     // This goes to the default when I use "false" or "true"?
     int MAGICAL_NUMBER_DEFAULT = -1;
     int field_int = mcparams_dict.get<int>(fieldname, MAGICAL_NUMBER_DEFAULT);
@@ -191,7 +199,12 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
     }
     */
 
-    bool subdiv_enabled = read_bool_from_json(mcparams_dict, "subdiv.enabled", false, &needs_abort, std::vector<std::string>{"subdiv.enable"});
+
+    bool subdiv_enabled = read_bool_from_json(mcparams_dict,
+        "subdiv.enabled",
+        true,
+        &needs_abort, std::vector<std::string>{"subdiv.enable"}
+    );
 
     /*
     // todo: make this a macro
@@ -208,12 +221,6 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
         needs_abort = true;
     }
     */
-
-
-
-    if (needs_abort) {
-        abort();
-    }
 
 
     mp5_implicit::mc_settings  mc_settings_from_json;  // settings
@@ -233,9 +240,19 @@ mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_jso
 
     mc_settings_from_json.subdiv.enabled = subdiv_enabled;
 
+    REAL DEFAULT_SURFACE_NOISE = 0.01;
+    mc_settings_from_json.debug.post_subdiv_noise = mcparams_dict.get<REAL>("debug.post_subdiv_noise", DEFAULT_SURFACE_NOISE);
+    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
+
+
     // Shape settings
 
     mc_settings_from_json.ignore_root_matrix = mcparams_dict.get<bool>("ignore_root_matrix", false);
+
+    if (needs_abort) {
+        abort();
+    }
+
 
     return mc_settings_from_json;
 }

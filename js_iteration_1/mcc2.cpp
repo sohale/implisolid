@@ -567,7 +567,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         if (mc_settings_from_json.subdiv.enabled) {
             std::clog << "Subdivision:" << std::endl;
 
-            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces);
+            cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
+            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
+                mc_settings_from_json.debug.post_subdiv_noise);
             std::clog << "outisde my_subdiv_." << std::endl;
 
             timr.report_and_continue("subdivisions");
