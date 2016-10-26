@@ -567,9 +567,24 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         if (mc_settings_from_json.subdiv.enabled) {
             std::clog << "Subdivision:" << std::endl;
 
+            // Incorrect logic:
+            REAL scale_noise_according_to_matrix = 1.0 * 10.0;
+            if (ignore_root_matrix) {
+                scale_noise_according_to_matrix *= 1.0 / 10.0;
+            } else {
+                scale_noise_according_to_matrix *= 1.0;
+            }
+
+            // For a realistic noise:
+            // get_actual_matrix (even if ignored, dont ignore this one)
+            // invert-it
+
+            // Better logic: pass this as an argument:
+            // object->get_noise_generator(matrix, ignore);
+
             cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
             my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
-                mc_settings_from_json.debug.post_subdiv_noise);
+                mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix);
             std::clog << "outisde my_subdiv_." << std::endl;
 
             timr.report_and_continue("subdivisions");
@@ -877,8 +892,8 @@ bool set_x(void* verts, int n) {
         std::clog << "Error: You set() before unset()ing the previous set()." << std::endl;
         return false;
     }
-    if( n < 0 || n >= 10000) {
-        std::clog << "Error: n is outside [0, 10000]." << std::endl;
+    if( n < 0 || n >= 10000 * 5) {
+        std::clog << "Error: n is outside [0, 50000]." << std::endl;
         return false;
     }
 
