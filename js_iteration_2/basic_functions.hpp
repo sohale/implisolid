@@ -516,4 +516,12 @@ bool sanity_check_faces(const vectorized_faces& a) {
     return ok;
 }
 
+void randomize_verts(vectorized_vect & verts, REAL amplitude) {
+    for (auto i = verts.begin(), e = verts.end(); i != e; ++i) {
+        for (auto j = i->begin(), e = i->end(); j != e; ++j) {
+            (*j) += (static_cast<REAL>(rand())/static_cast<REAL>(RAND_MAX) - 0.5) * amplitude ;
+        }
+    }
+}
+
 }  // namespace mp5_implicit

@@ -471,8 +471,8 @@ function provide_input (subjective_time, is_update_mode) {
         // Select the object to display
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
-        var mp5_json = MOON;         const BB_SIZE = 9+9;
-        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        // var mp5_json = MOON;         const BB_SIZE = 9+9;
+        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
@@ -518,7 +518,7 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2/2*2 ),
+            resolution: Math.floor(28/2*2/2*2 /4 ),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 

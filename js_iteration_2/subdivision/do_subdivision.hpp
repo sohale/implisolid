@@ -148,7 +148,17 @@ auto subdivide_given_faces (
 }
 
 
-
+/**
+ * @brief      { subdivide the triangles that have large curvature. }
+ *
+ * @param[in]  old_faces               The given faces
+ * @param[in]  old_verts               The given vertexes
+ * @param[in]  iobj                    The iobj
+ * @param[in]  curvature_epsilon       The curvature threshold
+ * @param[in]  randomized_probability  1.0 => subdivide all, 0.5=> subdivide half, randomly select.
+ *
+ * @return     { tuple(facets, verts) }
+ */
 auto do_subdivision (
     const vectorized_faces & old_faces,
     const vectorized_vect & old_verts,
@@ -242,6 +252,10 @@ auto do_subdivision (
         which_facets_set
     );
 }
+
+/*
+ * Theorem: a face is never subdivided more than once. A face in the original mesh, if it is subdivided, the resulting faces are never subdivided.
+ */
 
 }  // namespace subdivision
 }  // namespace mp5_implicit

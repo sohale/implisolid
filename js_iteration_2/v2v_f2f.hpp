@@ -53,6 +53,7 @@ void set_vectorverts_from_vectorised_verts(
     std::vector<REAL>& result_verts,
     const vectorized_vect & verts
 ) {
+    result_verts.resize(verts.shape()[0] * 3);
     auto n = verts.shape()[0];
     for (int i=0; i < n; i++) {
         result_verts[i*3+0] = verts[i][0];
@@ -61,6 +62,18 @@ void set_vectorverts_from_vectorised_verts(
     }
 }
 
+void set_vectorfaces_from_vectorised_faces(
+    std::vector<vertexindex_type>& result_faces,
+    const vectorized_faces & faces
+) {
+    result_faces.resize(faces.shape()[0] * 3);
+    auto n = faces.shape()[0];
+    for (int i=0; i < n; i++) {
+        result_faces[i*3+0] = faces[i][0];
+        result_faces[i*3+1] = faces[i][1];
+        result_faces[i*3+2] = faces[i][2];
+    }
+}
 
 // converts std::vector<> into boost::multi_array<>
 boost::multi_array<vertexindex_type, 2> copy_faces_from_vectorfaces(

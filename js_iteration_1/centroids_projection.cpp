@@ -59,6 +59,8 @@ using mp5_implicit::check_all_are_root;
 
 #include "../js_iteration_2/v2v_f2f.hpp"
 
+#include "../js_iteration_2/subdivision/do_subdivision.hpp"
+
 
 using namespace std;
 
@@ -1213,16 +1215,13 @@ void  set_centers_on_surface(
 
 // #include "v2v_f2f.hpp"
 
-
 // rename: project_points_on_surface. (output_points)
 void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<vertexindex_type>& mesh_faces, bool enable_qem) {
 
     // clog << "mesh_faces.size():" << mesh_faces.size() << std::endl;
 
     vectorized_vect  verts = vects2vects(result_verts);
-
-
-    boost::multi_array<vertexindex_type, 2> faces = copy_faces_from_vectorfaces(mesh_faces);
+    vectorized_faces  faces = copy_faces_from_vectorfaces(mesh_faces);
 
     REAL average_edge;
     average_edge = compute_average_edge_length(faces,  verts);
@@ -1262,6 +1261,8 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     compute_centroid_gradient(centroids, centroid_gradients, object);
 
+    // fine_tune_mesh(verts);
+
     /* ***********************
     QEM
     ************************ */
@@ -1300,8 +1301,68 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     } else {
         std::clog << "QEM skipped because you asked for it." << std::endl;
+        // todo(Sohail): Check whether we always update the verts (and faces) even if QEM is desabled.
+
+        // should we??
+        // set_vectorverts_from_vectorised_verts(result_verts, verts);
     }
+}
+
+
+void my_subdiv_(
+        std::vector<REAL>& given_verts,
+        std::vector<vertexindex_type>& given_faces
+    ) {
+    //todo: vector_to_multi_array(given_verts);
+    //todo: vector_to_multi_array(given_faces);
+    vectorized_vect  verts = vects2vects(given_verts);
+    vectorized_faces  faces = copy_faces_from_vectorfaces(given_faces);
+
+    cout << "given_verts.size" << given_verts.size()/3 << std::endl;
+    cout << "given_faces.size" << given_faces.size()/3 << std::endl;
+
+
+    // do_subdivision()
+    std::set<faceindex_type>  which_facets_set;
+    // which_facets_set.insert(0);
+    for (int i = 0; i < faces.shape()[0]; ++i) {
+        which_facets_set.insert(i);
+    }
+
+    auto fv2 = ::mp5_implicit::subdivision::subdivide_given_faces (faces, verts, which_facets_set);
+
+
+    cout << "done" << std::endl;
+    auto& f = std::get<0>(fv2);
+    cout << "f.size" << f.shape()[0] << std::endl;
+
+    faces.resize(boost::extents[f.shape()[0]][f.shape()[1]]);
+    faces = f;
+
+    // TODO(Sohail): Too much copying (moving data).
+    auto& v = std::get<1>(fv2);
+    cout << "v.size" << v.shape()[0] << std::endl;
+    verts.resize(boost::extents[v.shape()[0]][v.shape()[1]]);
+    verts = v;
+
+    cout << "now randomizing" << std::endl;
+
+    randomize_verts(verts, 0.3);
+
+    cout << "convertings back" << std::endl;
+
+    /* todo(Sohail): unify the types. vector<> and multi_array. remove the former, or only-once in this function.
+     * Why is it called mesh_faces?
+    */
+    set_vectorverts_from_vectorised_verts(given_verts, verts);
+    // mesh_faces = copy_faces_from_vectorfaces(faces);
+    set_vectorfaces_from_vectorised_faces(given_faces, faces);
+
+    cout << "V:" << given_verts.size()/3 << " , F:" << given_faces.size()/3 << std::endl;
+    cout << "subdiv done" << std::endl;
 
 }
 
 }  // namespace
+
+

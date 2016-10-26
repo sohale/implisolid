@@ -466,9 +466,9 @@ vectorized_faces  subdivide_1to2 (const vectorized_faces & faces,
         ++newface_ctr;
     }
 
-    cout << "NOK " << newfaces.shape()[0] << " " <<  VERBOSE_SUBDIV << std::endl;
+    // cout << "NOK " << newfaces.shape()[0] << " " <<  VERBOSE_SUBDIV << std::endl;
     #if VERBOSE_SUBDIV
-    cout << "OK" << std::endl;
+    // cout << "OK" << std::endl;
     for (int i = 0; i < newfaces.shape()[0]; ++i )
     {
         cout << i <<": ";

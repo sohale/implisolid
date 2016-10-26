@@ -510,6 +510,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             std::clog << "centroids_projection:" << std::endl;
             // Dn't send mc_settings_from_json as an argument
             centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
+
+            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces);
+            std::clog << "outisde my_subdiv_." << std::endl;
+
             timr.report_and_continue("centroids_projection");
         } else {
             // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
