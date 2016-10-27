@@ -2,6 +2,7 @@
 
 cd $(git rev-parse --show-toplevel)
 cd ./js_iteration_1/
+mkdir -p ../build
 
 # python ~/install/styleguide/cpplint/cpplint.py  --linelength=1200  centroids_projection.cpp 2>lint.txt
 
@@ -80,7 +81,7 @@ then
             -s ABORTING_MALLOC=0 \
             -pedantic -std=c++14  \
         mcc2.cpp  \
-            -o  mcc2.compiled.js
+            -o  ../build/mcc2.compiled.js
     echo "Producing human readable LLVM ... "
     llvm-dis mcc2.bc -o mcc2.ll && rm mcc2.bc # transform to human-readable form and delete bytecode file.
     exit 0
@@ -102,7 +103,7 @@ then
         -s DEMANGLE_SUPPORT=1 \
          -s ASSERTIONS=1 \
         -pedantic -std=c++14 \
-        mcc2.cpp -o mcc2.compiled.js
+        mcc2.cpp -o ../build/mcc2.compiled.js
 #        --profiling \
     exit 0
 fi
@@ -129,7 +130,7 @@ then
         -s DEMANGLE_SUPPORT=1 \
         -pedantic -std=c++14  \
     mcc2.cpp  \
-        -o  mcc2.compiled.js
+        -o  ../build/mcc2.compiled.js
     exit 0
 fi
 
