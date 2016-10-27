@@ -1,0 +1,15 @@
+# for now dont update the js files inside implisolid/
+implisolid/**/*.js
+implisolid/**/*.js.mem
+
+implisolid/CMakeCache.txt
+implisolid/CMakeFiles/
+implisolid/Makefile
+implisolid/cmake_install.cmake
+implisolid/dist/
+implisolid/lib/eigen/
+implisolid/pymplicit.egg-info/
+
+implisolid/build/
+
+implisolid/build/**/*
