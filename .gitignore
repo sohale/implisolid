@@ -10,6 +10,7 @@ implisolid/dist/
 implisolid/lib/eigen/
 implisolid/pymplicit.egg-info/
 
-implisolid/build/
-
-implisolid/build/**/*
+#compiled files.
+#implisolid/build/
+#implisolid/build/**/*
+#implisolid/build/*
