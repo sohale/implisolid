@@ -85,7 +85,7 @@ for (int z = 0; z < 5; z++ ) {
 
 object->eval_implicit(grid, &implicit_values);
 
-ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/js_iteration_1/tests/comparison_implicit_func.txt");
+ofstream f_out("/home/solene/Desktop/mp5-private/implisolid/js_iteration_1/tests/comparison_implicit_func.txt");
 
 f_out << "Implicit_function in cpp :" << endl;
 for (int i=0; i<125.; i++){

@@ -20,7 +20,7 @@ using ::mp5_implicit::subdivision::subdivide_1to2;
 namespace mp5_implicit {
 namespace subdivision {
 
-// based on mp5-private/solidmodeler/implicit/ohtake_belyaev_5.py
+// based on mp5-private/implisolid/implicit/ohtake_belyaev_5.py
 
 
 auto subdivide_given_faces (

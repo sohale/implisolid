@@ -132,7 +132,7 @@ for (int z = 0; z < 5; z++ ) {
 object->eval_implicit(grid, &implicit_values);
 
 
-ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/js_iteration_2/tests/implicit_values.txt");
+ofstream f_out("/home/solene/Desktop/mp5-private/implisolid/js_iteration_2/tests/implicit_values.txt");
 
 for (int i=0; i<125.; i++){
     f_out << implicit_values[i];

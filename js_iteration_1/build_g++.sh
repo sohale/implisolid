@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd $(git rev-parse --show-toplevel)
-cd solidmodeler/js_iteration_1/
+cd ./js_iteration_1/
 
 # python ~/install/styleguide/cpplint/cpplint.py  --linelength=1200  centroids_projection.cpp 2>lint.txt
 

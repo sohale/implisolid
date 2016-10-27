@@ -43,6 +43,6 @@ ls ${GOOGLETEST_ROOT}/build/googlemock/gtest/libgtest.a
 #                           your_test.cpp ${GOOGLETEST_ROOT}/build/googlemock/gtest/libgtest.a -o your_test.js
 
 #Then go to the following folder
-#      /mp5-private/solidmodeler/js_iteration_2/tests$
+#      /mp5-private/implisolid/js_iteration_2/tests$
 # and run:
 #      bash build_tests.sh timer_test.cpp

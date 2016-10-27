@@ -266,7 +266,7 @@ void apply_vertex_resampling_to_MC_buffers_vVV2(
     // bool writing_test_file = false;
     if (writing_test_file) {
 
-        writing_test_file_("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt",  result_verts, result_faces, new_verts, centroids );
+        writing_test_file_("/home/solene/Desktop/mp5-private/implisolid/clean_code/data_algo_cpp.txt",  result_verts, result_faces, new_verts, centroids );
 
     } else {
         replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
@@ -319,7 +319,7 @@ void apply_vertex_resampling_to_MC_buffers__VMS(
 
           replace_vectorverts_from_vectorized_vect(result_verts, new_verts);
 
-          ofstream f_out = debug_part_1("/home/solene/Desktop/mp5-private/solidmodeler/clean_code/data_algo_cpp.txt", copy_of_verts_before_relaxation);
+          ofstream f_out = debug_part_1("/home/solene/Desktop/mp5-private/implisolid/clean_code/data_algo_cpp.txt", copy_of_verts_before_relaxation);
           debug_part_2(f_out, result_verts, result_faces, centroids);
     }
 

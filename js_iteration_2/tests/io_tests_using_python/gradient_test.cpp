@@ -135,7 +135,7 @@ object->eval_implicit(grid, &implicit_values);
 
 object->eval_gradient(grid, &gradou_values);
 
-ofstream f_out("/home/solene/Desktop/mp5-private/solidmodeler/js_iteration_2/tests/gradou_values.txt");
+ofstream f_out("/home/solene/Desktop/mp5-private/implisolid/js_iteration_2/tests/gradou_values.txt");
 
 f_out << "Gradient_function in cpp :" << endl;
 for (int i=0; i<125.; i++){

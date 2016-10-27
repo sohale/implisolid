@@ -187,7 +187,7 @@ def make_grid(iobj, rng, old=None, return_xyz=False):
 
     vgrid_v = iobj.implicitFunction(xyz_nparray)
 
-    f_out = open("/home/solene/Desktop/mp5-private/solidmodeler/js_iteration_1/tests/value_implicit_function_python.txt", "w")
+    f_out = open("/home/solene/Desktop/mp5-private/implisolid/js_iteration_1/tests/value_implicit_function_python.txt", "w")
     f_out.write("Implicit values :" + '\n')
     for i in range(vgrid_v.shape[0]):
         f_out.write(str(vgrid_v[i]) + '\n')
