@@ -24,7 +24,7 @@ em++ \
     -s DEMANGLE_SUPPORT=1 \
     -pedantic -std=c++14  \
 mcc2.cpp  \
-    -o  mcc2.compiled.js
+    -o  ../build/mcc2.compiled.js
 exit 0
 
 
