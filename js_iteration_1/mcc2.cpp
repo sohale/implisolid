@@ -517,6 +517,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
         int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
+        // disable hard-coded
         bool apply_projection = true;
         // float c = 1.;
         REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
@@ -542,7 +543,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
                 timr.report_and_continue("vertex resampling");
             }
-            break;
+            // break;
 
             if (apply_projection) {
                 /*
@@ -566,20 +567,22 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
                 }
 
-
+                bool is_last = overall_iter == overall_repeats-1;
                 if (mc_settings_from_json.subdiv.enabled
                     &&
-                    (overall_repeats <= 1 || overall_iter < overall_repeats-1 )  // Skip the last one if overall_repeats > 1
+                    (overall_repeats <= 1 || is_last )  // Skip the last one if overall_repeats > 1
                     ) {
                     std::clog << "Subdivision:" << std::endl;
 
                     // Incorrect logic:
                     REAL scale_noise_according_to_matrix = 1.0 * 10.0;
+                    /*
                     if (ignore_root_matrix) {
                         scale_noise_according_to_matrix *= 1.0 / 10.0;
                     } else {
                         scale_noise_according_to_matrix *= 1.0;
                     }
+                    */
 
                     // For a realistic noise:
                     // get_actual_matrix (even if ignored, dont ignore this one)
@@ -588,9 +591,18 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     // Better logic: pass this as an argument:
                     // object->get_noise_generator(matrix, ignore);
 
-                    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
+                    REAL actual_noise = mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix;
+                    if (!is_last) {
+                        actual_noise = 0;
+                        std::clog << "noise skipped." << std::endl;
+                    } else {
+                        std::clog << "noise applied." << std::endl;
+                    }
+
+                    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise
+                        << "  actual noise: " << actual_noise << std::endl;
                     my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
-                        mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix);
+                        actual_noise);
                     std::clog << "outisde my_subdiv_." << std::endl;
 
                     timr.report_and_continue("subdivisions");
