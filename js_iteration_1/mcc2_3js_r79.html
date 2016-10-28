@@ -384,6 +384,8 @@ function setShapeMatrix2Eye(shape_matrix, sz) {
 
     var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]}}';
 
+
+    var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","displayColor":{"x":0.7,"y":0.7,"z":0.7},"matrix":[8,0,0,0,0,8,0,0,0,0,8,0,0,0,0,1],"index":9185154}]}}';
 </script>
 <script>
     'use strict';
@@ -452,7 +454,7 @@ function provide_input (subjective_time, is_update_mode) {
         var mp5_json_sphere_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
         mp5_json_sphere_dict.root.children=[sphere_dict];
         var SPHERE = JSON.stringify(mp5_json_sphere_dict);
-        console.log(SPHERE);
+        // console.log(SPHERE);
 
         var tetrahedron_dict = {
             type: "tetrahedron",
@@ -468,15 +470,16 @@ function provide_input (subjective_time, is_update_mode) {
         var TETRAHEDRON = JSON.stringify(mp5_json_tetrahedron_dict);
 
 
+
         // Select the object to display
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
-        var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
+        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
-        console.log(shape_dict);
 
         if(is_update_mode == 0) {
             var sz = 1.;
@@ -511,6 +514,7 @@ function provide_input (subjective_time, is_update_mode) {
         mp5_json = JSON.stringify(shape_dict);
 
         global_mp5 = mp5_json;
+        console.log(mp5_json);
 
 
 
@@ -518,7 +522,7 @@ function provide_input (subjective_time, is_update_mode) {
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2/2*2 /4 ),
+            resolution: Math.floor(28/2*2/2*2 /4*4 /2 ),
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
 
@@ -527,15 +531,16 @@ function provide_input (subjective_time, is_update_mode) {
             projection: {enabled: 1},
             qem: {enabled: 1},
             */
-            vresampl: {iters: 1, c: 1.0},
+            vresampl: {iters: 0, c: 0.1},
             projection: {enabled: 1},
             qem: {enabled: 1},
-            subdiv: {enabled: 1},
+            subdiv: {enabled: 0},
+            overall_repeats: 1,
 
             debug: {
                 enabled_pointsets: 0,
                 // only_rank
-                post_subdiv_noise: 0.1,
+                post_subdiv_noise: 0.0,
             },
 
 
@@ -1416,7 +1421,7 @@ var chosen_matrial;
 const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
 
-const PERSPECTIVE = true;
+const PERSPECTIVE = false;
 
 function init_scene(implisolid_, shape_json, polygonization_json) {
 

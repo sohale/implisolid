@@ -468,7 +468,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // std::clog << "Mc_params : " << mc_parameters_json << endl;
     // std::clog << "shape_json : " << shape_parameters_json << endl;
 
-    mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+    const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
 
     std::string shape_parameters_json_str = std::string(shape_parameters_json);
     bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
@@ -516,91 +516,98 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
-    int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
-    bool apply_projection = true;
-    // float c = 1.;
-    REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
+        int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
+        bool apply_projection = true;
+        // float c = 1.;
+        REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
-    if (VERBOSE) {
-        clog << "vresampl.c: " << c << std::endl;
-        clog << "vresamp_iters: " << vresamp_iters << std::endl;
-        clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
-        clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
-        clog << ".subdiv.enabled: " << mc_settings_from_json.subdiv.enabled << std::endl;
-    }
-
-
-    timer timr;
-    timr.report_and_continue("timer started.");
-
-    for (int i=0; i < vresamp_iters; i++) {
-        timer t1;
-        // result_verts is modified
-        apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
-        t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
-        timr.report_and_continue("vertex resampling");
-    }
-
-    if (apply_projection) {
-        /*
-        if (STORE_POINTSETS)
-        {
-            vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
-            STORE_POINTSET("pre_p_centroid", v);
-        }
-        if (STORE_POINTSETS) {
-            STORE_POINTSET("pre_p_verts", v);
-        }
-        */
-
-        if (mc_settings_from_json.projection.enabled) {
-            std::clog << "centroids_projection:" << std::endl;
-            // Never send mc_settings_from_json as an argument
-            centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
-
-            timr.report_and_continue("centroids_projection");
-        } else {
-            // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
+        if (VERBOSE) {
+            clog << "vresampl.c: " << c << std::endl;
+            clog << "vresamp_iters: " << vresamp_iters << std::endl;
+            clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
+            clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
+            clog << ".subdiv.enabled: " << mc_settings_from_json.subdiv.enabled << std::endl;
         }
 
 
-        if (mc_settings_from_json.subdiv.enabled) {
-            std::clog << "Subdivision:" << std::endl;
+        timer timr;
+        timr.report_and_continue("timer started.");
 
-            // Incorrect logic:
-            REAL scale_noise_according_to_matrix = 1.0 * 10.0;
-            if (ignore_root_matrix) {
-                scale_noise_according_to_matrix *= 1.0 / 10.0;
-            } else {
-                scale_noise_according_to_matrix *= 1.0;
+        int overall_repeats = mc_settings_from_json.overall_repeats;
+        for (int overall_iter = 0; overall_iter < overall_repeats; ++overall_iter) {
+            for (int i=0; i < vresamp_iters; i++) {
+                timer t1;
+                // result_verts is modified
+                apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
+                t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
+                timr.report_and_continue("vertex resampling");
             }
+            break;
 
-            // For a realistic noise:
-            // get_actual_matrix (even if ignored, dont ignore this one)
-            // invert-it
+            if (apply_projection) {
+                /*
+                if (STORE_POINTSETS)
+                {
+                    vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
+                    STORE_POINTSET("pre_p_centroid", v);
+                }
+                if (STORE_POINTSETS) {
+                    STORE_POINTSET("pre_p_verts", v);
+                }
+                */
 
-            // Better logic: pass this as an argument:
-            // object->get_noise_generator(matrix, ignore);
+                if (mc_settings_from_json.projection.enabled) {
+                    std::clog << "centroids_projection:" << std::endl;
+                    // Never send mc_settings_from_json as an argument
+                    centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
 
-            cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
-            my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
-                mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix);
-            std::clog << "outisde my_subdiv_." << std::endl;
-
-            timr.report_and_continue("subdivisions");
-        } else {
-            std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
-        }
+                    timr.report_and_continue("centroids_projection");
+                } else {
+                    // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
+                }
 
 
-        /*
-        if (STORE_POINTSETS) {
-            vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
-            STORE_POINTSET("post_p_centroids", v);
-        }
-        */
-    }
-    }
+                if (mc_settings_from_json.subdiv.enabled
+                    &&
+                    (overall_repeats <= 1 || overall_iter < overall_repeats-1 )  // Skip the last one if overall_repeats > 1
+                    ) {
+                    std::clog << "Subdivision:" << std::endl;
+
+                    // Incorrect logic:
+                    REAL scale_noise_according_to_matrix = 1.0 * 10.0;
+                    if (ignore_root_matrix) {
+                        scale_noise_according_to_matrix *= 1.0 / 10.0;
+                    } else {
+                        scale_noise_according_to_matrix *= 1.0;
+                    }
+
+                    // For a realistic noise:
+                    // get_actual_matrix (even if ignored, dont ignore this one)
+                    // invert-it
+
+                    // Better logic: pass this as an argument:
+                    // object->get_noise_generator(matrix, ignore);
+
+                    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise << std::endl;
+                    my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
+                        mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix);
+                    std::clog << "outisde my_subdiv_." << std::endl;
+
+                    timr.report_and_continue("subdivisions");
+                } else {
+                    std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
+                }
+
+
+                /*
+                if (STORE_POINTSETS) {
+                    vectorized_vect v = convert_vectorverts_to_vectorized_vect( _state.mc_result_verts);
+                    STORE_POINTSET("post_p_centroids", v);
+                }
+                */
+            }  // if (apply_projection)
+        }  // for (overall_iter)
+    }  // if (!DISABLE_POSTPROCESSING)
 
     /*
     // int REPEATS = 2;

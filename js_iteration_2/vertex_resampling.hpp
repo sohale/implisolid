@@ -72,7 +72,7 @@ inline REAL kij(int i, int j, const vectorized_vect& centroids, const vectorized
   if (pipj == 0){
     return 0;
   }
-  REAL kij = REAL(std::acos(REAL(mimj)))/pipj;
+  REAL kij = std::acos(mimj) / pipj;
   return kij;
 }
 
@@ -98,7 +98,7 @@ void vertex_resampling_VV1(
         const vectorized_vect& centroid_normals_normalized,
         const float c
     ) {
-    clog << "VV1" << std::endl;
+    clog << "VV1: c=" << c << std::endl;
     // exit(1);
     int nfaces = centroids.shape()[0];
 
@@ -181,10 +181,10 @@ void process2_vertex_resampling_relaxation_v1(
 
     compute_centroids(faces, verts, centroids);
 
-    boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
-    vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
+    // boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
+    vectorized_vect  centroid_normals_normalized(boost::extents[nfaces][3]);
 
-    // compute_centroid_gradient(centroids, centroid_normals_normalized, object);
+    compute_centroid_gradient(centroids, centroid_normals_normalized, object);
     object->eval_gradient(centroids, &centroid_normals_normalized);
     vectorised_algorithms::normalize_1111(centroid_normals_normalized);
 
