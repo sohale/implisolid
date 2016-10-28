@@ -1,7 +1,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include "js_iteration_1/mcc2.cpp"
+#include "../js_iteration_1/mcc2.cpp"
 #include <string>
 #include <array>
 #include <iostream>
