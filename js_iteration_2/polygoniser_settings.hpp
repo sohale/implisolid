@@ -16,7 +16,7 @@ struct mc_settings {
         REAL c;
     } vresampl;
     struct {
-        bool enabled = true;
+        bool enabled;
     } qem;
     struct {
         // projection of centroids, not vertices
