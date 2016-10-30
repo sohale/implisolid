@@ -1,1 +1,3 @@
 *.out
+Ipopt/*.out
+Ipopt/*.o
