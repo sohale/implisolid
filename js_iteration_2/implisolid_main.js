@@ -149,6 +149,126 @@ function init(service) {
 }
 
 
+
+
+/*
+Function: query_implicit_values(shape_str, points, reduce_callback)
+Evaluates the points **points** in the implicit function. The function is specified as a mp5-fragment (json) string **shape_str**.
+The values are not directly returned. Instead, a callback is used to prepare a value.
+The reason a callback is used is that the resources need to be freed.
+
+Returned value:
+The value returned us the value returned by the callback reduce_callback.
+In examples below, the return value is:
+- Example1: returns Float32Array of implicit values in the following usage.
+- Example2: returns   true for collision, false for no collision,
+
+Example 1:
+    var my_shape = mainModel.root.sons[#nr]
+    var verts_array = new Float32Array([x1,y1,z1, x2,y2,z2, ..., xn,yn,zn])
+    var implicit_vals = query_implicit_values(my_shape, points,  // false
+        reduce_callback = function (values_tarray) {
+            // here we create a view on the HEAP from position
+            // ( ptr / _FLOAT_SIZE ) to position (ptr / _FLOAT_SIZE + ptr_len)
+            var result = new Float32Array(values_tarray);  // clones (makes a copy of) data
+            return result;
+        });
+Example 2:
+    var my_shape = mainModel.root.sons[#nr]
+    var verts_array = new Float32Array([x1,y1,z1, x2,y2,z2, ..., xn,yn,zn])
+    var has_positive_vals = query_implicit_values(my_shape, verts_array,  // true
+        function (values_tarray) {
+            var found_positive_val = false;
+            for (var i=0; i< values_tarray.length; i++)
+            {
+                if (values_tarray[i] >= - CONFIG.collision_detection.epsilon)
+                {
+                    found_positive_val = true;
+                    break;
+                }
+            }
+            var result =  found_positive_val;
+            return result;
+        });
+
+
+Implementation Details:
+
+1. We do not have direct access to C++ objects from Javascript, so we call the next functions
+    set_object:     sets the object specified by mp5_str as the current object for any calculation to follow until it gets freed by unset_object
+    set_x:          does something similar but for the input x .
+
+2. There is a repeating pattern taking place:
+    JS asks for C++ pointers, and the pointers' data is accessed using HEAPF32(start, end)
+
+3. Don't forget to Module._free() andter Module._alloc().
+
+*/
+
+function _query_implicit_values(mp5_str, points, reduce_callback)
+{
+    assert(points instanceof Float32Array);                   /* simple check */
+    assert(typeof reduce_callback === 'function');             /* the callback that produces the return value of the function */
+
+    /* Declarations */
+
+    var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;                    /* We ll need the _FLOAT_SIZE in bytes, when we deal with allocations and HEAPF32*/
+    var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
+    var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  /* This allocates space in the C++ side, in order to create the array of vertices. */
+
+    var ignore_root_matrix = false;
+
+    /* body */
+    Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
+        ).set(points);
+
+    var obj_id = IMPLICIT.set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
+    var success = IMPLICIT.set_x(verts_space_address, nverts);
+    //todo: rename "success"
+    if (!success){
+        console.log("set_x returned false . Probably an error in memory allocation. nverts was: " + nverts);
+        IMPLICIT.unset_object(obj_id);
+        return false;
+    }
+    // IMPLICIT.set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
+    IMPLICIT.calculate_implicit_values();                                /* The actual implicit value calculation*/
+
+    var ptr = IMPLICIT.get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
+    var ptr_len = IMPLICIT.get_values_size()
+    var values_tarray = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
+
+    /*
+    var found_positive_val = false;
+    if (typeof return_boolean === 'boolean' && return_boolean === true)
+    {
+
+       for (var i=0; i< values_tarray.length; i++)
+       {
+           if (values_tarray[i] >= - CONFIG.collision_detection.epsilon)
+           {
+               found_positive_val = true;
+               break;
+           }
+       }
+       result =  found_positive_val;
+    } else if (typeof return_boolean === 'boolean' && return_boolean === false)
+    {
+        var result = new Float32Array(values_tarray);    // here we create a view on the HEAP from position
+                                             // ( ptr / _FLOAT_SIZE ) to position (ptr / _FLOAT_SIZE + ptr_len)
+    } else if (typeof return_boolean === 'function') {
+        var reduce_callback = return_boolean;
+        var result = reduce_callback(values_tarray);
+    }
+    */
+    var result = reduce_callback(values_tarray);
+
+    //Bug! Forgot to FREE!!!
+    Module._free( verts_space_address );
+    IMPLICIT.unset_object(obj_id);    /* Free allocated C++ memory */
+    IMPLICIT.unset_x();
+    return  result;
+}
+
 var ImplicitService = function(){
     init(this);
 
@@ -295,7 +415,7 @@ var ImplicitService = function(){
             overall_repeats : 1,
             debug: {
                 enabled_pointsets: 0,
-                post_subdiv_noise: 0.0 
+                post_subdiv_noise: 0.0
             }
         };
 
@@ -303,7 +423,9 @@ var ImplicitService = function(){
         console.log (" mc properties : " + JSON.stringify(mc_properties));
         var geom = this.make_geometry(shape_properties, mc_properties);
         return geom;
-    }
+    };
+
+    this.query_implicit_values = _query_implicit_values;
 
 };
 
