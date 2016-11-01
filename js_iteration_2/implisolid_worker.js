@@ -3,12 +3,14 @@
  Also the  Node version.
  The new callback-based structure is created, which is much more complicated, but allows separated ThreeJS-related code from the rest (core) of the code.
  The code has three levels, each one has a different service:
- Level I:
+ Level I:  IMPLICIT_LOW
  1-low level MCC2 API, which directly calls C++ functions. Can run in NodeJS and as a Worker.
  Level II:
  2- ImpliSolid API functions: which call the MCC2 API functions. They also receive callbacks to receive front-end logic code (ThreeJS). Can also run in Node or as a Worker. This part however most likrely will remain on client side. This mediaes calls to level I. e.g. ideally, no direct call to Level I should be necessary.
+IMPLISOLID
  Level III:
  3- The ThreeJS-related code, which runs only on browser. The methods for manipulating ThreeJS objects (LiveGeometry, setting of the normals in the relevant ThreeJS attributes, etc). This logic is defines are a few functions as well and some callbacks defined within them, which are sent to level II functions.
+
 */
 'use strict';
 
@@ -59,16 +61,13 @@ function init(service) {
     }
     */
 
-    service.init = function(){
+    service.init_ = function(){
         service.needs_deallocation = false;
-
-        this.use_II = true;
-        this.use_II_qem = true;
     }
 
     service.finish_with = function (){
         //after the last round.
-        if(!this.needs_deallocation){
+        if(!service.needs_deallocation){
             console.error("cannot `finish_geometry()`. Geometry not produced.");
         }
         service.finish_geometry();
@@ -82,28 +81,216 @@ function init(service) {
         var nverts = float32Array.length / 3;
         var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
         Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
-        var result = this.set_x(verts_space, nverts);
+        var result = service.set_x(verts_space, nverts);
         console.log("result: "+result);
         if (!result) {
             console.error("Something went wrong: ", result);
         }
         Module._free( verts_space );
-
     };
 
-    service.update_geometry = function(geometry, ignoreNormals) {
+    service.init_();
 
-        var implicit_service = this;
+    return service;
+}
+
+
+
+
+function init2(impli2, impli1) {
+    /**
+     * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
+     */
+    impli2.query_normals = function(callback) {
+        impli1.set_object(mp5_str, ignore_root_matrix);
+        impli2.set_vect(x);  // overhead
+        impli1.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+        var ptr = impli1.get_gradients_ptr();
+        var ptr_len = impli1.get_gradients_size();
+        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+        //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
+
+        //for( var i = 0 ; i < ptr_len; i++) {
+        //    gradients[i] += Math.random() * 0.2;
+        //}
+
+
+        //geom.update_normals_from_array(gradients);
+        callback(gradients);
+
+        impli1.unset_x();
+        impli1.unset_object();
+    };
+
+
+    // High-level API
+    impli2.make_geometry = function (mp5_str, mc_params, callback) {
+        var this_1 = impli1;
+        var this_2 = impli2;
+        if (typeof callback === 'undefined') {
+            // assert(false, "callback mising");
+
+            callback = function (verts, faces) {
+                var allocate_buffers = true;
+                var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
+
+                // Set the normals
+                var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
+                //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+                this_2.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+                //this_2.aaaaaaaaa(verts);
+
+                return geom;
+            }
+
+        }
+        var startTime = new Date();
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+
+        if(impli1.needs_deallocation) {
+            impli1.finish_geometry();
+            impli1.needs_deallocation = false;
+        }
+
+        //console.log("mc_params.resolution " + mc_params.resolution);
+        //mc_params.resolution = 40;
+
+        //var mp5_str = JSON.stringify(shape_params);
+        //var mp5_str = JSON.stringify(shape_params);
+        impli1.build_geometry(mp5_str, JSON.stringify(mc_params));
+        impli1.needs_deallocation = true;
+
+        var nverts = impli1.get_v_size();
+        var nfaces = impli1.get_f_size();
+
+        var verts_address = impli1.get_v_ptr();
+        var faces_address = impli1.get_f_ptr();
+
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+        // first iteration: the callback
+        var geom = callback(verts, faces);
+
+
+        var endTime = new Date();
+        var timeDiff = endTime - startTime;
+
+        //report_time(timeDiff, function(){hist();});
+
+        return geom;
+    };
+
+    /*
+    Function: query_implicit_values(shape_str, points, reduce_callback)
+    Evaluates the points **points** in the implicit function. The function is specified as a mp5-fragment (json) string **shape_str**.
+    The values are not directly returned. Instead, a callback is used to prepare a value.
+    The reason a callback is used is that the resources need to be freed.
+
+    Returned value:
+    The value returned us the value returned by the callback reduce_callback.
+    In examples below, the return value is:
+    - Example1: returns Float32Array of implicit values in the following usage.
+    - Example2: returns   true for collision, false for no collision,
+
+    Example 1:
+        var my_shape = mainModel.root.sons[#nr]
+        var verts_array = new Float32Array([x1,y1,z1, x2,y2,z2, ..., xn,yn,zn])
+        var implicit_vals = query_implicit_values(my_shape, points,  // false
+            reduce_callback = function (values_tarray) {
+                // here we create a view on the HEAP from position
+                // ( ptr / _FLOAT_SIZE ) to position (ptr / _FLOAT_SIZE + ptr_len)
+                var result = new Float32Array(values_tarray);  // clones (makes a copy of) data
+                return result;
+            });
+    Example 2:
+        var my_shape = mainModel.root.sons[#nr]
+        var verts_array = new Float32Array([x1,y1,z1, x2,y2,z2, ..., xn,yn,zn])
+        var has_positive_vals = query_implicit_values(my_shape, verts_array,  // true
+            function (values_tarray) {
+                var found_positive_val = false;
+                for (var i=0; i< values_tarray.length; i++)
+                {
+                    if (values_tarray[i] >= - CONFIG.collision_detection.epsilon)
+                    {
+                        found_positive_val = true;
+                        break;
+                    }
+                }
+                var result =  found_positive_val;
+                return result;
+            });
+    */
+    impli2.query_implicit_values = function(mp5_str, points, reduce_callback)
+    {
+        assert(points instanceof Float32Array);                   /* simple check */
+        assert(typeof reduce_callback === 'function');             /* the callback that produces the return value of the function */
+
+        /* Declarations */
+
+        var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;                    /* We ll need the _FLOAT_SIZE in bytes, when we deal with allocations and HEAPF32*/
+        var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
+        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  /* This allocates space in the C++ side, in order to create the array of vertices. */
+
+        var ignore_root_matrix = false;
+
+        /* body */
+        Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
+            ).set(points);
+
+        var obj_id = IMPLICIT.set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
+        var success = IMPLICIT.set_x(verts_space_address, nverts);
+        //todo: rename "success"
+        if (!success){
+            console.log("set_x returned false . Probably an error in memory allocation. nverts was: " + nverts);
+            IMPLICIT.unset_object(obj_id);
+            return false;
+        }
+        // IMPLICIT.set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
+        IMPLICIT.calculate_implicit_values();                                /* The actual implicit value calculation*/
+
+        var ptr = IMPLICIT.get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
+        var ptr_len = IMPLICIT.get_values_size()
+        var values_tarray = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
+
+        var result = reduce_callback(values_tarray);
+
+        //Bug! Forgot to FREE!!!
+        Module._free( verts_space_address );
+        IMPLICIT.unset_object(obj_id);    /* Free allocated C++ memory */
+        IMPLICIT.unset_x();
+        return  result;
+    }
+}
+
+
+
+/**
+ * High level API. Works with ThreeJS objects (THREE.Geometry)
+ * Dependency: ThreeJS (not-explicit)
+ * This may need to go inside liveGeomtry or a subclass.
+ */
+function init3(service3, impli1, service2) {
+
+    service3.use_II = true;
+    service3.use_II_qem = true;
+
+    service3.update_geometry = function(geometry, ignoreNormals) {
+
+        var implicit_service1 = impli1;
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
 
-        var nverts = implicit_service.get_v_size();
-        var nfaces = implicit_service.get_f_size();
+        var nverts = implicit_service1.get_v_size();
+        var nfaces = implicit_service1.get_f_size();
 
         if(nfaces > 0){
-            var verts_address = implicit_service.get_v_ptr();
-            var faces_address = implicit_service.get_f_ptr();
+            var verts_address = implicit_service1.get_v_ptr();
+            var faces_address = implicit_service1.get_f_ptr();
 
             var verts = Module.HEAPF32.subarray(
                 verts_address/_FLOAT_SIZE,
@@ -122,37 +309,13 @@ function init(service) {
         return geometry.update_geometry1(verts, faces, ignoreNormals, false);
     };
 
-    /**
-     * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
-     */
-    service.query_normals = function(callback) {
-        service.set_object(mp5_str, ignore_root_matrix);
-        service.set_vect(x);  // overhead
-        service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
-        var ptr = service.get_gradients_ptr();
-        var ptr_len = service.get_gradients_size();
-        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
-        //console.log("grad len = " +  ptr_len+ "  grad = " + gradients);  // x 4
-
-        //for( var i = 0 ; i < ptr_len; i++) {
-        //    gradients[i] += Math.random() * 0.2;
-        //}
-
-
-        //geom.update_normals_from_array(gradients);
-        callback(gradients);
-
-        service.unset_x();
-        service.unset_object();
-    };
-
     //was: geom. update_normals (service ..)
-    service.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
+    // todo: move the callback into LiveGeometry
+    service3.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
         geom.removeAttribute('normal');
         geom.computeVertexNormals();
         geom.__set_needsUpdate_flag(false);
         return;
-
 
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         // console.error(x);
@@ -162,7 +325,7 @@ function init(service) {
         }
         */
 
-        service.query_normals(function(gradients) {
+        service2.query_normals(function(gradients) {
             //for( var i = 0 ; i < ptr_len; i++) {
             //    gradients[i] += Math.random() * 0.2;
             //}
@@ -170,9 +333,9 @@ function init(service) {
         });
 
         /*
-        service.set_object(mp5_str, ignore_root_matrix);
-        service.set_vect(x);  // overhead
-        service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+        service1.set_object(mp5_str, ignore_root_matrix);
+        service2.set_vect(x);  // overhead
+        service1.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
         var ptr = service.get_gradients_ptr();
         var ptr_len = service.get_gradients_size();
         var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
@@ -190,74 +353,25 @@ function init(service) {
 
     };
 
-
-    service.init();
-
-    return service;
 }
+
 
 var ImplicitService = function() {
 
+    var impli1 = this;
     // adds the low-level API to 'this'
-    init(this);
+    init(impli1);
 
-    // High-level API
-    this.make_geometry = function (mp5_str, mc_params, callback) {
-        var this_ = this;
-        if (typeof callback === 'undefined') {
-            callback = function (verts, faces) {
-                var allocate_buffers = true;
-                var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
+    var impli2 = this;
+    // adds the mid-level API to 'this'
+    init2(impli2, impli1);
 
-                // Set the normals
-                var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
-                //geom.update_normals(this, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-
-                this_.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-
-                //this.aaaaaaaaa(verts);
-
-                return geom;
-            }
-        }
-        var startTime = new Date();
-        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
-
-        if(this.needs_deallocation) {
-            this.finish_geometry();
-            this.needs_deallocation = false;
-        }
-
-        //console.log("mc_params.resolution " + mc_params.resolution);
-        //mc_params.resolution = 40;
-
-        //var mp5_str = JSON.stringify(shape_params);
-        //var mp5_str = JSON.stringify(shape_params);
-        this.build_geometry(mp5_str, JSON.stringify(mc_params));
-        this.needs_deallocation = true;
-
-        var nverts = this.get_v_size();
-        var nfaces = this.get_f_size();
-
-        var verts_address = this.get_v_ptr();
-        var faces_address = this.get_f_ptr();
-
-        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-        // first iteration: the callback
-        var geom = callback(verts, faces);
+    var impli3 = this;
+    // adds the high-level API to 'this'
+    init3(impli3,  impli1, impli2);
 
 
-        var endTime = new Date();
-        var timeDiff = endTime - startTime;
-
-        //report_time(timeDiff, function(){hist();});
-
-        return geom;
-    };
-
+    this.getLiveGeometry = IMPLICIT_getLiveGeometry;
 
 };
 
@@ -278,7 +392,6 @@ function _on_cpp_loaded() {
     // combines the IMPLICIT as a Worker/Node/npm library with the ThreeJS part. Not good! Solution: divide into two classes.
     // ImpliSolid.js, ...ImpliSolid3js.js (frontend)
     // Alternative: Globally: Module._on_cpp_loaded = ...;
-    IMPLICIT.getLiveGeometry = IMPLICIT_getLiveGeometry;
 
     assert = _assert_000;
 };
@@ -409,7 +522,8 @@ var IMPLICIT_getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
             // var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
             //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
             //
-            console.error(mp5_str);
+            if (!mp5_str)
+                console.error(mp5_str);
 
             IMPLICIT.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
@@ -421,3 +535,5 @@ var IMPLICIT_getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
 
     return geom;
 }
+
+
