@@ -329,7 +329,7 @@ void vertex_apply_qem(
     )
     //const vectorized_bool& treated)
 {
-    REAL tau = 680;
+    REAL tau = 680.0;  // 1200.0; // 680;
     REAL svd_threshold = 1.0 / tau;
 
     // note: vertex_neighbours_facelist contains face indices
@@ -391,15 +391,49 @@ void vertex_apply_qem(
         int rank = SVD(A, U, S, V, svd_threshold); // the SVD
         */
 
+        // Whether calculate the rank based on Eigen3's internal mechanism or manually check the S in SVD.
+        #define RANK_MANUALLY  false
+
         Eigen::JacobiSVD< Matrix<REAL, 3, 3> > svd(A,  Eigen::ComputeFullU | Eigen::ComputeFullV);
-        svd.setThreshold( svd_threshold );
+        #if (!RANK_MANUALLY)
+            svd.setThreshold( svd_threshold );
+        #endif
         auto S = svd.singularValues();
         U = svd.matrixU();
         V = svd.matrixV().transpose();
-        int rank = svd.rank();
+        #if (!RANK_MANUALLY)
+            int rank = svd.rank();
+        #endif
+
 
         assert(S(0) >= S(1));
         assert(S(1) >= S(2));
+
+
+        #if RANK_MANUALLY
+        int rank = 0;
+        // if (S(0)/S(0) < svd_threshold) {
+        //     S(0) = 0.;
+        // } else {
+        //     ++rank;
+        // }
+        ++rank;
+
+        if (S(1)/S(0) < svd_threshold) {
+            S(1) = 0.;
+        } else {
+            ++rank;
+        }
+
+        if (S(2)/S(0) < svd_threshold) {
+            S(2) = 0.;
+        } else {
+            ++rank;
+        }
+        // std::clog << "rank" << rank << std::endl;
+        #endif
+
+
 
         // std::clog << "!1" << std::endl;
 
@@ -417,7 +451,7 @@ void vertex_apply_qem(
 
             rank = 0
 
-        assert np.all(s[:rank]/s[0] >= 1.0/tau)
+        assert np.all(s[:rank]/s[0] >= svd_threshold)
         */
 
 

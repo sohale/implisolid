@@ -460,6 +460,9 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
+
+    std::string steps_report = "";
+
     if (!_state.check_state_null()) {
         clog << "build_geometry() called in a bad state.";
         return;
@@ -484,6 +487,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     auto vertsfaces_pair = mc_start(object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
+    steps_report = steps_report + "MC. ";
 
     /*
     TEST a SQUARE
@@ -531,6 +535,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         }
 
 
+
         timer timr;
         timr.report_and_continue("timer started.");
 
@@ -540,6 +545,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 timer t1;
                 // result_verts is modified
                 apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
+                steps_report = steps_report + "V ";
                 t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
                 timr.report_and_continue("vertex resampling");
             }
@@ -561,6 +567,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     std::clog << "centroids_projection:" << std::endl;
                     // Never send mc_settings_from_json as an argument
                     centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
+                    steps_report = steps_report + "P ";
 
                     timr.report_and_continue("centroids_projection");
                 } else {
@@ -604,6 +611,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
                         actual_noise);
                     std::clog << "outisde my_subdiv_." << std::endl;
+                    steps_report = steps_report + "Subdiv("+std::to_string(actual_noise)+")";
 
                     timr.report_and_continue("subdivisions");
                 } else {
@@ -646,6 +654,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     _state.check_state();
     // std::clog << "MC:: v,f: " << _state.mc_result_verts.size() << " " << _state.mc_result_faces.size() << std::endl;
+
+    std::clog << "steps_report: " << steps_report << std::endl;
 }
 int get_f_size() {
     if (!_state.check_state()) return -1;

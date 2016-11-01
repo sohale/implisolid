@@ -531,11 +531,12 @@ function provide_input (subjective_time, is_update_mode) {
             projection: {enabled: 1},
             qem: {enabled: 1},
             */
-            vresampl: {iters: 0, c: 0.1},
+            vresampl: {iters: 3, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
-            subdiv: {enabled: 0},
-            overall_repeats: 1,
+            subdiv: {enabled: 1},
+            //overall_repeats: 3,
+            overall_repeats: 3,
 
             debug: {
                 enabled_pointsets: 0,
