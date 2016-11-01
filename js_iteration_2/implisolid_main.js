@@ -291,7 +291,12 @@ var ImplicitService = function(){
             vresampl: {iters: this.use_II?1:0, c: 1.0},
             projection: {enabled: this.use_II?1:0},
             qem: {enabled: (this.use_II && this.use_II_qem)?1:0},
-
+            subdiv: {enabled: 0},
+            overall_repeats : 1,
+            debug: {
+                enabled_pointsets: 0,
+                post_subdiv_noise: 0.0 
+            }
         };
 
 
