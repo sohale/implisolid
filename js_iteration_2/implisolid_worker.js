@@ -133,8 +133,6 @@ function init2(impli2, impli1) {
 
     // High-level API
     impli2.make_geometry = function (mp5_str, mc_params, callback) {
-        //var this_1 = impli1;
-        //var this_2 = impli2;
         assert(typeof callback !== 'undefined');
         assert(callback);
 
@@ -261,7 +259,7 @@ function init2(impli2, impli1) {
      * The output is written into vf_dict, which is a dictionary with keys 'verts' and 'faces'.
      * Returns true on success, i.e. if the shape is not empty. Otherwise, returns false;
      */
-    impli2.get_last_vf = function (vf_dict) {
+    impli2.get_latest_vf = function (vf_dict) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
@@ -296,6 +294,7 @@ function init2(impli2, impli1) {
 
 
 
+
 /**
  * High level API. Works with ThreeJS objects (THREE.Geometry)
  * Dependency: ThreeJS (not-explicit)
@@ -316,7 +315,7 @@ function init3(service3, service2) {
         //var implicit_service1 = impli1;
         vf = {faces: null, verts: null};
 
-        var nonempty = service2.get_last_vf(vf);
+        var nonempty = service2.get_latest_vf(vf);
         if (nonempty) {
             // vf is updated;
         } else{
@@ -527,16 +526,17 @@ return ImplicitService;
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
 function _on_cpp_loaded() {
     console.log("C++ ready.");
-    //IMPLISOLID.
-    // global
     IMPLICIT = new ImplicitService();
+    // IMPLICIT = new ImplicitWorkerService();
+
     // combines the IMPLICIT as a Worker/Node/npm library with the ThreeJS part. Not good! Solution: divide into two classes.
     // ImpliSolid.js, ...ImpliSolid3js.js (frontend)
     // Alternative: Globally: Module._on_cpp_loaded = ...;
-    //
 
     assert = _assert_000;
 };
+
+
 
 /**
  * Confusion:
@@ -547,6 +547,7 @@ function _on_cpp_loaded() {
  * Do we really need an instancing a class for IMPLICIT ? i.e. is there really a need for separation of class and object?
  * Instantiation is done in _on_cpp_loaded(). It cannot have any parameter. It is called automatically as a callback by Emscripten. In which, a global variable IMPLICIT is set.
  * No code should/can be executed prior to _on_cpp_loaded. todo: make ((function () {..}());) a constructor.
+ * Rename? IMPLISOLID.
  */
 
 
@@ -584,10 +585,10 @@ needs_deallocation
 
 impli2: Mid level API:
 =====================
-query_implicit_values
-query_normals
-make_geometry
-get_last_vf
+query_implicit_values  (string, array, function)
+query_normals (array, function)
+make_geometry (string, dict, function)
+get_latest_vf ({array,array})
 
 
 impli3: Mid level API:
