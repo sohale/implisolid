@@ -96,7 +96,11 @@ function init(service) {
 
 
 
-
+/**
+ * Service 2:
+ * Technical:
+ * Wraps all accesses to Module. Suitable for weparating Worker from the main one.
+ */
 function init2(impli2, impli1) {
     /**
      * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
@@ -125,11 +129,14 @@ function init2(impli2, impli1) {
 
     // High-level API
     impli2.make_geometry = function (mp5_str, mc_params, callback) {
-        var this_1 = impli1;
-        var this_2 = impli2;
+        //var this_1 = impli1;
+        //var this_2 = impli2;
+        assert(typeof callback !== 'undefined');
+        assert(callback);
         if (typeof callback === 'undefined') {
             // assert(false, "callback mising");
 
+            // todo: move this function into the designer
             callback = function (verts, faces) {
                 var allocate_buffers = true;
                 var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
@@ -138,9 +145,10 @@ function init2(impli2, impli1) {
                 var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
                 //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
-                this_2.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+                // no impli3 here.
+                impli3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
-                //this_2.aaaaaaaaa(verts);
+                //impli3.aaaaaaaaa(verts);
 
                 return geom;
             }
@@ -241,48 +249,35 @@ function init2(impli2, impli1) {
         Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
             ).set(points);
 
-        var obj_id = IMPLICIT.set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
-        var success = IMPLICIT.set_x(verts_space_address, nverts);
+        var obj_id = impli1.set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
+        var success = impli1.set_x(verts_space_address, nverts);
         //todo: rename "success"
         if (!success){
             console.log("set_x returned false . Probably an error in memory allocation. nverts was: " + nverts);
-            IMPLICIT.unset_object(obj_id);
+            impli1.unset_object(obj_id);
             return false;
         }
-        // IMPLICIT.set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
-        IMPLICIT.calculate_implicit_values();                                /* The actual implicit value calculation*/
+        // impli1.set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
+        impli1.calculate_implicit_values();                                /* The actual implicit value calculation*/
 
-        var ptr = IMPLICIT.get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
-        var ptr_len = IMPLICIT.get_values_size()
+        var ptr = impli1.get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
+        var ptr_len = impli1.get_values_size()
         var values_tarray = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
 
         var result = reduce_callback(values_tarray);
 
         //Bug! Forgot to FREE!!!
         Module._free( verts_space_address );
-        IMPLICIT.unset_object(obj_id);    /* Free allocated C++ memory */
-        IMPLICIT.unset_x();
+        impli1.unset_object(obj_id);    /* Free allocated C++ memory */
+        impli1.unset_x();
         return  result;
     }
-}
 
-
-
-/**
- * High level API. Works with ThreeJS objects (THREE.Geometry)
- * Dependency: ThreeJS (not-explicit)
- * This may need to go inside liveGeomtry or a subclass.
- * move to front-end:  implisolid_front.js
- */
-
-function init3(service3, impli1, service2) {
-
-    service3.use_II = true;
-    service3.use_II_qem = true;
-
-    service3.update_geometry = function(geometry, ignoreNormals) {
-
-        var implicit_service1 = impli1;
+    /*
+     * The output is written into vf_dict, which is a dictionary with keys 'verts' and 'faces'.
+     * Returns true on success, i.e. if the shape is not empty. Otherwise, returns false;
+     */
+    function get_last_vf(vf_dict) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
@@ -301,14 +296,54 @@ function init3(service3, impli1, service2) {
             var faces = Module.HEAPU32.subarray(
                 faces_address/_INT_SIZE,
                 faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+            // return {faces: faces, verts: verts};
+            vf['faces'] = faces;
+            vf['verts'] = verts;
+            return true;
+        } else {
+            // empty
+            vf['faces'] = null;
+            vf['verts'] = null;
+            return false;
         }
-        else{
-            console.log("empty implicit");
-            var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
-            var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
-        }
+    }
 
-        return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+}
+
+
+
+/**
+ * High level API. Works with ThreeJS objects (THREE.Geometry)
+ * Dependency: ThreeJS (not-explicit)
+ * This may need to go inside liveGeomtry or a subclass.
+ * move to front-end:  implisolid_front.js
+ * This is part of WeDesign, not ImpliSolid back-end.
+ * There is no mention of 'Module' here.
+ * No access to impli1.
+ */
+
+function init3(service3, service2) {
+
+    service3.use_II = true;
+    service3.use_II_qem = true;
+
+    service3.update_geometry = function(geometry, ignoreNormals) {
+
+        //var implicit_service1 = impli1;
+        vf = {faces: null, verts: null};
+
+        var nonempty = service2.get_last_vf(vf);
+        if (nonempty) {
+            // vf is updated;
+        } else{
+            console.log("empty implicit");
+            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+        assert(vf['verts']);
+        assert(vf['faces']);
+
+        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreNormals, false);
     };
 
     //was: geom. update_normals (service ..)
@@ -357,7 +392,7 @@ function init3(service3, impli1, service2) {
 
     // Example usage of implisolid
     // This method is called by the designer to obtain the geometry from the ImplicitService
-    // IMPLICIT.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
+    // service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
     service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
         var shape_properties = dict;
         var s = 1;
@@ -366,8 +401,6 @@ function init3(service3, impli1, service2) {
         assert("min" in bbox, "You need to specify *.min.x");
         assert("max" in bbox, "You need to specify *.max.x");
         assert("x" in bbox["min"], "You need to specify *.max.x");
-
-        // var this_ = IMPLICIT;  // an implicit argument
 
         var bb ={};
         var sc = 1.0;
@@ -410,9 +443,9 @@ function init3(service3, impli1, service2) {
             box: bb,
             ignore_root_matrix: ignore_root_matrix,
 
-            vresampl: {iters: this_.use_II? 1:0, c: 1.0},
+            vresampl: {iters: this3_.use_II? 1:0, c: 1.0},
             projection: {enabled: this_.use_II? 1:0},
-            qem: {enabled: (this_.use_II && this_.use_II_qem)?1:0},
+            qem: {enabled: (this3_.use_II && this3_.use_II_qem)?1:0},
 
             subdiv: {enabled: 1},
 
@@ -450,7 +483,7 @@ function init3(service3, impli1, service2) {
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));
         var mp5_str = JSON.stringify(shape_properties);
-        var geom = IMPLICIT.make_geometry(mp5_str, mc_properties,
+        var geom = service2.make_geometry(mp5_str, mc_properties,
             function (verts, faces) {
                 // ThreeJS-specific code
 
@@ -466,7 +499,7 @@ function init3(service3, impli1, service2) {
                 if (!mp5_str)
                     console.error(mp5_str);
 
-                IMPLICIT.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+                service3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
                 //this_.aaaaaaaaa(verts);
 
@@ -477,22 +510,23 @@ function init3(service3, impli1, service2) {
         return geom;
     };
 
+    service3.query_implicit_values = service2.query_implicit_values;
 }
 
 
 var ImplicitService = function() {
 
-    var impli1 = this;
+    var impli1 = {};
     // adds the low-level API to 'this'
     init(impli1);
 
-    var impli2 = this;
+    var impli2 = {};
     // adds the mid-level API to 'this'
     init2(impli2, impli1);
 
     var impli3 = this;
     // adds the high-level API to 'this'
-    init3(impli3,  impli1, impli2);
+    init3(impli3, impli2);
 
 };
 
@@ -513,6 +547,7 @@ function _on_cpp_loaded() {
     // combines the IMPLICIT as a Worker/Node/npm library with the ThreeJS part. Not good! Solution: divide into two classes.
     // ImpliSolid.js, ...ImpliSolid3js.js (frontend)
     // Alternative: Globally: Module._on_cpp_loaded = ...;
+    //
 
     assert = _assert_000;
 };
