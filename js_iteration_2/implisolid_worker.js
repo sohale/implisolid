@@ -101,7 +101,7 @@ function init2(impli2, impli1) {
     /**
      * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
      */
-    impli2.query_normals = function(callback) {
+    impli2.query_normals = function(x, callback) {
         impli1.set_object(mp5_str, ignore_root_matrix);
         impli2.set_vect(x);  // overhead
         impli1.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
@@ -272,7 +272,9 @@ function init2(impli2, impli1) {
  * High level API. Works with ThreeJS objects (THREE.Geometry)
  * Dependency: ThreeJS (not-explicit)
  * This may need to go inside liveGeomtry or a subclass.
+ * move to front-end:  implisolid_front.js
  */
+
 function init3(service3, impli1, service2) {
 
     service3.use_II = true;
@@ -317,7 +319,6 @@ function init3(service3, impli1, service2) {
         geom.__set_needsUpdate_flag(false);
         return;
 
-        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         // console.error(x);
         /*
         for( var i = 0 ; i < x.length; i++) {
@@ -325,7 +326,7 @@ function init3(service3, impli1, service2) {
         }
         */
 
-        service2.query_normals(function(gradients) {
+        service2.query_normals(x, function(gradients) {
             //for( var i = 0 ; i < ptr_len; i++) {
             //    gradients[i] += Math.random() * 0.2;
             //}
@@ -333,6 +334,7 @@ function init3(service3, impli1, service2) {
         });
 
         /*
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         service1.set_object(mp5_str, ignore_root_matrix);
         service2.set_vect(x);  // overhead
         service1.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
@@ -353,6 +355,128 @@ function init3(service3, impli1, service2) {
 
     };
 
+    // Example usage of implisolid
+    // This method is called by the designer to obtain the geometry from the ImplicitService
+    // IMPLICIT.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
+    service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
+        var shape_properties = dict;
+        var s = 1;
+
+        assert(bbox, "You need to specify the bounding box");
+        assert("min" in bbox, "You need to specify *.min.x");
+        assert("max" in bbox, "You need to specify *.max.x");
+        assert("x" in bbox["min"], "You need to specify *.max.x");
+
+        // var this_ = IMPLICIT;  // an implicit argument
+
+        var bb ={};
+        var sc = 1.0;
+        var test = 0.;
+        bb["xmin"] = bbox.min.x * sc + test;
+        bb["xmax"] = bbox.max.x * sc - test;
+
+        bb["ymin"] = bbox.min.y * sc + test;
+        bb["ymax"] = bbox.max.y * sc - test;
+
+        bb["zmin"] = bbox.min.z * sc + test;
+        bb["zmax"] = bbox.max.z * sc - test;
+
+        _expect(bb["xmin"], "boundingbox is null");
+        _expect(bb["xmax"], "boundingbox is null");
+        _expect(bb["ymin"], "boundingbox is null");
+        _expect(bb["ymax"], "boundingbox is null");
+        _expect(bb["zmin"], "boundingbox is null");
+        _expect(bb["zmax"], "boundingbox is null");
+
+        // Designer-specific
+        var getResolution  = function(bb) {
+            return CONFIG.implisolid.default_mc_resolution;
+            const max_value = 40;
+            const min_value = 14;
+            const factor = CONFIG.implisolid.default_mc_resolution;
+            var max_length = Math.max(bb["xmax"] - bb["xmin"], bb["ymax"] - bb["ymin"], bb["zmax"] - bb["zmin"]);
+            var tmp =  Math.min(max_value,max_length*factor);
+            return  Math.floor(Math.max(tmp,min_value));
+
+            // 1 -> 28
+            // 2 -> 48
+        };
+
+
+        var mc_res = CONFIG.implisolid.default_mc_resolution;
+        /*
+        var mc_properties = {
+            resolution: getResolution(bb),
+            box: bb,
+            ignore_root_matrix: ignore_root_matrix,
+
+            vresampl: {iters: this_.use_II? 1:0, c: 1.0},
+            projection: {enabled: this_.use_II? 1:0},
+            qem: {enabled: (this_.use_II && this_.use_II_qem)?1:0},
+
+            subdiv: {enabled: 1},
+
+            overall_repeats: 1,
+
+            debug: {
+                post_subdiv_noise: 0.01,
+            }
+
+        };
+        */
+
+        var mc_properties = {
+            resolution: getResolution(bb),
+            box: bb,
+            ignore_root_matrix: ignore_root_matrix,
+
+            vresampl: {iters: 1, c: 0.4},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            //subdiv: {enabled: 1},
+            //overall_repeats: 2,
+            subdiv: {enabled: 0},
+            overall_repeats: 1,
+
+            debug: {
+                enabled_pointsets: 0,
+                post_subdiv_noise: 0.01,
+            },
+        };
+
+
+        console.log("*********************");
+
+
+        console.log (" mc properties : " + JSON.stringify(mc_properties));
+        var mp5_str = JSON.stringify(shape_properties);
+        var geom = IMPLICIT.make_geometry(mp5_str, mc_properties,
+            function (verts, faces) {
+                // ThreeJS-specific code
+
+                // var ignore_root_matrix: Does not need other (MC-related) arguments.
+
+                var allocate_buffers = true;
+                var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
+
+                // Set the normals
+                // var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
+                //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+                //
+                if (!mp5_str)
+                    console.error(mp5_str);
+
+                IMPLICIT.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+                //this_.aaaaaaaaa(verts);
+
+                return geom;
+            }
+        );
+
+        return geom;
+    };
+
 }
 
 
@@ -369,9 +493,6 @@ var ImplicitService = function() {
     var impli3 = this;
     // adds the high-level API to 'this'
     init3(impli3,  impli1, impli2);
-
-
-    this.getLiveGeometry = IMPLICIT_getLiveGeometry;
 
 };
 
@@ -406,134 +527,5 @@ function _on_cpp_loaded() {
  * Instantiation is done in _on_cpp_loaded(). It cannot have any parameter. It is called automatically as a callback by Emscripten. In which, a global variable IMPLICIT is set.
  * No code should/can be executed prior to _on_cpp_loaded. todo: make ((function () {..}());) a constructor.
  */
-
-/*
-Todo: move to front-end:  implisolid_front.js
-IMPLICIT.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
-*/
-
-
-
-// Example usage of implisolid
-// This method is called by the designer to obtain the geometry from the ImplicitService
-
-var IMPLICIT_getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
-    var shape_properties = dict;
-    var s = 1;
-
-    assert(bbox, "You need to specify the bounding box");
-    assert("min" in bbox, "You need to specify *.min.x");
-    assert("max" in bbox, "You need to specify *.max.x");
-    assert("x" in bbox["min"], "You need to specify *.max.x");
-
-    // var this_ = IMPLICIT;  // an implicit argument
-
-    var bb ={};
-    var sc = 1.0;
-    var test = 0.;
-    bb["xmin"] = bbox.min.x * sc + test;
-    bb["xmax"] = bbox.max.x * sc - test;
-
-    bb["ymin"] = bbox.min.y * sc + test;
-    bb["ymax"] = bbox.max.y * sc - test;
-
-    bb["zmin"] = bbox.min.z * sc + test;
-    bb["zmax"] = bbox.max.z * sc - test;
-
-    _expect(bb["xmin"], "boundingbox is null");
-    _expect(bb["xmax"], "boundingbox is null");
-    _expect(bb["ymin"], "boundingbox is null");
-    _expect(bb["ymax"], "boundingbox is null");
-    _expect(bb["zmin"], "boundingbox is null");
-    _expect(bb["zmax"], "boundingbox is null");
-
-    // Designer-specific
-    var getResolution  = function(bb) {
-        return CONFIG.implisolid.default_mc_resolution;
-        const max_value = 40;
-        const min_value = 14;
-        const factor = CONFIG.implisolid.default_mc_resolution;
-        var max_length = Math.max(bb["xmax"] - bb["xmin"], bb["ymax"] - bb["ymin"], bb["zmax"] - bb["zmin"]);
-        var tmp =  Math.min(max_value,max_length*factor);
-        return  Math.floor(Math.max(tmp,min_value));
-
-        // 1 -> 28
-        // 2 -> 48
-    };
-
-
-    var mc_res = CONFIG.implisolid.default_mc_resolution;
-    /*
-    var mc_properties = {
-        resolution: getResolution(bb),
-        box: bb,
-        ignore_root_matrix: ignore_root_matrix,
-
-        vresampl: {iters: this_.use_II? 1:0, c: 1.0},
-        projection: {enabled: this_.use_II? 1:0},
-        qem: {enabled: (this_.use_II && this_.use_II_qem)?1:0},
-
-        subdiv: {enabled: 1},
-
-        overall_repeats: 1,
-
-        debug: {
-            post_subdiv_noise: 0.01,
-        }
-
-    };
-    */
-
-    var mc_properties = {
-        resolution: getResolution(bb),
-        box: bb,
-        ignore_root_matrix: ignore_root_matrix,
-
-        vresampl: {iters: 1, c: 0.4},
-        projection: {enabled: 1},
-        qem: {enabled: 1},
-        //subdiv: {enabled: 1},
-        //overall_repeats: 2,
-        subdiv: {enabled: 0},
-        overall_repeats: 1,
-
-        debug: {
-            enabled_pointsets: 0,
-            post_subdiv_noise: 0.01,
-        },
-    };
-
-
-    console.log("*********************");
-
-
-    console.log (" mc properties : " + JSON.stringify(mc_properties));
-    var mp5_str = JSON.stringify(shape_properties);
-    var geom = IMPLICIT.make_geometry(mp5_str, mc_properties,
-        function (verts, faces) {
-            // ThreeJS-specific code
-
-            // var ignore_root_matrix: Does not need other (MC-related) arguments.
-
-            var allocate_buffers = true;
-            var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
-
-            // Set the normals
-            // var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
-            //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-            //
-            if (!mp5_str)
-                console.error(mp5_str);
-
-            IMPLICIT.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-
-            //this_.aaaaaaaaa(verts);
-
-            return geom;
-        }
-    );
-
-    return geom;
-}
 
 
