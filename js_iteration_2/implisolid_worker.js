@@ -3,10 +3,14 @@
  Also the  Node version.
  The new callback-based structure is created, which is much more complicated, but allows separated ThreeJS-related code from the rest (core) of the code.
  The code has three levels, each one has a different service:
- Level I:  IMPLICIT_LOW
+
+Level I:  IMPLICIT_LOW
  1-low level MCC2 API, which directly calls C++ functions. Can run in NodeJS and as a Worker.
+Fully incode the Worker.
  Level II:
  2- ImpliSolid API functions: which call the MCC2 API functions. They also receive callbacks to receive front-end logic code (ThreeJS). Can also run in Node or as a Worker. This part however most likrely will remain on client side. This mediaes calls to level I. e.g. ideally, no direct call to Level I should be necessary.
+Between the worker and front-end. NodeJS compatible.
+
 IMPLISOLID
  Level III:
  3- The ThreeJS-related code, which runs only on browser. The methods for manipulating ThreeJS objects (LiveGeometry, setting of the normals in the relevant ThreeJS attributes, etc). This logic is defines are a few functions as well and some callbacks defined within them, which are sent to level II functions.
@@ -133,27 +137,7 @@ function init2(impli2, impli1) {
         //var this_2 = impli2;
         assert(typeof callback !== 'undefined');
         assert(callback);
-        if (typeof callback === 'undefined') {
-            // assert(false, "callback mising");
 
-            // todo: move this function into the designer
-            callback = function (verts, faces) {
-                var allocate_buffers = true;
-                var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
-
-                // Set the normals
-                var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
-                //geom.update_normals(this_, verts, mp5_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-
-                // no impli3 here.
-                impli3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
-
-                //impli3.aaaaaaaaa(verts);
-
-                return geom;
-            }
-
-        }
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
@@ -277,7 +261,7 @@ function init2(impli2, impli1) {
      * The output is written into vf_dict, which is a dictionary with keys 'verts' and 'faces'.
      * Returns true on success, i.e. if the shape is not empty. Otherwise, returns false;
      */
-    function get_last_vf(vf_dict) {
+    impli2.get_last_vf = function (vf_dict) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
@@ -477,10 +461,6 @@ function init3(service3, service2) {
             },
         };
 
-
-        console.log("*********************");
-
-
         console.log (" mc properties : " + JSON.stringify(mc_properties));
         var mp5_str = JSON.stringify(shape_properties);
         var geom = service2.make_geometry(mp5_str, mc_properties,
@@ -528,6 +508,12 @@ var ImplicitService = function() {
     // adds the high-level API to 'this'
     init3(impli3, impli2);
 
+    console.log("impli1 ---------------");
+    for(var a in impli1) console.log(a);
+    console.log("impli2 ---------------");
+    for(var a in impli2) console.log(a);
+    console.log("impli3 ---------------");
+    for(var a in impli3) console.log(a);
 };
 
 
@@ -564,3 +550,53 @@ function _on_cpp_loaded() {
  */
 
 
+
+/*
+
+impli1: Low level API:
+=====================
+build_geometry
+get_v_size
+get_f_size
+get_v
+get_f
+get_v_ptr
+get_f_ptr
+finish_geometry
+set_object
+unset_object
+set_x
+unset_x
+calculate_implicit_values
+get_values_ptr
+get_values_size
+calculate_implicit_gradients
+get_gradients_ptr
+get_gradients_size
+get_pointset_ptr
+get_pointset_size
+about
+init_
+finish_with
+set_vect
+needs_deallocation
+
+
+impli2: Mid level API:
+=====================
+query_implicit_values
+query_normals
+make_geometry
+get_last_vf
+
+
+impli3: Mid level API:
+=====================
+use_II
+use_II_qem
+update_geometry
+make_normals_into_geometry
+getLiveGeometry
+query_implicit_values
+
+*/
