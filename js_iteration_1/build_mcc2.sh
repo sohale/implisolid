@@ -102,7 +102,7 @@ then
         -s NO_EXIT_RUNTIME=1 \
         -s DEMANGLE_SUPPORT=1 \
         -s ASSERTIONS=1 \
-        -s BUILD_AS_WORKER=1 -DBUILD_AS_WORKER  \
+        -s BUILD_AS_WORKER=0 -DBUILD_AS_WORKER_NOT  \
         -pedantic -std=c++14 \
         mcc2.cpp -o ../build/mcc2.compiled.js
 #        --profiling \
