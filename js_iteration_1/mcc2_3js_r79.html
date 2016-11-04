@@ -2159,13 +2159,33 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             }, dataArray?[dataArray.buffer]:[]
         );
     }
+    /*
     //var REAL_V  = 1;  // enum
-    // var w_callbacks = {[REAL_V]: "REAL_V", REAL_V: 1};
-    var w_callbacks0 = {REAL_V: 1};  // enum
-    var w_callbacks = {[w_callbacks0.REAL_V]: "REAL_V"};
-    var w_callback_funcnames = {[w_callbacks0.REAL_V]: "worker_api__verts"};
+    // var cb_revkeys = {[REAL_V]: "REAL_V", REAL_V: 1};
+    var cb_keys = {REAL_V: 1, build_geometry: 2};  // enum
+    //var cb_revkeys =
+    //    {[cb_keys.REAL_V]: "REAL_V", [cb_keys.build_geometry]: "build_geometry"};
+    var cb_funcNames =
+        {[cb_keys.REAL_V]: "worker_api__verts", [cb_keys.build_geometry]: "build_geometry"};
     // in fact it's better to use emscripten's!
-    console.log(w_callbacks);
+    // console.log(cb_revkeys);
+    */
+    var cb_info = {
+        REAL_V: {
+            funcName: "worker_api__verts",
+            callbackId: 1,
+        },
+        build_geometry: {
+            funcName: "build_geometry",
+            callbackId: 2,
+        }
+    };
+    // Maps the callback int id into the key name in cb_info dict. For fast lookup.
+    var cb_revlookup = {
+        [cb_info.REAL_V]: "REAL_V",
+        [cb_info.build_geometry]: "build_geometry",
+    };
+
     function send_worker_simple_request(fname) {
         // no data
         const callbackId = -1;
@@ -2183,10 +2203,14 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     function send_worker_request_va() {
         // no data
         //
-        // const callbackId = REAL_V;
-        const callbackId = w_callbacks0.REAL_V;
-        // Cracking the protocol used by Emscripten
-        var fname = w_callback_funcnames[callbackId]; //"worker_api__verts";
+        // // const callbackId = REAL_V;
+        //const callbackId = cb_keys.REAL_V;
+        // // Cracking the protocol used by Emscripten
+        //var fname = cb_funcNames[callbackId]; //"worker_api__verts";
+
+        const callbackId = cb_info.REAL_V.callbackId;
+        var fname = cb_info.REAL_V.funcName;
+
         worker.postMessage(
             {
                 funcName: fname,
@@ -2196,10 +2220,46 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             }
         );
     }
+
+    function build_geometry() {
+
+        worker.postMessage(
+            {
+                funcName: cb_info.build_geometry.funcName,
+                callbackId: cb_info.build_geometry.callbackId,
+                data: 0,
+                // 'finalResponse': false,
+            }
+        );
+    }
+
     function request() {
         // send_worker_simple_request("worker_api__verts");
-        send_worker_request_va();
+        // send_worker_request_va();
+        var x0=0, y0=0, z0=0;
+        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+
+        var mc_params = {
+            resolution: Math.floor(14 ),
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            ignore_root_matrix: false,
+
+            vresampl: {iters: 3, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            subdiv: {enabled: 1},
+            overall_repeats: 1,
+
+            debug: {
+                enabled_pointsets: 0,
+                post_subdiv_noise: 0.0,
+            },
+        };
+
+        var mcsettings = JSON.stringify(mc_params);
+        build_geometry(mp5_json, mcsettings);
     }
+
 
     worker.addEventListener('message', function(event) {
         // event.data == {callbackId: -1, finalResponse: true, data: 0}
@@ -2212,7 +2272,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // problem! Identify the result ID. Callback IS needed.
 
         switch (event.data.callbackId) {
-            case w_callbacks0.REAL_V:
+            case cb_keys.REAL_V:
                 console.log("REAL_V REAL_V REAL_V ");
         g = event.data;
         g2 = new Float32Array(g.data.buffer);

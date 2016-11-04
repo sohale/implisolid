@@ -17,7 +17,7 @@ mkdir -p ../build
 
 if [[ -n "$EM_PREPARE" ]]
 then
-    echo ""
+    echo -n ""
 else
     echo "First run \"source em_prepare.sh\""
     exit
@@ -25,16 +25,17 @@ fi
 
 OPTIM=0
 SAVE_BC=0
+WORKER=1
 
-
-TEMP=`getopt -o dob -l dev,opt,bitcode -- "$@"`
+TEMP=`getopt -o dobw -l dev,opt,bitcode,worker -- "$@"`
 eval set -- "$TEMP"
 # echo $TEMP
 # extract options and their arguments into variables
 USAGE=$'Usage: ./build_mcc2.sh [option]
         -d or --dev for development version
         -o or --opt for optimized version
-        -b or --bitcode to emit llvm Code'
+        -b or --bitcode to emit llvm Code
+        -w or --worker for worker development'
 
 if [ "$#" -lt 2 ]; then
     echo "$USAGE"
@@ -53,6 +54,12 @@ while true; do
             ;;
         -b|--bitcode)
             SAVE_BC=1
+            shift
+            ;;
+        -w|--worker)
+            OPTIM=0
+            SAVE_BC=0
+            WORKER=1
             shift
             ;;
         --)
@@ -87,10 +94,13 @@ then
     exit 0
 fi
 
+if [ $WORKER -eq 0 ]
+then
+
 if [ $OPTIM -eq 0 ]
 then
 
-    echo "** dev version **"
+    echo "** dev version (non-worker) **"
 
     EMCC_DEBUG=1
 
@@ -98,17 +108,45 @@ then
          -I $EIGEN_LIB_FOLDER \
         -s TOTAL_MEMORY=30100100 \
         -s ABORTING_MALLOC=0 \
-        -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_about' , '_worker_api__started', '_worker_api__verts' ]" \
+        -s EXPORTED_FUNCTIONS="['_produce_object_old2', '_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_about' ]" \
         -s NO_EXIT_RUNTIME=1 \
         -s DEMANGLE_SUPPORT=1 \
         -s ASSERTIONS=1 \
-        -s BUILD_AS_WORKER=0 -DBUILD_AS_WORKER_NOT  \
+        -s BUILD_AS_WORKER=0 -DNOT_BUILD_AS_WORKER  \
         -pedantic -std=c++14 \
         mcc2.cpp -o ../build/mcc2.compiled.js
 #        --profiling \
     exit 0
 fi
 
+fi
+
+if [ $WORKER -eq 1 ]
+then
+
+if [ $OPTIM -eq 0 ]
+then
+
+    echo "** dev worker version **"
+
+    EMCC_DEBUG=1
+
+    em++ -I $BOOST_FOLDER  \
+         -I $EIGEN_LIB_FOLDER \
+        -s TOTAL_MEMORY=30100100 \
+        -s ABORTING_MALLOC=0 \
+        -s EXPORTED_FUNCTIONS="['_main', '_build_geometry' , '_about' , '_worker_api__started', '_worker_api__verts' ]" \
+        -s NO_EXIT_RUNTIME=1 \
+        -s DEMANGLE_SUPPORT=1 \
+        -s ASSERTIONS=1 \
+        -s BUILD_AS_WORKER=1 -DBUILD_AS_WORKER  \
+        -pedantic -std=c++14 \
+        mcc2.cpp -o ../build/mcc2.compiled.js
+#        --profiling \
+    exit 0
+fi
+
+fi
 
 if [ $OPTIM -eq 1 ]
 then
