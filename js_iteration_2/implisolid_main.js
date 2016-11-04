@@ -131,7 +131,7 @@ function init2(impli2, impli1) {
     };
 
 
-    // High-level API
+    // mid-level API
     impli2.make_geometry = function (mp5_str, mc_params, callback) {
         assert(typeof callback !== 'undefined');
         assert(callback);

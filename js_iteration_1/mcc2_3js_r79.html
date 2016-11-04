@@ -2106,15 +2106,124 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 </script>
 
 <!-- Memory profiler code by "jj" from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4 -->
+<!--
 <script type="text/javascript" src="./lib/memoryprofiler.js"></script>
 <script>
         //function letmeknow(){console.log("Loading memory profiler");}
-        Module={preRun:[
-            letmeknow=function (){console.log("Loading memory profiler");},
-            // memoryprofiler_add_hooks
-        ],
-        onRuntimeInitialized: set_off,
-        memoryInitializerPrefixURL: "../build/",
-    };
+        Module=
+        {
+            preRun:[
+                letmeknow=function (){console.log("Loading memory profiler");},
+                // memoryprofiler_add_hooks
+            ],
+            onRuntimeInitialized: set_off,
+            memoryInitializerPrefixURL: "../build/",
+        };
 </script>
 <script type="text/javascript" src="../build/mcc2.compiled.js"></script>
+-->
+<script>
+    var g1;
+    var g2;
+    var worker = new Worker('../build/mcc2.compiled.js');
+/* Usage:
+ * worker.postMessage({funcName: "worker_api__started"});
+ * Also see: ~/install/emsdk_portable/emscripten/master/src/library_browser.js  at emscripten_call_worker()  :1323  emscripten_call_worker()
+ * What is       Runtime.getFuncWrapper(func, 'vi')(arg);  ?
+ */
+ /*
+    var transferObject = {
+      'funcName': funcName,
+      'callbackId': callbackId,
+      'data': data ? new Uint8Array({{{ makeHEAPView('U8', 'data', 'data + size') }}}) : 0
+    };
+    See:
+    https://kripken.github.io/emscripten-site/docs/api_reference/emscripten.h.html#c.emscripten_call_worker
+    https://kripken.github.io/emscripten-site/docs/api_reference/emscripten.h.html#c.emscripten_worker_respond
+
+    Q: Why do we need emscripten_get_worker_queue_size() ?
+
+    See:
+    ~/install/emsdk_portable/emscripten/master/src$ grep -rnw '.' -i -e "worker"
+    */
+    function send1() {
+        const callbackId = -1;
+        var dataArray = new Uint8Array([3,2,1]);
+        // Cracking the protocol used by Emscripten
+        worker.postMessage(
+            {
+                funcName: "worker_api__started",
+                callbackId: callbackId,
+                data: dataArray? dataArray : 0,
+                // 'finalResponse': false,
+            }, dataArray?[dataArray.buffer]:[]
+        );
+    }
+    //var REAL_V  = 1;  // enum
+    // var w_callbacks = {[REAL_V]: "REAL_V", REAL_V: 1};
+    var w_callbacks0 = {REAL_V: 1};  // enum
+    var w_callbacks = {[w_callbacks0.REAL_V]: "REAL_V"};
+    var w_callback_funcnames = {[w_callbacks0.REAL_V]: "worker_api__verts"};
+    // in fact it's better to use emscripten's!
+    console.log(w_callbacks);
+    function send_worker_simple_request(fname) {
+        // no data
+        const callbackId = -1;
+        // Cracking the protocol used by Emscripten
+        worker.postMessage(
+            {
+                funcName: fname,
+                callbackId: callbackId,
+                data: 0,
+                // 'finalResponse': false,
+            }
+        );
+    }
+    // function send_worker_request_va(fname, callbackId) {
+    function send_worker_request_va() {
+        // no data
+        //
+        // const callbackId = REAL_V;
+        const callbackId = w_callbacks0.REAL_V;
+        // Cracking the protocol used by Emscripten
+        var fname = w_callback_funcnames[callbackId]; //"worker_api__verts";
+        worker.postMessage(
+            {
+                funcName: fname,
+                callbackId: callbackId,
+                data: 0,
+                // 'finalResponse': false,
+            }
+        );
+    }
+    function request() {
+        // send_worker_simple_request("worker_api__verts");
+        send_worker_request_va();
+    }
+
+    worker.addEventListener('message', function(event) {
+        // event.data == {callbackId: -1, finalResponse: true, data: 0}
+        //console.log('Worker said: ', event.data);
+        console.log("Message received from worker:", event.data);  // event
+        // Reinterpret data
+        g = event.data;
+        g2 = new Float32Array(g.data.buffer);
+        console.log(g2);
+        // problem! Identify the result ID. Callback IS needed.
+
+        switch (event.data.callbackId) {
+            case w_callbacks0.REAL_V:
+                console.log("REAL_V REAL_V REAL_V ");
+        g = event.data;
+        g2 = new Float32Array(g.data.buffer);
+        console.log(g2);
+        }
+    }, false);
+    /*
+    worker.onmessage = function(event) {
+        console.log("Message received from worker:", event);
+        console.log(event.data);
+    }
+    */
+
+</script>

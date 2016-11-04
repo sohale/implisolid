@@ -13,10 +13,10 @@
 /*
 Todo:
 - WebWorker (incremental)
-- Improve JS data exchange to Geometry
-- Adding walls
-- WebWorker wrappen in a Geometry
-- Geometry in 3js r73
+- Improve JS data exchange to Geometry (done)
+- Adding walls (done)
+- WebWorker wrapped in a Geometry
+- Geometry in 3js r73  (DONE  r79)
 -
 */
 
@@ -53,6 +53,13 @@ extern "C" {
     void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
     int main(int argc, char **argv);
 }
+
+// Standard Emscripten compile option
+#ifdef BUILD_AS_WORKER
+    #define AS_WORKER true
+#else
+    #define AS_WORKER false
+#endif
 
 const bool REPORT_STATS = false;
 
@@ -282,8 +289,6 @@ extern "C" {
     //     Solution 1:  MarchingCubes* build_geometry();
     //     Solution 2: ids (for workers! ; a statically determined number of them (slots/workers/buckets).).
 }
-
-
 
 // typedef    std::tuple<std::vector<REAL>, std::vector<vectorized_vect::index>> verts_faces_t;
 // typedef    std::tuple<vectorized_vect, std::vector<vectorized_vect::index>> verts_faces_t;
@@ -767,6 +772,11 @@ void finish_geometry() {
 void about() {
     std::clog << "Build 1" << std::endl;
     std::clog << __DATE__ << " " << __TIME__ << std::endl;
+    #if AS_WORKER
+    std::clog << "compiled as worker" << std::endl;
+    #else
+    std::clog << "not as worker" << std::endl;
+    #endif
     std::clog << MORE_ABOUT_INFO << std::endl;
 }
 
@@ -1069,9 +1079,14 @@ int get_gradients_size() {
 
 int main(int argc, char **argv) {
     std::clog.tie (&cerr);
-    clog << "clog" << std::endl;
-    cout << "cout" << std::endl;
-    cerr << "cerr" << std::endl;
+    std::clog << "clog" << std::endl;
+    std::cout << "cout" << std::endl;
+    std::cerr << "cerr" << std::endl;
+    #if AS_WORKER
+    std::clog << "compiled as worker" << std::endl;
+    #else
+    std::clog << "not as worker" << std::endl;
+    #endif
 }
 
 /*
@@ -1132,3 +1147,42 @@ int main() {
     return 0;
 }
 */
+
+#if AS_WORKER
+#include <emscripten/emscripten.h>
+#endif
+
+
+extern "C" {
+#if AS_WORKER
+    // called from the main on front-end
+    // All functions must have the same declaration: void(char* data, int size);
+    void worker_api__started(char* data, int size);
+    void worker_api__verts(char* data, int size);
+#endif
+}
+
+/* Worker API */
+#if AS_WORKER
+void worker_api__started(char* data, int size) {
+    // int CHUNK_SIZE = 16;
+    for(int i=0; i<10; i++) {
+        std::cout << "Worker" << std::endl;
+        emscripten_worker_respond_provisionally(0, 0);
+    }
+    emscripten_worker_respond(0, 0);
+}
+static vector<REAL> static_datum = {3.14, 1.4, 4 };
+void worker_api__verts(char* data, int size) {
+
+    auto ptr = get_v_ptr();
+    auto sz = get_v_size() * sizeof(REAL) * 3;
+
+    std::cout << "worker_api::verts()" << std::endl;
+    // emscripten_worker_respond(static_cast<char*>(ptr), static_cast<int>(sz));
+    emscripten_worker_respond(static_cast<char*>(static_cast<void*>(static_datum.data())), static_cast<int>(sizeof(static_datum)));
+}
+
+#endif
+/* End of Worker API */
+
