@@ -1,0 +1,1 @@
+g++ -I /home/vita/install/nlopt-2.4.2/build/include/ main.cpp  -L /home/vita/install/nlopt-2.4.2/build/lib/  -lnlopt -lm -o  main
