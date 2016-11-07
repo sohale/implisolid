@@ -1,0 +1,50 @@
+Based on:
+1) http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation
+2) https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html
+
+Instructions to install NLopt:
+
+1) Download the latest version: http://ab-initio.mit.edu/nlopt/nlopt-2.4.2.tar.gz
+
+2) Extract archive in folder nlopt-2.4.2. Let's call this folder NLOPT_FOLDER_G++
+
+3) cd NLOPT_FOLDER_G++
+
+4) mkdir build
+
+5) ./configure --prefix=NLOPT_FOLDER_G++/build
+
+6) make
+
+7) make install
+
+===================================================================================
+
+After this you can try to compile the egg example:
+
+g++ -std=c++11 -I NLOPT_FOLDER_G++/build/include/ main.cpp  -L NLOPT_FOLDER_G++/build/lib/  -lnlopt -lm -o main
+
+===================================================================================
+
+Lets build NLopt for emscripten.
+
+2) Extract archive in folder nlopt-2.4.2-ems. Let's call this folder NLOPT_FOLDER_EMS
+
+3) cd NLOPT_FOLDER_EMS
+
+4) mkdir build
+
+5) source ~/install/emsdk_portable/emsdk_env.sh
+
+6) ./<path to emconfigure> ./configure  --prefix=NLOPT_FOLDER_EMS/build
+In my case it was: ./../emsdk_portable/emscripten/master/emconfigure ./configure  --prefix=NLOPT_FOLDER_EMS/build
+
+7) ./<path to emmake> make
+
+8) ./<path to emmake> make install
+
+===================================================================================
+
+After this you can try to compile the egg example:
+
+ em++ -std=c++11 -I NLOPT_FOLDER_EMS/build/include/ main.cpp  -L NLOPT_FOLDER_EMS/build/lib/  -lnlopt -lm -o  main.js
