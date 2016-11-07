@@ -1,0 +1,5 @@
+g++ -std=c++11 -I /home/vita/install/nlopt-2.4.2/build/include/ main.cpp  -L /home/vita/install/nlopt-2.4.2/build/lib/  -lnlopt -lm -o main
+
+
+ em++ -std=c++11 -I /home/vita/install/nlopt-2.4.2-em/build/include/ main.cpp  -L /home/vita/install/nlopt-2.4.2-em/build/lib/  -lnlopt -lm -o  main.js
+
