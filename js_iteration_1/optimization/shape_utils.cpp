@@ -34,7 +34,7 @@ double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
 
  double my_constraint_eq(unsigned n, const double *m, double *grad, void *data)
 {
-    transformable_implicit_function *f = (transformable_implicit_function *) data;
+    implicit_function *f = (implicit_function *) data;
 
     vectorized_vect points(boost::extents[1][3]);
     vectorized_vect gradient(boost::extents[1][3]);
@@ -58,17 +58,18 @@ double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
     return result[0];
  }
 
- double getRandomFromRange()
+ double getRandom(REAL deviation)
  {
- 	//from -5 to 5
  	double r = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
- 	r = 10*r - 5;
+ 	r = 2*deviation*r - deviation;
  	return r;
  }
 
-int main()
-{
-	egg my_egg(1, 2, 3);
+
+boost::array<REAL, 3> find_min_z(
+	implicit_function& f,  
+	int random_starting_point_count, 
+	REAL random_starting_point_standard_deviation) {
 
 	double lb[3] = { -10, -10, -10 }; 
 	nlopt_opt opt;
@@ -77,7 +78,7 @@ int main()
 	nlopt_set_lower_bounds(opt, lb);
 	nlopt_set_min_objective(opt, func_min_z, NULL);
 
-	nlopt_add_equality_constraint(opt, my_constraint_eq, &my_egg, 1e-4);
+	nlopt_add_equality_constraint(opt, my_constraint_eq, &f, 1e-4);
 
 	nlopt_set_xtol_rel(opt, 1e-4);
 	nlopt_set_maxeval(opt, 100);
@@ -85,14 +86,15 @@ int main()
 
 	double m[3] = { 1, -1, 0 };  
 	double minf; 
-	
+
 	double correctZ = -3;
 	int counter = 0;
-	for(int i = 0; i < 10; i++) {
 
-		m[0] = getRandomFromRange();
-		m[1] = getRandomFromRange();
-		m[2] = getRandomFromRange();
+	for(int i = 0; i < random_starting_point_count; i++) {
+
+		m[0] = getRandom(random_starting_point_standard_deviation);
+		m[1] = getRandom(random_starting_point_standard_deviation);
+		m[2] = getRandom(random_starting_point_standard_deviation);
 
 		std::cout << m[0] <<  " : " << m[1]  <<  " : " << m[2] << std::endl;
 		
@@ -114,5 +116,13 @@ int main()
 	
 	nlopt_destroy(opt);
 
+}
+
+int main()
+{
+	egg my_egg(1, 2, 3);
+
+	find_min_z(my_egg, 3, 5);
+	
 	return 0;
 }
