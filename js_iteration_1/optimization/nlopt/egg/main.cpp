@@ -29,20 +29,20 @@ double myfunc(unsigned n, const double *m, double *grad, void *my_func_data)
         grad[1] = 0;
         grad[2] = 1;
     }
-         
-    return m[2];       
+
+    return m[2];
 }
 
  double myconstraint_eq(unsigned n, const double *m, double *grad, void *data)
 {
     my_egg_data *d = (my_egg_data *) data;
 
-    double x = m[0]; 
+    double x = m[0];
     double y = m[1];
     double z = m[2];
 
 	//std::cout << m[0] <<  " " << m[1]  <<  " " << m[2] << std::endl;
-    
+
     if (grad) {
     	double a2 = squared(d->a);
         double b2 = squared(d->b);
@@ -56,7 +56,7 @@ double myfunc(unsigned n, const double *m, double *grad, void *my_func_data)
     }
 
     double egg_i = 1 - norm_squared((x - d->center_x)/d->a, (y - d->center_y)/d->b, (z - d->center_z)/d->c);
-           
+
     //std::cout << "constr eq: " << egg_i << std::endl;
 	return egg_i;
  }
@@ -81,15 +81,15 @@ int main()
 
 	my_egg_data data = {1, 2, 3, 0, 0, 0};
 
-	nlopt_add_equality_constraint(opt, myconstraint_eq, &data, 1e-4);
+	nlopt_add_equality_constraint(opt, myconstraint_eq, &data, 1e-4 /1000.0 );  // The precision is determined here
 
-	nlopt_set_xtol_rel(opt, 1e-4);
+	nlopt_set_xtol_rel(opt, 1e-4 );
 	nlopt_set_maxeval(opt, 100);
-	nlopt_set_xtol_abs1(opt, 1e-4);
+	nlopt_set_xtol_abs1(opt, 1e-4 );
 
 	double m[3] = { 1, -1, 0 };  /* some initial guess */
 	double minf; /* the minimum objective value, upon return */
-	
+
 	double correctZ = -3;
 	int counter = 0;
 	for(int i = 0; i < 10; i++) {
@@ -98,25 +98,27 @@ int main()
 		m[1] = getRandomFromRange();
 		m[2] = getRandomFromRange();
 
-		std::cout << m[0] <<  " : " << m[1]  <<  " : " << m[2] << std::endl;
-		
+		std::cout << "start: " << m[0] <<  " : " << m[1]  <<  " : " << m[2] << " \t   ";  //  << std::endl;
+
 		if (nlopt_optimize(opt, m, &minf) < 0) {
 		    printf("nlopt failed!\n");
 		    counter ++;
 		}
 		else {
+
+            std::cout << "optim: " << m[0] <<  " : " << m[1]  <<  " : " << m[2] << " \t   ";  //  << std::endl;
 			if (abs(correctZ - m[2]) > 1e-4) {
 				counter ++;
 				std::cout << "Violating " << m[2] << std::endl;
 			} else {
 				std::cout << "All good " << m[2] << std::endl;
-			}		
+			}
 		    //printf("found minimum at f(%g,%g,%g) = %0.10g\n", m[0], m[1], m[2], minf);
 		}
 	}
 
 	std::cout << "All violation " << counter << std::endl;
-	
+
 	nlopt_destroy(opt);
 
 	return 0;
