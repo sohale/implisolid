@@ -13,6 +13,7 @@ extern "C" {
     void worker_api__verts(char* data, int size);
 
     void workerapi_make_geometry(char* data, int size);
+    void workerapi_make_geometry_part1(char* data, int size);
 #endif
 }
 
@@ -37,8 +38,35 @@ void worker_api__verts(char* data, int size) {
     emscripten_worker_respond(static_cast<char*>(static_cast<void*>(static_datum.data())), static_cast<int>(sizeof(static_datum)));
 }
 
+std::string hexcode(char byte) {
+    // auto bv0 = reinterpret_cast<unsigned char>(byte);
+    // auto bv0 = reinterpret_cast<unsigned char>(byte);  // does ot work!
+    auto bv0 = reinterpret_cast<unsigned char&>(byte);
+    unsigned int bv = bv0;
+    // no char[]
+    char codes[] = "0123456789abcdef_";
+    std::string result("");
+    result = codes[bv % 16] + result;
+    bv = bv / 16;
+    result = codes[bv % 16] + result;
+    bv = bv / 16;
+    assert(bv == 0);
+    return result;
+    // type aliasing rules = ?
+}
+
 void workerapi_make_geometry_part1(char* data, int size) {
     //var data = {mp5:json, mcsettings:json}
+    // dump_all_data
+    size_t i = 0 ;
+    for (; i < size; ++i) {
+        std::cout << hexcode(data[i]) << " ";
+    }
+    std::cout << "(end)";
+    for (; i < size*2; ++i) {
+        std::cout << hexcode(data[i]) << " ";
+    }
+    std::cout << std::endl;
 }
 
 #endif

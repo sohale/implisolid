@@ -135,7 +135,7 @@ then
          -I $EIGEN_LIB_FOLDER \
         -s TOTAL_MEMORY=30100100 \
         -s ABORTING_MALLOC=0 \
-        -s EXPORTED_FUNCTIONS="['_main', '_build_geometry' , '_about' , '_worker_api__started', '_worker_api__verts' ]" \
+        -s EXPORTED_FUNCTIONS="['_main', '_build_geometry' , '_about' , '_worker_api__started', '_worker_api__verts', '_workerapi_make_geometry_part1' ]" \
         -s NO_EXIT_RUNTIME=1 \
         -s DEMANGLE_SUPPORT=1 \
         -s ASSERTIONS=1 \

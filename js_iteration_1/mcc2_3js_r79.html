@@ -2175,16 +2175,25 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             funcName: "worker_api__verts",
             callbackId: 1,
         },
+        /*
         build_geometry: {
             funcName: "build_geometry",
             callbackId: 2,
-        }
+        },
+        */
+        test: {
+            funcName: "workerapi_make_geometry_part1",
+            callbackId: 3,
+        },
     };
+
     // Maps the callback int id into the key name in cb_info dict. For fast lookup.
     var cb_revlookup = {
         [cb_info.REAL_V]: "REAL_V",
-        [cb_info.build_geometry]: "build_geometry",
+        // [cb_info.build_geometry]: "build_geometry",
+        [cb_info.test]: "test",
     };
+
 
     function send_worker_simple_request(fname) {
         // no data
@@ -2221,7 +2230,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         );
     }
 
-    function build_geometry() {
+    function build_geometry_w() {
 
         worker.postMessage(
             {
@@ -2231,6 +2240,22 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
                 // 'finalResponse': false,
             }
         );
+    }
+
+    function test_data_worker(data) {
+        console.log("test_data_worker");
+        worker.postMessage(
+            {
+                funcName: cb_info.test.funcName,
+                callbackId: cb_info.test.callbackId,
+                data: data, //[12345678, 3],  // turns this into a two bytes!
+                // 'finalResponse': false,
+            }
+            // [data]
+        );
+        /*
+         *[12345678,2]
+        */
     }
 
     function request() {
@@ -2257,7 +2282,15 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         };
 
         var mcsettings = JSON.stringify(mc_params);
-        build_geometry(mp5_json, mcsettings);
+        // build_geometry_w(mp5_json, mcsettings);
+        test_data_worker([12345678, 3]);
+
+        /*
+         * [1,2] -> 1 02             //
+         * [12345678,2] -> 4e 02     // turns this into a two bytes!
+         * [12345677, 3] -> 4d 03
+         * ["hi.abc", 3]  ->   00 03
+         */
     }
 
 
