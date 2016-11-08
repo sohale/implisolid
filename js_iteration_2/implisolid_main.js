@@ -290,6 +290,9 @@ function init2(impli2, impli1) {
         }
     }
 
+    impli2.about = impli1.about;
+    // Enable access to lower level functions. not recommended except for debugging.
+    impli2.service1 = impli1;
 }
 
 
@@ -309,6 +312,10 @@ function init3(service3, service2) {
 
     service3.use_II = true;
     service3.use_II_qem = true;
+    service3.use_III = false;
+    service3.use_noise = false;
+    service3.repeats = 1;
+    service3.custom_mc_settings = null;  // can be manually set in browser's console
 
     service3.update_geometry = function(geometry, ignoreNormals) {
 
@@ -446,19 +453,27 @@ function init3(service3, service2) {
             box: bb,
             ignore_root_matrix: ignore_root_matrix,
 
-            vresampl: {iters: 1, c: 0.4},
-            projection: {enabled: 1},
-            qem: {enabled: 1},
+            vresampl: service3.use_II? {iters: 1, c: 0.4} : {iters: 0, c: 1.0},
+            projection: {enabled: service3.use_II? 1 : 0},
+            qem: {enabled: service3.use_II_qem? 1 : 0},
             //subdiv: {enabled: 1},
             //overall_repeats: 2,
-            subdiv: {enabled: 0},
-            overall_repeats: 1,
+            subdiv: {enabled: service3.use_III? 1 : 0},
+            overall_repeats: service3.repeats,
 
             debug: {
                 enabled_pointsets: 0,
-                post_subdiv_noise: 0.01,
+                post_subdiv_noise: service3.use_noise? 0.01 : 0.0,
             },
         };
+
+        if (service3.custom_mc_settings) {
+            // nonrecursive is enough, because we want to replace everything except for "box".
+            // note: this is not tested.
+            // Example usage:
+            //    IMPLICIT.custom_mc_settings = {vresampl: {iters: 1, c: 1} };
+            mc_properties = merge_dicts_nonrecursive(mc_properties, service3.custom_mc_settings);
+        }
 
         console.log (" mc properties : " + JSON.stringify(mc_properties));
         var mp5_str = JSON.stringify(shape_properties);
@@ -490,6 +505,9 @@ function init3(service3, service2) {
     };
 
     service3.query_implicit_values = service2.query_implicit_values;
+    service3.about = service2.about;
+    // Enable access to lower level functions. not recommended except for debugging.
+    service3.service2 = service2;
 }
 
 
@@ -536,7 +554,24 @@ function _on_cpp_loaded() {
     assert = _assert_000;
 };
 
-
+/**
+ * Usage:
+ * console.log(merge({}, {key1: 1,    key2: "test",    key3: [5, 2, 76, 21]}, { key1: 1 }));
+ * http://stackoverflow.com/a/8625261/4374258
+ */
+var merge_dicts_nonrecursive = function() {
+    var merged_dict = {};
+    var nargs = arguments.length;
+    for (var arg_i = 0; arg_i < nargs; arg_i++) {
+        var newarg = arguments[arg_i];
+        for (var key in newarg) {
+            if (newarg.hasOwnProperty(key)) {
+                merged_dict[key] = newarg[key];
+            }
+        }
+    }
+    return merged_dict;
+};
 
 /**
  * Confusion:

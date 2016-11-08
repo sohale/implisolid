@@ -30,7 +30,7 @@ namespace vectorised_algorithms {
  * See: implicit_config.py
  */
 
-const REAL ROOT_TOLERANCE = 0.001;  //
+const REAL ROOT_TOLERANCE = 0.001 / 10.0;  //
 const REAL MIN_PRINTABLE_LENGTH = 0.01 / 2.0;
 
 namespace mp5_implicit {

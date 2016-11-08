@@ -758,6 +758,7 @@ void finish_geometry() {
 
 #endif
 
+
 /** Show build information, e.g. when it was compiled.
  * Usage: Type in browser console:
  *      IMPLICIT.about()
@@ -770,13 +771,47 @@ void finish_geometry() {
  * is used becasue it has to be a valid C++ expression (a C++ string).
  */
 void about() {
-    std::clog << "Build 1" << std::endl;
+    std::clog << "Build Info: " << std::endl;
     std::clog << __DATE__ << " " << __TIME__ << std::endl;
-    #if AS_WORKER
-    std::clog << "compiled as worker" << std::endl;
-    #else
-    std::clog << "not as worker" << std::endl;
-    #endif
+
+    std::clog << "Macros: "
+        #if ASSERT_USED
+            << "ASSERT_USED:yes. "
+        #else
+            << "ASSERT_USED:disabled. "
+        #endif
+        #if USE_ASSERT
+            << "USE_ASSERT:yes. "
+        #else
+            << "USE_ASSERT:no. "
+        #endif
+        #if VERBOSE_SUBDIV
+            << "VERBOSE_SUBDIV "
+        #endif
+        #if USE_PSDE
+            << "USE_PSDE "
+        #endif
+        #if DEBUG_VERBOSE
+            << "DEBUG_VERBOSE "
+        #endif
+        #if RANK_MANUALLY
+            << "RANK_MANUALLY "
+        #endif
+        #if NDEBUG
+            << "NDEBUG "
+        #endif
+        #if AS_WORKER
+            << "AS_WORKER:yes. "
+        #else
+            << "AS_WORKER:no. "
+        #endif
+        << std::endl;
+
+    std::clog << "CONFIG: "
+        << "ROOT_TOLERANCE=" << ROOT_TOLERANCE << " "
+        /*<< CONFIG*/
+        << std::endl;
+
     std::clog << MORE_ABOUT_INFO << std::endl;
 }
 
