@@ -21,7 +21,6 @@
 using namespace std;
 using namespace mp5_implicit;
 
-
 double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
 {
     if (grad) {
@@ -52,7 +51,6 @@ double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
         grad[0] = gradient[0][0];
         grad[1] = gradient[0][1];
         grad[2] = gradient[0][2];
-
     }
 
     return result[0];
@@ -65,11 +63,12 @@ double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
  	return r;
  }
 
-
-boost::array<REAL, 3> find_min_z(
+REAL find_min_z(
 	implicit_function& f,  
 	int random_starting_point_count, 
 	REAL random_starting_point_standard_deviation) {
+
+	REAL min_z = 0;
 
 	double lb[3] = { -10, -10, -10 }; 
 	nlopt_opt opt;
@@ -84,10 +83,9 @@ boost::array<REAL, 3> find_min_z(
 	nlopt_set_maxeval(opt, 100);
 	nlopt_set_xtol_abs1(opt, 1e-4);
 
-	double m[3] = { 1, -1, 0 };  
+	double m[3] = { 0, 0, 0 };  
 	double minf; 
 
-	double correctZ = -3;
 	int counter = 0;
 
 	for(int i = 0; i < random_starting_point_count; i++) {
@@ -100,27 +98,24 @@ boost::array<REAL, 3> find_min_z(
 		
 		if (nlopt_optimize(opt, m, &minf) < 0) {
 		    printf("nlopt failed!\n");
-		    counter ++;
 		}
 		else {
-			if (abs(correctZ - m[2]) > 1e-4) {
-				counter ++;
-				std::cout << "Violating " << m[2] << std::endl;
-			} else {
-				std::cout << "All good " << m[2] << std::endl;
-			}		
+			min_z += minf;
+			counter++;		
 		}
 	}
 
-	std::cout << "All violation " << counter << std::endl;
-	
 	nlopt_destroy(opt);
 
+	min_z = min_z / counter;
+
+	cout << "Found min z:" << min_z << endl;
+	return min_z;
 }
 
 int main()
 {
-	egg my_egg(1, 2, 3);
+	egg my_egg(1, 2, 4);
 
 	find_min_z(my_egg, 3, 5);
 	
