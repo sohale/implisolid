@@ -249,6 +249,47 @@ void cube_test()
 	cout << "=================================" << endl;
 }
 
+void union_test() 
+{
+	cout << "=================================" << endl;
+	cout << "In union test, egg + cube " << endl;
+
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	egg my_egg(1, 1, 1);
+	
+	//move egg
+	vectorized_vect direction(boost::extents[1][3]);;
+	direction[0][0] = 0;
+	direction[0][1] = 0;
+	direction[0][2] = -0.5;
+	my_egg.move(direction);
+
+	cube my_cube(matrix12);
+	
+	std::vector<implicit_function*> children;
+	children.push_back(&my_egg);
+	children.push_back(&my_cube);
+
+	transformed_union obj(children, matrix12);
+
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
+
 int main()
 {
 	egg_test();
@@ -259,6 +300,7 @@ int main()
 	scone_test();//failed
 	scylinder_test();//failed
 	cube_test();
+	union_test();
 
 	return 0;
 }
