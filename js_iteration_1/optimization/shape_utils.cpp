@@ -125,9 +125,11 @@ REAL find_min_z(
 
 			f.eval_implicit(points, &result);
 
-			if (my_abs(result[0]) < 1e-4) {			
+			if (my_abs(result[0]) < 1e-2) {			
 				cout << "Found min z:" << minf << endl;
 				min_z = my_min(min_z, minf);		
+			} else {
+				cout << "Not close enought, min z:" << minf << "but constaints = "<< result[0] << endl;
 			}
 		}
 	}
@@ -255,6 +257,38 @@ void torus_test()
 	cout << "=================================" << endl;
 }
 
+void subtraction_test() 
+{
+	cout << "=================================" << endl;
+	cout << "In subtraction test, egg- cube " << endl;
+
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	egg my_egg(1, 1, 1);
+	cube my_cube(matrix12);
+	
+	std::vector<implicit_function*> children;
+	children.push_back(&my_egg);
+	children.push_back(&my_cube);
+
+	transformed_subtract obj(children, matrix12);
+
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
 
 int main()
 {
@@ -262,6 +296,7 @@ int main()
 	tetrahedron_test();
 	heart_test();
 	torus_test();
+	subtraction_test();
 
 	return 0;
 }
