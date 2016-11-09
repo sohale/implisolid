@@ -63,12 +63,21 @@ double func_min_z(unsigned n, const double *m, double *grad, void *my_func_data)
  	return r;
  }
 
+inline REAL my_min(REAL a, REAL b) {
+
+	if (a > b) {
+		return b;
+	} else {
+		return a;
+	}
+}
+
 REAL find_min_z(
 	implicit_function& f,  
 	int random_starting_point_count, 
 	REAL random_starting_point_standard_deviation) {
 
-	REAL min_z = 0;
+	REAL min_z = 1000000;
 
 	double lb[3] = { -10, -10, -10 }; 
 	nlopt_opt opt;
@@ -100,24 +109,81 @@ REAL find_min_z(
 		    printf("nlopt failed!\n");
 		}
 		else {
-			min_z += minf;
-			counter++;		
+			// todo: add checking for f(x,y,z) = 0 for result point
+			cout << "Found min z:" << minf << endl;
+			min_z = my_min(min_z, minf);		
 		}
 	}
 
 	nlopt_destroy(opt);
 
-	min_z = min_z / counter;
-
-	cout << "Found min z:" << min_z << endl;
+	cout << "Total Found min z:" << min_z << endl;
 	return min_z;
 }
 
 int main()
 {
-	egg my_egg(1, 2, 4);
+	/*
+	
+	Egg example:
+	
+	egg obj(1, 2, 4);
+	
+	*/
 
-	find_min_z(my_egg, 3, 5);
+	//*
+	
+	//Tetrahedron example:
+	
+	vector<boost::array<REAL,3>> points;
+	
+	boost::array<REAL,3> p1;
+	boost::array<REAL,3> p2;
+	boost::array<REAL,3> p3;
+	boost::array<REAL,3> p4;
+
+	p1[0] = 0;
+	p1[1] = 0;
+	p1[2] = 1;
+	
+	p2[0] = 4;
+	p2[1] = 0;
+	p2[2] = 3;
+	
+	p3[0] = 0;
+	p3[1] = 4;
+	p3[2] = 2;
+	
+	p4[0] = 0;
+	p4[1] = 0;
+	p4[2] = 4;
+
+	points.push_back(p1);
+	points.push_back(p2);
+	points.push_back(p3);
+	points.push_back(p4);
+
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	tetrahedron obj(points, matrix12);
+	
+	//*/
+
+
+	find_min_z(obj, 5, 5);
 	
 	return 0;
 }
