@@ -148,7 +148,7 @@ int main()
 	
 	*/
 
-	//*
+	/*
 	
 	//Tetrahedron example:
 	
@@ -197,8 +197,31 @@ int main()
 
 	tetrahedron obj(points, matrix12);
 	
-	//*/
+	*/
 
+
+	///*
+	
+	//Heart example:
+	
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	heart obj(matrix12);
+	
+	//*/
 
 	find_min_z(obj, 5, 5);
 	
