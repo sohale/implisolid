@@ -138,19 +138,21 @@ REAL find_min_z(
 	return min_z;
 }
 
-int main()
+
+void egg_example() 
 {
-	/*
-	
-	//Egg example:
+	cout << "=================================" << endl;
+	cout << "In egg_example" << endl;
 	
 	egg obj(1, 2, 4);
-	
-	*/
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
 
-	/*
-	
-	//Tetrahedron example:
+void tetrahedron_example() 
+{
+	cout << "=================================" << endl;
+	cout << "In tetrahedron example" << endl;
 	
 	vector<boost::array<REAL,3>> points;
 	
@@ -196,14 +198,16 @@ int main()
 	matrix12[11] = 0;
 
 	tetrahedron obj(points, matrix12);
-	
-	*/
 
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
 
-	///*
-	
-	//Heart example:
-	
+void heart_example() 
+{
+	cout << "=================================" << endl;
+	cout << "In heart_example" << endl;
+
 	REAL matrix12[12];
 	
 	matrix12[0] = 1;
@@ -220,10 +224,16 @@ int main()
 	matrix12[11] = 0;
 
 	heart obj(matrix12);
-	
-	//*/
 
 	find_min_z(obj, 5, 5);
-	
+	cout << "=================================" << endl;
+}
+
+int main()
+{
+	egg_example();
+	tetrahedron_example();
+	heart_example();
+
 	return 0;
 }
