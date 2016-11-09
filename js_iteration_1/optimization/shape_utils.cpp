@@ -72,6 +72,13 @@ inline REAL my_min(REAL a, REAL b) {
 	}
 }
 
+inline REAL my_abs(REAL a) {
+	a = a > 0 ? a : -a;
+	return a;
+}
+
+
+
 REAL find_min_z(
 	implicit_function& f,  
 	int random_starting_point_count, 
@@ -95,7 +102,8 @@ REAL find_min_z(
 	double m[3] = { 0, 0, 0 };  
 	double minf; 
 
-	int counter = 0;
+	vectorized_vect points(boost::extents[1][3]);
+	vectorized_scalar result(boost::extents[1]);
 
 	for(int i = 0; i < random_starting_point_count; i++) {
 
@@ -109,9 +117,18 @@ REAL find_min_z(
 		    printf("nlopt failed!\n");
 		}
 		else {
-			// todo: add checking for f(x,y,z) = 0 for result point
-			cout << "Found min z:" << minf << endl;
-			min_z = my_min(min_z, minf);		
+			// checking for f(x,y,z) = 0 for result point
+
+			points[0][0] = m[0];			
+			points[0][1] = m[1];
+			points[0][2] = m[2];
+
+			f.eval_implicit(points, &result);
+
+			if (my_abs(result[0]) < 1e-4) {			
+				cout << "Found min z:" << minf << endl;
+				min_z = my_min(min_z, minf);		
+			}
 		}
 	}
 
@@ -125,7 +142,7 @@ int main()
 {
 	/*
 	
-	Egg example:
+	//Egg example:
 	
 	egg obj(1, 2, 4);
 	
