@@ -343,6 +343,34 @@ void scylinder_test()
 }
 
 
+void cube_test() 
+{
+	cout << "=================================" << endl;
+	cout << "In cube" << endl;
+
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	cube obj(matrix12);
+
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
+
+
+
 int main()
 {
 	egg_test();
@@ -352,6 +380,7 @@ int main()
 	subtraction_test();
 	scone_test();//failed
 	scylinder_test();//failed
+	cube_test();
 
 	return 0;
 }
