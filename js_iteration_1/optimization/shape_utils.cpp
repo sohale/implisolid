@@ -139,20 +139,20 @@ REAL find_min_z(
 }
 
 
-void egg_example() 
+void egg_test() 
 {
 	cout << "=================================" << endl;
-	cout << "In egg_example" << endl;
+	cout << "In egg" << endl;
 	
 	egg obj(1, 2, 4);
 	find_min_z(obj, 5, 5);
 	cout << "=================================" << endl;
 }
 
-void tetrahedron_example() 
+void tetrahedron_test() 
 {
 	cout << "=================================" << endl;
-	cout << "In tetrahedron example" << endl;
+	cout << "In tetrahedron" << endl;
 	
 	vector<boost::array<REAL,3>> points;
 	
@@ -203,10 +203,10 @@ void tetrahedron_example()
 	cout << "=================================" << endl;
 }
 
-void heart_example() 
+void heart_test() 
 {
 	cout << "=================================" << endl;
-	cout << "In heart_example" << endl;
+	cout << "In heart" << endl;
 
 	REAL matrix12[12];
 	
@@ -229,11 +229,39 @@ void heart_example()
 	cout << "=================================" << endl;
 }
 
+void torus_test() 
+{
+	cout << "=================================" << endl;
+	cout << "In torus" << endl;
+
+	REAL matrix12[12];
+	
+	matrix12[0] = 1;
+	matrix12[1] = 0;
+	matrix12[2] = 0;
+	matrix12[3] = 0;
+	matrix12[4] = 0;
+	matrix12[5] = 1;
+	matrix12[6] = 0;
+	matrix12[7] = 0;
+	matrix12[8] = 0;
+	matrix12[9] = 0;
+	matrix12[10] = 1;
+	matrix12[11] = 0;
+
+	torus obj(matrix12);
+
+	find_min_z(obj, 5, 5);
+	cout << "=================================" << endl;
+}
+
+
 int main()
 {
-	egg_example();
-	tetrahedron_example();
-	heart_example();
+	egg_test();
+	tetrahedron_test();
+	heart_test();
+	torus_test();
 
 	return 0;
 }
