@@ -99,7 +99,7 @@ REAL find_min_z(
 		m[1] = getRandom(random_starting_point_standard_deviation);
 		m[2] = getRandom(random_starting_point_standard_deviation);
 
-		std::cout << m[0] <<  " : " << m[1]  <<  " : " << m[2] << std::endl;
+		//std::cout << m[0] <<  " : " << m[1]  <<  " : " << m[2] << std::endl;
 		
 		if (nlopt_optimize(opt, m, &minf) < 0) {
 		    printf("nlopt failed!\n");
@@ -114,12 +114,13 @@ REAL find_min_z(
 			f.eval_implicit(points, &result);
 
 			if (my_abs(result[0]) < 1e-2) {			
-				cout << "Found min z:" << minf << endl;
+				//cout << "Found min z:" << minf << endl;
 				min_z = my_min(min_z, minf);		
 			} else {
-				cout << "Not close enought, min z:" << minf << " but constaints = "<< result[0] << endl;
+				//cout << "Not close enought, min z:" << minf << " but constaints = "<< result[0] << endl;
 			}
 		}
+
 	}
 
 	nlopt_destroy(opt);

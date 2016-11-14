@@ -21,13 +21,32 @@
 using namespace std;
 using namespace mp5_implicit;
 
-void egg_test() 
+const int OPTIMIZATION_ITERATIONS = 5;
+const double OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION = 0.5;
+const double DELTA = 0.01;
+
+
+void egg_test()
 {
 	cout << "=================================" << endl;
 	cout << "In egg" << endl;
 	
 	egg obj(1, 2, 4);
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -4;
+
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -81,7 +100,19 @@ void tetrahedron_test()
 
 	tetrahedron obj(points, matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = 1;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
 	cout << "=================================" << endl;
 }
 
@@ -107,7 +138,20 @@ void heart_test()
 
 	heart obj(matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -1.02;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -133,7 +177,20 @@ void torus_test()
 
 	torus obj(matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -0.2;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -165,8 +222,21 @@ void subtraction_test()
 	children.push_back(&my_cube);
 
 	transformed_subtract obj(children, matrix12);
+	
+	double correct_min_z = -1;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
 
-	find_min_z(obj, 5, 5);
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -192,7 +262,20 @@ void scone_test()
 
 	scone obj(matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -0.5;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -203,22 +286,35 @@ void scylinder_test()
 
 	REAL matrix12[12];
 	
-	matrix12[0] = 1;
+	matrix12[0] = 10;
 	matrix12[1] = 0;
 	matrix12[2] = 0;
 	matrix12[3] = 0;
 	matrix12[4] = 0;
-	matrix12[5] = 1;
+	matrix12[5] = 10;
 	matrix12[6] = 0;
 	matrix12[7] = 0;
 	matrix12[8] = 0;
 	matrix12[9] = 0;
-	matrix12[10] = 1;
+	matrix12[10] = 10;
 	matrix12[11] = 0;
 
 	scylinder obj(matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -5;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -245,7 +341,20 @@ void cube_test()
 
 	cube obj(matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -0.5;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -286,7 +395,20 @@ void union_test()
 
 	transformed_union obj(children, matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -1.5;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
@@ -333,7 +455,20 @@ void intersection_test()
 
 	transformed_intersection obj(children, matrix12);
 
-	find_min_z(obj, 5, 5);
+	double correct_min_z = -0.4;
+	double our_min_z = find_min_z(
+		obj, 
+		OPTIMIZATION_ITERATIONS, 
+		OPTIMIZATION_STARTING_POINT_STANDART_DEVIATION
+	);
+	double diff = my_abs(correct_min_z - our_min_z);
+
+	if (diff < DELTA) {
+		cout << "Test passed!" << endl;
+	} else {
+		cout << "Test failed!" << endl;
+	}
+
 	cout << "=================================" << endl;
 }
 
