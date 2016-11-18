@@ -98,7 +98,7 @@ void vertex_resampling_VV1(
         const vectorized_vect& centroid_normals_normalized,
         const float c
     ) {
-    clog << "VV1: c=" << c << std::endl;
+    // clog << "VV1: c=" << c << std::endl;
     // exit(1);
     int nfaces = centroids.shape()[0];
 

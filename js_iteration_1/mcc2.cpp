@@ -531,6 +531,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         // float c = 1.;
         REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
+        #if NOTQUIET
         if (VERBOSE) {
             clog << "vresampl.c: " << c << std::endl;
             clog << "vresamp_iters: " << vresamp_iters << std::endl;
@@ -538,6 +539,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
             clog << ".subdiv.enabled: " << mc_settings_from_json.subdiv.enabled << std::endl;
         }
+        #endif
 
 
 

@@ -475,7 +475,7 @@ function init3(service3, service2) {
             mc_properties = merge_dicts_nonrecursive(mc_properties, service3.custom_mc_settings);
         }
 
-        console.log (" mc properties : " + JSON.stringify(mc_properties));
+        // console.log (" mc properties : " + JSON.stringify(mc_properties));
         var mp5_str = JSON.stringify(shape_properties);
         var geom = service2.make_geometry(mp5_str, mc_properties,
             function (verts, faces) {

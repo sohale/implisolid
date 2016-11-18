@@ -41,6 +41,7 @@ using namespace std;
 // Enables long print out of variables and arrays contents for debugging
 #define DEBUG_VERBOSE false
 
+#define NOTQUIET false
 
 //namespace implicit {
 

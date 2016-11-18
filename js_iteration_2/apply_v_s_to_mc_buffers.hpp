@@ -287,7 +287,7 @@ void apply_vertex_resampling_to_MC_buffers__VMS(
     )
 {
 
-    clog << "V_MS" << std::endl;
+    //clog << "V_MS" << std::endl;
 
     vectorized_vect  verts = convert_vectorverts_to_vectorized_vect(result_verts);
     vectorized_faces  faces = convert_vectorfaces_to_vectorized_faces(result_faces);

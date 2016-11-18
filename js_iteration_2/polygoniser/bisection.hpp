@@ -227,11 +227,12 @@ void bisection(
         // *************************************
 
         // here("4");
-
+        #if NOTQUIET
         clog << active_indices_size << " active_indices_size ?==? active_count " << active_count
             //  << std::endl;
             << "  ";
         clog << "average distace |x1-x2| : " << mean_distance(x1_arr, x2_arr) << std::endl;
+        #endif
         assert(active_indices_size == active_count);
 
 

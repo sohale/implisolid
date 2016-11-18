@@ -504,8 +504,10 @@ void  set_centers_on_surface(
     // stepsize happens to be equal to the max_dist.
     const REAL length_factor = max_dist;  // average_edge; // max_dist
     REAL initial_step_size = max_dist * 1.0;
+    #if NOTQUIET
     clog << " initial_step_size: " << initial_step_size
-    << " max_dist:" << max_dist << std::endl;
+        << " max_dist:" << max_dist << std::endl;
+    #endif
     // Goog value equivalent to 0.001, scale
     REAL scale_min_len = 1.0; // initial_step_size / 1.27158;
     std::vector<REAL> alpha_list_full = make_alpha_list(initial_step_size, 0.001*scale_min_len, max_dist, max_iter, EXTREME_ALPHA);
@@ -1270,7 +1272,9 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
     STORE_POINTSET("pre_qem_verts", verts);
 
     if (enable_qem) {
+        #if NOTQUIET
         std::clog << "Going for QEM:" << std::endl;
+        #endif
         // array_of_indices  ranks {num_faces}; // will not work
         array_of_indices  ranks {boost::extents[num_faces]};
         REAL maximum_qem_displacement = average_edge;
