@@ -495,7 +495,7 @@ function init3(service3, service2) {
 
                 service3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
-                //this_.aaaaaaaaa(verts);
+                //this_.aaaaaaaaaA(verts);
 
                 return geom;
             }

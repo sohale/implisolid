@@ -531,7 +531,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
     this.update_normals__ = function(implicit_service, mp5_str, x, ignore_root_matrix) {
         // Only called after updateGeometry(), or after LiveGeometry()
 
-        //this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+        //this.aaaaaaaaaA(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
         console.error("geometry.update_normals() deprecated");

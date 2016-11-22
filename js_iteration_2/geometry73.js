@@ -370,7 +370,7 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         implicit_service.make_normals_into_geometry(geom, mp5_str, x, ignore_root_matrix);
 
-        //this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+        //this.aaaaaaaaaA(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
 

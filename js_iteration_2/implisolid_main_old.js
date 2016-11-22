@@ -307,7 +307,7 @@ var ImplicitService = function(){
 
         this.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
-        //this.aaaaaaaaa(verts);
+        //this.aaaaaaaaaA(verts);
 
 
         var endTime = new Date();
@@ -318,7 +318,7 @@ var ImplicitService = function(){
         return geom;
     };
     /*
-    this.aaaaaaaaa(x, mp5_str, ignore_root_matrix) {
+    this.aaaaaaaaaA(x, mp5_str, ignore_root_matrix) {
 
         // var x = new Float32Array(nverts);
 
