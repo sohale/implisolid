@@ -25,7 +25,7 @@ fi
 
 OPTIM=0
 SAVE_BC=0
-WORKER=1
+WORKER=0
 
 TEMP=`getopt -o dobw -l dev,opt,bitcode,worker -- "$@"`
 eval set -- "$TEMP"
