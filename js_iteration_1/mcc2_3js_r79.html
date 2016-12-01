@@ -2126,6 +2126,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     var g1;
     var g2;
     var worker = new Worker('../build/mcc2.compiled.js');
+    var worker2 = new Worker('worker_test.js');
 /* Usage:
  * worker.postMessage({funcName: "worker_api__started"});
  * Also see: ~/install/emsdk_portable/emscripten/master/src/library_browser.js  at emscripten_call_worker()  :1323  emscripten_call_worker()
@@ -2150,14 +2151,16 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         const callbackId = -1;
         var dataArray = new Uint8Array([3,2,1]);
         // Cracking the protocol used by Emscripten
+        var temp_copy=null;
         worker.postMessage(
-            {
+            temp_copy={
                 funcName: "worker_api__started",
                 callbackId: callbackId,
                 data: dataArray? dataArray : 0,
                 // 'finalResponse': false,
             }, dataArray?[dataArray.buffer]:[]
         );
+        worker2.postMessage(temp_copy);
     }
     /*
     //var REAL_V  = 1;  // enum
@@ -2199,14 +2202,16 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // no data
         const callbackId = -1;
         // Cracking the protocol used by Emscripten
+        var temp_copy = null;
         worker.postMessage(
-            {
+            temp_copy = {
                 funcName: fname,
                 callbackId: callbackId,
                 data: 0,
                 // 'finalResponse': false,
             }
         );
+        worker2.postMessage(temp_copy);
     }
     // function send_worker_request_va(fname, callbackId) {
     function send_worker_request_va() {
@@ -2244,8 +2249,9 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
     function test_data_worker(data) {
         console.log("test_data_worker");
+        var temp_copy;
         worker.postMessage(
-            {
+            temp_copy={
                 funcName: cb_info.test.funcName,
                 callbackId: cb_info.test.callbackId,
                 data: data, //[12345678, 3],  // turns this into a two bytes!
@@ -2253,6 +2259,12 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             }
             // [data]
         );
+        console.info(temp_copy, cb_info.test.funcName);
+        console.info("data", data);
+
+        worker2.postMessage(temp_copy);
+        var a1 = new Float32Array([1,2,3.1415926536123456789012345678901234567890,4]);
+        worker2.postMessage(a1);
         /*
          *[12345678,2]
         */
@@ -2283,7 +2295,10 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
         var mcsettings = JSON.stringify(mc_params);
         // build_geometry_w(mp5_json, mcsettings);
-        test_data_worker([12345678, 3]);
+        //test_data_worker([12345678, 3,5,1,3]);
+        //var b1 = new Uint8Array([5,6,1000,10]);
+        var b1 = new Uint16Array([5,6,1000,10]);
+        test_data_worker(b1);
 
         /*
          * [1,2] -> 1 02             //

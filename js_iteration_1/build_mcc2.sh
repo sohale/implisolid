@@ -46,14 +46,17 @@ while true; do
     case "$1" in
         -d|--dev)
             OPTIM=0
+            WORKER=0
             shift
             ;;
         -o|--opt)
             OPTIM=1
+            WORKER=0
             shift
             ;;
         -b|--bitcode)
             SAVE_BC=1
+            WORKER=0
             shift
             ;;
         -w|--worker)

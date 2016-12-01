@@ -13,7 +13,7 @@ extern "C" {
     void worker_api__verts(char* data, int size);
 
     void workerapi_make_geometry(char* data, int size);
-    void workerapi_make_geometry_part1(char* data, int size);
+    void workerapi_make_geometry_part1(void* data, int size);
 #endif
 }
 
@@ -55,16 +55,17 @@ std::string hexcode(char byte) {
     // type aliasing rules = ?
 }
 
-void workerapi_make_geometry_part1(char* data, int size) {
+void workerapi_make_geometry_part1(void* data, int size) {
     //var data = {mp5:json, mcsettings:json}
     // dump_all_data
     size_t i = 0 ;
+    char* char_data = (char*)data;
     for (; i < size; ++i) {
-        std::cout << hexcode(data[i]) << " ";
+        std::cout << hexcode((char_data)[i]) << " ";
     }
     std::cout << "(end)";
-    for (; i < size*2; ++i) {
-        std::cout << hexcode(data[i]) << " ";
+    for (; i < size*(1+8-1); ++i) {
+        std::cout << hexcode((char_data)[i]) << " ";
     }
     std::cout << std::endl;
 }
