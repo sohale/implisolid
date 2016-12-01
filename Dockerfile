@@ -54,6 +54,5 @@ RUN wget -q -S -O - 'http://downloads.sourceforge.net/project/boost/boost/1.61.0
 
 RUN apt-get install mercurial -y
 RUN hg clone https://bitbucket.org/eigen/eigen
-
-VOLUME ["/src"]
+RUN mkdir /src
 WORKDIR /src
