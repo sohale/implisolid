@@ -2173,7 +2173,9 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     // in fact it's better to use emscripten's!
     // console.log(cb_revkeys);
     */
-    var cb_info = {
+    // cb_info (for : callback_info)
+    // Keeps the info necessary to communicate to the Web-Worker's API
+    var api_info = {
         REAL_V: {
             funcName: "worker_api__verts",
             callbackId: 1,
@@ -2190,11 +2192,11 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         },
     };
 
-    // Maps the callback int id into the key name in cb_info dict. For fast lookup.
-    var cb_revlookup = {
-        [cb_info.REAL_V]: "REAL_V",
-        // [cb_info.build_geometry]: "build_geometry",
-        [cb_info.test]: "test",
+    // Maps the callback int id into the key name in api_info dict. For fast lookup.
+    var api_revlookup = {
+        [api_info.REAL_V]: "REAL_V",
+        // [api_info.build_geometry]: "build_geometry",
+        [api_info.test]: "test",
     };
 
 
@@ -2222,8 +2224,8 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // // Cracking the protocol used by Emscripten
         //var fname = cb_funcNames[callbackId]; //"worker_api__verts";
 
-        const callbackId = cb_info.REAL_V.callbackId;
-        var fname = cb_info.REAL_V.funcName;
+        const callbackId = api_info.REAL_V.callbackId;
+        var fname = api_info.REAL_V.funcName;
 
         worker.postMessage(
             {
@@ -2239,8 +2241,8 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
         worker.postMessage(
             {
-                funcName: cb_info.build_geometry.funcName,
-                callbackId: cb_info.build_geometry.callbackId,
+                funcName: api_info.build_geometry.funcName,
+                callbackId: api_info.build_geometry.callbackId,
                 data: 0,
                 // 'finalResponse': false,
             }
@@ -2252,22 +2254,24 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         var temp_copy;
         worker.postMessage(
             temp_copy={
-                funcName: cb_info.test.funcName,
-                callbackId: cb_info.test.callbackId,
+                funcName: api_info.test.funcName,
+                callbackId: api_info.test.callbackId,
                 data: data, //[12345678, 3],  // turns this into a two bytes!
                 // 'finalResponse': false,
             }
             // [data]
         );
-        console.info(temp_copy, cb_info.test.funcName);
+        console.info(temp_copy, api_info.test.funcName);
         console.info("data", data);
 
         worker2.postMessage(temp_copy);
-        var a1 = new Float32Array([1,2,3.1415926536123456789012345678901234567890,4]);
-        worker2.postMessage(a1);
-        /*
-         *[12345678,2]
-        */
+        if (false) {
+            var a1 = new Float32Array([1,2,3.1415926536123456789012345678901234567890,4]);
+            worker2.postMessage(a1);
+            /*
+             *[12345678,2]
+            */
+        }
     }
 
     function request() {
@@ -2298,7 +2302,19 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         //test_data_worker([12345678, 3,5,1,3]);
         //var b1 = new Uint8Array([5,6,1000,10]);
         var b1 = new Uint16Array([5,6,1000,10]);
+        if (false)
         test_data_worker(b1);
+
+        // new idea!
+        var r = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5])
+        var b=new Uint8Array(r.buffer);
+        if (false)
+        test_data_worker(b);
+
+        console.log("---------------------");
+        test_data_worker(b);
+        //test_data_worker([b, 60, b]);
+        //test_data_worker({b1:b, d:60, b2:b});
 
         /*
          * [1,2] -> 1 02             //

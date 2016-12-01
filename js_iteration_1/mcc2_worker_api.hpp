@@ -58,6 +58,7 @@ std::string hexcode(char byte) {
 void workerapi_make_geometry_part1(void* data, int size) {
     //var data = {mp5:json, mcsettings:json}
     // dump_all_data
+    {
     size_t i = 0 ;
     char* char_data = (char*)data;
     for (; i < size; ++i) {
@@ -68,7 +69,26 @@ void workerapi_make_geometry_part1(void* data, int size) {
         std::cout << hexcode((char_data)[i]) << " ";
     }
     std::cout << std::endl;
-}
+    }
 
+    {
+    std::cout << "As float: " << std::endl;
+    float* typed_data = (float*)data;
+    size_t typed_size = (size + sizeof(float)-1) / sizeof(float);
+    for (size_t i = 0; i < typed_size; ++i) {
+        std::cout << typed_data[i] << " ";
+    }
+    std::cout << std::endl;
+    }
+    {
+    std::cout << "As double float: " << std::endl;
+    double* typed_data = (double*)data;
+    size_t typed_size = (size + sizeof(double)-1) / sizeof(float);
+    for (size_t i = 0; i < typed_size; ++i) {
+        std::cout << typed_data[i] << " ";
+    }
+    std::cout << std::endl;
+    }
+}
 #endif
 /* End of Worker API */
