@@ -1,3 +1,0 @@
-[submodule "pyInterface/pybind11"]
-	path = pyInterface/pybind11
-	url = git@github.com:pybind/pybind11.git
