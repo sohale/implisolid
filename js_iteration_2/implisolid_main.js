@@ -255,6 +255,40 @@ function init2(impli2, impli1) {
         return  result;
     }
 
+    impli2.query_a_normal = function(mp5_shape_json, point, result_callback) {
+        var ignore_root_matrix = false;
+        var objid = impli1.set_object(mp5_shape_json, ignore_root_matrix);
+
+        var input_verts = new Float32Array([point.x, point.y, point.z]);
+
+        var nverts = 1;                                       // the number of vertices for which we want to calculate the implicit value 
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  // This allocates space in the C++ side, in order to create the array of vertices.
+        Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts).set(input_verts);
+
+        var setx_resut__address = impli1.set_x(verts_space_address, nverts*3);
+        if (!setx_resut__address){
+            console.log("set_x returned false: nverts is: " + nverts);
+            impli1.unset_object(objid);
+            return false;
+        } else {
+            // console.log("OK! set_c successful");
+        }
+
+        impli1.calculate_implicit_gradients(true);  // true = normalise and invert
+        var ptr = impli1.get_gradients_ptr();                                 // retrieve a pointer to the position in memory of the calculated array
+        var ptr_len = impli1.get_gradients_size()
+        var r = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
+
+        // console.log(r[0], r[1], r[2]);
+        //output_vect3.set(-r[0], -r[1], -r[2]);
+        result_callback(r);
+
+        impli1.unset_x();
+        impli1.unset_object(objid);
+        Module._free( verts_space_address );
+    };
+
     /*
      * The output is written into vf_dict, which is a dictionary with keys 'verts' and 'faces'.
      * Returns true on success, i.e. if the shape is not empty. Otherwise, returns false;
@@ -505,6 +539,9 @@ function init3(service3, service2) {
     };
 
     service3.query_implicit_values = service2.query_implicit_values;
+
+    service3.query_a_normal = service2.query_a_normal;
+
     service3.about = service2.about;
     // Enable access to lower level functions. not recommended except for debugging.
     service3.service2 = service2;
