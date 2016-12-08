@@ -2122,7 +2122,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 </script>
 <script type="text/javascript" src="../build/mcc2.compiled.js"></script>
 -->
-<script>
+<!--script>
     var g1;
     var g2;
     var worker = new Worker('../build/mcc2.compiled.js');
@@ -2350,4 +2350,40 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     }
     */
 
-</script>
+</script-->
+
+<script>
+    var worker = new Worker('../js_iteration_2/worker_api.js');
+    worker.addEventListener('message', function(event) {
+        console.info("Message received from worker:", event, "data=", event.data);
+    });
+    function request() {
+        var x0=0, y0=0, z0=0;
+        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+
+        var mc_params = {
+            resolution: Math.floor(14 ),
+            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            ignore_root_matrix: false,
+
+            vresampl: {iters: 3, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            subdiv: {enabled: 1},
+            overall_repeats: 1,
+
+            debug: {
+                enabled_pointsets: 0,
+                post_subdiv_noise: 0.0,
+            },
+        };
+
+        var r = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5])
+        var b=new Uint8Array(r.buffer);
+
+        console.log("---------------------");
+        worker.postMessage([b,r]);
+    }
+
+ </script >
+
