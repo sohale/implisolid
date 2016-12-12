@@ -2356,10 +2356,30 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     var worker = new Worker('../js_iteration_2/worker_api.js');
     worker.addEventListener('message', function(event) {
         console.info("Message received from worker:", event, "data=", event.data);
+        if (event.data.return_callback_id === 4) {
+            console.info("The result of 'query_implicit_values()' was: ", event.data.result_allpositive);
+        }
     });
     function request() {
+        var wreq = {
+                funcName: 'query_implicit_values',
+                callbackId: 4,
+                //args: {
+                mp5_str: null, points: null, reduce_callback: 'allpositive'
+                //},
+            };
+
         var x0=0, y0=0, z0=0;
+        //var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+
+
+        // var mp5_json = HEART;     const BB_SIZE = 9;
+        // var mp5_json = MOON;         const BB_SIZE = 9+9;
+        // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
+        // var mp5_json = SPHERE;  const BB_SIZE = 9;
         var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+
+        var shape_dict = JSON.parse(mp5_json).root.children[0];
 
         var mc_params = {
             resolution: Math.floor(14 ),
@@ -2378,11 +2398,14 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             },
         };
 
-        var r = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5])
-        var b=new Uint8Array(r.buffer);
+        var r = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
+        // var b = new Uint8Array(r.buffer);
 
         console.log("---------------------");
-        worker.postMessage([b,r]);
+        wreq.mp5_str = JSON.stringify(shape_dict);  // '{}';
+        wreq.points = r;
+        //worker.postMessage([b,r]);
+        worker.postMessage(wreq);
     }
 
  </script >
