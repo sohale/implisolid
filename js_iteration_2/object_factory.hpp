@@ -8,6 +8,9 @@
 //#include "implicit_function/crisp_subtract.hpp"
 //#include "implicit_function/linearly_transformed.hpp"
 
+//#include""  will be moved into sweep.hpp, extrude.hpp, screw.hpp, etc
+#include "implicit_function/2d/primitives_2d.hpp"
+
 #include "object_collector.hpp"
 //using namespace mp5_implicit;
 using mp5_implicit::implicit_function;
