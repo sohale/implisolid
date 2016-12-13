@@ -7,9 +7,9 @@ onmessage = function(event) {
     var data = event.data;
     switch (data.funcName) {
         case "query_implicit_values":
-            var result = 
+            var result =
                 api.query_implicit_values(data.mp5_str, data.points, data.reduce_callback);
-            postMessage({return_callback_id:event.data.callbackId, result_allpositive: result});
+            postMessage({return_callback_id:event.data.callbackId, returned_data: result});  // {result_allpositive:}
             break;
     }
     //postMessage({result_allpositive: result});
@@ -44,7 +44,7 @@ impli2._module = Module;
         /* This allocates enough space for vertices (points) in the C++ memory. */
         var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);
         /* save the given values into C++ memory. The index in that memory will be used for calling the actual function. */
-        /* Note: 
+        /* Note:
             This seems to be too many steps: malloc, copy the Float32Array (which is already made by the caller), then_set_x() copies it into a temporary memory location. The _set_x() could have been avoided by sending a pointer into _calculate_implicit_values(). But it would need to also allocate the resulting values. If the Reduce (see below) is done on C++, this second solution will be more relevant, because we won't need to allocate space for the results. Because they don't need to be communicated back. It would just need to send back the reduces value (a single value) which is a boolean.
             We must copy (using .set() ), because, although both are of type Float32Array, but points cannot be alraedy on C++ memory. The reason is, in that case it would need to have called Module._malloc() before the current function.
         */
@@ -102,4 +102,3 @@ impli2._module = Module;
         Module._unset_x(); /* Ask C++ to free the memory it used to pass the verts. */
         return  result;
     }
-
