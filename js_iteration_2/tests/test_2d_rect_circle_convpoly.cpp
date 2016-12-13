@@ -39,9 +39,31 @@ TEST(CircleTests, CenterPoint) {
     EXPECT_LT( f[2], -ROOT_TOLERANCE );
 }
 
+/*
+TEST(ConvexPolygonTests, ClockwiseNess) {
+    {
+    std::vector<REAL> xarray {0, 1, 2};
+    std::vector<REAL> yarray {0, 1, 0};
+    mp5_implicit::concave_polygon clockwise_poly (xarray, yarray);
+    EXPECT_TRUE( !clockwise_poly.is_counter_clockwise() );
+    }
+
+    {
+    std::vector<REAL> xarray {0, 2, 1};
+    std::vector<REAL> yarray {0, 0, 1};
+    mp5_implicit::concave_polygon counter_clockwise_poly (xarray, yarray);
+    EXPECT_TRUE( counter_clockwise_poly.is_counter_clockwise() );
+    }
+}
+*/
 TEST(ConvexPolygonTests, Triangle) {
-/**
- */
+    //std::vector<REAL> xarray {0, 1, 2};
+    //std::vector<REAL> yarray {0, 1, 0};
+    std::vector<REAL> xarray {0, 2, 1};
+    std::vector<REAL> yarray {0, 0, 1};
+    mp5_implicit::concave_polygon cc (xarray, yarray);
+
+
     const int number_of_test_points = 6;    // size of input vector
     auto shape_tuple = make_shape_1d(number_of_test_points);
     vectorized_scalar f = vectorized_scalar(shape_tuple);
@@ -49,15 +71,6 @@ TEST(ConvexPolygonTests, Triangle) {
 
     std::vector<bool> should(number_of_test_points);
 
-    int corners = 3;
-    std::vector<REAL> xarray {0, 1, 2};
-    std::vector<REAL> yarray {0, 1, 0};
-
-    cout << "constructor" << std::flush << std::endl;
-
-
-    // mp5_implicit::twodim::circle s1(2.0);
-    mp5_implicit::concave_polygon cc (xarray, yarray);
 
     cout << "x:" << std::flush << std::endl;
     x[0][0] = 0.0 + 0.1;
@@ -89,9 +102,15 @@ TEST(ConvexPolygonTests, Triangle) {
     cout << "going to evaluate:" << std::flush << std::endl;
 
     cc.eval_implicit(x, &f);
+    for (int i = 0; i < should.size(); ++i) {
+        cout << "f["<< i<<"] = " << f[i] << " (" << (should[i]?"inner":"outside") <<") " << std::endl;
+    }
+    cout << std::endl <<  std::flush;
+
+    EXPECT_TRUE( cc.is_counter_clockwise() );
 
     for (int i = 0; i < should.size(); ++i) {
-        cout << "f["<< i<<"]:" << f[0] << "(" << (should[i]?"inner":"outside") <<") ";
+        cout << "f["<< i<<"] = " << f[i] << " (" << (should[i]?"inner":"outside") <<") " << std::endl;
 
         if (should[i]) {
             EXPECT_GT( f[i], +ROOT_TOLERANCE );
