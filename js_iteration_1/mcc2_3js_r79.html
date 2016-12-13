@@ -2354,16 +2354,24 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
 <script>
     var worker = new Worker('../js_iteration_2/worker_api.js');
-    var worker_respond_callbacks = {};
+    var worker_response_callbacks_table = {};
+    const WORKER_DEBUG = true;
+    var w_api_debug_info = {};
+    var w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // such as function name or a name that is similar to a funciton name
     worker.addEventListener('message', function(event) {
         console.info("Message received from worker:", event, "data=", event.data);
 
         var _callbackId = event.data.return_callback_id;
-        var mycallback = worker_respond_callbacks[ _callbackId ];
-
-        if (_callbackId === 4) {
-            console.info("The result of 'query_implicit_values()' was: ", event.data.returned_data); //event.data.result_allpositive
+        var mycallback = worker_response_callbacks_table[ _callbackId ];
+        if (mycallback) {
+            // delete worker_response_callbacks_table[ _callbackId ];
+            // don’t delete array elements. It would make the array transition to a slower internal representation.
+            worker_response_callbacks_table[ _callbackId ] = undefined;  // per-call
         }
+
+        //if (_callbackId === 4) {
+        //    console.info("The result of 'query_implicit_values()' was: ", event.data.returned_data); //event.data.result_allpositive
+        //}
         if (!mycallback) {
             console.error("Returned data from worked did not match any registered callbackId: ", event.data, event);
             return;
@@ -2372,10 +2380,26 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         mycallback(event.data.returned_data);
 
     });
+    function worker_call_preparation(_callbackId, result_callback) {
+        if (WORKER_DEBUG) {
+            var temp = worker_response_callbacks_table[_callbackId];
+            if (temp) {
+                console.warn("callback already set.");
+                if (!(temp === result_callback))
+                    console.error("and callback is different!: ", temp, "!==", result_callback);
+            }
+        }
+        worker_response_callbacks_table[_callbackId] = result_callback;
+        if (WORKER_DEBUG) {
+            w_api_debug_info[_callbackId] = result_callback;
+            // also you can store call timestamp, etc
+        }
+        return _callbackId;
+    }
     function wapi_query_implicit_values(mp5_str, points, result_callback) {
 
-        var _callbackId = 4;
-        worker_respond_callbacks[_callbackId] = result_callback;
+        // var _callbackId = 4;
+        var _callbackId = worker_call_preparation(4, result_callback);
 
         var wreq = {
                 funcName: 'query_implicit_values',
