@@ -18,14 +18,37 @@ protected:
     std::vector<xy_t> corners;
 
 public:
-    /* Corners have to be arranged counter-clockwise, and form a convex polygon. */
-    concave_polygon (std::vector<xy_t> corners)
+    static std::vector<xy_t> conv1(std::vector<REAL> corners_x, std::vector<REAL> corners_y) {
+        int nc = corners_x.size();
+        std::vector<xy_t> corners(nc);
+        assert(corners_x.size() == corners_y.size());
+        //this->corners = corners;
+        for (int i = 0; i < nc; ++i) {
+            corners[i].x = corners_x[i];
+            corners[i].y = corners_y[i];
+        }
+        return corners;
+    }
+    concave_polygon (std::vector<REAL> corners_x, std::vector<REAL> corners_y)
         :
-        nx(corners.size()),
-        ny(corners.size()),
-        n0(corners.size())
+        //nx(corners_x.size()),
+        //ny(corners_x.size()),
+        //n0(corners_x.size()),
+        //corners(conv1(corners_x, corners_y)),
+        concave_polygon(conv1(corners_x, corners_y))
     {
-        this->corners = corners;
+    }
+
+    /* Corners have to be arranged counter-clockwise, and form a convex polygon. */
+    concave_polygon (std::vector<xy_t> _corners)
+        :
+        nx(_corners.size()),
+        ny(_corners.size()),
+        n0(_corners.size()),
+        corners(_corners)
+    {
+        cout << "aaaaaaaaaaaa" << std::flush << std::endl;
+        // _corners = conv1(corners_x, corners_y);
         int nc = corners.size();
 
         std::vector<REAL> dx(nc);
@@ -44,8 +67,12 @@ public:
         std::vector<REAL> ny(nc);
         std::vector<REAL> n0(nc);
         */
+        cout << "llllllll nc = " << nc << std::flush << std::endl;
 
         for (int i = 0; i < nc; ++i) {
+
+            cout << ">>>>" << i << std::endl << std::flush ;
+
             int next_i = (i < nc)? i+1 : 0;
             dx[i] = corners[next_i].x - corners[i].x;
             dy[i] = corners[next_i].y - corners[i].y;
