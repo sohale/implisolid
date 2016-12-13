@@ -39,23 +39,23 @@ TEST(CircleTests, CenterPoint) {
     EXPECT_LT( f[2], -ROOT_TOLERANCE );
 }
 
-/*
+
 TEST(ConvexPolygonTests, ClockwiseNess) {
     {
     std::vector<REAL> xarray {0, 1, 2};
     std::vector<REAL> yarray {0, 1, 0};
-    mp5_implicit::concave_polygon clockwise_poly (xarray, yarray);
+    mp5_implicit::polygon_handler clockwise_poly (xarray, yarray);
     EXPECT_TRUE( !clockwise_poly.is_counter_clockwise() );
     }
 
     {
     std::vector<REAL> xarray {0, 2, 1};
     std::vector<REAL> yarray {0, 0, 1};
-    mp5_implicit::concave_polygon counter_clockwise_poly (xarray, yarray);
+    mp5_implicit::polygon_handler counter_clockwise_poly (xarray, yarray);
     EXPECT_TRUE( counter_clockwise_poly.is_counter_clockwise() );
     }
 }
-*/
+
 TEST(ConvexPolygonTests, Triangle) {
     //std::vector<REAL> xarray {0, 1, 2};
     //std::vector<REAL> yarray {0, 1, 0};
