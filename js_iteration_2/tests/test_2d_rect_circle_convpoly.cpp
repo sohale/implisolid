@@ -71,7 +71,6 @@ TEST(ConvexPolygonTests, Triangle) {
 
     std::vector<bool> should(number_of_test_points);
 
-
     cout << "x:" << std::flush << std::endl;
     x[0][0] = 0.0 + 0.1;
     x[0][1] = 0.0 + 0.1/2;
