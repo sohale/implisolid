@@ -53,6 +53,7 @@ fi
 
 if [ $OPTIM -eq 0 ]
 then
+    echo "building a test: debug mode compilation."
     mkdir -p build
     # cols=$( tput cols )
     # tput bold
