@@ -1,3 +1,5 @@
+#pragma once
+
 namespace mp5_implicit {
 namespace vectorised_algorithms {
 
