@@ -2358,8 +2358,10 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     const WORKER_DEBUG = true;
     var w_api_debug_info = {};
     var w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // such as function name or a name that is similar to a funciton name
+    var call_counter = 0;  // a clobal counter that assigns a unique id to each individual call, to make it easy to trace correspondence of call and callback.
     worker.addEventListener('message', function(event) {
-        console.info("Message received from worker:", event, "data=", event.data);
+        if (WORKER_DEBUG)
+            console.info("Message received from worker:", event, "data=", event.data);
 
         var _callbackId = event.data.return_callback_id;
         var mycallback = worker_response_callbacks_table[ _callbackId ];
@@ -2376,8 +2378,11 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             console.error("Returned data from worked did not match any registered callbackId: ", event.data, event);
             return;
         }
-        console.info("callcing callback ", mycallback.name);
-        mycallback(event.data.returned_data);
+        if (WORKER_DEBUG)
+            console.info("calling the callback ", mycallback.name);
+
+        var call_identification = event.data.call_id;
+        mycallback(event.data.returned_data, call_identification);
 
     });
     function worker_call_preparation(_callbackId, result_callback) {
@@ -2394,6 +2399,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             w_api_debug_info[_callbackId] = result_callback;
             // also you can store call timestamp, etc
         }
+        call_counter ++ ;
         return _callbackId;
     }
     function wapi_query_implicit_values(mp5_str, points, result_callback) {
@@ -2404,6 +2410,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         var wreq = {
                 funcName: 'query_implicit_values',
                 callbackId: _callbackId,
+                call_id: call_counter,
                 //args: {
                 mp5_str: null, points: null, reduce_callback: 'allpositive'
                 //},
@@ -2447,9 +2454,10 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // var b = new Uint8Array(r.buffer);
 
         console.log("---------------------");
-        wapi_query_implicit_values(JSON.stringify(shape_dict), points, function(returned_result) {
+        wapi_query_implicit_values(JSON.stringify(shape_dict), points, function(returned_result, call_identification) {
             console.info("Returned: ", returned_result);
-        })
+            if (call_identification) console.info("Unique Call Identification Id:", call_identification);
+        });
         // wreq.mp5_str = JSON.stringify(shape_dict);  // '{}';
         // wreq.points = points;
         // //worker.postMessage([b,r]);

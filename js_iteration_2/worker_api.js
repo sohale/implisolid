@@ -3,13 +3,14 @@ importScripts('mcc2.compiled.js');
 
 onmessage = function(event) {
     var api = impli2;
-    console.log('Message received from main script. event.data=',event.data);
+    // console.log('Message received from main script. event.data=',event.data);
     var data = event.data;
+    var call_id = data.call_id;  // call_identification
     switch (data.funcName) {
         case "query_implicit_values":
             var result =
                 api.query_implicit_values(data.mp5_str, data.points, data.reduce_callback);
-            postMessage({return_callback_id:event.data.callbackId, returned_data: result});  // {result_allpositive:}
+            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
             break;
     }
     //postMessage({result_allpositive: result});
@@ -32,7 +33,7 @@ var impli1 = {
 
 var impli2 = {};
 impli2._module = Module;
-    impli2.query_implicit_values = function(mp5_str, points, reduce_type)
+    impli2.query_implicit_values = function(mp5_str, points, reduce_type, call_id_arg)
     {
         assert__(points instanceof Float32Array);
         assert__(points.length % 3 === 0);
