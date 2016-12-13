@@ -62,6 +62,7 @@ struct CONFIG_C {
     constexpr static edge_pair_type  edgecode_base = 1000000L;
 
 } CONFIG;
+/* CONFIG is a variable, e.g. many configs are runtime because they can change in runtime. For example, MIN_PRINTABLE_LENGTH can change depending on the printer. When we change the printer, we don't want to recompile (and redeploy!) the code. Also mp5's implisolid to be multi-scale. */
 
 }  // namespace
 
@@ -104,4 +105,3 @@ constexpr REAL  MAGIC_VALUE_FOR_DEBUG = -10000.0;
 
 constexpr bool STORE_POINTSETS = true;
 // see: pointset_set.hpp
-

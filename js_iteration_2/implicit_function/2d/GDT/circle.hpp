@@ -1,4 +1,5 @@
 #pragma once
+#include "../../../configs.hpp"
 #include "../basic_data_structures_2d.hpp"
 //#include "../basic_functions_2d.hpp"
 namespace mp5_implicit {
@@ -47,7 +48,7 @@ public:
     }
 
     bool integrity_invariant() const {
-      if(this->radius < MIN_PRINTABLE_LENGTH/2.0)
+      if(this->radius < CONFIG.MIN_PRINTABLE_LENGTH/2.0)
         return false;
       else
         return true;

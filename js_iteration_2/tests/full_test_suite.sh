@@ -45,6 +45,11 @@ if [ ! 1 ]; then
 
 fi
 
+echo "2d tests:"
+bash build_tests.sh test_2d_rect_circle_convpoly.cpp
+
+exit
+
 echo "This is a temporary solution: compiles each tests separately. This is very slow. The alternative would be to compile them combined. But there was a problem: a global variable CONFIG causes dependency and link issues. Each linked object/module has a copy of this global variable. Solution? Singleton?"
 
 bash build_tests.sh test_subdivisions2.cpp

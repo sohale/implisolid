@@ -1,6 +1,7 @@
 #pragma once
 // #include "../../../basic_data_structures.hpp"  // REAL
 #include "../basic_data_structures_2d.hpp"
+#include "../../../configs.hpp"
 //#include "../basic_functions_2d.hpp"
 namespace mp5_implicit {
 
@@ -127,7 +128,7 @@ public:
             REAL dx = corners[next_i].x - corners[i].x;
             REAL dy = corners[next_i].y - corners[i].y;
 
-            if(std::abs(std::sqrt(dx*dx + dy*dy)) < MIN_PRINTABLE_LENGTH/ 10.0)
+            if(std::abs(std::sqrt(dx*dx + dy*dy)) < CONFIG.MIN_PRINTABLE_LENGTH/ 10.0)
               return false;
            //todo: check convexity
            //todo: check counter-clockwise

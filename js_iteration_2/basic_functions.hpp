@@ -41,7 +41,7 @@ inline REAL sign(REAL v, REAL ROOT_TOLERANCE) {
  */
 
 vectorized_vect  make_empty_x(const int nsize){
-    auto sf = make_shape_1d(nsize);
+    // auto sf = make_shape_1d(nsize);
     //vectorized_scalar  f = vectorized_scalar(sf);
 
     boost::array<int, 2> values_shape = {{ nsize, 3 }};

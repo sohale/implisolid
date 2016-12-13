@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic_data_structures_2d.hpp"
+#include "basic_functions_2d.hpp"
 //#include "../basic_functions_2d.hpp"
 
 // #include "../my_assert.hpp"
