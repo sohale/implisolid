@@ -261,7 +261,7 @@ function init2(impli2, impli1) {
 
         var input_verts = new Float32Array([point.x, point.y, point.z]);
 
-        var nverts = 1;                                       // the number of vertices for which we want to calculate the implicit value 
+        var nverts = 1;                                       // the number of vertices for which we want to calculate the implicit value
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  // This allocates space in the C++ side, in order to create the array of vertices.
         Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts).set(input_verts);

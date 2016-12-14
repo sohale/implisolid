@@ -2419,9 +2419,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         wreq.points = points;
         worker.postMessage(wreq);
     }
-    function request() {
-
-        var x0=0, y0=0, z0=0;
+    function make_demo_dict() {
         //var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
 
 
@@ -2433,9 +2431,22 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
 
+        var x0=0, y0=0, z0=0;
+
+        return {
+            shape_dict: shape_dict,
+            bbox: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+        };
+    }
+
+    function request() {
+
+
+        var rr = make_demo_dict();
+
         var mc_params = {
             resolution: Math.floor(14 ),
-            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            box: rr.bbox,
             ignore_root_matrix: false,
 
             vresampl: {iters: 3, c: 1.0},
@@ -2454,7 +2465,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // var b = new Uint8Array(r.buffer);
 
         console.log("---------------------");
-        wapi_query_implicit_values(JSON.stringify(shape_dict), points, function(returned_result, call_identification) {
+        wapi_query_implicit_values(JSON.stringify(rr.shape_dict), points, function(returned_result, call_identification) {
             console.info("Returned: ", returned_result);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
         });
@@ -2462,6 +2473,12 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // wreq.points = points;
         // //worker.postMessage([b,r]);
         // worker.postMessage(wreq);
+    }
+    var w_impli3 = "not initialised";  // not worker side, but uses worker
+    console.log(typeof w_impli3);
+    function demo2() {
+        var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
+        w_impli3.getLiveGeometry(make_demo_dict(), bbox, false);
     }
 
  </script >

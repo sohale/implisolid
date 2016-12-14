@@ -2,7 +2,7 @@
 importScripts('mcc2.compiled.js');
 
 onmessage = function(event) {
-    var api = impli2;
+    var api = w_impli2;
     // console.log('Message received from main script. event.data=',event.data);
     var data = event.data;
     var call_id = data.call_id;  // call_identification
@@ -31,9 +31,9 @@ var impli1 = {
     set_object: Module.cwrap('set_object','number',['string','number']),
 };
 
-var impli2 = {};
-impli2._module = Module;
-    impli2.query_implicit_values = function(mp5_str, points, reduce_type, call_id_arg)
+var w_impli2 = {};
+w_impli2._module = Module;
+    w_impli2.query_implicit_values = function(mp5_str, points, reduce_type, call_id_arg)
     {
         assert__(points instanceof Float32Array);
         assert__(points.length % 3 === 0);
@@ -103,3 +103,8 @@ impli2._module = Module;
         Module._unset_x(); /* Ask C++ to free the memory it used to pass the verts. */
         return  result;
     }
+
+
+// worker side
+console.log("hi");
+
