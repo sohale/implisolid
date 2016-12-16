@@ -14,7 +14,16 @@
 </style>
 
 <body>
-<canvas id="my_canvas"></canvas>
+    <canvas id="my_canvas"></canvas>
+
+    <!-- To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed(); -->
+    <div id="chart_div" class="stat-panel" no_style="width: 900px; height: 500px;">
+    </div>
+
+    This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2_3js.html</a>).
+    <br/>
+    Press SHIFT to animate. *
+</body>
 
 
 <!--
@@ -24,112 +33,15 @@
 </script-->
 <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js">
 </script>-->
-
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
 </script>
-
 <script type="text/javascript" src="./three_r79.js">
 </script>
-
-
 <!-- <script type="text/javascript" src="./three-r77.js"></script> -->
-
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
 -->
 <!-- Refused to execute script '...' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled.
 -->
-
-<script>
-    function assert(cond, message) {
-        if (!cond) {
-            console.error(message);
-            throw new Exception("assert ", message);
-        }
-    }
-    function _expect(cond, message) {
-        if (!cond) {
-            console.error(message);
-        }
-    }
-</script>
-
-<script>
-/**  Asynchronously does a series of calls to the function  update_mc(). */
-var callMultipleTimes = function() {
-    // private:
-    var last_active = 0;
-    var intervals_counter = 0;
-
-    function function_body(implisolid_, update_callback, burst_count, interval_msec) {
-        /** Asynchronously does a series of calls to the function  update_callback().
-        Previous name: update_mc_mul tiple() */
-
-
-        var BURST_COUNT = burst_count; //2; // 50;
-        var INTERVAL_MSEC = interval_msec; //8-1; //40  // 1   // in Milliseconds
-        // Works well on too small values of INTERVAL_MSEC (Semaphore).
-        // The main algorithm performs much faster when this interval is larger (>100). Becasue of `gc`.
-
-
-        var already_busy_doing_it=0;  // semaphore. (Refractory). Fast x1.
-        var burst_counter = 0;
-
-        intervals_counter++;
-        if(intervals_counter>1) //dont start if there is already one running
-        {
-            intervals_counter--;
-            return;
-        }
-        last_active = setInterval (
-            function()
-            {
-                if(!last_active)
-                    console.error("!last_active");
-
-                burst_counter++; // mc_icounter
-
-                console.error(BURST_COUNT);
-                if(burst_counter<BURST_COUNT)  //This code is amazingly similar to Bursting dyamics in neurons.
-                {
-
-                    if(already_busy_doing_it<1) //removable
-                    {
-                        already_busy_doing_it++;
-
-                        update_callback(implisolid_, 0.2/10.*5 /5.);
-
-                        if(already_busy_doing_it>1)
-                            console.error(">>>already_busy_doing_it:"+already_busy_doing_it);
-                        if(!last_active)
-                            console.error("!last_active");
-                        already_busy_doing_it--;
-                    }else{
-                        console.log("hit");
-                    }
-                }
-                else
-                {
-                    // The interval has finished its job. Time to go.
-                    if(!last_active)
-                        console.error("!last_active");
-                    clearInterval(last_active); // But then don't we need to wait until the last one is finished?
-                    intervals_counter--; // Allow next one in future
-                    burst_counter = 0;
-                    last_active = 0;
-                }
-            },
-            INTERVAL_MSEC
-        );
-    }
-    return function_body;
-}();
-
-</script>
-
-<!--script type="text/javascript" src="./ww_geometry77.js"></script-->
-<script type="text/javascript" src="../js_iteration_2/geometry79.js"></script>
-<!--<script type="text/javascript" src="../js_iteration_2/geometry73.js"></script>-->
-
 <script>
 // Default (mock) OrbitControl to void breaking the program if the orbitcontrol is not found.
 THREE.OrbitControls = function() {
@@ -137,15 +49,40 @@ THREE.OrbitControls = function() {
     this.addEventListener = function(){};
 }
 </script>
-
 <script type="text/javascript" src="./controls/OrbitControls_r79.js"></script>
+
+
+
+<script>
+    function my_assert(cond, message) {
+        if (!cond) {
+            console.error(message);
+            throw new Error("assert ", message);
+        }
+    }
+    assert = my_assert;
+    function _expect(cond, message) {
+        if (!cond) {
+            console.error(message);
+        }
+    }
+</script>
+<!-- function callMultipleTimes (implisolid_, update_callback, burst_count, interval_msec): -->
+<script type="text/javascript" src="./call_multiple_times.js"></script>
+
+
+
+
+<!--script type="text/javascript" src="./ww_geometry77.js"></script-->
+<script type="text/javascript" src="../js_iteration_2/geometry79.js"></script>
+<!--<script type="text/javascript" src="../js_iteration_2/geometry73.js"></script>-->
 
 <!-- <script type="text/javascript" src="../js_iteration_2/bbox_calculations.js"></script> -->
 
-<!--<body>-->
-This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2_3js.html</a>)
 
-<br>
+
+<script type="text/javascript" src="../js_iteration_2/implisolid_main.js"></script>
+<script type="text/javascript" src="../js_iteration_2/pointset_utils.js"></script>
 
 <script>
     'use strict';
@@ -163,7 +100,7 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
     // Todo: merge these two and remove this.
 
     // polygoniser_service
-    function init_polygonizer()
+    function __init_polygonizer()
     {
         //too late for pre-run
         //Module.preRun.push(letmeknow,memoryprofiler_add_hooks, letmeknow = function (){console.log("ok");});
@@ -224,8 +161,9 @@ This file uses ImpliSolid's Geometry class. (unlike <a href="mcc2_3js.html">mcc2
             Module._free( verts_space );
         }
 
-        s_service.update_geometry = function(geometry, ignoreNormals) {
+        s_service.__update_geometry = function(geometry, ignoreNormals) {
 
+            // refactor as: get_latest_vf()
             var implicit_service = this;
             const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
             const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
@@ -425,13 +363,13 @@ function provide_input (subjective_time, is_update_mode) {
 
     // asked for:
     var shape_json, polygonization_json;
-    const DONT_CHANGE = false;  // should be false
+    const DONT_CHANGE = false;  // Whether use the mode=0 for mode 1. Should be false.
 
     if (DONT_CHANGE || is_update_mode == 0) {
-        var r = subjective_time;
+        // var subjective_time = subjective_time;
 
-        // var ellipsoid_radius = 8.0 * 0.1; // r;
-        var ellipsoid_radius = 8.0; // r;
+        // var ellipsoid_radius = 8.0 * 0.1; // subjective_time;
+        var ellipsoid_radius = 8.0; // subjective_time;
         var sphere_dict1 = {
             type: "ellipsoid",
             //radius: subjective_time,
@@ -484,7 +422,7 @@ function provide_input (subjective_time, is_update_mode) {
         if(is_update_mode == 0) {
             var sz = 1.;
         } else {
-            var sz = r;
+            var sz = subjective_time;
         }
         /*
         HEART.root.children[0].matrix[0] = sz;
@@ -521,9 +459,12 @@ function provide_input (subjective_time, is_update_mode) {
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
+        var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
+
+        // create new geometry
         var mc_properties_json = JSON.stringify({
-            resolution: Math.floor(28/2*2/2*2 /4*4 /2 ),
-            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            resolution: Math.floor(14),
+            box: bbox,
             ignore_root_matrix: false,
 
             /*
@@ -549,24 +490,30 @@ function provide_input (subjective_time, is_update_mode) {
         });
 
 
-        shape_json = mp5_json;
-        polygonization_json = mc_properties_json;
 
-        var tuple = [shape_json, polygonization_json];
-        return tuple;
+        //shape_json = mp5_json;
+        //polygonization_json = mc_properties_json;
+
+        //var tuple = [shape_json, polygonization_json];
+        //return tuple;
+        return {shape_json: mp5_json, polygonization_json: mc_properties_json};
     }
 
     //Alternatively, use a growing sphere only.
     if(is_update_mode == 1 || is_update_mode == 2) {
         //d("2   G.");
         var x0=0, y0=0, z0=0;
-        const BB_SIZE = 9;
+        const BB_SIZE = 9 /10.0;
+        var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
+        console.error(bbox);
 
-        var r = subjective_time * 5;
+        var subjective_time = subjective_time * 5;
         //var BB_SIZE = 6.;
+
+        // update
         var mc_properties_json__update = JSON.stringify({
-            resolution: 14*2 / 2 * 2,  // 28,
-            box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            resolution: 28,
+            box: bbox,
             ignore_root_matrix: false,
 
 
@@ -575,17 +522,19 @@ function provide_input (subjective_time, is_update_mode) {
             projection: {enabled: 1},
             qem: {enabled: 1},
 
-
+            debug: {
+                post_subdiv_noise: 0.001 / 3.0,
+            },
         });
         //implisolid_.build_geometry( 28, mc_properties_json__update, "sphere", subjective_time);
         /*
         var mp5_json = JSON.stringify({
             type: "ellipsoid",
-            //radius: r, //boudbl_mushroom only
+            //radius: subjective_time, //boudbl_mushroom only
             matrix:[
-                r, 0,0, x0,
-                0,r, 0, y0,
-                0,0, r, z0,
+                subjective_time, 0,0, x0,
+                0,subjective_time, 0, y0,
+                0,0, subjective_time, z0,
                 0,0,0,   1]
         });
 
@@ -593,46 +542,38 @@ function provide_input (subjective_time, is_update_mode) {
         */
 
         var d = JSON.parse(global_mp5);
-        var updated_size = r / 10.;
+        var updated_size = subjective_time / 10.;
         d.matrix[0] = updated_size;
         d.matrix[5] = updated_size;
         d.matrix[10] = updated_size;
-        shape_json = JSON.stringify(d);;
+        shape_json = JSON.stringify(d);
         // shape_json = global_mp5;
         polygonization_json = mc_properties_json__update;
 
+        // update
+        var simple_MC_only_polygonization_json = JSON.stringify({
+            resolution: Math.floor( 14 ),
+            box: bbox,
+            ignore_root_matrix: false,
+            vresampl: {iters: 0, c: 1.0},
+            projection: {enabled: 0},
+            qem: {enabled: 0},
+            subdiv: {enabled: 0},
+            overall_repeats: 0,
+
+            debug: {
+                enabled_pointsets: 0,
+                // only_rank
+                post_subdiv_noise: 0.0,
+            },
+        });
+        //polygonization_json = simple_MC_only_polygonization_json;
         //global_mp5 is not updated here. It is the original object before the update.
-        var tuple = [shape_json, polygonization_json];
-        return tuple;
+        //var tuple = [shape_json, polygonization_json];
 
+        //return {shape_json: shape_json, polygonization_json: simple_MC_only_polygonization_json};
+        return {shape_json: shape_json, polygonization_json: mc_properties_json__update};
     }
-
-    /*
-    if(is_update_mode == 2) {
-        //not used anymore
-        //console.log(implisolid_);
-        //d("2   G..");
-        var x0=0, y0=0, z0=0;
-        var r = subjective_time;
-        var mc_properties_json__update = JSON.stringify({
-            resolution: 28,
-            box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
-        });
-        var mp5_json = JSON.stringify({
-            type: "egg",
-            //radius: 3.0,  //double_mushroom only
-            matrix:[
-                r, 0,0, x0,
-                0,r, 0, y0,
-                0,0,r,  z0,
-                0,0,0,   1]
-        });
-        shape_json = mp5_json;
-        polygonization_json = mc_properties_json__update;
-        var tuple = [shape_json, polygonization_json];
-        return tuple;
-    }
-    */
 
 }
 
@@ -690,7 +631,7 @@ function make_indices_for_n1_n2(n) {
         indices12[i * 3 + 1] = i + n1; //i + n1;
         indices12[i * 3 + 2] = i; //i + n1;
     }
-    assert(indices12.length == n1 * 3);
+    my_assert(indices12.length == n1 * 3);
     return indices12;
 }
 
@@ -710,13 +651,13 @@ Three ways:
 3-  make_geometry_new2()
 */
 
-function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusable_geometry, re_allocate_buffers)
+function _make_geometry_new2(implisolid_, shape_json, polygonization_json, re_allocate_buffers, geom_callback)
 {
     //console.log(shape_json);
     //console.log(polygonization_json);
 
 
-    // reusable_geometry is not used;
+    // reusable_geometry =null, is not used;
     var startTime = new Date();
 
     if(implisolid_.needs_deallocation) {  // Remove data from last round.
@@ -767,6 +708,19 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
     const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
     var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
+    var geom = geom_callback(verts,faces, re_allocate_buffers);
+
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+    //console.log("Time: "+timeDiff+ " msec.");
+
+    report_time(timeDiff, function(){hist();});
+
+    return geom;
+}
+
+var geom_callback__1 = function (verts, faces, re_allocate_buffers) {
     /*
             // Uncomment for visualising the mesh's normals when set according to Implicit gradients.
             var gradients = prepare_gradients1(implisolid_, shape_json, verts);
@@ -778,6 +732,7 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
     //verts[2] -= 0.1;
     //verts[2 + nverts*3-3] += 0.3;
 
+    /*
     //var geom = new WGeometry77(verts, faces);
     //var geom = new MyBufferGeometry77(verts, faces, re_allocate_buffers);
     if(threejs_rev === THREEJS_R71) {
@@ -792,22 +747,33 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
             re_allocate_buffers,
             min_faces_capacity_, min_verts_capacity_);
             //, gradients);        // Alternative: specify normals at creation of LiveGeometry. But this is fine.
+    */
+    var min_faces_capacity_ = 0, min_verts_capacity_ = 0; // force zero initial allocation
+
+    var geom = new LiveBufferGeometry79(
+        verts, faces,
+        re_allocate_buffers,
+        min_faces_capacity_, min_verts_capacity_);
 
         //geom.update_geometry(implisolid_, true);
-        implisolid_.update_geometry(geom, true);
+        //implisolid_.update_geometry(geom, true);
+        IMPLICIT.update_geometry(geom, true);
         // Alternative: specify normals at creation of LiveGeometry. But this is fine.
-        implisolid_.make_normals_into_geometry(geom, shape_json, verts, false);
+
+        // implisolid_.make_normals_into_geometry(geom, shape_json, verts, false);
+        IMPLICIT.make_normals_into_geometry(geom, shape_json, verts, false);
 
         /*
         var n = implisolid_.get_pointset_size("post_p_centroids");
-        var centroids = get_emc_array(
+        var centroids = PS_UTILS.get_emc_array(
             implisolid_.get_pointset_ptr("post_p_centroids")
             , n * 3 );
 
         implisolid_.make_normals_into_geometry(geom, shape_json, centroids, false);
         */
+/*
     }
-
+*/
     /*
             release_gradients1(implisolid_);
     */
@@ -817,424 +783,17 @@ function make_geometry_new2(implisolid_, shape_json, polygonization_json, reusab
         console.log("nverts : "+ nverts);
         console.log("nfaces : "+ nfaces);
     }
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-    //console.log("Time: "+timeDiff+ " msec.");
-
-    report_time(timeDiff, function(){hist();});
-
     return geom;
 }
 
-// todo: should work with point_count==0
-function get_emc_array(verts_address, point_count) {
-    // var verts_address = implisolid_.get_pointset_ptr(name);
-    // var point_count = implisolid_.get_pointset_size(name);
 
-    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-    var float_array = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 1 * point_count);
-    // console.error(float_array);
 
-    if (point_count == 0) {
-        console.warn("Error: zero points", point_count);
-        //return // null; // make_empty_lines_mesh();
-    }
 
-    return float_array;
-}
-
-function make_pointset(implisolid_, name, point_size, color_r, color_g, color_b) {
-
-    // r79 only
-
-    // var point_size = 15.0; // millimeters
-    var scale_up = 1.0;
-
-    point_size = point_size !== undefined? point_size : 15.0;
-
-    color_r = color_r !== undefined? color_r : 0.9;
-    color_g = color_g !== undefined? color_g : 0.9;
-    color_b = color_b !== undefined? color_b : 0.9;
-
-    // var dx = Math.random() * 1.0 * scale_up * 1;
-    // var dy = Math.random() * 1.0 * scale_up * 1;
-    // var dz = Math.random() * 1.0 * scale_up * 1;
-
-    // var dx = 1.0 * scale_up * 1;
-    // var dy = 1.0 * scale_up * 1;
-    // var dz = 1.0 * scale_up * 1;
-    var dx = 0, dy = 0, dz = 0;
-
-    /*
-    var verts_address = implisolid_.get_pointset_ptr(name);
-    var point_count = implisolid_.get_pointset_size(name);
-
-    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3 * point_count);
-    */
-    var point_count = implisolid_.get_pointset_size(name);
-    if (point_count == 0) {
-        return make_empty_lines_mesh();
-    }
-
-    var verts = get_emc_array(implisolid_.get_pointset_ptr(name), 3 * point_count );
-    // console.error(verts);
-
-
-    var geometry = new THREE.BufferGeometry();
-    var positions = verts; //new Float32Array( point_count * 3 );
-
-    var colors = new Float32Array( point_count * 3 );
-    for ( var i = 0; i < positions.length; i += 3 ) {
-        positions[ i     ] = positions[ i     ] * scale_up + dx;
-        positions[ i + 1 ] = positions[ i + 1 ] * scale_up + dy;
-        positions[ i + 2 ] = positions[ i + 2 ] * scale_up + dz;
-    }
-
-    for ( var i = 0; i < positions.length; i += 3 ) {
-        colors[ i ]     = color_r;
-        colors[ i + 1 ] = color_g;
-        colors[ i + 2 ] = color_b;
-    }
-
-    geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-    geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
-    geometry.computeBoundingSphere();
-
-    //geometry is ready
-
-    var material = new THREE.PointsMaterial( { size: point_size, vertexColors: THREE.VertexColors } );
-    var points = new THREE.Points( geometry, material );
-
-    return points;
-}
-
-function make_lines_mesh_v1(verts12, indices12, color) {
-
-    if (indices12.length == 0) {
-        console.error("Warning: indices12.length =", indices12.length);
-    }
-    var re_allocate_buffers;
-    //var geom = new LiveBufferGeometry79( verts12, indices12, re_allocate_buffers=true, 0, 0);
-    var geom = new LiveBufferGeometry79( new Float32Array(new ArrayBuffer(0)), new Uint32Array(new ArrayBuffer(0)), re_allocate_buffers="Deliberately Empty", 0, 0);
-    geom.update_geometry1(verts12, indices12, true, true);
-
-
-    var wireframe_material = new THREE.MeshBasicMaterial( {
-        color: color, wireframe: true, opacity:0.9,  transparent: true,} );
-    var wire_msh = new THREE.Mesh(geom, wireframe_material);
-    return wire_msh;
-}
-
-function make_empty_lines_mesh() {
-    return new THREE.LineSegments(new THREE.BoxGeometry(0.33333,0.3333333,0.33333333));
-}
-
-function make_vectorfield_flow_lines_v1(implisolid_, name1, name2, point_size) {
-    // works!
-    // vector field flow
-    /*
-    var color_r, color_g, color_b;
-    color_r = color_r !== undefined? color_r : 0.9;
-    color_g = color_g !== undefined? color_g : 0.9;
-    color_b = color_b !== undefined? color_b : 0.9;
-    */
-
-    if (implisolid_.get_pointset_ptr(name1) == 0) {
-
-    }
-    var verts1 = get_emc_array(implisolid_.get_pointset_ptr(name1)+120*3*4*0, 3 * implisolid_.get_pointset_size(name1) + 0  );
-    var verts2 = get_emc_array(implisolid_.get_pointset_ptr(name2)+120*3*4*0, 3 * implisolid_.get_pointset_size(name2) + 0 );
-
-    var n1 = verts1.length / 3;
-    var n2 = verts2.length / 3;
-
-    if (n1 == 0) {
-        return make_empty_lines_mesh();
-    }
-    /*
-    n1 = 4*10;
-    n2 = 4*10;
-    var debug_mode = true;
-    verts1 = verts1.subarray(0, n1 * 3);
-    verts2 = verts2.subarray(0, n2 * 3);
-    */
-
-    var verts12 = concatenate_array_float(verts1, verts2);
-    /*
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
-    var verts12 = new Float32Array(raw_buffer);
-    // var verts12 = new Float32Array(n1 + n2);
-    verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
-    verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
-    */
-
-    /*
-    for( var i=0; i<n2; i++) {
-        var b = (i+n1)*3;
-        verts12[b + 0] += (Math.random()*2-1)*10;
-        verts12[b + 1] += (Math.random()*2-1)*10;
-        verts12[b + 2] += (Math.random()*2-1)*10;
-    }
-    */
-
-
-    if (n1 !== n2) {
-        console.error("Need to have the same number of elements.");
-    }
-
-    /*
-    // I don't use a geometry mesh with wiredframe. I use a LineSegments that uses a BufferGeometry
-
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 2 );
-    var indices12 = new Uint32Array(raw_buffer);
-    for (var i=0; i < n1; i++) {
-        indices12[i * 2] = i;
-        indices12[i * 2 + 1] = i ; //+ n1;  //i+1; //i + n1;
-        // indices12[i * 2] = 0;
-        // indices12[i * 2 + 1] = i;
-    }
-    */
-
-
-    var indices12 = make_indices_for_n1_n2(n1);
-
-    /*
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
-    var indices12 = new Uint32Array(raw_buffer);
-    for (var i=0; i < n1; i++) {
-        indices12[i * 3] = i;
-        indices12[i * 3 + 1] = i + n1; //i + n1;
-        indices12[i * 3 + 2] = i; //i + n1;
-    }
-    assert(indices12.length == n1 * 3);
-    */
-
-
-    var wire_msh = make_lines_mesh_v1(verts12, indices12, 0xffffff);
-
-    /*
-    var line_material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-    var wire_msh = new THREE.LineSegments(geom, line_material);
-    */
-    return wire_msh;
-}
-
-
-function make_vectorfield_flow_lines_v2(implisolid_, name1, name2, point_size) {
-    // vector field flow. Without using LiveGEometry (and using LineSegments)
-
-    // does not work
-    /*
-    var color_r, color_g, color_b;
-    color_r = color_r !== undefined? color_r : 0.9;
-    color_g = color_g !== undefined? color_g : 0.9;
-    color_b = color_b !== undefined? color_b : 0.9;
-    */
-
-
-
-    /*
-
-                var positions = [];
-                var next_positions_index = 0;
-                var colors = [];
-                var indices_array = [];
-    */
-
-    var verts1 = get_emc_array(implisolid_.get_pointset_ptr(name1), 3 * implisolid_.get_pointset_size(name1) );
-    var verts2 = get_emc_array(implisolid_.get_pointset_ptr(name2), 3 * implisolid_.get_pointset_size(name2) );
-
-    var n1 = verts1.length / 3;
-    var n2 = verts2.length / 3;
-
-    assert(n1 > 0);
-
-    var verts12 = concatenate_array_float(verts1, verts2);
-    /*
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) * 3);
-    var verts12 = new Float32Array(raw_buffer);
-    // var verts12 = new Float32Array(n1 + n2);
-    verts12.subarray(0, n1 * 3).set(new Float32Array(verts1));
-    verts12.subarray(n1 * 3, (n1+n2) * 3).set(new Float32Array(verts2));  // deliberate bug for TDD
-    */
-
-
-    if (n1 !== n2) {
-        console.error("Need to have the same number of elements.");
-    }
-
-    // I don't use a geometry mesh with wiredframe. I use a LineSegments that uses a BufferGeometry
-
-    var raw_buffer = new ArrayBuffer( Uint16Array.BYTES_PER_ELEMENT * (n1) * 2 );
-    var indices12 = new Uint16Array(raw_buffer);
-    for (var i=0; i < n1; i++) {
-        indices12[i * 2] = i;
-        indices12[i * 2 + 1] = i + n1;  //i+1; //i + n1;
-    }
-
-
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1) * 3 );
-    var colors_ta = new Float32Array(raw_buffer);
-    for (var i=0; i < n1; i++) {
-        colors_ta[i * 3] = (i/10.0) % 1.0;
-        colors_ta[i + 3 + 1] = (i/10.0) % 1.0;
-        colors_ta[i + 3 + 2] = (i/10.0) % 1.0;
-    }
-
-    // var indices12 = new Uint16Array( indices_array );
-    // var verts12 = new Float32Array( positions );
-    // var colors_ta = new Float32Array( colors );
-
-    var geom = new THREE.BufferGeometry();
-    geom.setIndex( new THREE.BufferAttribute( indices12, 1 ) );
-    geom.addAttribute( 'position', new THREE.BufferAttribute( verts12, 3 ) );
-    geom.addAttribute( 'color', new THREE.BufferAttribute( colors_ta, 3 ) );
-    geom.computeBoundingSphere();
-
-    // var line_material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-    var line_material = new THREE.MeshBasicMaterial( {
-        color: 0xffffff, wireframe: true, opacity:0.8,  transparent: true,} );
-    var wire_msh = new THREE.LineSegments(geom, line_material);
-
-    return wire_msh;
-}
-
-
-function hairy_object_based_on_vectors(vects, gradients, alpha1, alpha2, color) {
-
-    var n = gradients.length / 3;
-    var n1 = vects.length / 3;
-    assert(n == n1);
-
-    var arrow_tips = new Float32Array(new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT));
-    var arrow_bases = new Float32Array(new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT));
-    for (var i = 0; i < n; ++i) {
-        for (var d = 0; d < 3; d++) {
-            var j = (i * 3) + d;
-            arrow_tips[j] = vects[j] + alpha2 * gradients[j];
-            arrow_bases[j] = vects[j] + alpha1 * gradients[j];
-        }
-    }
-
-    var verts12 = concatenate_array_float(arrow_bases, arrow_tips);
-    /*
-    // repeated code
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n + n) * 3);
-    var verts12 = new Float32Array(raw_buffer);
-    verts12.subarray(0, n * 3).set(new Float32Array(arrow_bases));
-    verts12.subarray(n * 3, (n+n) * 3).set(new Float32Array(arrow_tips));  //
-    */
-
-    var indices12 = make_indices_for_n1_n2(n);
-    /*
-    //repeated code
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n) * 3 );
-    var indices12 = new Uint32Array(raw_buffer);
-    for (var i=0; i < n; i++) {
-        indices12[i * 3] = i;
-        indices12[i * 3 + 1] = i + n; //i + n;
-        indices12[i * 3 + 2] = i + n; //i + n;
-    }
-    assert(indices12.length == n * 3);
-    */
-
-    var wire_msh = make_lines_mesh_v1(verts12, indices12, color)
-    return wire_msh;
-}
-
-function visualise_normals(implisolid_, shape_json, pointset_label, alpha1, alpha2, color) {
-    /*
-        Draws lines from alpha1*grad to alpha2*grad.
-        alpha1,2 are the start and end of the lines parallel to the gradients. Most likely negative alpha values are used.
-        alpha=0 means points specified from the pointset specified by label pointset_label. Using color.
-        Example: alpha1=0.0 and alpha2=-1.0 will draw normals (outwards). color = 0x88ff00;
-    */
-
-
-    // todo: refactor
-    var n = implisolid_.get_pointset_size(pointset_label);
-    if (n == 0) {
-        return make_empty_lines_mesh();
-    }
-    var verts = get_emc_array(implisolid_.get_pointset_ptr(pointset_label),
-        n * 3 );
-
-
-    // verts = arrow_bases
-
-    // see update_arrows()
-
-    var ignore_root_matrix = false;
-    var mp5_str = shape_json;
-    // console.error(mp5_str);
-var result1 =
-    implisolid_.set_object(mp5_str, ignore_root_matrix);
-console.log("SET_OBJECT() RESULTS:", result1);
-    implisolid_.set_vect(verts);
-    implisolid_.calculate_implicit_gradients();
-
-    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-    var ptr = implisolid_.get_gradients_ptr();
-    var ptr_len = implisolid_.get_gradients_size();
-    var gradients = Module.HEAPF32.subarray(
-        ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
-    assert(ptr_len == n*3);
-
-    for (var i = 0; i < n; ++i) {
-        var r = Math.sqrt(gradients[i*3 + 0] * gradients[i*3 + 0] + gradients[i*3 + 1] * gradients[i*3 + 1] + gradients[i*3 + 2] * gradients[i*3 + 2]);
-        gradients[i*3 + 0] /= r;
-        gradients[i*3 + 1] /= r;
-        gradients[i*3 + 2] /= r;
-    }
-
-
-    var wire_msh = hairy_object_based_on_vectors(verts, gradients, alpha1, alpha2, color);
-
-    /*
-    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
-    var arrow_tips = new Float32Array(raw_buffer);
-    var raw_buffer = new ArrayBuffer( n * 3 * Float32Array.BYTES_PER_ELEMENT);
-    var arrow_bases = new Float32Array(raw_buffer);
-    for (var i = 0; i < n; ++i) {
-        for (var d = 0; d < 3; d++) {
-            var j = (i * 3) + d;
-            arrow_tips[j] = verts[j] + alpha2 * gradients[j];
-            arrow_bases[j] = verts[j] + alpha1 * gradients[j];
-        }
-    }
-
-    // repeated code
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n + n) * 3);
-    var verts12 = new Float32Array(raw_buffer);
-    verts12.subarray(0, n * 3).set(new Float32Array(arrow_bases));
-    verts12.subarray(n * 3, (n+n) * 3).set(new Float32Array(arrow_tips));  //
-
-    //repeated code
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n) * 3 );
-    var indices12 = new Uint32Array(raw_buffer);
-    for (var i=0; i < n; i++) {
-        indices12[i * 3] = i;
-        indices12[i * 3 + 1] = i + n; //i + n;
-        indices12[i * 3 + 2] = i + n; //i + n;
-    }
-    assert(indices12.length == n * 3);
-
-    var wire_msh = make_lines_mesh_v1(verts12, indices12, color)
-    */
-
-    implisolid_.unset_x();
-var result1 =
-    implisolid_.unset_object(1);
-console.log("UNSET_OBJ() RESULTS:", result1);
-    return wire_msh;
-}
 
 function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
 //unload
-function update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geometry) {
+function __update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geometry) {
 
     //console.log(mp5_json);
     //console.log(mc_properties_json);
@@ -1264,6 +823,7 @@ function update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geome
 
     var ignore_normals = false
     // geometry. update_geometry (implisolid_, ignore_normals);
+    // called after build_geometry()
     implisolid_. update_geometry (geometry, ignore_normals);
 
     var endTime = new Date();
@@ -1332,7 +892,7 @@ function update_arrows(arrows, implisolid_, mp5_str, n, ignore_root_matrix) {
     //var _verts = new Float32Array([x, y, z]);
     //var _verts = new Float32Array(vlist);
     var _verts = vlist;
-    assert(_verts instanceof Float32Array);
+    my_assert(_verts instanceof Float32Array);
 
 var result1 =
     implisolid_.set_object(mp5_str, ignore_root_matrix);
@@ -1424,7 +984,7 @@ const SHOW_SOLID = true;
 
 const PERSPECTIVE = false;
 
-function init_scene(implisolid_, shape_json, polygonization_json) {
+function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
     // determins the size & location of the grid, the location of the camera, and the size of the small cube in center (reference cube).
     var GRID_CELL_SIZE = 1.0;
@@ -1479,7 +1039,12 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     else
     */
     {
-        geometry = make_geometry_new2(implisolid_, shape_json, polygonization_json, null, true);
+        /* OLD
+        geometry = make_geometry_new2(implisolid_, shape_json, polygonization_json, true, geom_callback__1);
+        */
+        var ignore_root_matrix = false;
+        console.warn("bad: ignore_root_matrix not known", ignore_root_matrix);
+        geometry = IMPLICIT.getLiveGeometry22(shape_json, polygonization_json, true, geom_callback__1, ignore_root_matrix);
     }
     //last_geometry = geometry;
 
@@ -1502,21 +1067,21 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
     }
 
     /*
-    var points2 = make_pointset( implisolid_, "pre_resampling_vertices", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
+    var points2 = PS_UTILS.make_pointset("pre_resampling_vertices", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
     scene.add( points2 );
 
-    var points1 = make_pointset( implisolid_, "post_resampling_vertices", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
+    var points1 = PS_UTILS.make_pointset("post_resampling_vertices", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
     */
 
     /*
-    var points2 = make_pointset( implisolid_, "pre_qem_verts", 2.0 / 30.0,   0.9, 0.0, 0.0);  // Red: before
+    var points2 = PS_UTILS.make_pointset("pre_qem_verts", 2.0 / 30.0,   0.9, 0.0, 0.0);  // Red: before
     scene.add( points2 );
     */
 
 
     /*
-    var points1q = make_pointset( implisolid_, "post_qem_verts", 2.5 / 30.0 * 6.0,   0.9, 0.9, 0.0); // Yellow: after
+    var points1q = PS_UTILS.make_pointset("post_qem_verts", 2.5 / 30.0 * 6.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1q );
     */
 
@@ -1524,7 +1089,7 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
 
     var alpha1 = -0.3, alpha2 = -0.6;
-    var norms_ = visualise_normals(implisolid_, shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
+    var norms_ = PS_UTILS.visualise_normals(shape_json, "post_p_centroids", alpha1, alpha2, 0x009900); //  0x00ff00  // 0x88ff00
     if (norms_) {
         scene.add(norms_);
     }
@@ -1532,27 +1097,27 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
 
 
-    var points2 = make_pointset( implisolid_, "pre_p_centroids", 8.0 / 4.0*2 / 30.0,   0.9, 0.0, 0.0);  // Red: before
+    var points2 = PS_UTILS.make_pointset("pre_p_centroids", 8.0 / 4.0*2 / 30.0,   0.9, 0.0, 0.0);  // Red: before
     // scene.add( points2 );
 
-    var points1 = make_pointset( implisolid_, "post_p_centroids", 10.0 / 4.0 / 30.0,   0.9, 0.9, 0.0); // Yellow: after
+    var points1 = PS_UTILS.make_pointset("post_p_centroids", 10.0 / 4.0 / 30.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
 
 
 
 /*
     // "Centroid Projection"'s result.
-    var vectorfield = make_vectorfield_flow_lines_v1(implisolid_, "pre_p_centroids", "post_p_centroids");
+    var vectorfield = PS_UTILS.make_vectorfield_flow_lines_v1("pre_p_centroids", "post_p_centroids");
     scene.add( vectorfield );
 */
     // "QEM"'s result.
-    var vectorfield = make_vectorfield_flow_lines_v1(implisolid_, "pre_qem_verts", "post_qem_verts");
+    var vectorfield = PS_UTILS.make_vectorfield_flow_lines_v1("pre_qem_verts", "post_qem_verts");
     scene.add( vectorfield );
 
 
     // Visualising the normal vectors as queried and applied on t geometry. Normal vector for vertices is a bad idea. Need to see how normal vectors can be specified for facets of BufferGeometry.
     if ( global_verts_copy && global_gradients_copy ) {
-        var hairy_m = hairy_object_based_on_vectors(global_verts_copy, global_gradients_copy, 0.0, 1.0, 0x777700);
+        var hairy_m = PS_UTILS.hairy_object_based_on_vectors(global_verts_copy, global_gradients_copy, 0.0, 1.0, 0x777700);
         scene.add( hairy_m );
     }
 
@@ -1570,10 +1135,10 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
 
     /*
-    var points2 = make_pointset( implisolid_, "pre_qem_verts", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
+    var points2 = PS_UTILS.make_pointset("pre_qem_verts", 8.0 / 4.0,   0.9, 0.0, 0.0);  // Red: before
     scene.add( points2 );
 
-    var points1 = make_pointset( implisolid_, "post_qem_verts", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
+    var points1 = PS_UTILS.make_pointset("post_qem_verts", 10.0 / 4.0,   0.9, 0.9, 0.0); // Yellow: after
     scene.add( points1 );
     */
 
@@ -1603,6 +1168,7 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
         console.log("RENDERER");
     }
     var render_canvas = document.getElementById( 'my_canvas' );
+    my_assert(render_canvas);
     console.log(render_canvas);
     renderer = new THREE.WebGLRenderer( { antialias: true, canvas: render_canvas } );
     //renderer.setSize( window.innerWidth, window.innerHeight );
@@ -1628,7 +1194,9 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
             var INTERVAL_MSEC = 100; // 8-1; //40  // 1   // in Milliseconds
 
             //update_mc(implisolid_);
-            callMultipleTimes (implisolid_, update_mc, BURST_COUNT, INTERVAL_MSEC);
+            callMultipleTimes (BURST_COUNT, INTERVAL_MSEC, function(){
+                update_mc(IMPLICIT, 0.2/10.*5 /5.);
+            });
             //change_arrow(arrow, implisolid_, global_mp5);
         }
         else
@@ -1671,8 +1239,8 @@ function update_mc(implisolid_, delta_t){
     global_time += delta_t;
 
     var tuple = provide_input(global_time, 1);
-    var shape_json = tuple[0];
-    var polygonization_json = tuple[1];
+    var shape_json = tuple.shape_json;
+    var polygonization_json = tuple.polygonization_json;
 
 
     //Three modes of speed here for (UPDATE_SAME_GEOM_OBJECT, EVEN_REUSE_MESH_OBJECT):
@@ -1735,7 +1303,10 @@ function update_mc(implisolid_, delta_t){
         geometry = g;
         //update_reused_geometry(implisolid_, global_time, geometry);
         // shape_json: from update,
-        update_reused_geometry(implisolid_, shape_json, polygonization_json, geometry);
+
+        //OLD// update_reused_geometry(implisolid_, shape_json, polygonization_json, geometry);
+        var ignoreNormals = false;
+        IMPLICIT.update_geometry_from_json(geometry, shape_json, polygonization_json, ignoreNormals)
     }
     else {
         /*
@@ -1746,8 +1317,11 @@ function update_mc(implisolid_, delta_t){
         */
         {
             //reused_last_geom = null;
-            geometry = make_geometry_new2(implisolid_, shape_json, polygonization_json, null, false);  //FALSE??
+            //OLD// geometry = make_geometry_new2(implisolid_, shape_json, polygonization_json, false, geom_callback__1);  //FALSE??
         }
+        var ignoreNormals = false;
+        geometry = IMPLICIT.getLiveGeometry(shape_json, polygonization_json, ignoreNormals)
+
     };
     /*
     "";
@@ -1770,7 +1344,7 @@ function update_mc(implisolid_, delta_t){
         global_normals = null
     }
     var alpha = 60.0;
-    var norms_ = visualise_normals(implisolid_, global_mp5, "post_p_centroids", 0, alpha, 0x009900); //  0x00ff00  // 0x88ff00
+    var norms_ = PS_UTILS.visualise_normals(global_mp5, "post_p_centroids", 0, alpha, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
     global_normals = norms_;
     */
@@ -1837,7 +1411,7 @@ function generateTexture() {
 }
 
 function grid_bed(step) {
-    assert(step > 0.0 && "Grid step has to be non zero");
+    my_assert(step > 0.0 && "Grid step has to be non zero");
     // var step = 25;
     var y_floor =  step * -3;  // -75;
     var ngrids = 40;
@@ -1948,15 +1522,6 @@ function animate() {
 
 var scene, camera, renderer;
 //var geometry;
-
-//var implisolid_; //no longer global. Hopefully does not affect the performance.
-window.setTimeout(
-    // function() {
-    //     var implisolid_ = init_polygonizer();
-    //     init_scene(implisolid_);
-    //     animate();
-    // },
-3000);
 
 </script>
 
@@ -2078,33 +1643,33 @@ function add_graph_div(){
 
 </script>
 
-<!--
-To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed();
--->
-
-<div id="chart_div" class="stat-panel" no_style="width: 900px; height: 500px;">
-</div>
 
 
 <script>
     'use strict';
-    var global_implisolid_ = {};
+    var IMPLICIT;
+    var PS_UTILS;
+
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
     function set_off() {
         console.log("ready.");
-        var implisolid_ = init_polygonizer();
-        global_implisolid_ = implisolid_;
+        //var implisolid_ = init_polygonizer();
+        // global_implisolid_ = implisolid_;
 
         //if(delta_t === undefined)
         var delta_t = 0.2;
         // Subjective time!
         global_time += delta_t;
 
-        var tuple = provide_input(global_time, 0);
-        var shape_json = tuple[0];
-        var polygonization_json = tuple[1];
+        var d = provide_input(global_time, 0);
+        var shape_json = d.shape_json;
+        var polygonization_json = d.polygonization_json;
 
-        init_scene(implisolid_, shape_json, polygonization_json);
+        assert = my_assert;
+
+        IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
+        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT); 
+        init_scene(IMPLICIT, shape_json, polygonization_json);
         animate();
     };
 </script>
@@ -2432,12 +1997,12 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         worker.postMessage(wreq);
     }
 
-    function wapi_make_geometry(mp5_str, polygonisation_settings_json, result_callback) {
+    function wapi_make_geometry(mp5_str, polygonization_settings_json, result_callback) {
         // based on implisolid_main.js
         //var startTime = new Date();
 
-        assert(typeof result_callback !== 'undefined');
-        assert(result_callback);
+        my_assert(typeof result_callback !== 'undefined');
+        my_assert(result_callback);
 
         var _callbackId = worker_call_preparation(5, result_callback);
         var wreq = {
@@ -2445,10 +2010,10 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
                 callbackId: _callbackId,
                 call_id: call_counter,
 
-                mp5_str: null, polygonisation_settings: null, obj_req_id: 0
+                mp5_str: null, polygonization_settings: null, obj_req_id: 0
             };
         wreq.mp5_str = mp5_str;
-        wreq.polygonisation_settings = polygonisation_settings_json;  // mc_params;
+        wreq.polygonization_settings = polygonization_settings_json;  // mc_params;
         wreq.obj_req_id = call_counter;
         worker.postMessage(wreq);
 
@@ -2531,32 +2096,13 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
     }
 
     function demo1() {   // request()
+        console.log("demo1");
 
         var rr = make_demo_dict();
-
-        /*
-        var mc_params = {
-            resolution: Math.floor(14 ),
-            box: rr.bbox,
-            ignore_root_matrix: false,
-
-            vresampl: {iters: 3, c: 1.0},
-            projection: {enabled: 1},
-            qem: {enabled: 1},
-            subdiv: {enabled: 1},
-            overall_repeats: 1,
-
-            debug: {
-                enabled_pointsets: 0,
-                post_subdiv_noise: 0.0,
-            },
-        };
-        */
 
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
 
-        console.log("---------------------");
         wapi_query_implicit_values(JSON.stringify(rr.shape_dict), points, function(returned_result, call_identification) {
             console.info("Returned: ", returned_result);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
@@ -2578,10 +2124,10 @@ w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callba
     var shape_properties = dict;
     var s = 1;
 
-    assert(bbox, "You need to specify the bounding box");
-    assert("min" in bbox, "You need to specify *.min.x");
-    assert("max" in bbox, "You need to specify *.max.x");
-    assert("x" in bbox["min"], "You need to specify *.max.x");
+    my_assert(bbox, "You need to specify the bounding box");
+    my_assert("min" in bbox, "You need to specify *.min.x");
+    my_assert("max" in bbox, "You need to specify *.max.x");
+    my_assert("x" in bbox["min"], "You need to specify *.max.x");
 
     var bb ={};
     var sc = 1.0;
@@ -2650,10 +2196,10 @@ w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callba
     }
 
     var mp5_json_str = JSON.stringify(shape_properties);
-    var polygonisation_properties_json = JSON.stringify(mc_properties);
+    var polygonization_properties_json = JSON.stringify(mc_properties);
 // service2.make_geometry
     //var geom =   // no geom returned here anymore
-    wapi_make_geometry(mp5_json_str, polygonisation_properties_json,
+    wapi_make_geometry(mp5_json_str, polygonization_properties_json,
         function (vf_dict) {
             var verts = vf_dict.verts;
             var faces = vf_dict.faces;

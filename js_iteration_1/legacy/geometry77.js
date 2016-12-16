@@ -381,6 +381,17 @@ function MyBufferGeometry77( verts, faces,  re_allocate) {
         }
     };
 
+    this.use_default_normals_from_vertices = function () {
+        // use default normals
+        // candidate name: remove_normals()
+
+        console.warn("not tested for veriosn prior to r79");
+
+        this.removeAttribute('normal');
+        this.computeVertexNormals();
+        this.__set_needsUpdate_flag(false);
+    }
+
     this.initbg()
 };
 
@@ -464,4 +475,3 @@ UpdatableGeometry77.prototype.update = function(verts, faces) {
 UpdatableGeometry77.prototype = Object.create( WGeometry77.prototype );
 UpdatableGeometry77.prototype.constructor = UpdatableGeometry77;
 */
-

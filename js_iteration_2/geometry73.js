@@ -393,6 +393,17 @@ function LiveBufferGeometry71( verts_, faces_,  pre_allocate_, min_faces_capacit
         */
     };
 
+    this.use_default_normals_from_vertices = function () {
+        // use default normals
+        // candidate name: remove_normals()
+
+        console.warn("not tested for veriosn prior to r79");
+
+        this.removeAttribute('normal');
+        this.computeVertexNormals();
+        this.__set_needsUpdate_flag(false);
+    }
+
     this.get_minz = function(matrix, shape) {
         // shape is not needed really.
         return +1;

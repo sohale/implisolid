@@ -18,6 +18,8 @@ IMPLISOLID
 */
 'use strict';
 
+// LiveBufferGeometry71  MyBufferGeometry77 LiveBufferGeometry79
+
 var ImplicitService = (function () {
 'use strict';
 
@@ -93,6 +95,26 @@ function init(service) {
         Module._free( verts_space );
     };
 
+    // move to service2
+    /*
+    service.get_emc_array = function (verts_address, point_count) {
+
+        // todo: should work with point_count==0
+
+        // var verts_address = implisolid_.get_pointset_ptr(name);
+        // var point_count = implisolid_.get_pointset_size(name);
+
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        var float_array = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 1 * point_count);
+        if (point_count == 0) {
+            console.warn("Error: zero points", point_count);
+            //return // null; // make_empty_lines_mesh();
+        }
+
+        return float_array;
+    }
+    */
+
     service.init_();
 
     return service;
@@ -132,9 +154,13 @@ function init2(impli2, impli1) {
 
 
     // mid-level API
-    impli2.make_geometry = function (mp5_str, mc_params, callback) {
+    impli2.make_geometry = function (mp5_str, polygonization_params_str, callback, allocate_buffer) {
         assert(typeof callback !== 'undefined');
         assert(callback);
+        if (typeof polygonization_params_str !== "string") {
+            polygonization_params_str = JSON.stringify(polygonization_params_str);
+            console.error("Use a string, a JSONified settings:", polygonization_params_str);
+        }
 
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -145,12 +171,13 @@ function init2(impli2, impli1) {
             impli1.needs_deallocation = false;
         }
 
-        //console.log("mc_params.resolution " + mc_params.resolution);
-        //mc_params.resolution = 40;
+        //console.log("polygonization_params_str.resolution " + polygonization_params_str.resolution);
+        //polygonization_params_str.resolution = 40;
 
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
-        impli1.build_geometry(mp5_str, JSON.stringify(mc_params));
+        assert(typeof polygonization_params_str === "string");
+        impli1.build_geometry(mp5_str, polygonization_params_str);
         impli1.needs_deallocation = true;
 
         var nverts = impli1.get_v_size();
@@ -163,7 +190,7 @@ function init2(impli2, impli1) {
         var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
         // first iteration: the callback
-        var geom = callback(verts, faces);
+        var geom = callback(verts, faces, allocate_buffer);
 
 
         var endTime = new Date();
@@ -293,17 +320,17 @@ function init2(impli2, impli1) {
      * The output is written into vf_dict, which is a dictionary with keys 'verts' and 'faces'.
      * Returns true on success, i.e. if the shape is not empty. Otherwise, returns false;
      */
-    impli2.get_latest_vf = function (vf_dict) {
+    impli2.get_latest_vf = function (output_vf_dict) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
 
-        var nverts = implicit_service1.get_v_size();
-        var nfaces = implicit_service1.get_f_size();
+        var nverts = impli1.get_v_size();
+        var nfaces = impli1.get_f_size();
 
         if(nfaces > 0){
-            var verts_address = implicit_service1.get_v_ptr();
-            var faces_address = implicit_service1.get_f_ptr();
+            var verts_address = impli1.get_v_ptr();
+            var faces_address = impli1.get_f_ptr();
 
             var verts = Module.HEAPF32.subarray(
                 verts_address/_FLOAT_SIZE,
@@ -313,16 +340,30 @@ function init2(impli2, impli1) {
                 faces_address/_INT_SIZE,
                 faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
             // return {faces: faces, verts: verts};
-            vf['faces'] = faces;
-            vf['verts'] = verts;
+            output_vf_dict['faces'] = faces;
+            output_vf_dict['verts'] = verts;
             return true;
         } else {
             // empty
-            vf['faces'] = null;
-            vf['verts'] = null;
+            output_vf_dict['faces'] = null;
+            output_vf_dict['verts'] = null;
             return false;
         }
     }
+
+    /*
+    get_pointset_() would belong to impli2 if it was defined in this file
+    impli2.get_pointset_ = function (pointset_label) {
+        var n = impli1.get_pointset_size(pointset_label);
+        if (n == 0) {
+            return null;
+        }
+        var verts = impli1.get_emc_array(
+            impli1.get_pointset_ptr(pointset_label),
+            n * 3 );
+        return verts;
+    }
+    */
 
     impli2.about = impli1.about;
     // Enable access to lower level functions. not recommended except for debugging.
@@ -351,14 +392,49 @@ function init3(service3, service2) {
     service3.repeats = 1;
     service3.custom_mc_settings = null;  // can be manually set in browser's console
 
+    // update_geometry_from_json  <-->  update_geometry()
     service3.update_geometry = function(geometry, ignoreNormals) {
+        // call after build_geometry()
+
+        /*
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+        const POINTS_PER_FACE = 3;
+
+        var nverts = service1__.get_v_size();
+        var nfaces = service1__.get_f_size();
+
+        // non-empty
+        if(nfaces > 0) {
+            var verts_address = service1__.get_v_ptr();
+            var faces_address = service1__.get_f_ptr();
+
+            var verts = Module.HEAPF32.subarray(
+                verts_address/_FLOAT_SIZE,
+                verts_address/_FLOAT_SIZE + 3*nverts);
+
+            var faces = Module.HEAPU32.subarray(
+                faces_address/_INT_SIZE,
+                faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+        }
+        else{
+            console.log("empty implicit");
+            var verts = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+
+        assert(verts);
+        assert(faces);
+
+        return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+       */
 
         //var implicit_service1 = impli1;
-        vf = {faces: null, verts: null};
 
+        var vf = {faces: null, verts: null};
         var nonempty = service2.get_latest_vf(vf);
         if (nonempty) {
-            // vf is updated;
+            // vf already contains the output of get_latest_vf()
         } else{
             console.log("empty implicit");
             vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
@@ -368,14 +444,68 @@ function init3(service3, service2) {
         assert(vf['faces']);
 
         return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreNormals, false);
+
     };
+
+    // update_geometry_from_json  <-->  update_geometry()
+    service3.update_geometry_from_json = function(geometry, shape_json, mc_params, ignoreNormals) {
+        // see __update_reused_geometry()
+        var startTime = new Date();
+        if (!shape_json)
+            console.error(shape_json);
+
+        assert(typeof mc_params === "string");
+
+        var allocate_buffer;
+        service2.make_geometry (shape_json, mc_params,
+            function (verts, faces, allocate_buffers) {
+                /*if (allocate_buffers === undefined) {
+                    allocate_buffers = true;
+                    console.error("allocate_buffers not specified:", allocate_buffers);
+                }*/
+                assert(allocate_buffers == false);
+
+                service3.update_geometry (geometry, ignoreNormals);
+
+                var ignore_root_matrix = false;
+                console.error("ignore_root_matrix");
+
+                service3.make_normals_into_geometry(geometry, shape_json, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+                var endTime = new Date();
+                var timeDiff = endTime - startTime;
+                //console.log(nv3 + " , " + nf3);
+                //console.log("Time: "+timeDiff+ " msec.");
+
+                report_time(timeDiff);
+
+                return geometry;
+            },
+        allocate_buffer=false);
+
+        // call after build_geometry()
+        //repeated code: see upadate_geometry
+        var vf = {faces: null, verts: null};
+        var nonempty = service2.get_latest_vf(vf);
+        if (nonempty) {
+            // vf already contains the output of get_latest_vf()
+        } else{
+            console.log("empty implicit");
+            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+        assert(vf['verts']);
+        assert(vf['faces']);
+
+        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreNormals, false);
+
+    };
+
 
     //was: geom. update_normals (service ..)
     // todo: move the callback into LiveGeometry
     service3.make_normals_into_geometry = function(geom, mp5_str, x, ignore_root_matrix) {
-        geom.removeAttribute('normal');
-        geom.computeVertexNormals();
-        geom.__set_needsUpdate_flag(false);
+        geom.use_default_normals_from_vertices();
         return;
 
         // console.error(x);
@@ -414,12 +544,8 @@ function init3(service3, service2) {
 
     };
 
-    // Example usage of implisolid
-    // This method is called by the designer to obtain the geometry from the ImplicitService
-    // service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
-    service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
-        var shape_properties = dict;
-        var s = 1;
+    service3.make_polygonization_settings = function(bbox, ignore_root_matrix) {
+        // var s = 1;
 
         assert(bbox, "You need to specify the bounding box");
         assert("min" in bbox, "You need to specify *.min.x");
@@ -508,16 +634,23 @@ function init3(service3, service2) {
             //    IMPLICIT.custom_mc_settings = {vresampl: {iters: 1, c: 1} };
             mc_properties = merge_dicts_nonrecursive(mc_properties, service3.custom_mc_settings);
         }
+        return mc_properties;
+    }
 
-        // console.log (" mc properties : " + JSON.stringify(mc_properties));
-        var mp5_str = JSON.stringify(shape_properties);
-        var geom = service2.make_geometry(mp5_str, mc_properties,
-            function (verts, faces) {
+    service3.getLiveGeometry22 = function(mp5_str, polygonization_setttings_json_str, ignore_root_matrix) {
+        // contradiction: needs ignore_root_matrix but already has it in polygonization_setttings_json_str??
+        return service2.make_geometry(mp5_str, polygonization_setttings_json_str,
+
+            function (verts, faces, allocate_buffers) {
                 // ThreeJS-specific code
 
                 // var ignore_root_matrix: Does not need other (MC-related) arguments.
 
-                var allocate_buffers = true;
+                if (allocate_buffers === undefined) {
+                    allocate_buffers = true;
+                    console.error("allocate_buffers not specified:", allocate_buffers);
+                }
+
                 var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
 
                 // Set the normals
@@ -527,6 +660,10 @@ function init3(service3, service2) {
                 if (!mp5_str)
                     console.error(mp5_str);
 
+                if (true) {
+                    service3.update_geometry(geom, true);
+                }
+
                 service3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
                 //this_.aaaaaaaaaA(verts);
@@ -534,19 +671,38 @@ function init3(service3, service2) {
                 return geom;
             }
         );
+    }
 
-        return geom;
+    // Example usage of implisolid
+    // This method is called by the designer to obtain the geometry from the ImplicitService
+    // service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
+    service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
+        var shape_properties = dict;
+
+        var mc_properties = service3.make_polygonization_settings(bbox, ignore_root_matrix);
+
+        // console.log (" mc properties : " + JSON.stringify(mc_properties));
+        var mp5_str = JSON.stringify(shape_properties);
+
+        return service3.getLiveGeometry22(mp5_str,  JSON.stringify(mc_properties));
     };
+
+    if (typeof PS_UTILS !== "undefined")
+        service3.PS_UTILS = PS_UTILS;
+    else
+        service3.PS_UTILS = {};
+
 
     service3.query_implicit_values = service2.query_implicit_values;
 
     service3.query_a_normal = service2.query_a_normal;
 
     service3.about = service2.about;
+
     // Enable access to lower level functions. not recommended except for debugging.
+    // Makes sense because service3 is useful (we might want to use it with other callbacks)
     service3.service2 = service2;
 }
-
 
 var ImplicitService = function() {
 
@@ -577,7 +733,7 @@ var ImplicitService = function() {
 return ImplicitService;
 }());
 
-
+/* most times you need to write the following function */
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
 function _on_cpp_loaded() {
     console.log("C++ ready.");
@@ -588,7 +744,11 @@ function _on_cpp_loaded() {
     // ImpliSolid.js, ...ImpliSolid3js.js (frontend)
     // Alternative: Globally: Module._on_cpp_loaded = ...;
 
-    assert = _assert_000;
+    // ugly
+    if (typeof _assert_000 !== "undefined")
+        assert = _assert_000;
+
+    return IMPLICIT;  // another usage
 };
 
 /**
@@ -661,7 +821,7 @@ impli2: Mid level API:  (Can run in NodeJS)
 query_implicit_values  (string, array, function)
 query_normals (array, function)
 
-make_geometry (string, dict, function)
+make_geometry (string, string, function, bool)
 get_latest_vf ({array,array})
 
 
