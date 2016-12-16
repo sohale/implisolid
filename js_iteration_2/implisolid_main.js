@@ -636,6 +636,7 @@ get_f
 get_v_ptr
 get_f_ptr
 finish_geometry
+
 set_object
 unset_object
 set_x
@@ -655,21 +656,22 @@ set_vect
 needs_deallocation
 
 
-impli2: Mid level API:
+impli2: Mid level API:  (Can run in NodeJS)
 =====================
 query_implicit_values  (string, array, function)
 query_normals (array, function)
+
 make_geometry (string, dict, function)
 get_latest_vf ({array,array})
 
 
-impli3: Mid level API:
+impli3: High level API: (Cannot run on NodeJS)
 =====================
 use_II
 use_II_qem
 update_geometry
 make_normals_into_geometry
-getLiveGeometry
+getLiveGeometry ****************************
 query_implicit_values
 
 */

@@ -1,5 +1,8 @@
+'use strict';
 // importScripts('../build/mcc2.compiled.js');
 importScripts('mcc2.compiled.js');
+
+'use strict';
 
 onmessage = function(event) {
     var api = w_impli2;
@@ -12,6 +15,17 @@ onmessage = function(event) {
                 api.query_implicit_values(data.mp5_str, data.points, data.reduce_callback);
             postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
             break;
+
+        case "make_geometry":
+            var shape_index = data.obj_req_id;
+            var result =
+                api.make_geometry__workerside(data.mp5_str, data.polygonisation_settings, call_id, shape_index);  // call_id not needed here actually
+            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
+            break;
+
+        default:
+            console.error("Unknown worker request for unknown function call: \""+(data.funcName)+"\" via event data:", event.data);
+            throw new Error("Unrecognised worker request (unknown function call)");
     }
     //postMessage({result_allpositive: result});
     // postMessage({result_data: event.data});
@@ -27,12 +41,19 @@ onmessage = function(event) {
 var assert__ = function(x, m){if(!x) {console.error(m,x);throw m;}}
 
 var impli1 = {
+    //Based on API Version 1:
     // only functions that receive 'string' arguments need to be cwrap()ed.
     set_object: Module.cwrap('set_object','number',['string','number']),
+    build_geometry: Module.cwrap('build_geometry', null, [ 'string', 'string']),
+
+    // API Version 2:
 };
 
 var w_impli2 = {};
 w_impli2._module = Module;
+
+w_impli2.needs_deallocation = false;  // state
+
     w_impli2.query_implicit_values = function(mp5_str, points, reduce_type, call_id_arg)
     {
         assert__(points instanceof Float32Array);
@@ -54,7 +75,7 @@ w_impli2._module = Module;
 
         var ignore_root_matrix = false;
         /* obj_id is an integer that will match to the function _unset_object(obj_id). This integer will be used to identify one object among multiple objects that are available on the C++ side. */
-        var obj_id = impli1.set_object(mp5_str, ignore_root_matrix);
+        var obj_id = /* Module. */ impli1.set_object(mp5_str, ignore_root_matrix);
 
         /* Consume the given vertices. The vertices are given as an integer, the index of their start in C++ mamory. */
         var success = Module._set_x(verts_space_address, nverts);
@@ -104,7 +125,42 @@ w_impli2._module = Module;
         return  result;
     }
 
+//based on  implisolid.js
+    w_impli2.make_geometry__workerside = function (mp5_str, polygonisation_settings_json, /*result_callback,*/ call_id_arg) {
+        // assert(typeof result_callback !== 'undefined');
+        // assert(result_callback);
+        assert(typeof call_id_arg !== 'undefined');
+        assert(polygonisation_settings_json);
+        assert(typeof polygonisation_settings_json === "string");
+
+        var startTime = new Date();
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+        if(w_impli2.needs_deallocation) {
+            /*impli1.*/ Module. _finish_geometry();
+            w_impli2. needs_deallocation = false;
+        }
+        //console.log("mc_params.resolution " + mc_params.resolution);
+        //mc_params.resolution = 40;
+        //var mp5_str = JSON.stringify(shape_params);
+        //var mp5_str = JSON.stringify(shape_params);
+        /*Module.*/ impli1. build_geometry(mp5_str, polygonisation_settings_json);
+        w_impli2. needs_deallocation = true;
+        var nverts = Module. _get_v_size();
+        var nfaces = Module. _get_f_size();
+        var verts_address = Module. _get_v_ptr();
+        var faces_address = Module. _get_f_ptr();
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+        // first iteration: using the callback
+        //var geom = result_callback(verts, faces);
+        var endTime = new Date();
+        var timeDiff = endTime - startTime;
+        //report_time(timeDiff, function(){hist();});
+        //return geom;
+
+        return {verts:verts, faces:faces};
+    };
 
 // worker side
-console.log("hi");
-
+console.info("worker js loaded");

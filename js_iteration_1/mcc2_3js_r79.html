@@ -2007,6 +2007,7 @@ else{
 <!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
 
 <script>
+    'use strict';
 var ggraph = 0;
 function show_hist(data_array){
     if(ggraph==0){
@@ -2084,6 +2085,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
 
 <script>
+    'use strict';
     var global_implisolid_ = {};
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
     function set_off() {
@@ -2353,6 +2355,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 </script-->
 
 <script>
+    'use strict';
     var worker = new Worker('../js_iteration_2/worker_api.js');
     var worker_response_callbacks_table = {};
     const WORKER_DEBUG = true;
@@ -2419,6 +2422,78 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         wreq.points = points;
         worker.postMessage(wreq);
     }
+
+    function wapi_make_geometry(mp5_str, polygonisation_settings_json, result_callback) {
+        // based on implisolid_main.js
+        //var startTime = new Date();
+
+        assert(typeof result_callback !== 'undefined');
+        assert(result_callback);
+
+        var _callbackId = worker_call_preparation(5, result_callback);
+        var wreq = {
+                funcName: 'make_geometry',
+                callbackId: _callbackId,
+                call_id: call_counter,
+
+                mp5_str: null, polygonisation_settings: null, obj_req_id: 0
+            };
+        wreq.mp5_str = mp5_str;
+        wreq.polygonisation_settings = polygonisation_settings_json;  // mc_params;
+        wreq.obj_req_id = call_counter;
+        worker.postMessage(wreq);
+
+        /*
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+
+        if(impli1.needs_deallocation) {
+            impli1.finish_geometry();
+            impli1.needs_deallocation = false;
+        }
+        impli1.build_geometry(mp5_str, mc_params_json);
+        impli1.needs_deallocation = true;
+
+        var nverts = impli1.get_v_size();
+        var nfaces = impli1.get_f_size();
+
+        var verts_address = impli1.get_v_ptr();
+        var faces_address = impli1.get_f_ptr();
+
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+        // first iteration: the callback
+        var geom = result_callback(verts, faces);
+
+        var endTime = new Date();
+        var timeDiff = endTime - startTime;
+
+        //report_time(timeDiff, function(){hist();});
+
+        return geom;
+        */
+
+    }
+
+    // End of Worker-based API
+    // ******************************************************************************
+
+
+    var merge_dicts_nonrecursive = merge_dicts_nonrecursive?merge_dicts_nonrecursive:function() {
+        var merged_dict = {};
+        var nargs = arguments.length;
+        for (var arg_i = 0; arg_i < nargs; arg_i++) {
+            var newarg = arguments[arg_i];
+            for (var key in newarg) {
+                if (newarg.hasOwnProperty(key)) {
+                    merged_dict[key] = newarg[key];
+                }
+            }
+        }
+        return merged_dict;
+    };
+
     function make_demo_dict() {
         //var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
 
@@ -2435,15 +2510,22 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 
         return {
             shape_dict: shape_dict,
-            bbox: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
+            bbox: {
+                min: {
+                    x: x0-BB_SIZE, y: y0-BB_SIZE, z: z0-BB_SIZE
+                },
+                max: {
+                    x: x0+BB_SIZE, y: y0+BB_SIZE, z: z0+BB_SIZE
+                }
+            },
         };
     }
 
-    function request() {
-
+    function demo1() {   // request()
 
         var rr = make_demo_dict();
 
+        /*
         var mc_params = {
             resolution: Math.floor(14 ),
             box: rr.bbox,
@@ -2460,6 +2542,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
                 post_subdiv_noise: 0.0,
             },
         };
+        */
 
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
@@ -2474,11 +2557,133 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         // //worker.postMessage([b,r]);
         // worker.postMessage(wreq);
     }
-    var w_impli3 = "not initialised";  // not worker side, but uses worker
-    console.log(typeof w_impli3);
+
+var w_impli3 = {};  // not worker side, but uses worker
+
+w_impli3.custom_mc_settings = {};
+
+// Copied from implisolid_main.js
+var SET_ME_TO_TRUE = false;
+w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callback) {
+    // w_impli3.custom_mc_settings is a non-explicit argument changes the default settings
+    var shape_properties = dict;
+    var s = 1;
+
+    assert(bbox, "You need to specify the bounding box");
+    assert("min" in bbox, "You need to specify *.min.x");
+    assert("max" in bbox, "You need to specify *.max.x");
+    assert("x" in bbox["min"], "You need to specify *.max.x");
+
+    var bb ={};
+    var sc = 1.0;
+    var test = 0.;
+    bb["xmin"] = bbox.min.x * sc + test;
+    bb["xmax"] = bbox.max.x * sc - test;
+
+    bb["ymin"] = bbox.min.y * sc + test;
+    bb["ymax"] = bbox.max.y * sc - test;
+
+    bb["zmin"] = bbox.min.z * sc + test;
+    bb["zmax"] = bbox.max.z * sc - test;
+
+    _expect(bb["xmin"], "boundingbox is null");
+    _expect(bb["xmax"], "boundingbox is null");
+    _expect(bb["ymin"], "boundingbox is null");
+    _expect(bb["ymax"], "boundingbox is null");
+    _expect(bb["zmin"], "boundingbox is null");
+    _expect(bb["zmax"], "boundingbox is null");
+
+    // todo: Dependency-inject CONFIG.
+    var CONFIG;
+    var CONFIG_implisolid = CONFIG ? CONFIG.implisolid : {default_mc_resolution: 28, use_II: 1, repeats: 1,  use_III: 0,  use_II: 0};
+
+    // Designer-specific
+    var getResolution  = function(bb) {
+        return CONFIG_implisolid.default_mc_resolution;
+        const max_value = 40;
+        const min_value = 14;
+        const factor = CONFIG.implisolid.default_mc_resolution;
+        var max_length = Math.max(bb["xmax"] - bb["xmin"], bb["ymax"] - bb["ymin"], bb["zmax"] - bb["zmin"]);
+        var tmp =  Math.min(max_value,max_length*factor);
+        return  Math.floor(Math.max(tmp,min_value));
+
+        // 1 -> 28
+        // 2 -> 48
+    };
+
+    var mc_res = CONFIG_implisolid.default_mc_resolution;
+    var mc_properties = {
+        resolution: getResolution(bb),
+        box: bb,
+        ignore_root_matrix: ignore_root_matrix,
+
+        vresampl: CONFIG_implisolid.use_II? {iters: 1, c: 0.4} : {iters: 0, c: 1.0},
+        projection: {enabled: CONFIG_implisolid.use_II? 1 : 0},
+        qem: {enabled: CONFIG_implisolid.use_II_qem? 1 : 0},
+        //subdiv: {enabled: 1},
+        //overall_repeats: 2,
+        subdiv: {enabled: CONFIG_implisolid.use_III? 1 : 0},
+        overall_repeats: CONFIG_implisolid.repeats,
+
+        debug: {
+            enabled_pointsets: 0,
+            post_subdiv_noise: CONFIG_implisolid.use_noise? 0.01 : 0.0,
+        },
+    };
+
+    // w_impli3.custom_mc_settings is a non-explicit argument changes the default settings
+    if (w_impli3.custom_mc_settings) {
+        // nonrecursive is enough, because we want to replace everything except for "box".
+        // note: this is not tested.
+        // Example usage:
+        //    IMPLICIT.custom_mc_settings = {vresampl: {iters: 1, c: 1} };
+        mc_properties = merge_dicts_nonrecursive(mc_properties, w_impli3.custom_mc_settings);
+    }
+
+    var mp5_json_str = JSON.stringify(shape_properties);
+    var polygonisation_properties_json = JSON.stringify(mc_properties);
+// service2.make_geometry
+    //var geom =   // no geom returned here anymore
+    wapi_make_geometry(mp5_json_str, polygonisation_properties_json,
+        function (vf_dict) {
+            var verts = vf_dict.verts;
+            var faces = vf_dict.faces;
+            // ThreeJS-specific code
+
+            // var ignore_root_matrix: Does not need other (MC-related) arguments.
+
+            var allocate_buffers = true;
+            var geom = new LiveBufferGeometry79(verts, faces, allocate_buffers);
+
+            // Set the normals
+            // var ignore_root_matrix = mc_params.ignore_root_matrix;  // Does not need other (MC-related) arguments.
+            //geom.update_normals(this_, verts, mp5_json_str, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+            //
+            if (!mp5_json_str)
+                console.error(mp5_json_str);
+            if (SET_ME_TO_TRUE)
+            service3.make_normals_into_geometry(geom, mp5_json_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+
+            //this_.aaaaaaaaaA(verts);
+
+            // no geom anymore
+            // return geom;
+            var shape_id = 99; // vf_dict.shape_id
+            geom_callback(geom, shape_id);
+        }
+    );
+
+    // return geom;
+};
+
+
+
     function demo2() {
-        var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
-        w_impli3.getLiveGeometry(make_demo_dict(), bbox, false);
+        var rrq = make_demo_dict();
+        // var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
+        var geom = w_impli3.getLiveGeometry(rrq.shape_dict, rrq.bbox, false, function (geom, shape_id){
+            console.info(geom);
+        });
     }
 
  </script >
