@@ -125,6 +125,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     //     zmax = 1;
     //     resolution = 28;
     // }
+    std::cout << "-------------------------------------" <<std::endl;
+    std::cout << name <<std::endl;
+
 
 
     if(name=="meta_balls"){
@@ -237,6 +240,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
             copy_eye(matrix12);
         }
         object = new mp5_implicit::tetrahedron(corners, matrix12);
+        register_new_object(object);
+    }
+    else if (name == "screw") {
+
+        std::cout << "--------------screw------------" <<std::endl;
+        object = new mp5_implicit::screw();
         register_new_object(object);
     }
     else if (name == "Union") {

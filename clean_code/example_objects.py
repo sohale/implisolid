@@ -330,7 +330,7 @@ def screw1(scale_ignored):
 
 
 def screw2(SCALE=1.):
-    a = np.array([0, 0, 0])     # only works with [0,0,0]
+    a = np.array([0, 0, 1])     # only works with [0,0,0]
     w = np.array([0, 0, -1])
     u = np.array([1, 0, 0])
 
@@ -655,3 +655,34 @@ def get_all_examples(types_list):
         i += 1
     assert i > 0
     return usable_examples
+
+def main():
+    import numpy as np
+
+    h = 0.00001;
+
+    xa = np.array([[12.0,23.0,2.0],
+                   [0,0,-0.4],
+                   [-1,1,1],
+                   [0, 0, -0.1],
+                   [1331,1221,1222]
+                  ])
+
+    # xa_plus_h = np.array([[12.0,23.0 + h,2.0],
+    #                [0,0 + h,-0.4],
+    #                [-1,1 + h,1],
+    #                [0, 0 + h, -0.1]])
+
+
+    screw = make_example_vectorized('screw2');
+
+    print(screw.implicitFunction(xa))
+    # print(screw.implicitFunction(xa_plus_h))
+
+    # print((screw.implicitFunction(xa_plus_h) - screw.implicitFunction(xa))/h)
+
+
+    # print(screw.implicitGradient(xa))
+
+if __name__ == '__main__':
+    main()

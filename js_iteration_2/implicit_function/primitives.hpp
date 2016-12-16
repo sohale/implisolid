@@ -83,4 +83,5 @@ class TwistedObject::ImplicitObject(){
 #include "transformed_subtract.hpp"
 #include "torus.hpp"
 #include "tetrahedron.hpp"
+#include "screw.hpp"
 

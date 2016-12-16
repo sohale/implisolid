@@ -160,6 +160,17 @@ class Screw(ImplicitFunction):
         r = np.linalg.norm(x - np.transpose(p), ord=2, axis=1)
         assert r.shape == (count,)
 
+        print('----------------------')
+        print(self.UVW)
+        print(self.UVW_inv)
+        print(np.transpose(x) - p)
+
+        print(ab)
+        print(ab[1, :])
+        print(ab[0, :])
+        print(theta)
+
+
         inside_ness = t / self.slen
         inside_ness = 1 - 2 * np.abs(inside_ness-0.5)
 

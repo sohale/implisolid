@@ -91,6 +91,11 @@ class Screw(ImplicitFunctionVectorized):
         ab = np.dot(self.UVW_inv, np.transpose(x) - p)
         assert ab.shape == (3, count)
         theta = np.arctan2(ab[1, :], ab[0, :])
+
+        print(ab[1, :])
+        print(ab[0, :])
+        print(theta)
+
         # assert ab[2,:] == t
         r = np.linalg.norm(x - np.transpose(p), ord=2, axis=1)
         assert r.shape == (count,)
@@ -115,14 +120,14 @@ class Screw(ImplicitFunctionVectorized):
             return np.abs(2*(x - np.floor(x)) - 1.0)*2.0 - 1.0
         screw_ness = (-r + self.r0 + self.delta * phi(t / self.twist_rate - theta/pi2 + self.phi0))*inside_ness
 
-        lidness0 = t
-        lidness1 = self.slen - t
+        # lidness0 = t
+        # lidness1 = self.slen - t
 
-        m3 = np.concatenate((lidness0[:, np.newaxis], lidness1[:, np.newaxis], screw_ness[:, np.newaxis]), axis=1)
-        fval = np.min(m3, axis=1)
+        # m3 = np.concatenate((lidness0[:, np.newaxis], lidness1[:, np.newaxis], screw_ness[:, np.newaxis]), axis=1)
+        # fval = np.min(m3, axis=1)
 
         #return screw_ness
-        return fval
+        return screw_ness
 
     #def implicitGradient(self, x):
     #    check_vector4_vectorized(x)
@@ -137,5 +142,5 @@ class Screw(ImplicitFunctionVectorized):
     def curvature(self, x):
         check_vect2(x)
         raise NotImplementedError()
-
+print("haha----")
 __all__ = ['Screw']
