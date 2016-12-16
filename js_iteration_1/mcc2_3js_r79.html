@@ -564,7 +564,7 @@ function provide_input (subjective_time, is_update_mode) {
 
         var r = subjective_time * 5;
         //var BB_SIZE = 6.;
-        var mc_properties_json = JSON.stringify({
+        var mc_properties_json__update = JSON.stringify({
             resolution: 14*2 / 2 * 2,  // 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: false,
@@ -577,7 +577,7 @@ function provide_input (subjective_time, is_update_mode) {
 
 
         });
-        //implisolid_.build_geometry( 28, mc_properties_json, "sphere", subjective_time);
+        //implisolid_.build_geometry( 28, mc_properties_json__update, "sphere", subjective_time);
         /*
         var mp5_json = JSON.stringify({
             type: "ellipsoid",
@@ -599,7 +599,7 @@ function provide_input (subjective_time, is_update_mode) {
         d.matrix[10] = updated_size;
         shape_json = JSON.stringify(d);;
         // shape_json = global_mp5;
-        polygonization_json = mc_properties_json;
+        polygonization_json = mc_properties_json__update;
 
         //global_mp5 is not updated here. It is the original object before the update.
         var tuple = [shape_json, polygonization_json];
@@ -614,7 +614,7 @@ function provide_input (subjective_time, is_update_mode) {
         //d("2   G..");
         var x0=0, y0=0, z0=0;
         var r = subjective_time;
-        var mc_properties_json = JSON.stringify({
+        var mc_properties_json__update = JSON.stringify({
             resolution: 28,
             box: {xmin: x0-1, xmax: x0+1, ymin: y0-1 , ymax: y0+1, zmin: z0-1, zmax: z0+1}
         });
@@ -628,7 +628,7 @@ function provide_input (subjective_time, is_update_mode) {
                 0,0,0,   1]
         });
         shape_json = mp5_json;
-        polygonization_json = mc_properties_json;
+        polygonization_json = mc_properties_json__update;
         var tuple = [shape_json, polygonization_json];
         return tuple;
     }
@@ -1620,7 +1620,9 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
 
 
     function doKeyDownListener(event) {
-        if ( event.keyCode == 17 ) {
+        const CONTROL_KEY = 17;
+        const SHIFT_KEY = 16;
+        if ( event.keyCode == SHIFT_KEY ) {
 
             var BURST_COUNT = 5; // 50;
             var INTERVAL_MSEC = 100; // 8-1; //40  // 1   // in Milliseconds
@@ -1630,7 +1632,7 @@ function init_scene(implisolid_, shape_json, polygonization_json) {
             //change_arrow(arrow, implisolid_, global_mp5);
         }
         else
-            console.log(event.keyCode);
+            console.log("\"keydown\" code", event.keyCode);
     }
     window.addEventListener( "keydown", doKeyDownListener, false );  // keydown  keypress
 
@@ -2108,11 +2110,15 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
 </script>
 
 <!-- Memory profiler code by "jj" from https://groups.google.com/forum/#!topic/emscripten-discuss/HtAzVposlX4 -->
-<!--
+
+<!-- Uncomment the following for foreround (non-webworker) demo-->
+< ! - -
 <script type="text/javascript" src="./lib/memoryprofiler.js"></script>
 <script>
         //function letmeknow(){console.log("Loading memory profiler");}
-        Module=
+        var Module;
+        if (!Module)
+        Module =
         {
             preRun:[
                 letmeknow=function (){console.log("Loading memory profiler");},
@@ -2123,7 +2129,10 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
         };
 </script>
 <script type="text/javascript" src="../build/mcc2.compiled.js"></script>
--->
+- - >
+
+
+
 <!--script>
     var g1;
     var g2;
@@ -2394,7 +2403,7 @@ To show the histogram: Uncomment the following <div> to reveal the histogram gra
             if (temp) {
                 console.warn("callback already set.");
                 if (!(temp === result_callback))
-                    console.error("and callback is different!: ", temp, "!==", result_callback);
+                    console.error("Warning: and callback is different!: ", temp, "!==", result_callback);
             }
         }
         worker_response_callbacks_table[_callbackId] = result_callback;
