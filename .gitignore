@@ -2,15 +2,25 @@
 implisolid/**/*.js
 implisolid/**/*.js.mem
 
-implisolid/CMakeCache.txt
-implisolid/CMakeFiles/
-implisolid/Makefile
-implisolid/cmake_install.cmake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
 implisolid/dist/
-implisolid/lib/eigen/
-implisolid/pymplicit.egg-info/
+lib/eigen/
+pymplicit.egg-info/
 
 #compiled files.
-#implisolid/build/
-#implisolid/build/**/*
-#implisolid/build/*
+build/
+build/**/*
+build/*
+
+**/*.pyc
+
+
+**/*.*~
+**/*.log
+
+**/*.compiled.js
+**/*.compiled.js.mem
+**/*.js.mem
