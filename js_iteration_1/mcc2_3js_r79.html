@@ -82,6 +82,8 @@ THREE.OrbitControls = function() {
 
 
 <script type="text/javascript" src="../js_iteration_2/implisolid_main.js"></script>
+
+<script type="text/javascript" src="../js_iteration_2/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
 <script type="text/javascript" src="../js_iteration_2/pointset_utils.js"></script>
 
 <script>
@@ -95,8 +97,10 @@ THREE.OrbitControls = function() {
 
     var produce_object;
     var main;
-
-    // Thi method creates an object which is identical to ImpliSolid object in implisolid.js
+</script>
+<!--
+<script>
+    // This method creates an object which is identical to ImpliSolid object in implisolid.js
     // Todo: merge these two and remove this.
 
     // polygoniser_service
@@ -160,6 +164,7 @@ THREE.OrbitControls = function() {
             if (!result) {console.error("Something went wrong: ", result);}
             Module._free( verts_space );
         }
+        s_service={}; //destroying. for test
 
         s_service.__update_geometry = function(geometry, ignoreNormals) {
 
@@ -234,14 +239,16 @@ var result1 =
             implicit_service.unset_object(1);
 console.log("UNSET_OBJ() RESULTS:", result1);
         };
-
+        s_service={}; //destroying. for test
         s_service.init();
 
         //console.log("ok");
-        return s_service;
+        //return s_service;
+        return {};
     }
 
 </script>
+-->
 
 <script>
 'use strict';
@@ -578,71 +585,8 @@ function provide_input (subjective_time, is_update_mode) {
 }
 
 
-function prepare_gradients1(implicit_service, shape_json, verts) {
-    var ignore_root_matrix = true;
 
-    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-var result1 =
-    implicit_service.set_object(shape_json, ignore_root_matrix);
-console.log("SET_OBJECT() RESULTS:", result1);
-    implicit_service.set_vect(verts);  // overhead
-    implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
-    var ptr = implicit_service.get_gradients_ptr();
-    var ptr_len = implicit_service.get_gradients_size();
-    var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
-
-    for( var i = 0 ; i < ptr_len; i++) {
-        // gradients[i]  += (Math.random() *2 -1.0 )* 0.2;
-    }
-   // geom.update_normals_from_array(gradients);
-   return gradients;
-}
-function release_gradients1(implicit_service) {
-    implicit_service.unset_x();
-var result1 =
-    implicit_service.unset_object(1);
-console.log("UNSET_OBJ() RESULTS:", result1);
-}
-
-// DRY 6 folds!
-function clone_array_float(verts) {
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * verts.length);
-    var g = new Float32Array(raw_buffer);
-    g.subarray(0, verts.length).set(new Float32Array(verts));
-    return g;
-}
-
-function concatenate_array_float(verts1, verts2) {
-    var n1 = verts1.length;
-    var n2 = verts2.length;
-    var raw_buffer = new ArrayBuffer( Float32Array.BYTES_PER_ELEMENT * (n1 + n2) );
-    var verts12 = new Float32Array(raw_buffer);
-    verts12.subarray(0, n1).set(new Float32Array(verts1));
-    verts12.subarray(n1, (n1+n2)).set(new Float32Array(verts2));  // deliberate bug for TDD
-    return verts12;
-}
-
-function make_indices_for_n1_n2(n) {
-    var n1 = n;
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * (n1) * 3 );
-    var indices12 = new Uint32Array(raw_buffer);
-    for (var i=0; i < n1; i++) {
-        indices12[i * 3] = i;
-        indices12[i * 3 + 1] = i + n1; //i + n1;
-        indices12[i * 3 + 2] = i; //i + n1;
-    }
-    my_assert(indices12.length == n1 * 3);
-    return indices12;
-}
-
-/*
-function clone_array_int(indices) {
-    var raw_buffer = new ArrayBuffer( Uint32Array.BYTES_PER_ELEMENT * indices.length);
-    var g = new Uint32Array(raw_buffer);
-    g.subarray(0, indices.length).set(new Uint32Array(indices));
-    return g;
-}
-*/
+// some code moved into js_utils.js
 
 /*
 Three ways:
@@ -651,7 +595,8 @@ Three ways:
 3-  make_geometry_new2()
 */
 
-function _make_geometry_new2(implisolid_, shape_json, polygonization_json, re_allocate_buffers, geom_callback)
+/*
+function ___make_geometry_new2(implisolid_, shape_json, polygonization_json, re_allocate_buffers, geom_callback)
 {
     //console.log(shape_json);
     //console.log(polygonization_json);
@@ -719,7 +664,7 @@ function _make_geometry_new2(implisolid_, shape_json, polygonization_json, re_al
 
     return geom;
 }
-
+*/
 var geom_callback__1 = function (verts, faces, re_allocate_buffers) {
     /*
             // Uncomment for visualising the mesh's normals when set according to Implicit gradients.

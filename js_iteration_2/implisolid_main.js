@@ -134,6 +134,35 @@ function init(service) {
  * Wraps all accesses to Module. Suitable for weparating Worker from the main one.
  */
 function init2(impli2, impli1) {
+
+    // replaced by query_normals()?
+    function prepare_gradients1(implicit_service, shape_json, verts) {
+        var ignore_root_matrix = true;
+
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        var result1 =
+            implicit_service.set_object(shape_json, ignore_root_matrix);
+        console.log("SET_OBJECT() RESULTS:", result1);
+        implicit_service.set_vect(verts);  // overhead
+        implicit_service.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
+        var ptr = implicit_service.get_gradients_ptr();
+        var ptr_len = implicit_service.get_gradients_size();
+        var gradients = Module.HEAPF32.subarray(ptr/_FLOAT_SIZE, ptr/_FLOAT_SIZE + ptr_len);
+
+        for( var i = 0 ; i < ptr_len; i++) {
+            // gradients[i]  += (Math.random() *2 -1.0 )* 0.2;
+        }
+       // geom.update_normals_from_array(gradients);
+       return gradients;
+    }
+    function release_gradients1(implicit_service) {
+        implicit_service.unset_x();
+        var result1 =
+            implicit_service.unset_object(1);
+        console.log("UNSET_OBJ() RESULTS:", result1);
+    }
+
+
     /**
      * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
      */
@@ -161,9 +190,9 @@ function init2(impli2, impli1) {
 
 
     // mid-level API
-    impli2.make_geometry = function (mp5_str, polygonization_params_str, callback, allocate_buffer) {
-        assert(typeof callback !== 'undefined');
-        assert(callback);
+    impli2.make_geometry = function (mp5_str, polygonization_params_str, geometry_callback, allocate_buffer) {
+        assert(typeof geometry_callback !== 'undefined');
+        assert(geometry_callback);
         if (typeof polygonization_params_str !== "string") {
             polygonization_params_str = JSON.stringify(polygonization_params_str);
             console.error("Use a string, a JSONified settings:", polygonization_params_str);
@@ -177,6 +206,8 @@ function init2(impli2, impli1) {
             impli1.finish_geometry();
             impli1.needs_deallocation = false;
         }
+        
+        // todo: surround build_geometry() by try{}catch{}
 
         //console.log("polygonization_params_str.resolution " + polygonization_params_str.resolution);
         //polygonization_params_str.resolution = 40;
@@ -196,8 +227,8 @@ function init2(impli2, impli1) {
         var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
         var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
-        // first iteration: the callback
-        var geom = callback(verts, faces, allocate_buffer);
+        // first iteration: the geometry_callback
+        var geom = geometry_callback(verts, faces, allocate_buffer);
 
 
         var endTime = new Date();
@@ -208,7 +239,7 @@ function init2(impli2, impli1) {
         return geom;
     };
 
-    /*
+    /**
     Function: query_implicit_values(shape_str, points, reduce_callback)
     Evaluates the points **points** in the implicit function. The function is specified as a mp5-fragment (json) string **shape_str**.
     The values are not directly returned. Instead, a callback is used to prepare a value.
