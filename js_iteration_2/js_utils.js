@@ -1,3 +1,4 @@
+'use strict';
 
 
 // DRY 6 folds!
