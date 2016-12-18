@@ -485,32 +485,32 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         } else {
 
-        assert(!growth_needed);
-        var copied_faces = Math.min(faces.length, availableFacesSize);
-        var ntriangles = copied_faces/POINTS_PER_FACE;
-        this.__set_range_of_used_faces(ntriangles, POINTS_PER_FACE);
-        assert(!growth_needed);
+            assert(!growth_needed);
+            var copied_faces = Math.min(faces.length, availableFacesSize);
+            var ntriangles = copied_faces/POINTS_PER_FACE;
+            this.__set_range_of_used_faces(ntriangles, POINTS_PER_FACE);
+            assert(!growth_needed);
 
-        //if(growth_needed){
+            //if(growth_needed){
 
-        // Notify the changes
+            // Notify the changes
 
-        geometry.__set_needsUpdate_flag(ignoreDefaultNormals);
+            geometry.__set_needsUpdate_flag(ignoreDefaultNormals);
 
-        /*
-        g =currentMeshes[0].geometry
+            /*
+            g =currentMeshes[0].geometry
 
-        IMPLICIT.finish_geometry();
-        var mc_properties_json = JSON.stringify({resolution: CONFIG.implisolid.default_mc_resolution, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
-        IMPLICIT.build_geometry(......., mc_properties_json,);
-        //g.update_geometry(IMPLICIT, false)
-        IMPLICIT.update_geometry(g, false)
+            IMPLICIT.finish_geometry();
+            var mc_properties_json = JSON.stringify({resolution: CONFIG.implisolid.default_mc_resolution, box: {xmin: -1, xmax: 1, ymin: -1 , ymax: 1, zmin: -1, zmax: 1}});
+            IMPLICIT.build_geometry(......., mc_properties_json,);
+            //g.update_geometry(IMPLICIT, false)
+            IMPLICIT.update_geometry(g, false)
 
 
-        for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT, false);}
+            for(var i=0;i<1000;i++){ IMPLICIT.finish_geometry();IMPLICIT.build_geometry(..........28, mc_properties_json, "sphere", i*0.1); g.update_geometry(IMPLICIT, false);}
 
-        */
-        return false;
+            */
+            return false;
         }
     };
 
