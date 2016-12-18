@@ -281,7 +281,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
      i.e. swap geometry & implicit_service:
      geom.update_geometry(IMPLISOLID, true)  ->  IMPLISOLID.update_geometry(geom, true)
      */
-    this.update_geometry_ = function(implicit_service, ignoreNormals) {
+    this.update_geometry_ = function(implicit_service, ignoreDefaultNormals) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
@@ -308,7 +308,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             var faces = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
 
-        return this.update_geometry1(verts, faces, ignoreNormals, false);
+        return this.update_geometry1(verts, faces, ignoreDefaultNormals, false);
     };
 
     this.__set_range_of_used_faces = function (ntriangles, POINTS_PER_FACE)
@@ -371,8 +371,13 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         //geometry.attributes.color.needsUpdate = true;
     };
 
-
-    this.update_geometry1 = function(verts, faces, ignoreNormals, use_wireframe) {
+    /**
+        Known bug: The "Wireframe update" bug: When the BufferGrometry is shown using a wirefram material, it does not update the lines correctly. But the non-wirefram solid works perfectly.
+        @param ignoreDefaultNormals=true; if false, uses the vertex's vector as the "default normal" (which is incorrect), i.e. the vector from O=(0,0,0) to each vector's position.
+        So it is always suggested to be `true`. Note that we use a vertex-based normal here (i.e. a normal vector for each vertex, not for each face).
+        @param use_wireframe=false should always be false. This is an attempt to fix the "wireframe update" bug.
+    */
+    this.update_geometry1 = function(verts, faces, ignoreDefaultNormals, use_wireframe) {
         use_wireframe = false;  // experimental. should be always false;
 
         if (faces.length == 0) {
@@ -428,7 +433,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         }else{
             // copy now
             geometry.attributes.position.array.set(verts);  // .set() can copy if the number of soure (verts) is smaller than target
-            if(!ignoreNormals) {
+            if(!ignoreDefaultNormals) {
                 geometry.attributes.normal.array.set(verts);
             }
         }
@@ -474,11 +479,11 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
             //old solution was: create a new object
             //  var new_geometry= new LiveBufferGeometry79( verts, faces,  true, Math.max(availableFacesSize/POINTS_PER_FACE, faces.length/POINTS_PER_FACE) * 1.5 + 1, Math.max(availableVertsSize/3, verts.length/3) * 1.5 +1);
 
-            geometry.__set_needsUpdate_flag(ignoreNormals);
+            geometry.__set_needsUpdate_flag(ignoreDefaultNormals);
 
             return false; //new_geometry;
 
-        }
+        } else {
 
         assert(!growth_needed);
         var copied_faces = Math.min(faces.length, availableFacesSize);
@@ -490,7 +495,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         // Notify the changes
 
-        geometry.__set_needsUpdate_flag(ignoreNormals);
+        geometry.__set_needsUpdate_flag(ignoreDefaultNormals);
 
         /*
         g =currentMeshes[0].geometry
@@ -506,10 +511,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
 
         */
         return false;
-
-
-
-
+        }
     };
 
     this.update_normals_from_array = function(normals) {
@@ -527,7 +529,7 @@ function LiveBufferGeometry79( verts_, faces_,  pre_allocate_, min_faces_capacit
         geometry.attributes.normal.needsUpdate = true;
     };
 
-    // Separation of convern: Should not use implicit_service. Only provide .update_normals_from_array()
+    // Separation of concern: Should not use implicit_service. Only provide .update_normals_from_array()
     this.update_normals__ = function(implicit_service, mp5_str, x, ignore_root_matrix) {
         // Only called after updateGeometry(), or after LiveGeometry()
 

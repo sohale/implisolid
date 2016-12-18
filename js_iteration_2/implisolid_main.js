@@ -1,3 +1,9 @@
+// it will not  deploy/
+// sometimes ignore_matrix is necessary
+// still some refactoring needed
+// unused functions to be deleted
+// unnecessary console.logs to be removed (bbox)
+
 /*
  Worker version of implisolid.js
  Also the  Node version.
@@ -132,6 +138,7 @@ function init2(impli2, impli1) {
      * Callback receives the outcome of the normals. Instead of returning the normals, they are used in the callback and then the resources are freed.
      */
     impli2.query_normals = function(x, callback) {
+        console.error("what?", mp5_str, ignore_root_matrix);
         impli1.set_object(mp5_str, ignore_root_matrix);
         impli2.set_vect(x);  // overhead
         impli1.calculate_implicit_gradients(true);  // Why TRUE doe snot have any effect?
@@ -252,11 +259,14 @@ function init2(impli2, impli1) {
         var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
         var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  /* This allocates space in the C++ side, in order to create the array of vertices. */
 
-        var ignore_root_matrix = false;
-
         /* body */
-        Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
-            ).set(points);
+        Module.HEAPF32.subarray(
+            verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
+        ).set(points);
+
+        // Never ignore the root matrix. (Always takes the root matrix into account).
+        // Hence, query_implicit_values() does not need an `ignore_root_matrix` argument.
+        const ignore_root_matrix = false;
 
         var obj_id = impli1.set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
         var success = impli1.set_x(verts_space_address, nverts);
@@ -283,7 +293,8 @@ function init2(impli2, impli1) {
     }
 
     impli2.query_a_normal = function(mp5_shape_json, point, result_callback) {
-        var ignore_root_matrix = false;
+        // Always takes the root matrix into account. Similar to query_implicit_values()
+        const ignore_root_matrix = false;
         var objid = impli1.set_object(mp5_shape_json, ignore_root_matrix);
 
         var input_verts = new Float32Array([point.x, point.y, point.z]);
@@ -393,7 +404,9 @@ function init3(service3, service2) {
     service3.custom_mc_settings = null;  // can be manually set in browser's console
 
     // update_geometry_from_json  <-->  update_geometry()
-    service3.update_geometry = function(geometry, ignoreNormals) {
+    /**
+    */
+    service3.update_geometry = function(geometry, ignoreDefaultNormals) {
         // call after build_geometry()
 
         /*
@@ -426,7 +439,7 @@ function init3(service3, service2) {
         assert(verts);
         assert(faces);
 
-        return geometry.update_geometry1(verts, faces, ignoreNormals, false);
+        return geometry.update_geometry1(verts, faces, ignoreDefaultNormals, false);
        */
 
         //var implicit_service1 = impli1;
@@ -436,19 +449,23 @@ function init3(service3, service2) {
         if (nonempty) {
             // vf already contains the output of get_latest_vf()
         } else{
-            console.log("empty implicit");
+            console.log("empty implicit. Using a default shape.");
             vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
             vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
         }
         assert(vf['verts']);
         assert(vf['faces']);
 
-        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreNormals, false);
+        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreDefaultNormals, false);
 
     };
+    
 
     // update_geometry_from_json  <-->  update_geometry()
-    service3.update_geometry_from_json = function(geometry, shape_json, mc_params, ignoreNormals) {
+    /**
+        @param ignoreDefaultNormals=true always use `true`.
+    */
+    service3.update_geometry_from_json = function(geometry, shape_json, mc_params, ignoreDefaultNormals) {
         // see __update_reused_geometry()
         var startTime = new Date();
         if (!shape_json)
@@ -465,11 +482,13 @@ function init3(service3, service2) {
                 }*/
                 assert(allocate_buffers == false);
 
-                service3.update_geometry (geometry, ignoreNormals);
+                // Based on the latest vf_pair in the most recent step (i.e. in make_geometry() ) which accept a (shape,polyg) pair.
+                service3.update_geometry (geometry, ignoreDefaultNormals);
 
                 var ignore_root_matrix = false;
                 console.error("ignore_root_matrix");
 
+                // Why normals are not already taken care of in update_geometry()? Is the following line redundant?
                 service3.make_normals_into_geometry(geometry, shape_json, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
                 var endTime = new Date();
@@ -484,21 +503,12 @@ function init3(service3, service2) {
         allocate_buffer=false);
 
         // call after build_geometry()
-        //repeated code: see upadate_geometry
-        var vf = {faces: null, verts: null};
-        var nonempty = service2.get_latest_vf(vf);
-        if (nonempty) {
-            // vf already contains the output of get_latest_vf()
-        } else{
-            console.log("empty implicit");
-            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
-            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
-        }
-        assert(vf['verts']);
-        assert(vf['faces']);
 
-        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreNormals, false);
-
+        // Why? Note that the geometry may be  not prepared yet.
+        // This might run after the geometry is finished (because the callback of the make_geometry() is not really async currently).
+        // But this means update_geometry() is called twice. why?
+        // If it was async, it was there to have an immediate output?
+        service3.update_geometry(geometry, ignoreDefaultNormals);
     };
 
 
@@ -515,6 +525,7 @@ function init3(service3, service2) {
         }
         */
 
+        // why query_normals does not use ignore_root_matrix?
         service2.query_normals(x, function(gradients) {
             //for( var i = 0 ; i < ptr_len; i++) {
             //    gradients[i] += Math.random() * 0.2;
@@ -544,8 +555,11 @@ function init3(service3, service2) {
 
     };
 
+    /**
+       This method generates a polygonisation_settings based on the given (bbox, ignore_root_matrix) 
+       @param `ignore_root_matrix` is embeded in the result.
+    */
     service3.make_polygonization_settings = function(bbox, ignore_root_matrix) {
-        // var s = 1;
 
         assert(bbox, "You need to specify the bounding box");
         assert("min" in bbox, "You need to specify *.min.x");
@@ -637,6 +651,8 @@ function init3(service3, service2) {
         return mc_properties;
     }
 
+    /** Similar to getLiveGeometry22(), but the full polygonization_setttings_json_str is proovided. 
+    */
     service3.getLiveGeometry22 = function(mp5_str, polygonization_setttings_json_str, ignore_root_matrix) {
         // contradiction: needs ignore_root_matrix but already has it in polygonization_setttings_json_str??
         return service2.make_geometry(mp5_str, polygonization_setttings_json_str,
@@ -664,6 +680,7 @@ function init3(service3, service2) {
                     service3.update_geometry(geom, true);
                 }
 
+                // should not be used I think.
                 service3.make_normals_into_geometry(geom, mp5_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
                 //this_.aaaaaaaaaA(verts);
@@ -674,8 +691,11 @@ function init3(service3, service2) {
     }
 
     // Example usage of implisolid
-    // This method is called by the designer to obtain the geometry from the ImplicitService
-    // service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
+    /**
+    This method is called by the designer to obtain the geometry from the ImplicitService
+    Usage: service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
+    The getLiveGeometry() := a getLiveGeometry22() + a make_polygonization_settings()
+    */
     service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
         var shape_properties = dict;
 
