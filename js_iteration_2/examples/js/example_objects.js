@@ -82,7 +82,12 @@ var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"roo
 
 
 
-
+/**
+    @return {
+       shape_json: ,  // JSONified (sting)
+       polygonization_json:  // not JSONified (dict)
+   }
+*/
 function provide_input (subjective_time, is_update_mode, globals) {
     // is_update_mode: 0 => init
     // is_update_mode: 1 => update
@@ -187,7 +192,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
         // create new geometry
-        var mc_properties_json = JSON.stringify({
+        var mc_properties_json = {
             resolution: Math.floor(14),
             box: bbox,
             ignore_root_matrix: false,
@@ -203,7 +208,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
                 post_subdiv_noise: 0.0,
             },
             // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
-        });
+        };
 
         return {shape_json: mp5_json, polygonization_json: mc_properties_json};
     }

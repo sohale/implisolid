@@ -608,6 +608,7 @@ function init3(service3, service2) {
     /**
        This method generates a polygonisation_settings based on the given (bbox, ignore_root_matrix) 
        @param `ignore_root_matrix` is embeded in the result.
+       This method must move into designer code. (naturally). Also custom_mc_settings, use_II, etc
     */
     service3.make_polygonization_settings = function(bbox, ignore_root_matrix) {
 
@@ -705,6 +706,9 @@ function init3(service3, service2) {
     */
     service3.getLiveGeometry_from_json = function(mp5_str, polygonization_setttings_json_str, ignore_root_matrix) {
         // contradiction: needs ignore_root_matrix but already has it in polygonization_setttings_json_str??
+        assert(typeof mp5_str === "string");
+        assert(typeof polygonization_setttings_json_str === "string");
+
         return service2.make_geometry(mp5_str, polygonization_setttings_json_str,
 
             function (verts, faces, allocate_buffers) {
@@ -746,13 +750,16 @@ function init3(service3, service2) {
     Usage: service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
     The getLiveGeometry() := a getLiveGeometry_from_json() + a make_polygonization_settings()
     */
-    service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
-        var shape_properties = dict;
+    service3.getLiveGeometry = function(shape_properties, bbox, ignore_root_matrix) {
 
         var mc_properties = service3.make_polygonization_settings(bbox, ignore_root_matrix);
 
         // console.log (" mc properties : " + JSON.stringify(mc_properties));
-        var mp5_str = JSON.stringify(shape_properties);
+        var mp5_str;
+        if (typeof shape_properties === "string")
+            mp5_str = shape_properties;
+        else
+            mp5_str = JSON.stringify(shape_properties);
 
         return service3.getLiveGeometry_from_json(mp5_str,  JSON.stringify(mc_properties));
     };

@@ -804,7 +804,7 @@ function update_mc(implisolid_, delta_t){
     var tuple = provide_input(global_time, 1, globals);
     var shape_json = tuple.shape_json;
     var polygonization_json = tuple.polygonization_json;
-
+    assert(typeof polygonization_json !== "string");
 
     //Three modes of speed here for (UPDATE_SAME_GEOM_OBJECT, EVEN_REUSE_MESH_OBJECT):
     //  (false, false) // Creates a new Geometry object at each loop iteration.
@@ -1054,7 +1054,7 @@ else{
 
         var d = provide_input(global_time, 0, globals);
         var shape_json = d.shape_json;
-        var polygonization_json = d.polygonization_json;
+        var polygonization_json = JSON.stringify(d.polygonization_json);
 
         init_scene(IMPLICIT, shape_json, polygonization_json);
         animate();
@@ -1456,6 +1456,7 @@ else{
     };
 
     function make_demo_dict() {
+        console.error("Use provide_input() instead.");
         //var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
 
 
@@ -1485,7 +1486,8 @@ else{
     function demo1() {   // request()
         console.log("demo1");
 
-        var rr = make_demo_dict();
+        // var rr = make_demo_dict();
+        var rr = provide_input(global_time, 1, globals);
 
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
@@ -1509,11 +1511,19 @@ else{
 
 
     function demo2() {
-        var rrq = make_demo_dict();
-        console.info("demo2",rrq);
+        //var rrq = make_demo_dict();
         // var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
-        var geom;
-        w_impli3.getLiveGeometry(rrq.shape_dict, rrq.bbox, false, function (geom, shape_id){
+
+
+        var dct = provide_input(global_time, 0, globals);
+        var shape_json = dct.shape_json; // aleady stringified
+        var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
+
+        console.info("demo2", dct);
+
+        //avoid calling IMPLICIT.make_polygonization_settings();
+
+        w_impli3.getLiveGeometry_from_json(shape_json, polygonization_settings_json, function (geom, shape_id){
             console.info(geom);
 
             if (globals.mesh_solid) {scene.remove(globals.mesh_solid); globals.mesh_solid = null;}
