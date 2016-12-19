@@ -169,7 +169,7 @@ Priorities:
 
 - Shell+offset+
 
-- Harmonic
+- Harmonic * (See Tobias Martin's work)
 - Radial basis, hamilton, etc
 
 Terms used instead of Implicit Modelling:
@@ -197,4 +197,130 @@ Nice examples from:
 - Antomony's solids.
 - ...
 
+
+
+Q: How to have a metallic shine as usually used in SolidWorks, Catia, etc?
+A: It is very easy to do in ThreeJS (2 lines of code). In fact there are samples on internet for this specific kind of material.
+Note that it typically it uses an "environmental map" for reflection.
+This finish (material) gives a very professional look, and will make it look like professional Engineering softwares.
+Settings like reflection, shininess, metal,etc but don't try to tune these parameters. It takes forever to find the right combination. Instead, there are a lot of examples on web and stackoverflow.
+
+
+Nice Materials:
+- Objects with bumptmaps and random (whitenoise) textures. It can immitate athe rough shape of the printed object.
+- Materials for each filament type. Whcih can be used in the printer mode.
+
+
+Designer:
+Effects:
+- Outline; which can be implemented using post-processing. Also halo effect. This is very useful and necessary, for highlighting objects, etc.
+
+
+3D special effects:
+- Glowing edges for sci-fi (Iron-man style of UI)
+- Glow halo effect (possible using post processing)
+- Snow and other atmospher/environment/theme things. We can have Easter Eggs (i.e. hidden tricks).
+
+
+STL export:
+Currently we always polygonise before printing, so I suggest we always save the STL file of that polygonization in the process of slicing. We can have these buttons on slice menu:
+
+[Slice]   <-    always available. starts the backend slicer
+[download gcode]  <-- available when Slicer is done
+[preview gcode] <-- available when Slicer is done
+[download STL]  <----  when Slicer is done (or before g-code is generated)
+In other words, STL export can be accessible in the print/slice menu. We can put a button in the Save/Load menu that tells the user to go to the slice menu.
+
+
+
+Angles settings:
+
+
+Designer glossary:
+Print mode:
+When we open the print menu, the materials change. The "display-colors" are not used and the filament color (and texture) is used according to the chonsen print settings.
+
+Errata:
+Print-settings: 
+There is not "Printer-Settings". We have "print settings". The classes in  the code, and also the text in the designer should change. This sessions of the MP5 format should be changed.
+
+
+Implisolid: Patch, lines, points.
+
+Feature conversion of STL files into MP5:
+Suggested appraoch 1:
+Turn the STL file into a point-cloud.
+Use the current techniques for (Tobias Martin's method using trivar-Splines and Hoarmonic (?) is recommended.
+Nevertheless, there is a bit literature on this for scanning objects (see below). The literature is for scannign objects and also for medical imaging (e.g. MRI voxelated data) )
+
+
+Literature on:
+Converting point-clouds: Two types: MRI (voxels volumic) ad Scanner (point-cloud).
+Tobias Martin (MRI)
+Multi-Level Partition of Unity Implicits (Belyaev, Ohtake, Alexa, Turk, Seidl. 2003)
+
+
+
+
+Misc Survey:
+Existing libraries:
+
+libigl
+- https://github.com/libigl/libigl
+- Seems a well-made library.
+- Can be used by C++ engine.
+
+Modelling techniques
+
+Modelling key-words:
+Isogeometric = ?
+
+
+
+
+Aligning:
+
+
+See distance.
+
+
+Move down:
+
+
+Object Set:
+
+
+Feature:
+Clean Edges using lines (Curves) on sharpe edges.
+This will emphasise on our power of representing natural curvature of surfaces.
+Second iteration:
+An algorithm for increasing the resolution of the curves independent of the polygonisation. (inspired by the OB02 paper)
+
+
+
+
+highly needed:
+ImpliSolid:
+SHELL
+  (SDF)
+
+Designer:
+Align
+Align based on closest points between two objects.
+Align based on Implicit cragient (move toward cylinder versus move toward sphere)
+Freely moving point.
+Align based on special points (cutomised for each shape)
+
+
+Designer: (code)
+Custom parameters of each shape.
+
+
+Involving the community on ShaderToy who use SDF functions.
+Using SDF functions deveoped there and their implementations.
+Involving those developers and encouraging them to participate in WeDesign.
+Examples: Heart, etc.
+
+Long term future: 
+A gpu-based visualiser shader.
 
