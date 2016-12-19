@@ -1,0 +1,200 @@
+Three files:
+
+ImpliSolid plan
+
+mp5 plan
+Designer plan
+Others (WeDesign)
+==========
+mp5-slicer:
+wedesign: We need a standalone version of slicer (in mp5slicer repo). It generates an STL from an mp5 file. The commandline should be like this (details may vary) 
+mp5slice myfile.mp5 myfile.stl  #simple use
+mp5slice myfile.mp5 -stl myfile.stl #complete
+mp5slice myfile.mp5 -m myfile2.mp5 -stl myfile.stl #merges multiple files
+
+mp5-format:
+File bundle:
+The idea is simlar to JAR files in java, and S?? files in SolidWorks.
+multiple parts
+parts that refer to eachother. For example primitives (standard shapes)
+
+mp5-designer:
+term: standard Object (or primitive)
+term: Constraint
+A geometric arrangement that become permanent.
+term: lock-down:
+The properties of an objects are constant. Even the overall rotation (matrix).
+term: protected:
+An object that can be moved, scaled, etc, but the inside infomration cannot be changed. Also the inside information is not visible to the user.
+All standard objects (primitives) are protected.
+
+term: matrix of an object.
+
+matrices are hierarchical.
+status: implemented (in designer, implisolid).
+meaning:
+useful for references, primitives.
+
+term: refernce.
+The references are not implemented.
+This allows multiple instances of something.
+Also an external refrence can be to anoterh person's object. (thorugh its mp5 unique ID).
+Can be useful for using while not violating.
+
+New license category:
+can be used inside another object without modification. (referensable)
+
+----------
+mp5-implisolid:
+we need an NPM library.
+
+wedesign:
+We can use MongoDB or couchDB for indexing the contents of MP5.
+But the mp5 files should be stored as blobs, binaries, or files on the file system. Not directly on json-based databases. Instead, if indexing is neceessary, you can use for indexing purposes.
+Reasons:
+1- not goo to be updatable.
+2- consistency is difficult.
+3- it is against independence
+4- contents of mp5 json may be changed for storage purposes.
+5- We will want to radically change the format without changing the database's schema. 
+6- independence.
+7- People need to sownload the json. It is not good to dynamically generate the mp5 files. Because it may not be produced exactly in the same way.
+8- hashing (md5) will not be possible.
+history:
+CouchDB was tried but decided not to be used. Contact Manon and Flavien Delangle for more information. 
+
+mp5-format: yaml variation: is completely valid.
+status: not implemented.
+
+mp5-format: JSON-family of formats.
+In fact all representations that are equivalent to JSON are valid. (which are yaml and json). Variations of JSON may be used in future, but a constaint is that, 
+the mp5 contents should be easily readable by any langyuage tha provides the simples funcitons JSON.stringufy() and JSON.parse(). (for exmaple Python and Javascript
+EJSON, etc: ?
+
+In future decisions:
+mp5 will remain a spearate file format. Not a format in databse, etc.
+mp5 is doownloadable.
+mp5 is usable in the exact same way (without any transformation) outside wedeisng or any platform.
+For example some printers in future may want to ue it directly.
+This is a high-priority decision and should be used in future. Contact SSi for this.
+
+mp5-format:
+Individual elements can include polygonisation settings.
+as well as print-settings.
+
+Question:
+If two mp5 files with different print settings are merged (linked)?
+
+
+mp5-implisolid:
+Fonts support:
+Progtress and research:
+seach term: 
+
+
+mp5-implisolid:
+Ellipsoid SDF:
+Summary of literature found:
+https://www.spaceroots.org/documents/distance/distance-to-ellipse.pdf
+ShaderToy.
+
+mp5-implisolid:
+a good developer communities:
+shader-toy developers. Search SDF in shadertoy.
+
+mp5-implisolid:
+We need a guide for develoipers and developer-artists for easily using this. For example a tutorial. A displayer (interactive?). A commandline mesh generator. An STL generator. A web-based genrator.
+WebWorker version, nont-web-worker JS version, server-side version, ..
+
+GPU version (shader).
+compile your mp5 into a shader code that is directly insertable into shadertoy.
+
+
+designer ideas:
+(also implisolid):
+modelling-techniques.tex
+
+Shamfer
+Special points (specific for Cone, etc). Used by a key (string).
+
+
+mp5-designer: refactor suggestion
+
+mp5-designer:
+that open modeller language.
+
+small websites to showcase. in style of kovacsv/JSmodeler. and pathtrace.js.org
+
+implisolid:
+ways of modelling fonts.
+
+
+implisolid:
+"shell" operation.
+
+quasi-"offset"
+
+R-union
+
+possibility of B-Rep remains open.
+
+
+
+very important:
+edges.
+(1- special edges: customised.
+2- sharp-edges, automatically)
+* SVD of mesh, but confirm by the implicit function.
+* Multi-implicit.
+
+
+
+A 2D-implicit editing system, capable of fre form curves.
+
+a curving transform to map it on certain (or all) shapes.
+(cyclinder, sphere, etc; one for eahc).
+
+
+
+Bloomenthal: Skeletal models & Implicit Blends (slides)
+
+
+
+Priorities:
+- trivar Splines
+- Skeletal
+
+- Screw+Twist+Kaleido+repeater+[infill-repeat]
+(maybe escher?) + that round twisted Mobius sculpture
+
+- Shell+offset+
+
+- Harmonic
+- Radial basis, hamilton, etc
+
+Terms used instead of Implicit Modelling:
+- RSDF, SDF, SARDF, ...
+- antimony (also see thesis)
+- Uformia
+- (implicit skin) -(hudini muscle model) -...
+- Layered-Depth-Normal-Image (LDNI)
+- FRep/hyperfun, shapeshop, ...
+- genral: implicitcad,
+- ASDF (see Antimony)
+- 
+
+
+
+External literatures:
+- Reservoir modelling
+- PDE/Fluid modelling (Persson)
+- Medical imaging: MRI, UltraSound, etc
+- Computer vision: 3d (NN, convoilution-volumes)
+
+
+Nice examples from:
+- Bloomenthal's skeletal.
+- Antomony's solids.
+- ...
+
+
