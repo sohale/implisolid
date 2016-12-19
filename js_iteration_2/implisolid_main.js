@@ -190,9 +190,17 @@ function init2(impli2, impli1) {
 
 
     // mid-level API
+    //
+    
+    /** Note that nomals are NOT queried & applied in this function.
+    The inputs should be jsonified already. Although for bavkward compatibilty it is automatically converted.
+    Note that in the similar "update" method, the polygonization_params must be non-JSONified. 
+    the update methos is: update_geometry_from_json() or update_geometry()
+    */
     impli2.make_geometry = function (mp5_str, polygonization_params_str, geometry_callback, allocate_buffer) {
         assert(typeof geometry_callback !== 'undefined');
         assert(geometry_callback);
+
         if (typeof polygonization_params_str !== "string") {
             polygonization_params_str = JSON.stringify(polygonization_params_str);
             console.error("Use a string, a JSONified settings:", polygonization_params_str);
@@ -495,15 +503,26 @@ function init3(service3, service2) {
     // update_geometry_from_json  <-->  update_geometry()
     /**
         @param ignoreDefaultNormals=true always use `true`.
+        
+        Some confusion here:
+        update_geometry_from_json() versus update_geometry()
     */
     service3.update_geometry_from_json = function(geometry, shape_json, mc_params, ignoreDefaultNormals) {
         // see __update_reused_geometry()
         var startTime = new Date();
-        if (!shape_json)
+        if (!shape_json) {
             console.error(shape_json);
+        }
 
-        assert(typeof mc_params === "string");
+        if (typeof shape_json !== "string") {
+            shape_json = JSON.stringify(shape_json);
+        }
 
+        // mc_params must nt be jsonified, because we need its `ignore_root_matrix` field for querying the normals.
+        assert(typeof mc_params !== "string");
+        mc_params = JSON.stringify(mc_params);
+
+        // fixme: this creates a new geometry? No. But compare with update_geometry()
         var allocate_buffer;
         service2.make_geometry (shape_json, mc_params,
             function (verts, faces, allocate_buffers) {
@@ -514,10 +533,10 @@ function init3(service3, service2) {
                 assert(allocate_buffers == false);
 
                 // Based on the latest vf_pair in the most recent step (i.e. in make_geometry() ) which accept a (shape,polyg) pair.
+                // Does Not query the normals. It's queries in a separate request. todo: do the normals in the same request but it must remain optional. The normals are likely to be useless in future, so we should not waste the CPU for it. In that case, we can have it in the same polygonization_setttings_json string.
                 service3.update_geometry (geometry, ignoreDefaultNormals);
 
-                var ignore_root_matrix = false;
-                console.error("ignore_root_matrix");
+                var ignore_root_matrix = mc_params.ignore_root_matrix;
 
                 // Why normals are not already taken care of in update_geometry()? Is the following line redundant?
                 service3.make_normals_into_geometry(geometry, shape_json, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.

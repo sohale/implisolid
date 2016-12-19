@@ -33,7 +33,7 @@
 </script-->
 <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js">
 </script>-->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
+<sscript type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
 </script>
 <script type="text/javascript" src="./three_r79.js">
 </script>
@@ -54,10 +54,21 @@ THREE.OrbitControls = function() {
 
 
 <script>
+    function my_assert(cond, text){
+        if (!cond) {
+            console.error("ASSERT FAILED: ");
+            if(text)
+                console.log(text);
+        }
+    }
+
     function my_assert(cond, message) {
         if (!cond) {
-            console.error(message);
-            throw new Error("assert ", message);
+            if (message)
+                console.error("assert failed: ", message);
+            else
+                console.error("assert failed");
+            throw new Error("assert failed: ", message);
         }
     }
     assert = my_assert;
@@ -331,27 +342,16 @@ function setShapeMatrix2Eye(shape_matrix, sz) {
 
     var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":0,"infillSpace":4,"topThickness":0.6,"paramSamples":75,"speedRate":1000,"circleSpeedRate":1000,"temperature":220,"inAirSpeed":7000,"flowRate":0.035,"criticalLength":35,"retractionSpeed":2400,"retractionLength":5,"shellNumber":3,"material":"PLA 2.85mm","autoZScar":true,"zScarGap":0.5,"critLayerTime":6,"filamentDiameter":2.85},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.7675997200783986,"y":0.03892568708507049,"z":0.1754374135888661},"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":{"x":0.8122645344236872,"y":0.657334404743416,"z":0.7357336310755096},"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":{"x":0.11421729990684737,"y":0.07562705374348999,"z":0.6324600862122098},"matrix":[10,0,0,0.658889604636343,0,10,0,6.215549332615993,0,0,10,1.3327027659215673e-7,0,0,0,1],"index":2463576}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.6627450980392157,"y":0.4549019607843137,"z":0.7215686274509804},"matrix":[2.381193509886417,0,0,0.3600215429489424,0,2.381193509886417,0,0.5604901669421452,0,0,2.381193509886417,6.9059681360437395,0,0,0,1],"index":413872}],"initialSize":{"x":1,"y":1,"z":1},"displayColor":{"x":0.5529411764705883,"y":0.06666666666666667,"z":0.11764705882352941},"matrix":[1,0,0,0.32938436512727,0,1,0,0.15604124684634,0,0,1,0.000000000000014,0,0,0,1],"index":6565922}]}}';
 
-
     var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","displayColor":{"x":0.7,"y":0.7,"z":0.7},"matrix":[8,0,0,0,0,8,0,0,0,0,8,0,0,0,0,1],"index":9185154}]}}';
 </script>
 <script>
-    'use strict';
-    //'use asm';
-
-    //'use strict';
+    'use strict';    //'use asm';
 
     //Version 1 has flaws: _free()s before returning the verts.
     //var CALL_VERSION = 2; //1 or 2
     const VERBOSE = false;
 
-    //todo: reaplce _FLOAT_SIZE with Float32Array.
-    //const _FLOAT_SIZE = 4;  //Float32Array.BYTES_PER_ELEMENT
-    //const _INT_SIZE = 4;
-
     var global_time = 0;
-
-
-
 
 'use strict';
 
@@ -416,8 +416,6 @@ function provide_input (subjective_time, is_update_mode) {
         mp5_json_tetrahedron_dict.root.children=[tetrahedron_dict];
         var TETRAHEDRON = JSON.stringify(mp5_json_tetrahedron_dict);
 
-
-
         // Select the object to display
 
         // var mp5_json = HEART;     const BB_SIZE = 9;
@@ -457,7 +455,6 @@ function provide_input (subjective_time, is_update_mode) {
 
         //var bb = getBoundingBoxForTree();
 
-
         mp5_json = JSON.stringify(shape_dict);
 
         global_mp5 = mp5_json;
@@ -476,55 +473,37 @@ function provide_input (subjective_time, is_update_mode) {
             box: bbox,
             ignore_root_matrix: false,
 
-            /*
-            vresampl: {iters: 3, c: 1.0},
-            projection: {enabled: 1},
-            qem: {enabled: 1},
-            */
             vresampl: {iters: 3, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
             subdiv: {enabled: 1},
-            //overall_repeats: 3,
             overall_repeats: 3,
-
             debug: {
                 enabled_pointsets: 0,
                 // only_rank
                 post_subdiv_noise: 0.0,
             },
-
-
             // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
         });
 
-
-
-        //shape_json = mp5_json;
-        //polygonization_json = mc_properties_json;
-
-        //var tuple = [shape_json, polygonization_json];
-        //return tuple;
         return {shape_json: mp5_json, polygonization_json: mc_properties_json};
     }
 
     //Alternatively, use a growing sphere only.
     if(is_update_mode == 1 || is_update_mode == 2) {
-        //d("2   G.");
+
         var x0=0, y0=0, z0=0;
         const BB_SIZE = 9 /10.0;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
-        console.error(bbox);
+        // console.error(bbox);
 
         var subjective_time = subjective_time * 5;
-        //var BB_SIZE = 6.;
 
         // update
-        var mc_properties_json__update = JSON.stringify({
+        var mc_properties_json__update = {
             resolution: 28,
             box: bbox,
             ignore_root_matrix: false,
-
 
             // makes things very slow
             vresampl: {iters: 1, c: 1.0},
@@ -534,7 +513,7 @@ function provide_input (subjective_time, is_update_mode) {
             debug: {
                 post_subdiv_noise: 0.001 / 3.0,
             },
-        });
+        };
         //implisolid_.build_geometry( 28, mc_properties_json__update, "sphere", subjective_time);
         /*
         var mp5_json = JSON.stringify({
@@ -555,12 +534,12 @@ function provide_input (subjective_time, is_update_mode) {
         d.matrix[0] = updated_size;
         d.matrix[5] = updated_size;
         d.matrix[10] = updated_size;
-        shape_json = JSON.stringify(d);
+        shape_json = d;
         // shape_json = global_mp5;
-        polygonization_json = mc_properties_json__update;
+        // polygonization_json = mc_properties_json__update;
 
         // update
-        var simple_MC_only_polygonization_json = JSON.stringify({
+        var simple_MC_only_polygonization_json = {
             resolution: Math.floor( 14 ),
             box: bbox,
             ignore_root_matrix: false,
@@ -575,7 +554,7 @@ function provide_input (subjective_time, is_update_mode) {
                 // only_rank
                 post_subdiv_noise: 0.0,
             },
-        });
+        };
         //polygonization_json = simple_MC_only_polygonization_json;
         //global_mp5 is not updated here. It is the original object before the update.
         //var tuple = [shape_json, polygonization_json];
@@ -737,7 +716,6 @@ var geom_callback__1 = function (verts, faces, re_allocate_buffers) {
 
 
 
-function my_assert(cond, text){if(!cond){console.error("ASSERT FAILED: "); if(text) console.log(text);}}
 
 //unload
 function __update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geometry) {
@@ -1488,14 +1466,18 @@ function add_graph_div(){
 
 <script>
     'use strict';
+    // global
     var IMPLICIT;
     var PS_UTILS;
 
     // The code that runs immediately after finishing loading of the Emscripten-generated js.
     function set_off() {
         console.log("ready.");
-        //var implisolid_ = init_polygonizer();
-        // global_implisolid_ = implisolid_;
+        assert = my_assert;
+
+        IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
+        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT); 
+
 
         //if(delta_t === undefined)
         var delta_t = 0.2;
@@ -1506,10 +1488,6 @@ function add_graph_div(){
         var shape_json = d.shape_json;
         var polygonization_json = d.polygonization_json;
 
-        assert = my_assert;
-
-        IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
-        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT); 
         init_scene(IMPLICIT, shape_json, polygonization_json);
         animate();
     };
