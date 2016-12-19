@@ -1317,128 +1317,6 @@ else{
 
 <script>
     'use strict';
-    var worker = new Worker('../js_iteration_2/js/worker_api.js');
-    var worker_response_callbacks_table = {};
-    const WORKER_DEBUG = true;
-    var w_api_debug_info = {};
-    var w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // such as function name or a name that is similar to a funciton name
-    var call_counter = 0;  // a clobal counter that assigns a unique id to each individual call, to make it easy to trace correspondence of call and callback.
-    worker.addEventListener('message', function(event) {
-        if (WORKER_DEBUG)
-            console.info("Message received from worker:", event, "data=", event.data);
-
-        var _callbackId = event.data.return_callback_id;
-        var mycallback = worker_response_callbacks_table[ _callbackId ];
-        if (mycallback) {
-            // delete worker_response_callbacks_table[ _callbackId ];
-            // don’t delete array elements. It would make the array transition to a slower internal representation.
-            worker_response_callbacks_table[ _callbackId ] = undefined;  // per-call
-        }
-
-        //if (_callbackId === 4) {
-        //    console.info("The result of 'query_implicit_values()' was: ", event.data.returned_data); //event.data.result_allpositive
-        //}
-        if (!mycallback) {
-            console.error("Returned data from worked did not match any registered callbackId: ", event.data, event);
-            return;
-        }
-        if (WORKER_DEBUG)
-            console.info("calling the callback ", mycallback.name);
-
-        var call_identification = event.data.call_id;
-        mycallback(event.data.returned_data, call_identification);
-
-    });
-    function worker_call_preparation(_callbackId, result_callback) {
-        if (WORKER_DEBUG) {
-            var temp = worker_response_callbacks_table[_callbackId];
-            if (temp) {
-                console.warn("callback already set.");
-                if (!(temp === result_callback))
-                    console.error("Warning: and callback is different!: ", temp, "!==", result_callback);
-            }
-        }
-        worker_response_callbacks_table[_callbackId] = result_callback;
-        if (WORKER_DEBUG) {
-            w_api_debug_info[_callbackId] = result_callback;
-            // also you can store call timestamp, etc
-        }
-        call_counter ++ ;
-        return _callbackId;
-    }
-    function wapi_query_implicit_values(mp5_str, points, result_callback) {
-
-        // var _callbackId = 4;
-        var _callbackId = worker_call_preparation(4, result_callback);
-
-        var wreq = {
-                funcName: 'query_implicit_values',
-                callbackId: _callbackId,
-                call_id: call_counter,
-                //args: {
-                mp5_str: null, points: null, reduce_callback: 'allpositive'
-                //},
-            };
-        wreq.mp5_str = mp5_str;
-        wreq.points = points;
-        worker.postMessage(wreq);
-    }
-
-    function wapi_make_geometry(mp5_str, polygonization_settings_json, result_callback) {
-        // based on implisolid_main.js
-        //var startTime = new Date();
-
-        my_assert(typeof result_callback !== 'undefined');
-        my_assert(result_callback);
-
-        var _callbackId = worker_call_preparation(5, result_callback);
-        var wreq = {
-                funcName: 'make_geometry',
-                callbackId: _callbackId,
-                call_id: call_counter,
-
-                mp5_str: null, polygonization_settings: null, obj_req_id: 0
-            };
-        wreq.mp5_str = mp5_str;
-        wreq.polygonization_settings = polygonization_settings_json;  // mc_params;
-        wreq.obj_req_id = call_counter;
-        worker.postMessage(wreq);
-
-        /*
-        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
-
-        if(impli1.needs_deallocation) {
-            impli1.finish_geometry();
-            impli1.needs_deallocation = false;
-        }
-        impli1.build_geometry(mp5_str, mc_params_json);
-        impli1.needs_deallocation = true;
-
-        var nverts = impli1.get_v_size();
-        var nfaces = impli1.get_f_size();
-
-        var verts_address = impli1.get_v_ptr();
-        var faces_address = impli1.get_f_ptr();
-
-        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-        // first iteration: the callback
-        var geom = result_callback(verts, faces);
-
-        var endTime = new Date();
-        var timeDiff = endTime - startTime;
-
-        //report_time(timeDiff, function(){hist();});
-
-        return geom;
-        */
-
-    }
-
-    // End of Worker-based API
-    // ******************************************************************************
 
 
     var merge_dicts_nonrecursive = merge_dicts_nonrecursive?merge_dicts_nonrecursive:function() {
@@ -1455,6 +1333,7 @@ else{
         return merged_dict;
     };
 
+    /*
     function make_demo_dict() {
         console.error("Use provide_input() instead.");
         //var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
@@ -1482,6 +1361,7 @@ else{
             },
         };
     }
+    */
 
     function demo1() {   // request()
         console.log("demo1");
@@ -1493,7 +1373,7 @@ else{
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
 
-        wapi_query_implicit_values(shape_json, points, function(returned_result, call_identification) {
+        IMPLICIT_WORKER.wapi_query_implicit_values(shape_json, points, function(returned_result, call_identification) {
             console.info("Returned: ", returned_result);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
         });
@@ -1524,7 +1404,7 @@ else{
 
         //avoid calling IMPLICIT.make_polygonization_settings();
 
-        w_impli3.getLiveGeometry_from_json(shape_json, polygonization_settings_json, function (geom, shape_id){
+        IMPLICIT_WORKER.getLiveGeometry_from_json(shape_json, polygonization_settings_json, function (geom, shape_id){
             console.info(geom);
 
             if (globals.mesh_solid) {scene.remove(globals.mesh_solid); globals.mesh_solid = null;}
@@ -1538,4 +1418,7 @@ else{
         });
     }
 
+    function demo3() {
+        ;
+    }
  </script >

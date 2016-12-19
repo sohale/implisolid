@@ -907,7 +907,6 @@ impli3: High level API: (Cannot run on NodeJS)
 =====================
 IMPLICIT.
 
-getLiveGeometry(dict, dict, bool) -> Geometry
 getLiveGeometry_from_json(string_json, string_json, bool) -> Geometry
 update_geometry(geometry, ignoreDefaultNormals) -> void
 update_geometry_from_json(THREE.Geometry, json_string, json_string, bool) -> void
@@ -920,6 +919,9 @@ about = inherit
 
 
 Remove from IMPLICIT: (move to designer)
+    getLiveGeometry(dict, dict, bool) -> Geometry
+         (only keep getLiveGeometry_from_json() )
+
     make_polygonization_settings()
 
     The configs properties: (which override the polygonized_settings)
@@ -929,6 +931,8 @@ Remove from IMPLICIT: (move to designer)
         .use_noise
         .repeats
         .custom_mc_settings  // this should replace the other ones
+
+    merge_dicts_nonrecursive()
 
 
 IMPLICIT.PS_UTILS
