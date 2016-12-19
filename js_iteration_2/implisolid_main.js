@@ -498,7 +498,7 @@ function init3(service3, service2) {
         return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreDefaultNormals, false);
 
     };
-    
+
 
     // update_geometry_from_json  <-->  update_geometry()
     /**
@@ -701,9 +701,9 @@ function init3(service3, service2) {
         return mc_properties;
     }
 
-    /** Similar to getLiveGeometry22(), but the full polygonization_setttings_json_str is proovided. 
+    /** Similar to getLiveGeometry_from_json(), but the full polygonization_setttings_json_str is proovided. 
     */
-    service3.getLiveGeometry22 = function(mp5_str, polygonization_setttings_json_str, ignore_root_matrix) {
+    service3.getLiveGeometry_from_json = function(mp5_str, polygonization_setttings_json_str, ignore_root_matrix) {
         // contradiction: needs ignore_root_matrix but already has it in polygonization_setttings_json_str??
         return service2.make_geometry(mp5_str, polygonization_setttings_json_str,
 
@@ -744,7 +744,7 @@ function init3(service3, service2) {
     /**
     This method is called by the designer to obtain the geometry from the ImplicitService
     Usage: service.getLiveGeometry = function(dict, bbox, ignore_root_matrix)
-    The getLiveGeometry() := a getLiveGeometry22() + a make_polygonization_settings()
+    The getLiveGeometry() := a getLiveGeometry_from_json() + a make_polygonization_settings()
     */
     service3.getLiveGeometry = function(dict, bbox, ignore_root_matrix) {
         var shape_properties = dict;
@@ -754,7 +754,7 @@ function init3(service3, service2) {
         // console.log (" mc properties : " + JSON.stringify(mc_properties));
         var mp5_str = JSON.stringify(shape_properties);
 
-        return service3.getLiveGeometry22(mp5_str,  JSON.stringify(mc_properties));
+        return service3.getLiveGeometry_from_json(mp5_str,  JSON.stringify(mc_properties));
     };
 
     if (typeof PS_UTILS !== "undefined")
@@ -888,8 +888,9 @@ needs_deallocation
 
 impli2: Mid level API:  (Can run in NodeJS)
 =====================
-query_implicit_values  (string, array, function)
+query_implicit_values  (string, array, callback_function)
 query_normals (array, function)
+query_a_normal (json_str, Float32Array, result_callback_function)
 
 make_geometry (string, string, function, bool)
 get_latest_vf ({array,array})
@@ -897,11 +898,38 @@ get_latest_vf ({array,array})
 
 impli3: High level API: (Cannot run on NodeJS)
 =====================
-use_II
-use_II_qem
-update_geometry
-make_normals_into_geometry
-getLiveGeometry ****************************
-query_implicit_values
+IMPLICIT.
 
+getLiveGeometry(dict, dict, bool) -> Geometry
+getLiveGeometry_from_json(string_json, string_json, bool) -> Geometry
+update_geometry(geometry, ignoreDefaultNormals) -> void
+update_geometry_from_json(THREE.Geometry, json_string, json_string, bool) -> void
+
+make_normals_into_geometry(THREE.Geometry, json_string, Float32Array, bool)
+
+query_implicit_values = inherit.
+query_a_normal = inherit
+about = inherit
+
+make_polygonization_settings = private
+
+
+
+The configs properties: (which override the polygonized_settings)
+    .use_II
+    .use_II_qem
+    .use_III
+    .use_noise
+    .repeats
+    .custom_mc_settings  // this should replace the other ones
+
+IMPLICIT.PS_UTILS
+IMPLICIT.service2
+
+
+--------------------
+API todo:
+rename   getLiveGeometry() --> newLiveGeometry
+rename   getLiveGeometry_from_json() --> newLiveGeometry_from_json
+replace {    .use_II, .use_II_qem, .use_III, .use_noise, .repeats} by custom_mc_settings.
 */

@@ -607,7 +607,7 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
         */
         var ignore_root_matrix = false;
         console.warn("bad: ignore_root_matrix not known", ignore_root_matrix);
-        geometry = IMPLICIT.getLiveGeometry22(shape_json, polygonization_json, true, geom_callback__1, ignore_root_matrix);
+        geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, geom_callback__1, ignore_root_matrix);
     }
     //last_geometry = geometry;
 
