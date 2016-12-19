@@ -8,14 +8,15 @@
 #include "boost/multi_array.hpp"
 #include "Eigen/Dense"
 #include <iostream>
-#include <random>     /* srand, rand */
-#include <math.h>       /* sin */
 
 
 using Eigen::Matrix;
 using Eigen::MatrixXf;
 using Eigen::Dynamic;
 using Eigen::Array;
+
+#include <math.h>       /* sin */
+
 
 const REAL pi = 3.1415926535897;
 
@@ -159,8 +160,7 @@ Matrix<REAL, Dynamic, 1> implicitFunction(const Matrix<REAL, 3, 1> A,
     zeros = MatrixXf::Zero(num_points, 1);
     inside_ness = (inside_ness.array() > 0).select(ones, zeros);
 
-    std::cout << "========================inside_ness================" << std::endl;
-    std::cout << inside_ness.transpose() << std::endl;
+    // inside_ness = ones; // debug
 
     REAL pi2 = pi*2; //M_PI from math.h
 
@@ -185,21 +185,90 @@ Matrix<REAL, Dynamic, 1> implicitFunction(const Matrix<REAL, 3, 1> A,
     // m3 << t, lidness1, screw_ness;
 
     // return m3.rowwise().minCoeff();
+
+    // std::cout << "-------------x and screw_ness----------" <<std::endl;
+    // for(int i=0;i<=5;i++){
+    //     std::cout << x.row(i) <<std::endl;
+    //     std::cout << screw_ness.row(i) <<std::endl;
+    // }
     return screw_ness;
 
 };
 
-void gradient(REAL ax, REAL ay, REAL az, REAL delta, REAL phi0, REAL twist_rate, REAL uvwi00, REAL uvwi01, REAL uvwi02, REAL uvwi10, REAL uvwi11, REAL uvwi12, REAL wx, REAL wy, REAL wz, REAL x, REAL y, REAL z,
-              vectorized_vect* output, int j) {
+// Matrix<REAL, Dynamic, 1> inside_ness_only(const Matrix<REAL, 3, 1> A,
+//                       const Matrix<REAL, 3, 1> w,
+//                       const Matrix<REAL, 3, 3> UVW_inv,
+//                       const REAL slen,
+//                       const REAL r0,
+//                       const REAL delta,
+//                       const REAL twist_rate,
+//                       const REAL phi0,
+//                       const Matrix<REAL, Dynamic, 3>& x)
+// {
+//     int num_points = x.rows();
+//     const Matrix<REAL, Dynamic, 3> aa(num_points, 3);
+//     const Matrix<REAL, 1, 3> A_transpose = A.transpose();
+
+//     Matrix<REAL, Dynamic, 1> t(num_points, 1);
+//     t = (x.rowwise() - A_transpose)*w; // (recenter) * w where w == 0,0,1 or 0,0,-1 is basically getting the z/height value
+
+//     Matrix<REAL, Dynamic, 1> inside_ness(num_points, 1);
+
+//     inside_ness = t/slen; // whether the point is inside the range of length of screw
+
+//     Matrix<REAL, Dynamic, 1> ones(num_points, 1);
+//     ones = MatrixXf::Ones(num_points, 1);
+
+//     inside_ness = 1*ones - 2*((inside_ness-0.5*ones).cwiseAbs());
+
+//     Matrix<REAL, Dynamic, 1> zeros(num_points, 1);
+//     zeros = MatrixXf::Zero(num_points, 1);
+//     inside_ness = (inside_ness.array() > 0).select(ones, zeros);
+
+//     return inside_ness;
+// }
+void gradient(float ax, float ay, float az, float delta, float phi0, float twist_rate, 
+              float uvwi00, float uvwi01, float uvwi02, float uvwi10, float uvwi11, float uvwi12,
+              float wx, float wy, float wz,
+              float x, float y, float z,
+              vectorized_vect* output, int j, bool write) {
 
     
-   // cout << (*output)[j] << endl;
+   // UVM_inv hard coded !!!
 
-   (*output)[j][0] = M_PI*delta*(-((uvwi00*(-std::pow(wx, 2) + 1) - uvwi01*wx*wy - uvwi02*wx*wz)*(-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(uvwi10*(-std::pow(wx, 2) + 1) - uvwi11*wx*wy - uvwi12*wx*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*std::pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
-   (*output)[j][1] = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wy + uvwi11*(-std::pow(wy, 2) + 1) - uvwi12*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wy + uvwi01*(-std::pow(wy, 2) + 1) - uvwi02*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*std::pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
-   (*output)[j][2] = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wz - uvwi11*wy*wz + uvwi12*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wz - uvwi01*wy*wz + uvwi02*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0L/2.0L)*(-2*std::pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+   if (write){
+       // std::cout << "-------------- start here --------------" <<std::endl;
+       // std::cout << ax <<std::endl;
+       // std::cout << ay <<std::endl;
+       // std::cout << az <<std::endl;
+       // std::cout << delta <<std::endl;
+       // std::cout << phi0 <<std::endl;
+       // std::cout << twist_rate <<std::endl;
+       // std::cout << wx <<std::endl;
+       // std::cout << wy <<std::endl;
+       // std::cout << wz <<std::endl;
+       // std::cout << x <<std::endl;
+       // std::cout << y <<std::endl;
+       // std::cout << z <<std::endl;
 
-  // cout << (*output)[j] << endl;
+       // std::cout << M_PI*delta*(-(-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) + (-pow(wx, 2) + 1)*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2)) << std::endl;
+       // std::cout << M_PI*delta*(-(-wx*wy*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) + (-pow(wy, 2) + 1)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2)) << std::endl;
+       // std::cout << M_PI*delta*(-(-wx*wz*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) - wy*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0L/2.0L)*(-2*pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2)) << std::endl;
+       // std::cout << M_PI <<std::endl;
+   }
+
+   (*output)[j][0] = M_PI*delta*(-(-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) + (-pow(wx, 2) + 1)*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+   (*output)[j][1] = M_PI*delta*(-(-wx*wy*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) + (-pow(wy, 2) + 1)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0L/2.0L)*(-2*pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+   (*output)[j][2] = M_PI*delta*(-(-wx*wz*(ay + wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) - y)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)) - wy*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, -ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x)/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0L/2.0L)*(-2*pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/sqrt(pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+
+   // std::cout << (*output)[j][0] << std::endl;
+   // std::cout << (*output)[j][0] << std::endl;
+   // std::cout << (*output)[j][0] << std::endl;
+
+    // (*output)[j][0] = M_PI*delta*(-((uvwi00*(-std::pow(wx, 2) + 1) - uvwi01*wx*wy - uvwi02*wx*wz)*(-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(uvwi10*(-std::pow(wx, 2) + 1) - uvwi11*wx*wy - uvwi12*wx*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+    // (*output)[j][1] = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wy + uvwi11*(-std::pow(wy, 2) + 1) - uvwi12*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wy + uvwi01*(-std::pow(wy, 2) + 1) - uvwi02*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+    // (*output)[j][2] = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wz - uvwi11*wy*wz + uvwi12*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wz - uvwi01*wy*wz + uvwi02*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0/2.0)*(-2*std::pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+
 
 }
 
@@ -274,13 +343,13 @@ public:
         REAL slen, r0, delta, twist_rate, phi0;
         Matrix<REAL, 3, 3> UVW, UVW_inv;
 
-        A << 0,0,0.9; // center
+        A << 0,0,1; // center
         w << 0,0,-1; // vector defined orientation, orthogonal to u, v
         u << 1,0,0; // vector defined orientation, orthogonal to w, v
 
         slen = 5; // screw length
-        r0 = 0.4; // radius of the cylinder
-        delta = 0.1; // ??
+        r0 = 0.5; // radius of the cylinder
+        delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
         twist_rate = 0.4; // number of cycle ~= slen/twist_rate
         phi0 = 0.0; // ?? default value, not used
 
@@ -345,20 +414,68 @@ public:
         //               REAL x, REAL y, REAL z,
         //               REAL *f, REAL *g, REAL *h) {
 
+
+        // Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
+        // x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
+
+        // Matrix<REAL, Dynamic, 1> inside_ness(x.shape()[0], 1);
+        // inside_ness = inside_ness_only(this->A, this->w,this->UVW_inv, this->slen, this->r0,
+        //                  this->delta, this->twist_rate, this->phi0, x_eigen_matrix);
+
+        std::cout << "result---------------" << std::endl;
+
         for (int j=0;j<(*output).shape()[0];j++){
             // std::cout << "-----------------tiger debug -------------------" << std::endl;
             // std::cout << (*output)[j] << std::endl;
 
-            gradient(this->A(1,0), this->A(2,0), this->A(3,0), 
+            if(j<=5){
+                // std::cout << this->A << std::endl;
+                // std::cout << this->delta << std::endl;
+                // std::cout << this->phi0 << std::endl;
+                // std::cout << this->twist_rate << std::endl;
+                // std::cout << this->UVW << std::endl;
+                // std::cout << this->w(1, 0) << std::endl;
+                // std::cout << this->w(2, 0) << std::endl;
+                // std::cout << this->w(2, 0) << std::endl;
+
+                // std::cout << "x j" << std::endl;
+
+                // std::cout << x[j][0]  << std::endl;
+                // std::cout << x[j][1]  << std::endl;
+                // std::cout << x[j][2]  << std::endl;
+
+                // std::cout << "output j" << std::endl;
+                // std::cout << (*output)[j] << std::endl;
+
+                // gradient(this->A(0,0), this->A(1,0), this->A(2,0), 
+                //          this->delta, this->phi0,
+                //          this->twist_rate,
+                //          this->UVW(0,0), this->UVW(0,1), this->UVW(0,2),
+                //          this->UVW(1,0), this->UVW(1,1), this->UVW(1,2),
+                //          this->w(0, 0), this->w(1, 0), this->w(2, 0),
+                //          x[j][0], x[j][1], x[j][2],
+                //          output, j, true
+                //          );
+
+            }
+
+            gradient(this->A(0,0), this->A(1,0), this->A(2,0), 
                      this->delta, this->phi0,
                      this->twist_rate,
                      this->UVW(0,0), this->UVW(0,1), this->UVW(0,2),
                      this->UVW(1,0), this->UVW(1,1), this->UVW(1,2),
-                     this->w(1, 0), this->w(2, 0), this->w(3, 0),
+                     this->w(0, 0), this->w(1, 0), this->w(2, 0),
                      x[j][0], x[j][1], x[j][2],
-                     output, j
+                     output, j, false
                      );
 
+            if(j <= 5) {
+                std::cout << x[j] << std::endl;
+                std::cout << (*output)[j] << std::endl;
+            }   
+
+            // cout << "------------------ result -------------------" << endl;
+            // std::cout << x[j] << std::endl;
             // std::cout << (*output)[j] << std::endl;
         };
     }
