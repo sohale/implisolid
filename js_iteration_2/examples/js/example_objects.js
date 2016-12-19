@@ -144,10 +144,11 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
 
+        // is_update_mode == 0 always (here)
         if(is_update_mode == 0) {
             var sz = 1.;
         } else {
-            var sz = subjective_time;
+            var sz = subjective_time;  // this will be always zero
         }
         /*
         HEART.root.children[0].matrix[0] = sz;
@@ -261,11 +262,13 @@ function provide_input (subjective_time, is_update_mode, globals) {
             resolution: Math.floor( 14 ),
             box: bbox,
             ignore_root_matrix: false,
+
             vresampl: {iters: 0, c: 1.0},
+
             projection: {enabled: 0},
             qem: {enabled: 0},
             subdiv: {enabled: 0},
-            overall_repeats: 0,
+            overall_repeats: 1,
 
             debug: {
                 enabled_pointsets: 0,
@@ -273,9 +276,8 @@ function provide_input (subjective_time, is_update_mode, globals) {
                 post_subdiv_noise: 0.0,
             },
         };
-        //polygonization_json = simple_MC_only_polygonization_json;
+
         //globals.global_mp5 is not updated here. It is the original object before the update.
-        //var tuple = [shape_json, polygonization_json];
 
         //return {shape_json: shape_json, polygonization_json: simple_MC_only_polygonization_json};
         return {shape_json: shape_json, polygonization_json: mc_properties_json__update};
