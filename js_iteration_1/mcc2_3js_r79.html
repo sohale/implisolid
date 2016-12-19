@@ -1895,7 +1895,7 @@ function add_graph_div(){
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
-        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0 * 10.0;
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
 
@@ -2054,9 +2054,17 @@ w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callba
 
     function demo2() {
         var rrq = make_demo_dict();
+        console.info("demo2",rrq);
         // var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
-        var geom = w_impli3.getLiveGeometry(rrq.shape_dict, rrq.bbox, false, function (geom, shape_id){
+        var geom;
+        w_impli3.getLiveGeometry(rrq.shape_dict, rrq.bbox, false, function (geom, shape_id){
             console.info(geom);
+
+            mesh_solid = new THREE.Mesh( geom, chosen_matrial );
+            mesh_solid.position.set( 5, 5, 2 );
+            mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+            scene.add( mesh_solid );
+
         });
     }
 
