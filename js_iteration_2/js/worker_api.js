@@ -26,7 +26,7 @@ onmessage = function(event) {
         case "make_geometry":
             var shape_index = data.obj_req_id;
             var result =
-                api.make_geometry__workerside(data.mp5_str, data.polygonisation_settings, call_id, shape_index);  // call_id not needed here actually
+                api.make_geometry__workerside(data.mp5_str, data.polygonization_settings, call_id, shape_index);  // call_id not needed here actually
             postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
             break;
 
@@ -133,12 +133,12 @@ w_impli2.needs_deallocation = false;  // state
     }
 
 //based on  implisolid.js
-    w_impli2.make_geometry__workerside = function (mp5_str, polygonisation_settings_json, /*result_callback,*/ call_id_arg) {
+    w_impli2.make_geometry__workerside = function (mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
         // assert(typeof result_callback !== 'undefined');
         // assert(result_callback);
         assert(typeof call_id_arg !== 'undefined');
-        assert(polygonisation_settings_json);
-        assert(typeof polygonisation_settings_json === "string");
+        assert(polygonization_settings_json);
+        assert(typeof polygonization_settings_json === "string");
 
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -151,7 +151,7 @@ w_impli2.needs_deallocation = false;  // state
         //mc_params.resolution = 40;
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
-        /*Module.*/ impli1. build_geometry(mp5_str, polygonisation_settings_json);
+        /*Module.*/ impli1. build_geometry(mp5_str, polygonization_settings_json);
         w_impli2. needs_deallocation = true;
         var nverts = Module. _get_v_size();
         var nfaces = Module. _get_f_size();
