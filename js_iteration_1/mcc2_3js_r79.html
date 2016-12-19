@@ -1486,13 +1486,14 @@ else{
     function demo1() {   // request()
         console.log("demo1");
 
-        // var rr = make_demo_dict();
-        var rr = provide_input(global_time, 1, globals);
+        var dct = provide_input(global_time, 0, globals);
+        var shape_json = dct.shape_json; // aleady stringified
+        // var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
 
-        wapi_query_implicit_values(JSON.stringify(rr.shape_dict), points, function(returned_result, call_identification) {
+        wapi_query_implicit_values(shape_json, points, function(returned_result, call_identification) {
             console.info("Returned: ", returned_result);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
         });
