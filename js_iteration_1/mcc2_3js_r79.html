@@ -97,7 +97,15 @@ THREE.OrbitControls = function() {
 <script type="text/javascript" src="../js_iteration_2/js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
 <script type="text/javascript" src="../js_iteration_2/js/pointset_utils.js"></script>
 
-<script type="text/javascript" src="../js_iteration_2/js/arrow_utils.js"></script> <!-- stuff used by pointset_utils.js -->
+<script type="text/javascript" src="../js_iteration_2/js/arrow_utils.js"></script>
+
+<script type="text/javascript" src="../js_iteration_2/examples/js/example_materials.js"></script>
+
+<script type="text/javascript" src="../js_iteration_2/examples/js/performance_graphs.js"></script>
+
+<!-- Graph -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
 
 <script>
     'use strict';
@@ -770,13 +778,18 @@ function __update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geo
 var globals = {};
 globals.mesh_solid = null;
 globals.mesh_wireframe = null;
+
+globals.normals = null;
+globals.arrows = null;
+
+globals.chosen_matrial = null;
+
 var mesh2_tiny_box_wireframe;
 var materials_list; //, material_f;
 var material_wireframe;
 //var last_geometry = null;
-var global_normals;
 
-var global_arrows;
+// DEMO CONFIGURATIONS
 
 const CHOSEN_MATERIAL_INDEX = 14;
     //2; nice //3;
@@ -797,7 +810,6 @@ const CHOSEN_MATERIAL_INDEX = 14;
     //13: proper Phong (As in WeDesign.Live)
     //14: Phong but semi-transparent
 
-var chosen_matrial;
 
 const SHOW_WIREFRAME = true;
 const SHOW_SOLID = true;
@@ -833,9 +845,9 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     scene.add( grid );
 
     materials_list = look_nice();
-    chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
+    globals.chosen_matrial = materials_list[CHOSEN_MATERIAL_INDEX];
 
-    //chosen_matrial = new THREE.MeshBasicMaterial( {
+    //globals.chosen_matrial = new THREE.MeshBasicMaterial( {
     //    color: 0xaaffff, wireframe: false, opacity:0.5,  transparent: true,
     //    side:THREE.DoubleSide } );
     //THREE.FrontSide or THREE.BackSide or  THREE.DoubleSide.
@@ -880,7 +892,7 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     if(SHOW_SOLID){
         //globals.mesh_solid = new THREE.Mesh( geometry, material_f );
         //nice ones: 2, 3,  (checked until 4)
-        globals.mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        globals.mesh_solid = new THREE.Mesh( geometry, globals.chosen_matrial );
         globals.mesh_solid.position.set( 0, 0, 0 );
         globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
         scene.add( globals.mesh_solid );
@@ -913,7 +925,7 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     if (norms_) {
         scene.add(norms_);
     }
-    global_normals = norms_;
+    globals.normals = norms_;
 
 
 
@@ -949,7 +961,7 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     // globals.mesh_wireframe.visible = false;
     // vectorfield.visiable = false;
     // norms_.visible = false;
-    // global_normals.visible = false;
+    // globals.normals.visible = false;
 
 
 
@@ -981,8 +993,8 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
     //var arrow = make_arrow();
     //global_arrow = arrow;
-    var arrows = make_multiple_arrows(ARROWS_COUNT);
-    global_arrows = arrows;
+    var arrows__ = make_multiple_arrows(ARROWS_COUNT);
+    globals.arrows = arrows__;
 
     if(VERBOSE){
         console.log("RENDERER");
@@ -1159,20 +1171,20 @@ function update_mc(implisolid_, delta_t){
 
     /*
     // SLOW. But using -o3 compilation it can make a nice live smooth QEM demo.
-    if (global_normals) {
-        scene.remove(global_normals);
-        global_normals = null
+    if (globals.normals) {
+        scene.remove(globals.normals);
+        globals.normals = null
     }
     var alpha = 60.0;
     var norms_ = PS_UTILS.visualise_normals(global_mp5, "post_p_centroids", 0, alpha, 0x009900); //  0x00ff00  // 0x88ff00
     scene.add(norms_);
-    global_normals = norms_;
+    globals.normals = norms_;
     */
 
     /*
     var ignore_root_matrix = false;
 
-    update_arrows(global_arrows, implisolid_, global_mp5, ARROWS_COUNT, ignore_root_matrix);
+    update_arrows(globals.arrows, implisolid_, global_mp5, ARROWS_COUNT, ignore_root_matrix);
     */
 
 
@@ -1195,7 +1207,7 @@ function update_mc(implisolid_, delta_t){
         globals.mesh_solid = new THREE.Mesh( geometry, material1 );
         */
         if(SHOW_SOLID){
-            globals.mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+            globals.mesh_solid = new THREE.Mesh( geometry, globals.chosen_matrial );
             //   //globals.mesh_solid.position.set( 0, 0, 0 );
             globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             globals.mesh_solid.position.copy(p1[0]);
@@ -1206,29 +1218,7 @@ function update_mc(implisolid_, delta_t){
     }
 }
 
-/**
-    Stuff to make things look pretty.
-    Taken from http://threejs.org/examples/#webgl_materials
-*/
-function generateTexture() {
-    var canvas = document.createElement( 'canvas' );
-    //var canvas = document.getElementById( 'my_canvas' );
-    canvas.width = 256;
-    canvas.height = 256;
-    var context = canvas.getContext( '2d' );
-    var image = context.getImageData( 0, 0, 256, 256 );
-    var x = 0, y = 0;
-    for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
-        x = j % 256;
-        y = x == 0 ? y + 1 : y;
-        image.data[ i ] = 255;
-        image.data[ i + 1 ] = 255;
-        image.data[ i + 2 ] = 255;
-        image.data[ i + 3 ] = Math.floor( x ^ y );
-    }
-    context.putImageData( image, 0, 0 );
-    return canvas;
-}
+
 
 function grid_bed(step) {
     my_assert(step > 0.0 && "Grid step has to be non zero");
@@ -1255,63 +1245,9 @@ function grid_bed(step) {
     var grid_lines = new THREE.LineSegments( _geometry, line_material );
     return grid_lines;
 }
-function look_nice(){
-    var materials = [];
-
-    // Materials
-    var texture = new THREE.Texture( generateTexture() );
-    texture.needsUpdate = true;
-    materials.push( new THREE.MeshLambertMaterial( { map: texture, transparent: true } ) );
-    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.FlatShading } ) );
-    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30,
-        shading: THREE.FlatShading,
-        side:THREE.DoubleSide,
-        opacity: 0.99, transparent: true,
-        } ) );
-
-    materials.push( new THREE.MeshNormalMaterial( ) );
-    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
-    //materials.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
-    materials.push( new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } ) );
-    materials.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, shading: THREE.SmoothShading, map: texture, transparent: true } ) );
-    materials.push( new THREE.MeshNormalMaterial( { color: 0x00dd00,  shading: THREE.SmoothShading,
-        //opacity:0.5,  transparent: true, side:THREE.DoubleSide
-    } ));
-    materials.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
-    materials.push( new THREE.MeshDepthMaterial() );
-    materials.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000, shading: THREE.SmoothShading } ) );
-    materials.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, shading: THREE.SmoothShading, opacity: 0.9, transparent: true } ) );
-    materials.push( new THREE.MeshBasicMaterial( { map: texture, transparent: true } ) );
-
-    // 13 : Standard WeDesignLive
-    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:true })  );
-    // 14
-    materials.push( new THREE.MeshPhongMaterial( { color: 0x9B2D30, transparent:false, shading: THREE.FlatShading })  );
-    //opacity: 0.7,
-
-    console.log("Choose material "+(materials.length-1));
-
-    return materials;
-}
 
 
-var time_queue = [];
-var time_queue__last_timeout = 0;
-function report_time(time_msec, callback){
-    time_queue.push(time_msec);
-    if(time_queue__last_timeout){
-        clearTimeout(time_queue__last_timeout);
-        time_queue__last_timeout = 0;
-    }
-    time_queue__last_timeout = setTimeout(function(){
-        console.log("Time: (msec)");
-        console.log(time_queue);
-        if(callback)
-            callback();
-        time_queue = [];
-        time_queue__last_timeout =0;
-    }, 1000);
-}
+
 function animate() {
 
     requestAnimationFrame( animate );
@@ -1387,80 +1323,6 @@ else{
     console.warning("Your browser does not support WebWorkers. See http://stackoverflow.com/questions/4739916/what-browsers-currently-support-web-workers ");
 }
 }
-</script>
-
-<!-- Graph -->
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
-
-<script>
-    'use strict';
-var ggraph = 0;
-function show_hist(data_array){
-    if(ggraph==0){
-        add_graph_div();
-        google.charts.load("current", {packages:["corechart"]});
-    }
-    google.charts.setOnLoadCallback(drawChart);
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable(data_array);
-        var options = {
-            title: 'Time ( Milliseconds )',
-            legend: { position: 'none' },
-            colors: ['#e7711c'],
-            histogram: {
-                bucketSize: 1,
-                //maxNumBuckets: 200,
-                //minValue: -1,
-                //maxValue: 200
-            },
-            //chartArea: { width: 401 },
-            hAxis: {
-              //ticks: [-1, 0,1,2,3,4,5,6,7,8,9,10,12,14,20,30,40,50,60,80,100,120,140,160,180,200],
-              //ticks: [ -1, 0,1,2,3,4,5,6,7,8,9,10,11,12 ],
-              //Array.from(Array(10).keys())
-              //[...Array(10).keys()]
-              ticks: (Array.from(Array(30*1.).keys())).map(function(x){return x/1.;}, Number),
-            },
-            //vAxis: { scaleType: 'mirrorLog' }
-        };
-        //see https://developers.google.com/chart/interactive/docs/gallery/histogram#controlling-buckets
-        var div_element = document.getElementById('chart_div');
-        console.log(div_element);
-        var chart = new google.visualization.Histogram(div_element);
-        chart.draw(data, options);
-    }
-    ggraph++;
-}
-
-var global_histogram_accumulator = [];
-function hist_delayed() {
-    var a = time_queue;
-    //var q = [];
-    if(global_histogram_accumulator.length==0){
-        global_histogram_accumulator.push(["Time"]);
-    }
-    var UPPER_BOUND = 12;
-    for(var i=0;i<a.length;i++){
-        if(a[i]<=UPPER_BOUND)
-            global_histogram_accumulator.push([a[i]*1.]); //The precision of the timing is 1 msec :(
-    }
-    show_hist(global_histogram_accumulator);
-}
-
-function hist(){
-    //hist_delayed();
-}
-
-//setTimeout(function()}{
-function add_graph_div(){
-    //<div id="chart_div" style="width: 900px; height: 500px;"></div>
-    //var elemDiv = document.createElement('div');
-    //document.body.appendChild(elemDiv);
-    //not nice:
-    //document.body.innerHTML += "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>";
-}
-
 </script>
 
 
@@ -2064,7 +1926,7 @@ w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callba
             if (globals.mesh_solid) {scene.remove(globals.mesh_solid); globals.mesh_solid = null;}
             if (globals.mesh_wireframe) {scene.remove(globals.mesh_wireframe); globals.mesh_wireframe = null;}
 
-            globals.mesh_solid = new THREE.Mesh( geom, chosen_matrial );
+            globals.mesh_solid = new THREE.Mesh( geom, globals.chosen_matrial );
             globals.mesh_solid.position.set( 5*0, 5*0, 2*0 );
             globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             scene.add( globals.mesh_solid );
