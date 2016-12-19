@@ -767,11 +767,12 @@ function __update_reused_geometry(implisolid_, mp5_json, mc_properties_json, geo
 
 
 // global variables for meshes that are accessed and updated in the render loop, etc.
-var mesh_solid;
+var globals = {};
+globals.mesh_solid = null;
+globals.mesh_wireframe = null;
 var mesh2_tiny_box_wireframe;
 var materials_list; //, material_f;
 var material_wireframe;
-var mesh_wireframe = null;
 //var last_geometry = null;
 var global_normals;
 
@@ -869,20 +870,20 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
 
     if(SHOW_WIREFRAME){
-        mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-        mesh_wireframe.position.set( 0, 0, 0 );
-        mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
-        scene.add( mesh_wireframe );
+        globals.mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+        globals.mesh_wireframe.position.set( 0, 0, 0 );
+        globals.mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+        scene.add( globals.mesh_wireframe );
     }
     //this.fromBufferGeometry( new THREE.SphereBufferGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) );
     //material_f = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: false, opacity:0.4, transparent: true } );
     if(SHOW_SOLID){
-        //mesh_solid = new THREE.Mesh( geometry, material_f );
+        //globals.mesh_solid = new THREE.Mesh( geometry, material_f );
         //nice ones: 2, 3,  (checked until 4)
-        mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-        mesh_solid.position.set( 0, 0, 0 );
-        mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
-        scene.add( mesh_solid );
+        globals.mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+        globals.mesh_solid.position.set( 0, 0, 0 );
+        globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+        scene.add( globals.mesh_solid );
     }
 
     /*
@@ -942,10 +943,10 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
 
     // choose what is visible and what is not
-    // mesh_solid.visible = false;
+    // globals.mesh_solid.visible = false;
     // points1.visible = false;
     //points2.visible = false;
-    // mesh_wireframe.visible = false;
+    // globals.mesh_wireframe.visible = false;
     // vectorfield.visiable = false;
     // norms_.visible = false;
     // global_normals.visible = false;
@@ -1073,29 +1074,29 @@ function update_mc(implisolid_, delta_t){
         console.error("Wrong condition.");
 
     if(SHOW_SOLID){
-        var p1 = [mesh_solid.position, mesh_solid.rotation];
+        var p1 = [globals.mesh_solid.position, globals.mesh_solid.rotation];
     }
     if(SHOW_WIREFRAME){
-        var p2 = [mesh_wireframe.position, mesh_wireframe.rotation];
+        var p2 = [globals.mesh_wireframe.position, globals.mesh_wireframe.rotation];
     }
 
     // g   i.e.  actual_current_active_geom
     var g = null;
     if(SHOW_SOLID){
-        g = mesh_solid.geometry;
+        g = globals.mesh_solid.geometry;
     }
     if(SHOW_WIREFRAME){
-        g = mesh_wireframe.geometry;
+        g = globals.mesh_wireframe.geometry;
     }
     my_assert(g, "SHOW_SOLID  and  SHOW_WIREFRAME cannot be both false.");
 
 
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_SOLID){
-            scene.remove(mesh_solid);
+            scene.remove(globals.mesh_solid);
         }
         if(SHOW_WIREFRAME){
-            scene.remove(mesh_wireframe);
+            scene.remove(globals.mesh_wireframe);
         }
     }
 
@@ -1108,13 +1109,13 @@ function update_mc(implisolid_, delta_t){
             g = null;
             // reused_last_geom is not null and will remain. It is not recommended to use reused_last_geom.
         }
-        //mesh_wireframe.geometry.dispose(); // Don't do it twice!
+        //globals.mesh_wireframe.geometry.dispose(); // Don't do it twice!
     }
 
     // var reused_last_geom = g;
     if(!EVEN_REUSE_MESH_OBJECT){
-        mesh_solid = null;
-        mesh_wireframe = null;
+        globals.mesh_solid = null;
+        globals.mesh_wireframe = null;
     }
 
     var geometry = null;
@@ -1177,12 +1178,12 @@ function update_mc(implisolid_, delta_t){
 
     if(!EVEN_REUSE_MESH_OBJECT){
         if(SHOW_WIREFRAME){
-            mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
-            mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+            globals.mesh_wireframe = new THREE.Mesh( geometry, material_wireframe );
+            globals.mesh_wireframe.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             //copy so that we dont lose the rotation, position of the meshes.
-            mesh_wireframe.position.copy(p2[0]);
-            mesh_wireframe.rotation.copy(p2[1]);
-            scene.add( mesh_wireframe );
+            globals.mesh_wireframe.position.copy(p2[0]);
+            globals.mesh_wireframe.rotation.copy(p2[1]);
+            scene.add( globals.mesh_wireframe );
         }
 
 
@@ -1191,15 +1192,15 @@ function update_mc(implisolid_, delta_t){
                             side: THREE.DoubleSide, vertexColors: THREE.VertexColors
                         } );
 
-        mesh_solid = new THREE.Mesh( geometry, material1 );
+        globals.mesh_solid = new THREE.Mesh( geometry, material1 );
         */
         if(SHOW_SOLID){
-            mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
-            //   //mesh_solid.position.set( 0, 0, 0 );
-            mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
-            mesh_solid.position.copy(p1[0]);
-            mesh_solid.rotation.copy(p1[1]);
-            scene.add( mesh_solid );
+            globals.mesh_solid = new THREE.Mesh( geometry, chosen_matrial );
+            //   //globals.mesh_solid.position.set( 0, 0, 0 );
+            globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+            globals.mesh_solid.position.copy(p1[0]);
+            globals.mesh_solid.rotation.copy(p1[1]);
+            scene.add( globals.mesh_solid );
 
         }
     }
@@ -1317,13 +1318,13 @@ function animate() {
 
     //Updating the meshes
     var SPEED = 0 * 3. / 100;
-    if(mesh_wireframe){
-        mesh_wireframe.rotation.x += 0.01*SPEED;
-        mesh_wireframe.rotation.y += 0.02*SPEED;
+    if(globals.mesh_wireframe){
+        globals.mesh_wireframe.rotation.x += 0.01*SPEED;
+        globals.mesh_wireframe.rotation.y += 0.02*SPEED;
     }
-    if(mesh_solid){
-        mesh_solid.rotation.x += 0.01*SPEED;
-        mesh_solid.rotation.y += 0.02*SPEED;
+    if(globals.mesh_solid){
+        globals.mesh_solid.rotation.x += 0.01*SPEED;
+        globals.mesh_solid.rotation.y += 0.02*SPEED;
     }
 
     mesh2_tiny_box_wireframe	.rotation.z += 0.01*SPEED;
@@ -2060,10 +2061,13 @@ w_impli3.getLiveGeometry  = function(dict, bbox, ignore_root_matrix, geom_callba
         w_impli3.getLiveGeometry(rrq.shape_dict, rrq.bbox, false, function (geom, shape_id){
             console.info(geom);
 
-            mesh_solid = new THREE.Mesh( geom, chosen_matrial );
-            mesh_solid.position.set( 5, 5, 2 );
-            mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
-            scene.add( mesh_solid );
+            if (globals.mesh_solid) {scene.remove(globals.mesh_solid); globals.mesh_solid = null;}
+            if (globals.mesh_wireframe) {scene.remove(globals.mesh_wireframe); globals.mesh_wireframe = null;}
+
+            globals.mesh_solid = new THREE.Mesh( geom, chosen_matrial );
+            globals.mesh_solid.position.set( 5*0, 5*0, 2*0 );
+            globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
+            scene.add( globals.mesh_solid );
 
         });
     }
