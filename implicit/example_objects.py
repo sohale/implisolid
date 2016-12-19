@@ -957,34 +957,5 @@ def cube_with_cylinders(SCALE):
 #    (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-3, +5, 0.2)
     return final_object
 
-def main():
-    import numpy as np
 
-    h = 0.00001;
-
-    xa = np.array([[12.0,23.0,2.0],
-                   [0,0,-0.4],
-                   [-1,1,1],
-                   [0, 0, -0.1],
-                   [1331,1221,1222]
-                  ])
-
-    # xa_plus_h = np.array([[12.0,23.0 + h,2.0],
-    #                [0,0 + h,-0.4],
-    #                [-1,1 + h,1],
-    #                [0, 0 + h, -0.1]])
-
-
-    screw = make_example_vectorized('screw2');
-
-    print(screw.implicitFunction(xa))
-    # print(screw.implicitFunction(xa_plus_h))
-
-    # print((screw.implicitFunction(xa_plus_h) - screw.implicitFunction(xa))/h)
-
-
-    # print(screw.implicitGradient(xa))
-
-if __name__ == '__main__':
-    main()
     
