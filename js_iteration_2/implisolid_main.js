@@ -918,17 +918,18 @@ query_implicit_values = inherit.
 query_a_normal = inherit
 about = inherit
 
-make_polygonization_settings = private
 
+Remove from IMPLICIT: (move to designer)
+    make_polygonization_settings()
 
+    The configs properties: (which override the polygonized_settings)
+        .use_II
+        .use_II_qem
+        .use_III
+        .use_noise
+        .repeats
+        .custom_mc_settings  // this should replace the other ones
 
-The configs properties: (which override the polygonized_settings)
-    .use_II
-    .use_II_qem
-    .use_III
-    .use_noise
-    .repeats
-    .custom_mc_settings  // this should replace the other ones
 
 IMPLICIT.PS_UTILS
 IMPLICIT.service2
