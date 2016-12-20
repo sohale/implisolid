@@ -99,7 +99,9 @@ public:
             REAL y = (*i)[1];
             REAL z = (*i)[2];
 
-            REAL f = -(x-x0)*(x-x0) - (y-y0)*(y-y0) + (z-z0)*(z-z0)*a2;
+            //REAL f = -(x-x0)*(x-x0) - (y-y0)*(y-y0) + (z-z0)*(z-z0)*a2;   // old, caused problems
+            REAL f = - std::sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)) 
+                + std::sqrt((z-z0)*(z-z0)*a2);
             REAL uperside = -(z-z0)-r1;
             REAL lowerside = (z-z0)+h;
 
