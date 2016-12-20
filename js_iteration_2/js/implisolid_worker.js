@@ -13,6 +13,12 @@ w_impli1.w_api_debug_info = {};
 w_impli1.w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // such as function name or a name that is similar to a funciton name
 w_impli1.call_counter = 0;  // a clobal counter that assigns a unique id to each individual call, to make it easy to trace correspondence of call and callback.
 
+var wcodes1 = {};
+wcodes1.__wapi_get_latest_vf = 6;
+wcodes1.__wapi_make_geometry = 5;
+
+var callstamps = {};
+
 w_impli1.worker.addEventListener('message', function(event) {
     if (WORKER_DEBUG)
         console.info("Message received from worker:", event, "data=", event.data);
@@ -39,6 +45,8 @@ w_impli1.worker.addEventListener('message', function(event) {
     mycallback(event.data.returned_data, call_identification);
 
  });
+
+
 function worker_call_preparation(_callbackId, result_callback) {
     if (WORKER_DEBUG) {
         var temp = w_impli1.worker_response_callbacks_table[_callbackId];
@@ -53,6 +61,9 @@ function worker_call_preparation(_callbackId, result_callback) {
         w_impli1.w_api_debug_info[_callbackId] = result_callback;
         // also you can store call timestamp, etc
     }
+
+    callstamps[w_impli1.call_counter] = new Date();
+
     w_impli1.call_counter ++ ;
     return _callbackId;
 }
@@ -64,7 +75,7 @@ function worker_call_preparation(_callbackId, result_callback) {
 
 var w_impli3 = {};  // not worker side, but uses worker
 
-w_impli3.custom_mc_settings = {};
+// w_impli3.custom_mc_settings = {};
 
 // Copied from implisolid_main.js
 var SET_ME_TO_TRUE = false;
@@ -78,15 +89,14 @@ w_impli3.getLiveGeometry  = function(shape_properties, bbox, ignore_root_matrix,
 }
 */
 w_impli3.getLiveGeometry_from_json  = function(shape_json_str, polygonization_setttings_json_str, geom_callback) {
-    // w_impli3.custom_mc_settings is a non-explicit argument changes the default settings
 
     assert(typeof shape_json_str === "string");
     assert(typeof polygonization_setttings_json_str === "string");
     assert(typeof geom_callback === "function");
 
-    // service2.make_geometry
+    // wservice2.make_geometry
     //var geom =   // no geom returned here anymore
-    wapi_make_geometry(shape_json_str, polygonization_setttings_json_str,
+    wservice2.wapi_make_geometry(shape_json_str, polygonization_setttings_json_str,
         function (vf_dict) {
             var verts = vf_dict.verts;
             var faces = vf_dict.faces;
@@ -104,7 +114,7 @@ w_impli3.getLiveGeometry_from_json  = function(shape_json_str, polygonization_se
             if (!shape_json_str)
                 console.error(shape_json_str);
             if (SET_ME_TO_TRUE)
-            service3.make_normals_into_geometry(geom, shape_json_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
+            w_impli3.make_normals_into_geometry(geom, shape_json_str, verts, ignore_root_matrix);  // Evaluates the implicit function and sets the goemetry's normals based on it.
 
             //this_.aaaaaaaaaA(verts);
 
@@ -138,18 +148,19 @@ w_impli3.wapi_query_implicit_values = function (mp5_str, points, result_callback
 }
 
 // Level 2
-function wapi_make_geometry(mp5_str, polygonization_settings_json, result_callback) {
+var wservice2 = {};
+wservice2.wapi_make_geometry = function (mp5_str, polygonization_settings_json, result_callback) {
     // based on implisolid_main.js
     //var startTime = new Date();
 
-    my_assert(typeof result_callback !== 'undefined');
-    my_assert(result_callback);
+    my_assert(typeof result_callback === 'function');
 
-    var _callbackId = worker_call_preparation(5, result_callback);
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_make_geometry, result_callback);
     var wreq = {
             funcName: 'make_geometry',
             callbackId: _callbackId,
             call_id: w_impli1.call_counter,
+            // call_timestampe: new Date(),
 
             mp5_str: null, polygonization_settings: null, obj_req_id: 0
         };
@@ -190,6 +201,100 @@ function wapi_make_geometry(mp5_str, polygonization_settings_json, result_callba
     */
 
 }
+
+
+wservice2.wapi_get_latest_vf = function (result_callback) {
+    my_assert(typeof result_callback === 'function');
+
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_get_latest_vf, result_callback);
+    var wreq = {
+            funcName: 'get_latest_vf',
+            callbackId: _callbackId,
+            call_id: w_impli1.call_counter,
+
+            obj_req_id: 0
+        };
+    wreq.obj_req_id = w_impli1.call_counter;
+    w_impli1.worker.postMessage(wreq);
+}
+
+w_impli3.receive_mesh = function(result_callback) {
+    var vf = {faces: null, verts: null};
+    /*
+    var nonempty = wservice2.wapi_get_latest_vf(vf);
+    if (nonempty) {
+        // vf already contains the output of get_latest_vf()
+    } else{
+        console.log("empty implicit. Using a default shape.");
+        vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+        vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+    }
+    assert(vf['verts']);
+    assert(vf['faces']);
+    */
+    // should be no logic here
+
+    wservice2.wapi_get_latest_vf(function (data_received_from_worker){
+        var vf = data_received_from_worker;
+        var nonempty = data_received_from_worker.nonempty;
+
+        if (nonempty) {
+            // vf already contains the output of get_latest_vf()
+        } else{
+            console.log("empty implicit. Using a default shape.");
+            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+        assert(vf['verts']);
+        assert(vf['faces']);
+        //return vf;
+        result_callback(vf);
+    });
+}
+
+
+w_impli3.update_geometry_from_json = function(geometry, shape_json, polygonization_json) {
+    //var startTime = new Date();
+
+    if (typeof shape_json !== "string") {
+        shape_json = JSON.stringify(shape_json);
+    }
+
+    // polygonization_json should not be jsonified.
+    if (typeof polygonization_json !== "string") {
+        polygonization_json = JSON.stringify(polygonization_json);
+    }
+
+    wservice2.wapi_make_geometry (shape_json, polygonization_json, //result_callback,
+        function (verts, faces) {
+            var allocate_buffer=false;
+
+            // todo: make it the same query. dont call get_vf again.
+            w_impli3.receive_mesh( function(vf) {
+                
+                // todo: match the object_id to the request call_id, etc
+
+                var ignoreDefaultNormals = true;
+                var bool_reallocated = geometry.update_geometry1(vf['verts'], vf['faces'], ignoreDefaultNormals, false);
+                geometry.use_default_normals_from_vertices();
+
+                /*
+                var startTime = callstamps[call_id];
+                var endTime = new Date();
+                var timeDiff = endTime - startTime;
+                console.log(nv3 + " , " + nf3);
+                console.log("Time: "+timeDiff+ " msec.");
+                report_time(timeDiff);
+                */
+
+                //geometry is now updated
+            });
+        }
+    );
+
+};
+
+
 
 // End of Worker-based API
 // ******************************************************************************

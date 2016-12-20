@@ -1419,6 +1419,7 @@ else{
 
     function demo3() {
         console.info("demo3");
+        global_time += 3;
         var dct = provide_input(global_time, 1, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);

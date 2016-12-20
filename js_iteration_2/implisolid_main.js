@@ -196,6 +196,7 @@ function init2(impli2, impli1) {
     The inputs should be jsonified already. Although for bavkward compatibilty it is automatically converted.
     Note that in the similar "update" method, the polygonization_params must be non-JSONified. 
     the update methos is: update_geometry_from_json() or update_geometry()
+    // todo: remove allocate_buffer, because it will be set in the callback
     */
     impli2.make_geometry = function (mp5_str, polygonization_params_str, geometry_callback, allocate_buffer) {
         assert(typeof geometry_callback !== 'undefined');
@@ -442,8 +443,27 @@ function init3(service3, service2) {
     service3.repeats = 1;
     service3.custom_mc_settings = null;  // can be manually set in browser's console
 
+
+    service3.receive_mesh = function (vf) {
+
+        var vf = {faces: null, verts: null};
+        var nonempty = service2.get_latest_vf(vf);
+        if (nonempty) {
+            // vf already contains the output of get_latest_vf()
+        } else{
+            console.log("empty implicit. Using a default shape.");
+            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
+            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
+        }
+        assert(vf['verts']);
+        
+        assert(vf['faces']);
+        return vf;
+    }
+
     // update_geometry_from_json  <-->  update_geometry()
     /**
+    useless. to be removed.
     */
     service3.update_geometry = function(geometry, ignoreDefaultNormals) {
         // call after build_geometry()
@@ -482,20 +502,12 @@ function init3(service3, service2) {
        */
 
         //var implicit_service1 = impli1;
+        
+        // make it a callback        
+        var vf = service3.receive_mesh()
 
-        var vf = {faces: null, verts: null};
-        var nonempty = service2.get_latest_vf(vf);
-        if (nonempty) {
-            // vf already contains the output of get_latest_vf()
-        } else{
-            console.log("empty implicit. Using a default shape.");
-            vf['verts'] = new Float32Array([0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 ]);
-            vf['faces'] = new Uint32Array([0,1,2, 0,2,3, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,3, 3,6,7, 4,5,6, 5,6,7]);
-        }
-        assert(vf['verts']);
-        assert(vf['faces']);
-
-        return geometry.update_geometry1(vf['verts'], vf['faces'], ignoreDefaultNormals, false);
+        var bool = geometry.update_geometry1(vf['verts'], vf['faces'], ignoreDefaultNormals, false);
+        return bool;
 
     };
 
@@ -506,6 +518,9 @@ function init3(service3, service2) {
         
         Some confusion here:
         update_geometry_from_json() versus update_geometry()
+        
+        
+        todo: fixme: can be simplified a lot. Also remove update_geometry().  See implisolid_worker.js
     */
     service3.update_geometry_from_json_experimental = function(geometry, shape_json, mc_params, ignoreDefaultNormals) {
         // see __update_reused_geometry()
@@ -523,7 +538,7 @@ function init3(service3, service2) {
         mc_params = JSON.stringify(mc_params);
 
         // fixme: this creates a new geometry? No. But compare with update_geometry()
-        var allocate_buffer;
+        var allocate_buffer;  // =?
         service2.make_geometry (shape_json, mc_params,
             function (verts, faces, allocate_buffers) {
                 /*if (allocate_buffers === undefined) {

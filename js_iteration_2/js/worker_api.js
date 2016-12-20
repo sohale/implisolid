@@ -27,8 +27,20 @@ onmessage = function(event) {
             var shape_index = data.obj_req_id;
             var result =
                 api.make_geometry__workerside(data.mp5_str, data.polygonization_settings, call_id, shape_index);  // call_id not needed here actually
-            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
+            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id, shape_index:shape_index});  // {result_allpositive:}
             break;
+
+        case "get_latest_vf":
+            var shape_index = data.obj_req_id;
+            var result_vf_output = {faces: null, verts: null};
+
+            var nonempty = api.get_latest_vf(result_vf_output, call_id, shape_index);  // call_id not used here actually
+            result_vf_output.nonempty = nonempty;
+            // if not nonempty, returns nonempty==false
+            postMessage({return_callback_id:event.data.callbackId, returned_data: result_vf_output, call_id: call_id, shape_index: shape_index});  // {result_allpositive:}
+            // definitely box the dict
+            break;
+
 
         default:
             console.error("Unknown worker request for unknown function call: \""+(data.funcName)+"\" via event data:", event.data);
@@ -168,6 +180,38 @@ w_impli2.needs_deallocation = false;  // state
 
         return {verts:verts, faces:faces};
     };
+
+    w_impli2.get_latest_vf = function (output_vf_dict, call_id, shape_index) {
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+        const POINTS_PER_FACE = 3;
+
+        // todo: use shape_index
+        var nverts = Module. _get_v_size();
+        var nfaces = Module. _get_f_size();
+
+        if(nfaces > 0){
+            var verts_address = Module. _get_v_ptr();
+            var faces_address = Module. _get_f_ptr();
+
+            var verts = Module.HEAPF32.subarray(
+                verts_address/_FLOAT_SIZE,
+                verts_address/_FLOAT_SIZE + 3*nverts);
+
+            var faces = Module.HEAPU32.subarray(
+                faces_address/_INT_SIZE,
+                faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+            // return {faces: faces, verts: verts};
+            output_vf_dict['faces'] = faces;
+            output_vf_dict['verts'] = verts;
+            return true;
+        } else {
+            // empty
+            output_vf_dict['faces'] = null;
+            output_vf_dict['verts'] = null;
+            return false;
+        }
+    }
 
 // worker side
 console.info("worker js loaded");
