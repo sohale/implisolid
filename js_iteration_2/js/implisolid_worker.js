@@ -4,7 +4,7 @@
  ******************************************************/
 
 'use strict';
-var w_impli1 = {};
+var w_impli1 = {};  // todo: rename
 
 w_impli1.worker = new Worker('../js_iteration_2/js/worker_api.js');
 w_impli1.worker_response_callbacks_table = {};
@@ -12,6 +12,7 @@ const WORKER_DEBUG = true;
 w_impli1.w_api_debug_info = {};
 w_impli1.w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // such as function name or a name that is similar to a funciton name
 w_impli1.call_counter = 0;  // a clobal counter that assigns a unique id to each individual call, to make it easy to trace correspondence of call and callback.
+
 w_impli1.worker.addEventListener('message', function(event) {
     if (WORKER_DEBUG)
         console.info("Message received from worker:", event, "data=", event.data);

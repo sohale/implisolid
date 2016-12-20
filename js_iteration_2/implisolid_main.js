@@ -507,7 +507,7 @@ function init3(service3, service2) {
         Some confusion here:
         update_geometry_from_json() versus update_geometry()
     */
-    service3.update_geometry_from_json = function(geometry, shape_json, mc_params, ignoreDefaultNormals) {
+    service3.update_geometry_from_json_experimental = function(geometry, shape_json, mc_params, ignoreDefaultNormals) {
         // see __update_reused_geometry()
         var startTime = new Date();
         if (!shape_json) {
@@ -561,6 +561,7 @@ function init3(service3, service2) {
         service3.update_geometry(geometry, ignoreDefaultNormals);
     };
 
+    service3.update_geometry_from_json = service3.update_geometry_from_json_experimental;
 
     //was: geom. update_normals (service ..)
     // todo: move the callback into LiveGeometry

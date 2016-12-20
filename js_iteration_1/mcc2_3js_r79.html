@@ -1318,7 +1318,6 @@ else{
 <script>
     'use strict';
 
-
     var merge_dicts_nonrecursive = merge_dicts_nonrecursive?merge_dicts_nonrecursive:function() {
         var merged_dict = {};
         var nargs = arguments.length;
@@ -1419,6 +1418,13 @@ else{
     }
 
     function demo3() {
-        ;
+        console.info("demo3");
+        var dct = provide_input(global_time, 1, globals);
+        var shape_json = dct.shape_json; // aleady stringified
+        var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
+
+        var ignoreDefaultNormals= true; // always
+        IMPLICIT_WORKER.update_geometry_from_json(globals.mesh_solid.geometry, shape_json, polygonization_settings_json, ignoreDefaultNormals)
+
     }
  </script >
