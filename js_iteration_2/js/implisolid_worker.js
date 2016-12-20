@@ -29,6 +29,13 @@ w_impli1.worker.addEventListener('message', function(event) {
         // delete w_impli1.worker_response_callbacks_table[ _callbackId ];
         // don’t delete array elements. It would make the array transition to a slower internal representation.
         w_impli1.worker_response_callbacks_table[ _callbackId ] = undefined;  // per-call
+        
+        if (WORKER_DEBUG) {
+            // tracking calls, measuring the time, detecting orphan calls (calls with no return), etc.
+            var call_id = event.data.call_id;
+            var start_time = callstamps[call_id];
+            console.info("TIME: ", new Date() - start_time , "msec");
+        }
     }
 
     //if (_callbackId === 4) {
@@ -62,9 +69,12 @@ function worker_call_preparation(_callbackId, result_callback) {
         // also you can store call timestamp, etc
     }
 
-    callstamps[w_impli1.call_counter] = new Date();
-
     w_impli1.call_counter ++ ;
+
+    //console.info(callstamps, w_impli1.call_counter);
+    callstamps[w_impli1.call_counter] = new Date();
+    //console.info(callstamps);
+
     return _callbackId;
 }
 
