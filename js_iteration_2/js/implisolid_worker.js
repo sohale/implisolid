@@ -83,9 +83,149 @@ function worker_call_preparation(_callbackId, result_callback) {
     return _callbackId;
 }
 
+/*******************************************************************************
+ * API Level 2
+*******************************************************************************/
+
+// Level 2
+var wapi2 = {};
+wapi2.wapi_make_geometry = function (shape_id0, mp5_str, polygonization_settings_json, result_callback) {
+    // based on implisolid_main.js
+    //var startTime = new Date();
+
+    my_assert(typeof result_callback === 'function');
+
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_make_geometry, result_callback);
+    var wreq = {
+            funcName: 'make_geometry',
+            callbackId: _callbackId,
+            call_id: wapi1.call_counter,
+            // call_timestampe: new Date(),
+
+            mp5_str: null, polygonization_settings: null, obj_req_id: 0
+        };
+    wreq.mp5_str = mp5_str;
+    wreq.polygonization_settings = polygonization_settings_json;  // mc_params;
+    wreq.obj_req_id = shape_id0; //wapi1.call_counter;
+    wapi1.worker.postMessage(wreq);
+
+    /*
+    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+    const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+
+    if(impli1.needs_deallocation) {
+        impli1.finish_geometry();
+        impli1.needs_deallocation = false;
+    }
+    impli1.build_geometry(mp5_str, mc_params_json);
+    impli1.needs_deallocation = true;
+
+    var nverts = impli1.get_v_size();
+    var nfaces = impli1.get_f_size();
+
+    var verts_address = impli1.get_v_ptr();
+    var faces_address = impli1.get_f_ptr();
+
+    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+
+    // first iteration: the callback
+    var geom = result_callback(verts, faces);
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+    //report_time(timeDiff, function(){hist();});
+
+    return geom;
+    */
+
+}
+
+//     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
+/**
+@param client_result_callback is needed for all worker API functions. client_result_callback is a fuction that receives the and called asynchroniously. Even if it sdoesn't have eany argument, it notifies completion f the worker's job.
+*/
+wapi2.wapi_query_implicit_values_old = function(shape_index, shape_json, points, reduce_type_str, epsilon, client_result_callback) {
+    my_assert(typeof reduce_type_str === 'string');
+    if(shape_index  === undefined ) shape_index = "test(undefiend)";
+
+    // registers the function client_result_callback to listen to the messages posted from the webworker
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_query_implicit_values_old, client_result_callback);
+    var wreq = {
+            funcName: 'query_implicit_values_old',
+            callbackId: _callbackId,
+            call_id: wapi1.call_counter,
+
+            mp5_str: null, points: null, reduce_type: "", epsilon: 0.0000,
+            obj_req_id: -1
+        };
+    wreq.mp5_str = shape_json;
+    wreq.points = points;  // the points are set to the worker via the postMessage, as the Float32Array they are.
+    wreq.reduce_type = reduce_type_str;
+    wreq.epsilon = epsilon;
+    wreq.shape_id = shape_index;
+
+    wapi1.worker.postMessage(wreq);
+}
+
+/** called by query_a_normal() 
+@param: clientside_result_callback  = function((normals, call_id, shape_id)){output_vect3.set(-r[0], -r[1], -r[2]);}
+*/
+wapi2.wapi_query_a_normal = function() {
+    //static
+    var pointbuffer = new Float32Array(3);
+
+    return function wapi_query_a_normal(shape_index, mp5_shape_json, point, clientside_result_callback) {
+        my_assert(typeof mp5_shape_json === 'string');
+
+        // registers the worker callback
+        var _callbackId = worker_call_preparation(wcodes1.__wapi_query_a_normal, clientside_result_callback);
+
+        if (point instanceof Float32Array) {
+            pointbuffer.set(point);
+        } else {
+            pointbuffer[0] = point.x;
+            pointbuffer[1] = point.y;
+            pointbuffer[2] = point.z;
+        }
+
+        var wreq = {
+                funcName: 'query_normals',
+                callbackId: _callbackId,
+                call_id: wapi1.call_counter,
+
+                mp5_str: null, points: null,
+                obj_req_id: -1
+            };
+        wreq.mp5_str = mp5_shape_json;
+        wreq.points = pointbuffer;
+        wreq.shape_id = shape_index;
+
+        wapi1.worker.postMessage(wreq);
+    };
+}();
+
+
+
+wapi2.wapi_get_latest_vf = function (shape_id, result_callback) {
+    my_assert(typeof result_callback === 'function');
+
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_get_latest_vf, result_callback);
+    var wreq = {
+            funcName: 'get_latest_vf',
+            callbackId: _callbackId,
+            call_id: wapi1.call_counter,
+
+            obj_req_id: 0
+        };
+    wreq.shape_id = shape_id, // wreq.obj_req_id = obj_id, //wapi1.call_counter;
+    wapi1.worker.postMessage(wreq);
+}
+
 
 /*******************************************************************************
- * Level 3
+ * API Level 3
  ******************************************************************************/
 
 var wapi3 = {};  // not worker side, but uses worker
@@ -167,76 +307,6 @@ wapi3.wapi_query_implicit_values = function (obj_id, mp5_str, points, result_cal
 }
 
 
-// Level 2
-var wapi2 = {};
-wapi2.wapi_make_geometry = function (shape_id0, mp5_str, polygonization_settings_json, result_callback) {
-    // based on implisolid_main.js
-    //var startTime = new Date();
-
-    my_assert(typeof result_callback === 'function');
-
-    var _callbackId = worker_call_preparation(wcodes1.__wapi_make_geometry, result_callback);
-    var wreq = {
-            funcName: 'make_geometry',
-            callbackId: _callbackId,
-            call_id: wapi1.call_counter,
-            // call_timestampe: new Date(),
-
-            mp5_str: null, polygonization_settings: null, obj_req_id: 0
-        };
-    wreq.mp5_str = mp5_str;
-    wreq.polygonization_settings = polygonization_settings_json;  // mc_params;
-    wreq.obj_req_id = shape_id0; //wapi1.call_counter;
-    wapi1.worker.postMessage(wreq);
-
-    /*
-    const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-    const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
-
-    if(impli1.needs_deallocation) {
-        impli1.finish_geometry();
-        impli1.needs_deallocation = false;
-    }
-    impli1.build_geometry(mp5_str, mc_params_json);
-    impli1.needs_deallocation = true;
-
-    var nverts = impli1.get_v_size();
-    var nfaces = impli1.get_f_size();
-
-    var verts_address = impli1.get_v_ptr();
-    var faces_address = impli1.get_f_ptr();
-
-    var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-    var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-
-    // first iteration: the callback
-    var geom = result_callback(verts, faces);
-
-    var endTime = new Date();
-    var timeDiff = endTime - startTime;
-
-    //report_time(timeDiff, function(){hist();});
-
-    return geom;
-    */
-
-}
-
-
-wapi2.wapi_get_latest_vf = function (shape_id, result_callback) {
-    my_assert(typeof result_callback === 'function');
-
-    var _callbackId = worker_call_preparation(wcodes1.__wapi_get_latest_vf, result_callback);
-    var wreq = {
-            funcName: 'get_latest_vf',
-            callbackId: _callbackId,
-            call_id: wapi1.call_counter,
-
-            obj_req_id: 0
-        };
-    wreq.shape_id = shape_id, // wreq.obj_req_id = obj_id, //wapi1.call_counter;
-    wapi1.worker.postMessage(wreq);
-}
 
 
 
@@ -330,70 +400,6 @@ wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, 
     );
 
 };
-
-//     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
-/**
-@param client_result_callback is needed for all worker API functions. client_result_callback is a fuction that receives the and called asynchroniously. Even if it sdoesn't have eany argument, it notifies completion f the worker's job.
-*/
-wapi2.wapi_query_implicit_values_old = function(shape_index, shape_json, points, reduce_type_str, epsilon, client_result_callback) {
-    my_assert(typeof reduce_type_str === 'string');
-    if(shape_index  === undefined ) shape_index = "test(undefiend)";
-
-    // registers the function client_result_callback to listen to the messages posted from the webworker
-    var _callbackId = worker_call_preparation(wcodes1.__wapi_query_implicit_values_old, client_result_callback);
-    var wreq = {
-            funcName: 'query_implicit_values_old',
-            callbackId: _callbackId,
-            call_id: wapi1.call_counter,
-
-            mp5_str: null, points: null, reduce_type: "", epsilon: 0.0000,
-            obj_req_id: -1
-        };
-    wreq.mp5_str = shape_json;
-    wreq.points = points;  // the points are set to the worker via the postMessage, as the Float32Array they are.
-    wreq.reduce_type = reduce_type_str;
-    wreq.epsilon = epsilon;
-    wreq.shape_id = shape_index;
-
-    wapi1.worker.postMessage(wreq);
-}
-
-/** called by query_a_normal() 
-@param: clientside_result_callback  = function((normals, call_id, shape_id)){output_vect3.set(-r[0], -r[1], -r[2]);}
-*/
-wapi2.wapi_query_a_normal = function() {
-    //static
-    var pointbuffer = new Float32Array(3);
-
-    return function wapi_query_a_normal(shape_index, mp5_shape_json, point, clientside_result_callback) {
-        my_assert(typeof mp5_shape_json === 'string');
-
-        // registers the worker callback
-        var _callbackId = worker_call_preparation(wcodes1.__wapi_query_a_normal, clientside_result_callback);
-
-        if (point instanceof Float32Array) {
-            pointbuffer.set(point);
-        } else {
-            pointbuffer[0] = point.x;
-            pointbuffer[1] = point.y;
-            pointbuffer[2] = point.z;
-        }
-
-        var wreq = {
-                funcName: 'query_normals',
-                callbackId: _callbackId,
-                call_id: wapi1.call_counter,
-
-                mp5_str: null, points: null,
-                obj_req_id: -1
-            };
-        wreq.mp5_str = mp5_shape_json;
-        wreq.points = pointbuffer;
-        wreq.shape_id = shape_index;
-
-        wapi1.worker.postMessage(wreq);
-    };
-}();
 
 
 wapi3.query_implicit_values_old = wapi2.wapi_query_implicit_values_old;
