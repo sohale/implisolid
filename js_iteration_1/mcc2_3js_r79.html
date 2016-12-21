@@ -794,8 +794,6 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     cameraControls.target.set( 0, 0, 0 );
     cameraControls.addEventListener( 'change', function () {;} );
 
-
-
 }
 
 function update_mc(implisolid_, delta_t){
@@ -1376,9 +1374,10 @@ else{
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
         // var b = new Uint8Array(r.buffer);
 
-        IMPLICIT_WORKER.wapi_query_implicit_values(shape_json, points, function(returned_result, call_identification) {
-            console.info("Returned: ALL-POINTS-OUTSIDE-OR-ON = ", returned_result);
+        IMPLICIT_WORKER.wapi_query_implicit_values(23451, shape_json, points, function c3(returned_result, call_identification, shape_id) {
+            console.info("Returned: ALL-POINTS-OUTSIDE-OR-ON = ", returned_result, "shape_id", shape_id);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
+            console.info("demo1() done");
         });
         // wreq.mp5_str = JSON.stringify(shape_dict);  // '{}';
         // wreq.points = points;
@@ -1407,8 +1406,8 @@ else{
 
         //avoid calling IMPLICIT.make_polygonization_settings();
 
-        IMPLICIT_WORKER.getLiveGeometry_from_json(shape_json, polygonization_settings_json, function (geom, shape_id){
-            console.info(geom);
+        IMPLICIT_WORKER.getLiveGeometry_from_json(22345, shape_json, polygonization_settings_json, function (geom, shape_id){
+            console.info(geom, "shape_id", shape_id);
 
             if (globals.mesh_solid) {scene.remove(globals.mesh_solid); globals.mesh_solid = null;}
             if (globals.mesh_wireframe) {scene.remove(globals.mesh_wireframe); globals.mesh_wireframe = null;}
@@ -1417,6 +1416,7 @@ else{
             globals.mesh_solid.position.set( 5*0, 5*0, 2*0 );
             globals.mesh_solid.scale.set( MESH_SCALE, MESH_SCALE, MESH_SCALE );
             scene.add( globals.mesh_solid );
+            console.info("demo2() done");
 
         });
     }
@@ -1428,12 +1428,15 @@ else{
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
-        var ignoreDefaultNormals= true; // always
-        IMPLICIT_WORKER.update_geometry_from_json(globals.mesh_solid.geometry, shape_json, polygonization_settings_json, ignoreDefaultNormals);
+        var shape_id = 45454;
+        //var ignoreDefaultNormals= true; // always
+        IMPLICIT_WORKER.update_geometry_from_json_ver1(globals.mesh_solid.geometry, shape_id, shape_json, polygonization_settings_json, function(shape_id, result){
+            console.info("demo3() done", "called on shape:", shape_id);
+        });
     }
 
     function demo4() {
-        console.info("demo4");
+        console.info("demo4: Query implicit values for collision detection. Tests query_implicit_values_old()");
         var demoshape = provide_input(global_time += 0.5, 1, globals);
         var shapejson = JSON.stringify(demoshape.shape_json);
         console.log(shapejson);
@@ -1442,10 +1445,26 @@ else{
         console.log(points);
         var reduce_type = "any-inside";
         //{return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_index: shape_index}
-        IMPLICIT_WORKER.query_implicit_values_old(shapejson, points, reduce_type, 0.0001, function(returned_result, call_identification, shape_id) {
+        IMPLICIT_WORKER.query_implicit_values_old(345123, shapejson, points, reduce_type, 0.0001, function c3(returned_result, call_identification, shape_id) {
             //returned_result.shape_index  // this should be better on the
-            console.info("Returned: "+reduce_type+" = ", returned_result);
+            console.info("Returned: "+reduce_type+" = ", returned_result, "called on shape:", shape_id);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
+            console.info("demo4() done");
+        });
+    }
+
+    function demo5() {
+        console.info("demo5: Query a normal. Tests query_a_normal()");
+        var demoshape = provide_input(global_time, 1, globals);
+        var shapejson = JSON.stringify(demoshape.shape_json);
+        var points = new Float32Array([3.141592651234567890123456780,1,2])
+        console.log(points);
+
+        IMPLICIT_WORKER.wapi_query_a_normal (123123, shapejson, points, function c3(returned_result, call_identification, shape_id) {
+            console.info("Normal returned: ", returned_result, "called on shape:", shape_id);
+            assert(returned_result instanceof Float32Array);
+            if (call_identification) console.info("Unique Call Identification Id:", call_identification);
+            console.info("demo5() done. ", shape_id);
         });
     }
 

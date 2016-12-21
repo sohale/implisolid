@@ -344,7 +344,7 @@ function init2(impli2, impli1) {
         var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  // This allocates space in the C++ side, in order to create the array of vertices.
         Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts).set(input_verts);
 
-        var setx_resut__address = impli1.set_x(verts_space_address, nverts*3);
+        var setx_resut__address = impli1.set_x(verts_space_address, nverts);  // !
         if (!setx_resut__address){
             console.log("set_x returned false: nverts is: " + nverts);
             impli1.unset_object(objid);

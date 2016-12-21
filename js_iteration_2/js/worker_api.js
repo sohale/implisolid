@@ -21,30 +21,30 @@ onmessage = function(event) {
         case "query_implicit_values":
             var shape_id = data.obj_id;  // data.obj_req_id
             var result =
-                api.query_implicit_values(data.mp5_str, data.points, data.reduce_callback);
-            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id});  // {result_allpositive:}
+                api.query_implicit_values(shape_id, data.mp5_str, data.points, data.reduce_callback);
+            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id, shape_id:shape_id});  // {result_allpositive:}
             break;
 
         case "make_geometry":
-            var shape_index = data.obj_req_id;
+            var shape_id = data.obj_req_id;
             var result =
-                api.make_geometry__workerside(data.mp5_str, data.polygonization_settings, _call_id, shape_index);  // _call_id not needed here actually
-            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id, shape_index:shape_index});  // {result_allpositive:}
+                api.make_geometry__workerside(shape_id, data.mp5_str, data.polygonization_settings, _call_id);  // _call_id not needed here actually
+            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id, shape_id:shape_id});  // {result_allpositive:}
             break;
 
         case "get_latest_vf":
-            var shape_index = data.shape_id;
+            var shape_id = data.shape_id;
             var result_vf_output = {faces: null, verts: null};
 
-            var nonempty = api.get_latest_vf(result_vf_output, _call_id, shape_index);  // _call_id not used here actually
+            var nonempty = api.get_latest_vf(shape_id, result_vf_output, _call_id);  // _call_id not used here actually
             result_vf_output.nonempty = nonempty;
             // if not nonempty, returns nonempty==false
-            postMessage({return_callback_id:_callback_id, returned_data: result_vf_output, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+            postMessage({return_callback_id:_callback_id, returned_data: result_vf_output, call_id: _call_id, shape_id: shape_id});  // {result_allpositive:}
             // definitely box the dict
             break;
 
         case "query_implicit_values_old":
-            var shape_index = data.shape_id;
+            var shape_id = data.shape_id;
             assert(
                 //data.reduce_type === "all-outside" ||
                 //data.reduce_type === "all-non-positive" ||
@@ -71,23 +71,27 @@ onmessage = function(event) {
                 return found_positive_val;
             };
 
-            var result_values = api.query_implicit_values_old(data.mp5_str, data.points, reduce_callback, _call_id, shape_index);
-            // result_values.shape_index = shape_index;  // where this should be put?
+            var result_values = api.query_implicit_values_old(shape_id, data.mp5_str, data.points, reduce_callback, _call_id);
+            // result_values.shape_id = shape_id;  // where this should be put?
 
-            postMessage({return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+            postMessage({return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_id: shape_id});  // {result_allpositive:}
             break;
 
-        case "query_a_normal":
-            var shape_index = data.shape_id;
+        case "query_normals":
+            var shape_id = data.shape_id;
             var result_normal = new Float32Array(3);
             result_normal[0] = undefined;  // FOR DEBUG
+            var is_definitely_called = false;
             var result_callback = function(gradient_vector) {
                 result_normal.set(gradient_vector);
+                is_definitely_called = true;
             }
-            api.query_a_normal(data.mp5_str, data.point, result_callback, _call_id, shape_index);
+            api.query_normals(shape_id, data.mp5_str, data.points, result_callback, _call_id);
             assert(result_normal[0] === result_normal[0]);  // check it's not NaN
+            assert(is_definitely_called === true);
 
-            postMessage({return_callback_id:_callback_id, returned_data: result_normal, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+            console.error("call_id",_call_id);
+            postMessage({return_callback_id:_callback_id, returned_data: result_normal, call_id: _call_id, shape_id: shape_id});  // {result_allpositive:}
             break;
 
         default:
@@ -122,7 +126,7 @@ w_impli2._module = Module;
 
 w_impli2.needs_deallocation = false;  // state
 
-    w_impli2.query_implicit_values = function(mp5_str, points, reduce_type, call_id_arg)
+    w_impli2.query_implicit_values = function(shape_id, mp5_str, points, reduce_type, call_id_arg)
     {
         assert__(points instanceof Float32Array);
         assert__(points.length % 3 === 0);
@@ -210,8 +214,8 @@ w_impli2.needs_deallocation = false;  // state
         return  result;
     };
 
-    
-    w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
+  // in Style of an older version, although it was written later.    
+    w_impli2.query_implicit_values_old = function(shape_id, mp5_str, points, reduce_callback, call_id)
     {
         //todo: inside of this function needs refactoring.
         assert(points instanceof Float32Array);
@@ -236,8 +240,9 @@ w_impli2.needs_deallocation = false;  // state
         var success = Module. _set_x(verts_space_address, nverts);
         //todo: rename "success"
         if (!success){
-            console.log("set_x returned false . Probably an error in memory allocation. nverts was: " + nverts);
-            Module. _unset_object(obj_id);
+            console.error("error allocating x: nverts is: " + nverts);
+            Module. _unset_object(objid);
+            Module._free( verts_space_address );
             return false;
         }
 
@@ -255,23 +260,26 @@ w_impli2.needs_deallocation = false;  // state
         return  result;
     }
 
-
-    w_impli2.query_a_normal = function(mp5_shape_json, point, result_callback, call_id, shape_index) {
+    /** called by query_a_normal() */
+    w_impli2.query_normals = function(shape_id, mp5_shape_json, input_verts, result_callback, call_id) {
         // Always takes the root matrix into account. Similar to query_implicit_values()
+        assert(input_verts instanceof Float32Array);
+        var nverts = input_verts.length / 3;             
+
         const ignore_root_matrix = false;
         var objid = Module_cwrapped.set_object(mp5_shape_json, ignore_root_matrix);
 
-        var input_verts = new Float32Array([point.x, point.y, point.z]);
+        // var input_verts = new Float32Array([point.x, point.y, point.z]);
 
-        var nverts = 1;                                       // the number of vertices for which we want to calculate the implicit value
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  // This allocates space in the C++ side, in order to create the array of vertices.
         Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts).set(input_verts);
 
-        var setx_resut__address = Module. _set_x(verts_space_address, nverts*3);
-        if (!setx_resut__address){
-            console.log("set_x returned false: nverts is: " + nverts);
+        var allocation_success = Module. _set_x(verts_space_address, nverts);
+        if (!allocation_success) {
+            console.error("error allocating x: nverts is: " + nverts);
             Module. _unset_object(objid);
+            Module._free( verts_space_address );
             return false;
         } else {
             // console.log("OK! set_c successful");
@@ -286,6 +294,7 @@ w_impli2.needs_deallocation = false;  // state
         //output_vect3.set(-r[0], -r[1], -r[2]);
         result_callback(r);
 
+        // dos this also free the gradients_ptr ?
         Module. _unset_x();
         Module. _unset_object(objid);
         Module._free( verts_space_address );
@@ -295,7 +304,7 @@ w_impli2.needs_deallocation = false;  // state
 
 
 //based on  implisolid.js
-    w_impli2.make_geometry__workerside = function (mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
+    w_impli2.make_geometry__workerside = function (shape_id, mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
         // assert(typeof result_callback !== 'undefined');
         // assert(result_callback);
         assert(typeof call_id_arg !== 'undefined');
@@ -331,12 +340,12 @@ w_impli2.needs_deallocation = false;  // state
         return {verts:verts, faces:faces};
     };
 
-    w_impli2.get_latest_vf = function (output_vf_dict, call_id, shape_index) {
+    w_impli2.get_latest_vf = function (shape_id, output_vf_dict, call_id) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
 
-        // todo: use shape_index
+        // todo: use shape_id
         var nverts = Module. _get_v_size();
         var nfaces = Module. _get_f_size();
 
