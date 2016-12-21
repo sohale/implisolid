@@ -108,7 +108,7 @@ onmessage = function(event) {
 var assert__ = function(x, m){if(!x) {console.error(m,x);throw m;}}
 
 // contains those functions in "Module" that have string arguments.
-var impli1 = {
+var Module_cwrapped = {
     //Based on API Version 1:
     // only functions that receive 'string' arguments need to be cwrap()ed.
     set_object: Module.cwrap('set_object','number',['string','number']),
@@ -159,7 +159,7 @@ w_impli2.needs_deallocation = false;  // state
 
         var ignore_root_matrix = false;
         /* obj_id is an integer that will match to the function _unset_object(obj_id). This integer will be used to identify one object among multiple objects that are available on the C++ side. */
-        var obj_id = /* Module. */ impli1.set_object(mp5_str, ignore_root_matrix);
+        var obj_id = /* Module. */ Module_cwrapped.set_object(mp5_str, ignore_root_matrix);
 
         /* Consume the given vertices. The vertices are given as an integer, the index of their start in C++ mamory. */
         var success = Module._set_x(verts_space_address, nverts);
@@ -208,7 +208,7 @@ w_impli2.needs_deallocation = false;  // state
         Module._unset_object(obj_id);    /* Ask C++ to free its resources; i.e. the implicit_function object. */
         Module._unset_x(); /* Ask C++ to free the memory it used to pass the verts. */
         return  result;
-    }
+    };
 
     
     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
@@ -232,7 +232,7 @@ w_impli2.needs_deallocation = false;  // state
 
         const ignore_root_matrix = false;
 
-        var obj_id = impli1.set_object(mp5_str, ignore_root_matrix);
+        var obj_id = Module_cwrapped.set_object(mp5_str, ignore_root_matrix);
         var success = Module. _set_x(verts_space_address, nverts);
         //todo: rename "success"
         if (!success){
@@ -259,7 +259,7 @@ w_impli2.needs_deallocation = false;  // state
     w_impli2.query_a_normal = function(mp5_shape_json, point, result_callback, call_id, shape_index) {
         // Always takes the root matrix into account. Similar to query_implicit_values()
         const ignore_root_matrix = false;
-        var objid = impli1.set_object(mp5_shape_json, ignore_root_matrix);
+        var objid = Module_cwrapped.set_object(mp5_shape_json, ignore_root_matrix);
 
         var input_verts = new Float32Array([point.x, point.y, point.z]);
 
@@ -306,14 +306,14 @@ w_impli2.needs_deallocation = false;  // state
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
         if(w_impli2.needs_deallocation) {
-            /*impli1.*/ Module. _finish_geometry();
+            /*Module_cwrapped.*/ Module. _finish_geometry();
             w_impli2. needs_deallocation = false;
         }
         //console.log("mc_params.resolution " + mc_params.resolution);
         //mc_params.resolution = 40;
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
-        /*Module.*/ impli1. build_geometry(mp5_str, polygonization_settings_json);
+        /*Module.*/ Module_cwrapped. build_geometry(mp5_str, polygonization_settings_json);
         w_impli2. needs_deallocation = true;
         var nverts = Module. _get_v_size();
         var nfaces = Module. _get_f_size();
