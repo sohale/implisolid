@@ -210,79 +210,7 @@ w_impli2.needs_deallocation = false;  // state
         return  result;
     }
 
-
-
-
-//based on  implisolid.js
-    w_impli2.make_geometry__workerside = function (mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
-        // assert(typeof result_callback !== 'undefined');
-        // assert(result_callback);
-        assert(typeof call_id_arg !== 'undefined');
-        assert(polygonization_settings_json);
-        assert(typeof polygonization_settings_json === "string");
-
-        var startTime = new Date();
-        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
-        if(w_impli2.needs_deallocation) {
-            /*impli1.*/ Module. _finish_geometry();
-            w_impli2. needs_deallocation = false;
-        }
-        //console.log("mc_params.resolution " + mc_params.resolution);
-        //mc_params.resolution = 40;
-        //var mp5_str = JSON.stringify(shape_params);
-        //var mp5_str = JSON.stringify(shape_params);
-        /*Module.*/ impli1. build_geometry(mp5_str, polygonization_settings_json);
-        w_impli2. needs_deallocation = true;
-        var nverts = Module. _get_v_size();
-        var nfaces = Module. _get_f_size();
-        var verts_address = Module. _get_v_ptr();
-        var faces_address = Module. _get_f_ptr();
-        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
-        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-        // first iteration: using the callback
-        //var geom = result_callback(verts, faces);
-        var endTime = new Date();
-        var timeDiff = endTime - startTime;
-        //report_time(timeDiff, function(){hist();});
-        //return geom;
-
-        return {verts:verts, faces:faces};
-    };
-
-    w_impli2.get_latest_vf = function (output_vf_dict, call_id, shape_index) {
-        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
-        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
-        const POINTS_PER_FACE = 3;
-
-        // todo: use shape_index
-        var nverts = Module. _get_v_size();
-        var nfaces = Module. _get_f_size();
-
-        if(nfaces > 0){
-            var verts_address = Module. _get_v_ptr();
-            var faces_address = Module. _get_f_ptr();
-
-            var verts = Module.HEAPF32.subarray(
-                verts_address/_FLOAT_SIZE,
-                verts_address/_FLOAT_SIZE + 3*nverts);
-
-            var faces = Module.HEAPU32.subarray(
-                faces_address/_INT_SIZE,
-                faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
-            // return {faces: faces, verts: verts};
-            output_vf_dict['faces'] = faces;
-            output_vf_dict['verts'] = verts;
-            return true;
-        } else {
-            // empty
-            output_vf_dict['faces'] = null;
-            output_vf_dict['verts'] = null;
-            return false;
-        }
-    }
-
-
+    
     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
     {
         //todo: inside of this function needs refactoring.
@@ -362,6 +290,78 @@ w_impli2.needs_deallocation = false;  // state
         Module. _unset_object(objid);
         Module._free( verts_space_address );
     };
+
+
+
+
+//based on  implisolid.js
+    w_impli2.make_geometry__workerside = function (mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
+        // assert(typeof result_callback !== 'undefined');
+        // assert(result_callback);
+        assert(typeof call_id_arg !== 'undefined');
+        assert(polygonization_settings_json);
+        assert(typeof polygonization_settings_json === "string");
+
+        var startTime = new Date();
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+        if(w_impli2.needs_deallocation) {
+            /*impli1.*/ Module. _finish_geometry();
+            w_impli2. needs_deallocation = false;
+        }
+        //console.log("mc_params.resolution " + mc_params.resolution);
+        //mc_params.resolution = 40;
+        //var mp5_str = JSON.stringify(shape_params);
+        //var mp5_str = JSON.stringify(shape_params);
+        /*Module.*/ impli1. build_geometry(mp5_str, polygonization_settings_json);
+        w_impli2. needs_deallocation = true;
+        var nverts = Module. _get_v_size();
+        var nfaces = Module. _get_f_size();
+        var verts_address = Module. _get_v_ptr();
+        var faces_address = Module. _get_f_ptr();
+        var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+        var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+        // first iteration: using the callback
+        //var geom = result_callback(verts, faces);
+        var endTime = new Date();
+        var timeDiff = endTime - startTime;
+        //report_time(timeDiff, function(){hist();});
+        //return geom;
+
+        return {verts:verts, faces:faces};
+    };
+
+    w_impli2.get_latest_vf = function (output_vf_dict, call_id, shape_index) {
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
+        const POINTS_PER_FACE = 3;
+
+        // todo: use shape_index
+        var nverts = Module. _get_v_size();
+        var nfaces = Module. _get_f_size();
+
+        if(nfaces > 0){
+            var verts_address = Module. _get_v_ptr();
+            var faces_address = Module. _get_f_ptr();
+
+            var verts = Module.HEAPF32.subarray(
+                verts_address/_FLOAT_SIZE,
+                verts_address/_FLOAT_SIZE + 3*nverts);
+
+            var faces = Module.HEAPU32.subarray(
+                faces_address/_INT_SIZE,
+                faces_address/_INT_SIZE + nfaces * POINTS_PER_FACE);
+            // return {faces: faces, verts: verts};
+            output_vf_dict['faces'] = faces;
+            output_vf_dict['verts'] = verts;
+            return true;
+        } else {
+            // empty
+            output_vf_dict['faces'] = null;
+            output_vf_dict['verts'] = null;
+            return false;
+        }
+    }
 
 
 
