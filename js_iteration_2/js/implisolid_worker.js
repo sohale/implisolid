@@ -49,7 +49,9 @@ w_impli1.worker.addEventListener('message', function(event) {
         console.info("calling the callback ", mycallback.name);
 
     var call_identification = event.data.call_id;
-    mycallback(event.data.returned_data, call_identification);
+    var shape_id = event.data.shape_id;
+    mycallback(event.data.returned_data, call_identification, shape_id);
+    // todo: mycallback(event.data.returned_data, call_identification, event.data.shape_id);
 
  });
 
@@ -155,7 +157,7 @@ w_impli3.wapi_query_implicit_values = function (mp5_str, points, result_callback
         };
     wreq.mp5_str = mp5_str;
     wreq.points = points;
-    wreq.reduce_callback = 'all-non-positive';  // all outside or on
+    wreq.reduce_callback = 'any-positive';  // all outside or on
     wreq.obj_id = obj_id;
     w_impli1.worker.postMessage(wreq);
 }
@@ -311,7 +313,7 @@ w_impli3.update_geometry_from_json = function(geometry, shape_json, polygonizati
 /**
 @param client_result_callback is needed for all worker API functions. client_result_callback is a fuction that receives the and called asynchroniously. Even if it sdoesn't have eany argument, it notifies completion f the worker's job.
 */
-wservice2.wapi_query_implicit_values_old = function(shape_json, points, reduce_type_str, client_result_callback, shape_index) {
+wservice2.wapi_query_implicit_values_old = function(shape_json, points, reduce_type_str, epsilon, client_result_callback, shape_index) {
     my_assert(typeof reduce_type_str === 'string');
 
     // registers the function client_result_callback to listen to the messages posted from the webworker
@@ -321,11 +323,12 @@ wservice2.wapi_query_implicit_values_old = function(shape_json, points, reduce_t
             callbackId: _callbackId,
             call_id: w_impli1.call_counter,
 
-            mp5_str: null, points: null, reduce_type: "", obj_req_id: -1
+            mp5_str: null, points: null, reduce_type: "", epsilon: 0.0000, obj_req_id: -1
         };
-    wreq.mp5_str = mp5_str;
+    wreq.mp5_str = shape_json;
     wreq.points = points;  // the points are set to the worker via the postMessage, as the Float32Array they are.
     wreq.reduce_type = reduce_type_str;
+    wreq.epsilon = epsilon;
     wreq.shape_id = shape_index; //w_impli1.call_counter;
     //shape_index
     w_impli1.worker.postMessage(wreq);

@@ -1423,13 +1423,30 @@ else{
 
     function demo3() {
         console.info("demo3");
-        global_time += 3;
+        global_time += 2;
         var dct = provide_input(global_time, 1, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
         var ignoreDefaultNormals= true; // always
-        IMPLICIT_WORKER.update_geometry_from_json(globals.mesh_solid.geometry, shape_json, polygonization_settings_json, ignoreDefaultNormals)
-
+        IMPLICIT_WORKER.update_geometry_from_json(globals.mesh_solid.geometry, shape_json, polygonization_settings_json, ignoreDefaultNormals);
     }
+
+    function demo4() {
+        console.info("demo4");
+        var demoshape = provide_input(global_time += 0.5, 1, globals);
+        var shapejson = JSON.stringify(demoshape.shape_json);
+        console.log(shapejson);
+        var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
+        for (var i=0;i<points.length;++i) points[i] *= 0.0001;
+        console.log(points);
+        var reduce_type = "any-inside";
+        //{return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_index: shape_index}
+        IMPLICIT_WORKER.query_implicit_values_old(shapejson, points, reduce_type, 0.0001, function(returned_result, call_identification, shape_id) {
+            //returned_result.shape_index  // this should be better on the
+            console.info("Returned: "+reduce_type+" = ", returned_result);
+            if (call_identification) console.info("Unique Call Identification Id:", call_identification);
+        });
+    }
+
  </script >

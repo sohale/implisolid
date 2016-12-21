@@ -46,12 +46,15 @@ onmessage = function(event) {
         case "query_implicit_values_old":
             var shape_index = data.shape_id;
             assert(
-                data.reduce_type === "all-outside" ||
-                data.reduce_type === "all-non-positive" || 
-                data.reduce_type === "<=0"
+                //data.reduce_type === "all-outside" ||
+                //data.reduce_type === "all-non-positive" ||
+                //data.reduce_type === "<=0"
+                data.reduce_type === "any-inside" ||
+                data.reduce_type === "any-positive" ||
+                data.reduce_type === ">0"
             );
 
-            var epsilop = data.epsilon;
+            var epsilon = data.epsilon;
 
             // old-style. The new style should get the string on the C++ side and do the reduction there.
 
@@ -67,10 +70,12 @@ onmessage = function(event) {
                 }
                 return found_positive_val;
             };
-            
-            var result_values = api.query_implicit_values_old(data.mp5_str, data.points, reduce_callback, _call_id, shape_index)
+
+            var result_values = api.query_implicit_values_old(data.mp5_str, data.points, reduce_callback, _call_id, shape_index);
+            // result_values.shape_index = shape_index;  // where this should be put?
 
             postMessage({return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+            break;
 
         case "query_a_normal":
             var shape_index = data.shape_id;
@@ -83,6 +88,7 @@ onmessage = function(event) {
             assert(result_normal[0] === result_normal[0]);  // check it's not NaN
 
             postMessage({return_callback_id:_callback_id, returned_data: result_normal, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+            break;
 
         default:
             console.error("Unknown worker request for unknown function call: \""+(data.funcName)+"\" via event data:", event.data);
@@ -125,12 +131,12 @@ w_impli2.needs_deallocation = false;  // state
         const ENUM_ALL_NON_POSITIVE = 2;
         const ENUM_ALL_NEGATIVE = 3;
         const ENUM_ERROR = 123456;
-        var reduce_type_enum = 
-        (    (reduce_type === "all-outside" ||
-                reduce_type === "all-non-positive" || 
-                reduce_type === "<=0" ) ? ENUM_ALL_NON_POSITIVE
+        var reduce_type_enum =
+        (    (reduce_type === "any-inside" ||
+                reduce_type === "any-positive" ||
+                reduce_type === ">0" ) ? ENUM_ALL_NON_POSITIVE
             : (
-                (reduce_type === "all-negative" || reduce_type === "<0") ? ENUM_ALL_NEGATIVE
+                (reduce_type === "any-negative" || reduce_type === ">=0") ? ENUM_ALL_NEGATIVE
                 : (
                     ENUM_ERROR
                 )
@@ -204,6 +210,9 @@ w_impli2.needs_deallocation = false;  // state
         return  result;
     }
 
+
+
+
 //based on  implisolid.js
     w_impli2.make_geometry__workerside = function (mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
         // assert(typeof result_callback !== 'undefined');
@@ -274,28 +283,28 @@ w_impli2.needs_deallocation = false;  // state
     }
 
 
-
     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
     {
-        assert(points instanceof Float32Array);                   /* simple check */
-        assert(typeof reduce_callback === 'function');             /* the callback that produces the return value of the function */
+        //todo: inside of this function needs refactoring.
+        assert(points instanceof Float32Array);
+        assert(typeof reduce_callback === 'function');
+
+        assert(typeof mp5_str === "string");
 
         /* Declarations */
 
-        var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;                    /* We ll need the _FLOAT_SIZE in bytes, when we deal with allocations and HEAPF32*/
-        var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
-        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  /* This allocates space in the C++ side, in order to create the array of vertices. */
+        var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        var nverts = points.length / 3;
+        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);
 
         /* body */
         Module.HEAPF32.subarray(
             verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
         ).set(points);
 
-        // Never ignore the root matrix. (Always takes the root matrix into account).
-        // Hence, query_implicit_values() does not need an `ignore_root_matrix` argument.
         const ignore_root_matrix = false;
 
-        var obj_id = Module. _set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
+        var obj_id = impli1.set_object(mp5_str, ignore_root_matrix);
         var success = Module. _set_x(verts_space_address, nverts);
         //todo: rename "success"
         if (!success){
@@ -303,18 +312,17 @@ w_impli2.needs_deallocation = false;  // state
             Module. _unset_object(obj_id);
             return false;
         }
-        // Module. _set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
-        Module. _calculate_implicit_values();                                /* The actual implicit value calculation*/
 
-        var ptr = Module. _get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
+        Module. _calculate_implicit_values();
+
+        var ptr = Module. _get_values_ptr();
         var ptr_len = Module. _get_values_size()
         var values_tarray = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
 
         var result = reduce_callback(values_tarray);
 
-        //Bug! Forgot to FREE!!!
         Module._free( verts_space_address );
-        Module. _unset_object(obj_id);    /* Free allocated C++ memory */
+        Module. _unset_object(obj_id);
         Module. _unset_x();
         return  result;
     }
@@ -354,6 +362,8 @@ w_impli2.needs_deallocation = false;  // state
         Module. _unset_object(objid);
         Module._free( verts_space_address );
     };
+
+
 
 // worker side
 console.info("worker js loaded");
