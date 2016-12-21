@@ -55,6 +55,7 @@ w_impli1.worker.addEventListener('message', function(event) {
 
 
 function worker_call_preparation(_callbackId, result_callback) {
+    w_impli1.call_counter ++ ;
     if (WORKER_DEBUG) {
         var temp = w_impli1.worker_response_callbacks_table[_callbackId];
         if (temp) {
@@ -63,13 +64,13 @@ function worker_call_preparation(_callbackId, result_callback) {
                 console.error("Warning: and callback is different!: ", temp, "!==", result_callback);
         }
     }
+
     w_impli1.worker_response_callbacks_table[_callbackId] = result_callback;
     if (WORKER_DEBUG) {
         w_impli1.w_api_debug_info[_callbackId] = result_callback;
         // also you can store call timestamp, etc
     }
 
-    w_impli1.call_counter ++ ;
 
     //console.info(callstamps, w_impli1.call_counter);
     callstamps[w_impli1.call_counter] = new Date();
@@ -139,7 +140,7 @@ w_impli3.getLiveGeometry_from_json  = function(shape_json_str, polygonization_se
 };
 
 
-w_impli3.wapi_query_implicit_values = function (mp5_str, points, result_callback) {
+w_impli3.wapi_query_implicit_values = function (mp5_str, points, result_callback, obj_id) {
 
     // var _callbackId = 4;
     var _callbackId = worker_call_preparation(4, result_callback);
@@ -149,11 +150,13 @@ w_impli3.wapi_query_implicit_values = function (mp5_str, points, result_callback
             callbackId: _callbackId,
             call_id: w_impli1.call_counter,
             //args: {
-            mp5_str: null, points: null, reduce_callback: 'allpositive'
+            mp5_str: null, points: null, reduce_callback: "", obj_id: 0
             //},
         };
     wreq.mp5_str = mp5_str;
     wreq.points = points;
+    wreq.reduce_callback = 'all-non-positive';  // all outside or on
+    wreq.obj_id = obj_id;
     w_impli1.worker.postMessage(wreq);
 }
 
@@ -213,7 +216,7 @@ wservice2.wapi_make_geometry = function (mp5_str, polygonization_settings_json, 
 }
 
 
-wservice2.wapi_get_latest_vf = function (result_callback) {
+wservice2.wapi_get_latest_vf = function (result_callback, shape_id) {
     my_assert(typeof result_callback === 'function');
 
     var _callbackId = worker_call_preparation(wcodes1.__wapi_get_latest_vf, result_callback);
@@ -224,7 +227,7 @@ wservice2.wapi_get_latest_vf = function (result_callback) {
 
             obj_req_id: 0
         };
-    wreq.obj_req_id = w_impli1.call_counter;
+    wreq.shape_id = shape_id, // wreq.obj_req_id = obj_id, //w_impli1.call_counter;
     w_impli1.worker.postMessage(wreq);
 }
 
@@ -304,7 +307,32 @@ w_impli3.update_geometry_from_json = function(geometry, shape_json, polygonizati
 
 };
 
+//     w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
+/**
+@param client_result_callback is needed for all worker API functions. client_result_callback is a fuction that receives the and called asynchroniously. Even if it sdoesn't have eany argument, it notifies completion f the worker's job.
+*/
+wservice2.wapi_query_implicit_values_old = function(shape_json, points, reduce_type_str, client_result_callback, shape_index) {
+    my_assert(typeof reduce_type_str === 'string');
 
+    // registers the function client_result_callback to listen to the messages posted from the webworker
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_query_implicit_values_old, client_result_callback);
+    var wreq = {
+            funcName: 'query_implicit_values_old',
+            callbackId: _callbackId,
+            call_id: w_impli1.call_counter,
+
+            mp5_str: null, points: null, reduce_type: "", obj_req_id: -1
+        };
+    wreq.mp5_str = mp5_str;
+    wreq.points = points;  // the points are set to the worker via the postMessage, as the Float32Array they are.
+    wreq.reduce_type = reduce_type_str;
+    wreq.shape_id = shape_index; //w_impli1.call_counter;
+    //shape_index
+    w_impli1.worker.postMessage(wreq);
+}
+
+
+w_impli3.query_implicit_values_old = wservice2.wapi_query_implicit_values_old;
 
 // End of Worker-based API
 // ******************************************************************************
@@ -312,3 +340,6 @@ w_impli3.update_geometry_from_json = function(geometry, shape_json, polygonizati
 
 var IMPLICIT_WORKER = w_impli3;
 // wapi_*
+
+console.log("IMPLICIT_WORKER ---------------");
+for(var a in IMPLICIT_WORKER) console.log("IMPLICIT_WORKER.",a);

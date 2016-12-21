@@ -11,10 +11,14 @@
     width:100px;
     /* z-index:1000; */
 }
+.mycanvas {
+    /* width: 100%; */ 
+    /*  Will not work ion canvas, because the size is later changed by JS code. Note that "width=" attriute and css width are independent: one is the pixels resolution and the other one is appearance onle, regarless of the actual pixels (resolution). */
+}
 </style>
 
 <body>
-    <canvas id="my_canvas"></canvas>
+    <canvas class=mycanvas id="my_canvas"></canvas>
 
     <!-- To show the histogram: Uncomment the following <div> to reveal the histogram graph, also uncomment the line that says: //hist_delayed(); -->
     <div id="chart_div" class="stat-panel" no_style="width: 900px; height: 500px;">
@@ -1373,7 +1377,7 @@ else{
         // var b = new Uint8Array(r.buffer);
 
         IMPLICIT_WORKER.wapi_query_implicit_values(shape_json, points, function(returned_result, call_identification) {
-            console.info("Returned: ", returned_result);
+            console.info("Returned: ALL-POINTS-OUTSIDE-OR-ON = ", returned_result);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
         });
         // wreq.mp5_str = JSON.stringify(shape_dict);  // '{}';

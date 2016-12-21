@@ -15,32 +15,74 @@ onmessage = function(event) {
     var api = w_impli2;
     // console.log('Message received from main script. event.data=',event.data);
     var data = event.data;
-    var call_id = data.call_id;  // call_identification
+    var _call_id = data.call_id;  // call_identification
+    var _callback_id = event.data.callbackId;
     switch (data.funcName) {
         case "query_implicit_values":
+            var shape_id = data.obj_id;  // data.obj_req_id
             var result =
                 api.query_implicit_values(data.mp5_str, data.points, data.reduce_callback);
-            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id});  // {result_allpositive:}
+            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id});  // {result_allpositive:}
             break;
 
         case "make_geometry":
             var shape_index = data.obj_req_id;
             var result =
-                api.make_geometry__workerside(data.mp5_str, data.polygonization_settings, call_id, shape_index);  // call_id not needed here actually
-            postMessage({return_callback_id:event.data.callbackId, returned_data: result, call_id: call_id, shape_index:shape_index});  // {result_allpositive:}
+                api.make_geometry__workerside(data.mp5_str, data.polygonization_settings, _call_id, shape_index);  // _call_id not needed here actually
+            postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id, shape_index:shape_index});  // {result_allpositive:}
             break;
 
         case "get_latest_vf":
-            var shape_index = data.obj_req_id;
+            var shape_index = data.shape_id;
             var result_vf_output = {faces: null, verts: null};
 
-            var nonempty = api.get_latest_vf(result_vf_output, call_id, shape_index);  // call_id not used here actually
+            var nonempty = api.get_latest_vf(result_vf_output, _call_id, shape_index);  // _call_id not used here actually
             result_vf_output.nonempty = nonempty;
             // if not nonempty, returns nonempty==false
-            postMessage({return_callback_id:event.data.callbackId, returned_data: result_vf_output, call_id: call_id, shape_index: shape_index});  // {result_allpositive:}
+            postMessage({return_callback_id:_callback_id, returned_data: result_vf_output, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
             // definitely box the dict
             break;
 
+        case "query_implicit_values_old":
+            var shape_index = data.shape_id;
+            assert(
+                data.reduce_type === "all-outside" ||
+                data.reduce_type === "all-non-positive" || 
+                data.reduce_type === "<=0"
+            );
+
+            var epsilop = data.epsilon;
+
+            // old-style. The new style should get the string on the C++ side and do the reduction there.
+
+            var reduce_callback = function(values_tarray) {
+                'use asm';
+                const minus_eps = +(-epsilon);
+                var found_positive_val = false|0;
+                for (var i = 0|0; i < values_tarray.length|0; i++) {
+                    if (values_tarray[i] >= +minus_eps ) {
+                        found_positive_val = true|0;
+                        break;
+                    }
+                }
+                return found_positive_val;
+            };
+            
+            var result_values = api.query_implicit_values_old(data.mp5_str, data.points, reduce_callback, _call_id, shape_index)
+
+            postMessage({return_callback_id:_callback_id, returned_data: result_values, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
+
+        case "query_a_normal":
+            var shape_index = data.shape_id;
+            var result_normal = new Float32Array(3);
+            result_normal[0] = undefined;  // FOR DEBUG
+            var result_callback = function(gradient_vector) {
+                result_normal.set(gradient_vector);
+            }
+            api.query_a_normal(data.mp5_str, data.point, result_callback, _call_id, shape_index);
+            assert(result_normal[0] === result_normal[0]);  // check it's not NaN
+
+            postMessage({return_callback_id:_callback_id, returned_data: result_normal, call_id: _call_id, shape_index: shape_index});  // {result_allpositive:}
 
         default:
             console.error("Unknown worker request for unknown function call: \""+(data.funcName)+"\" via event data:", event.data);
@@ -59,6 +101,7 @@ onmessage = function(event) {
 
 var assert__ = function(x, m){if(!x) {console.error(m,x);throw m;}}
 
+// contains those functions in "Module" that have string arguments.
 var impli1 = {
     //Based on API Version 1:
     // only functions that receive 'string' arguments need to be cwrap()ed.
@@ -78,7 +121,23 @@ w_impli2.needs_deallocation = false;  // state
         assert__(points instanceof Float32Array);
         assert__(points.length % 3 === 0);
         assert__(typeof reduce_type === 'string');
-        assert__(['allpositive'].indexOf(reduce_type) > -1);             /* the callback that produces the return value of the function */
+        // assert__(['allpositive',].indexOf(redureduce_typereduce_typece_type) > -1);             /* the callback that produces the return value of the function */
+        const ENUM_ALL_NON_POSITIVE = 2;
+        const ENUM_ALL_NEGATIVE = 3;
+        const ENUM_ERROR = 123456;
+        var reduce_type_enum = 
+        (    (reduce_type === "all-outside" ||
+                reduce_type === "all-non-positive" || 
+                reduce_type === "<=0" ) ? ENUM_ALL_NON_POSITIVE
+            : (
+                (reduce_type === "all-negative" || reduce_type === "<0") ? ENUM_ALL_NEGATIVE
+                : (
+                    ENUM_ERROR
+                )
+            )
+        );
+
+        assert(reduce_type_enum === ENUM_ALL_NON_POSITIVE);
 
         var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;                    /* We ll need the _FLOAT_SIZE in bytes, when we deal with allocations and HEAPF32*/
         var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
@@ -114,23 +173,24 @@ w_impli2.needs_deallocation = false;  // state
         /* Generate one boolean from the array. It resembles reduce() in MapReduce. */
         /* The following code can be moved into the C++ code. In this case, we don't need to query get_values_ptr(), etc. It will also be faster on C++ side. */
         var result = null;
-        switch (reduce_type) {
-            case 'allpositive':
+        switch (reduce_type_enum) {
+            case ENUM_ALL_NON_POSITIVE:
 
-	    var reduce_callback = function(values_tarray) {
+    	    var reduce_callback = function(values_tarray) {
                 const CONFIG__collision_detection__epsilon = 0.001;
-		var found_positive_val = false;
-		for (var i=0; i < values_tarray.length; i++)
-		{
-		    if (values_tarray[i] >= - CONFIG__collision_detection__epsilon)
-		    {
-		        found_positive_val = true;
-		        break;
-		    }
-		}
-		var result =  found_positive_val;
-		return result;
-	    };
+        		var found_positive_val = false;
+        		for (var i=0; i < values_tarray.length; i++)
+        		{
+        		    if (values_tarray[i] >= - CONFIG__collision_detection__epsilon)
+        		    {
+        		        found_positive_val = true;
+        		        break;
+        		    }
+        		}
+        		var result =  found_positive_val;
+        		return result;
+    	    };
+
             result = reduce_callback(values_tarray);
 
             break;
@@ -212,6 +272,88 @@ w_impli2.needs_deallocation = false;  // state
             return false;
         }
     }
+
+
+
+    w_impli2.query_implicit_values_old = function(mp5_str, points, reduce_callback, call_id, shape_index)
+    {
+        assert(points instanceof Float32Array);                   /* simple check */
+        assert(typeof reduce_callback === 'function');             /* the callback that produces the return value of the function */
+
+        /* Declarations */
+
+        var _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;                    /* We ll need the _FLOAT_SIZE in bytes, when we deal with allocations and HEAPF32*/
+        var nverts = points.length / 3;                                       /* the number of vertices for which we want to calculate the implicit value */
+        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  /* This allocates space in the C++ side, in order to create the array of vertices. */
+
+        /* body */
+        Module.HEAPF32.subarray(
+            verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts
+        ).set(points);
+
+        // Never ignore the root matrix. (Always takes the root matrix into account).
+        // Hence, query_implicit_values() does not need an `ignore_root_matrix` argument.
+        const ignore_root_matrix = false;
+
+        var obj_id = Module. _set_object(mp5_str, ignore_root_matrix);                    /* Allocations on the C++ side */
+        var success = Module. _set_x(verts_space_address, nverts);
+        //todo: rename "success"
+        if (!success){
+            console.log("set_x returned false . Probably an error in memory allocation. nverts was: " + nverts);
+            Module. _unset_object(obj_id);
+            return false;
+        }
+        // Module. _set_x_with_matrix(verts_space_address, nverts, matrix);     /* can create a function like this so we dont have the matrix issue */
+        Module. _calculate_implicit_values();                                /* The actual implicit value calculation*/
+
+        var ptr = Module. _get_values_ptr();                                 /* retrieve a pointer to the position in memory of the calculated array */
+        var ptr_len = Module. _get_values_size()
+        var values_tarray = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
+
+        var result = reduce_callback(values_tarray);
+
+        //Bug! Forgot to FREE!!!
+        Module._free( verts_space_address );
+        Module. _unset_object(obj_id);    /* Free allocated C++ memory */
+        Module. _unset_x();
+        return  result;
+    }
+
+
+    w_impli2.query_a_normal = function(mp5_shape_json, point, result_callback, call_id, shape_index) {
+        // Always takes the root matrix into account. Similar to query_implicit_values()
+        const ignore_root_matrix = false;
+        var objid = impli1.set_object(mp5_shape_json, ignore_root_matrix);
+
+        var input_verts = new Float32Array([point.x, point.y, point.z]);
+
+        var nverts = 1;                                       // the number of vertices for which we want to calculate the implicit value
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        var verts_space_address = Module._malloc(_FLOAT_SIZE * 3 * nverts);  // This allocates space in the C++ side, in order to create the array of vertices.
+        Module.HEAPF32.subarray(verts_space_address / _FLOAT_SIZE, verts_space_address / _FLOAT_SIZE + 3 * nverts).set(input_verts);
+
+        var setx_resut__address = Module. _set_x(verts_space_address, nverts*3);
+        if (!setx_resut__address){
+            console.log("set_x returned false: nverts is: " + nverts);
+            Module. _unset_object(objid);
+            return false;
+        } else {
+            // console.log("OK! set_c successful");
+        }
+
+        Module. _calculate_implicit_gradients(true);  // true = normalise and invert
+        var ptr = Module. _get_gradients_ptr();                                 // retrieve a pointer to the position in memory of the calculated array
+        var ptr_len = Module. _get_gradients_size()
+        var r = Module.HEAPF32.subarray(ptr / _FLOAT_SIZE , ptr / _FLOAT_SIZE + ptr_len );
+
+        // console.log(r[0], r[1], r[2]);
+        //output_vect3.set(-r[0], -r[1], -r[2]);
+        result_callback(r);
+
+        Module. _unset_x();
+        Module. _unset_object(objid);
+        Module._free( verts_space_address );
+    };
 
 // worker side
 console.info("worker js loaded");

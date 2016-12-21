@@ -811,12 +811,13 @@ var ImplicitService = function() {
     // adds the high-level API to 'this'
     init3(impli3, impli2);
 
+    // API interface functions:
     console.log("impli1 ---------------");
-    for(var a in impli1) console.log(a);
+    for(var a in impli1) console.log("API Level1.",a);
     console.log("impli2 ---------------");
-    for(var a in impli2) console.log(a);
+    for(var a in impli2) console.log("API Level2.", a);
     console.log("impli3 ---------------");
-    for(var a in impli3) console.log(a);
+    for(var a in impli3) console.log("IMPLICIT.",a);
 };
 
 
