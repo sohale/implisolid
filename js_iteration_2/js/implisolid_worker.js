@@ -348,6 +348,9 @@ wapi3.receive_mesh = function(shape_id_, result_callback) {
 }
 
 
+/**
+ ver 1 is a test for a recursive - like function in side another function (function composition; promise chaining).
+*/
 wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, polygonization_json, done_callback) {
     //var startTime = new Date();
 
@@ -368,7 +371,7 @@ wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, 
             //var allocate_buffer=false;
             vf_result.faces;
             vf_result.verts;
-            // vf_result already dontains it!!
+            // vf_result already contains it!!
 
             // todo: make it the same query. dont call get_vf again.
             wapi3.receive_mesh(shape_id1, function(shape_id__, vf) {
@@ -401,6 +404,26 @@ wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, 
 
 };
 
+/**
+ver 2 is faster (simpler), doing it in a single request. 
+*/
+wapi3.update_geometry_from_json_ver2 = function(geometry, shape_id, shape_json, polygonization_json, done_callback) {
+    if (typeof shape_json !== "string") shape_json = JSON.stringify(shape_json);
+    assert(typeof done_callback !== "number" && typeof done_callback !== "boolean");
+    assert(typeof done_callback === "function");
+    if (typeof polygonization_json !== "string") polygonization_json = JSON.stringify(polygonization_json);
+
+    wapi2.wapi_make_geometry (shape_id, shape_json, polygonization_json, //result_callback,
+        function c3(vf_result, call_id1, shape_id1) {
+            vf_result.faces; vf_result.verts;
+            assert(shape_id1 === shape_id);
+            var ignoreDefaultNormals = true;
+            var bool_reallocated = geometry.update_geometry1(vf_result.verts, vf_result.faces, ignoreDefaultNormals, false);
+            geometry.use_default_normals_from_vertices();
+            done_callback(shape_id1, null);
+        }
+    );
+};
 
 wapi3.query_implicit_values_old = wapi2.wapi_query_implicit_values_old;
 

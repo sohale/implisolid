@@ -1421,18 +1421,30 @@ else{
         });
     }
 
-    function demo3() {
-        console.info("demo3");
-        global_time += 2;
+    function demo3(ver) {
+        console.info("demo3 ver"+ver);
+        // global_time += 2;
+        global_time = 4;
         var dct = provide_input(global_time, 1, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
+        
+        var stt = new Date();
 
         var shape_id = 45454;
-        //var ignoreDefaultNormals= true; // always
-        IMPLICIT_WORKER.update_geometry_from_json_ver1(globals.mesh_solid.geometry, shape_id, shape_json, polygonization_settings_json, function(shape_id, result){
-            console.info("demo3() done", "called on shape:", shape_id);
-        });
+        if (ver == 1) {
+            IMPLICIT_WORKER.update_geometry_from_json_ver1(globals.mesh_solid.geometry, shape_id, shape_json, polygonization_settings_json, function(shape_id, result){
+                console.info("demo3() done", "called on shape:", shape_id);
+                console.info("TIME: ", new Date() - stt);
+            });
+        } else if (ver == 2) {
+            IMPLICIT_WORKER.update_geometry_from_json_ver2(globals.mesh_solid.geometry, shape_id, shape_json, polygonization_settings_json, function(shape_id, result){
+                console.info("demo3() done ", "called on shape:", shape_id);
+                console.info("TIME: ", new Date() - stt);
+            });
+        } else {
+            console.error("Sorry. use (1) or (2)");
+        }
     }
 
     function demo4() {
