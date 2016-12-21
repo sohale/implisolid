@@ -12,7 +12,7 @@ importScripts('../../build/mcc2.compiled.js');
 'use strict';
 
 onmessage = function(event) {
-    var api = w_impli2;
+    var api = wwapi;
     // console.log('Message received from main script. event.data=',event.data);
     var data = event.data;
     var _call_id = data.call_id;  // call_identification
@@ -90,7 +90,6 @@ onmessage = function(event) {
             assert(result_normal[0] === result_normal[0]);  // check it's not NaN
             assert(is_definitely_called === true);
 
-            console.error("call_id",_call_id);
             postMessage({return_callback_id:_callback_id, returned_data: result_normal, call_id: _call_id, shape_id: shape_id});  // {result_allpositive:}
             break;
 
@@ -121,12 +120,13 @@ var Module_cwrapped = {
     // API Version 2:
 };
 
-var w_impli2 = {};
-w_impli2._module = Module;
+// Level 2
+var wwapi = {};
+wwapi._module = Module;
 
-w_impli2.needs_deallocation = false;  // state
+wwapi.needs_deallocation = false;  // state
 
-    w_impli2.query_implicit_values = function(shape_id, mp5_str, points, reduce_type, call_id_arg)
+    wwapi.query_implicit_values = function(shape_id, mp5_str, points, reduce_type, call_id_arg)
     {
         assert__(points instanceof Float32Array);
         assert__(points.length % 3 === 0);
@@ -215,7 +215,7 @@ w_impli2.needs_deallocation = false;  // state
     };
 
   // in Style of an older version, although it was written later.    
-    w_impli2.query_implicit_values_old = function(shape_id, mp5_str, points, reduce_callback, call_id)
+    wwapi.query_implicit_values_old = function(shape_id, mp5_str, points, reduce_callback, call_id)
     {
         //todo: inside of this function needs refactoring.
         assert(points instanceof Float32Array);
@@ -261,7 +261,7 @@ w_impli2.needs_deallocation = false;  // state
     }
 
     /** called by query_a_normal() */
-    w_impli2.query_normals = function(shape_id, mp5_shape_json, input_verts, result_callback, call_id) {
+    wwapi.query_normals = function(shape_id, mp5_shape_json, input_verts, result_callback, call_id) {
         // Always takes the root matrix into account. Similar to query_implicit_values()
         assert(input_verts instanceof Float32Array);
         var nverts = input_verts.length / 3;             
@@ -304,7 +304,7 @@ w_impli2.needs_deallocation = false;  // state
 
 
 //based on  implisolid.js
-    w_impli2.make_geometry__workerside = function (shape_id, mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
+    wwapi.make_geometry__workerside = function (shape_id, mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
         // assert(typeof result_callback !== 'undefined');
         // assert(result_callback);
         assert(typeof call_id_arg !== 'undefined');
@@ -314,16 +314,16 @@ w_impli2.needs_deallocation = false;  // state
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
-        if(w_impli2.needs_deallocation) {
+        if(wwapi.needs_deallocation) {
             /*Module_cwrapped.*/ Module. _finish_geometry();
-            w_impli2. needs_deallocation = false;
+            wwapi. needs_deallocation = false;
         }
         //console.log("mc_params.resolution " + mc_params.resolution);
         //mc_params.resolution = 40;
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
         /*Module.*/ Module_cwrapped. build_geometry(mp5_str, polygonization_settings_json);
-        w_impli2. needs_deallocation = true;
+        wwapi. needs_deallocation = true;
         var nverts = Module. _get_v_size();
         var nfaces = Module. _get_f_size();
         var verts_address = Module. _get_v_ptr();
@@ -340,7 +340,7 @@ w_impli2.needs_deallocation = false;  // state
         return {verts:verts, faces:faces};
     };
 
-    w_impli2.get_latest_vf = function (shape_id, output_vf_dict, call_id) {
+    wwapi.get_latest_vf = function (shape_id, output_vf_dict, call_id) {
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT;
         const POINTS_PER_FACE = 3;
