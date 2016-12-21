@@ -934,6 +934,7 @@ query_implicit_values = inherit.
 query_a_normal = inherit
 about = inherit
 
+//todo: raycast.
 
 Remove from IMPLICIT: (move to designer)
     getLiveGeometry(dict, dict, bool) -> Geometry

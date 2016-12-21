@@ -373,7 +373,7 @@ int get_pointset_size(char* id) {
 
 // The only usage of marching cubes
 
-std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
 
     bool enableUvs = true;
     bool enableColors = true;
@@ -463,6 +463,25 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
     return std::make_pair(verts, faces);
 }
 
+// todo: move into _state
+void polygonize_step0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report) {
+
+    auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
+    // std::vector<REAL>, std::vector<int>
+    steps_report = steps_report + "MC. ";
+
+    /*
+    TEST a SQUARE
+    //auto
+    vertsfaces_pair = make_a_square(10.0);
+    */
+
+    // auto  _state.mc_result_verts = _state.mc -> result_verts;
+    // auto  _state.mc_result_faces = _state.mc->result_faces;
+    _state.mc_result_verts = std::move(vertsfaces_pair.first);
+    _state.mc_result_faces = std::move(vertsfaces_pair.second);
+}
+
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
 
@@ -490,20 +509,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // dim_t resolution = 28;
 
-    auto vertsfaces_pair = mc_start(object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
-    // std::vector<REAL>, std::vector<int>
-    steps_report = steps_report + "MC. ";
+    polygonize_step0(_state, *object, mc_settings_from_json, use_metaball, steps_report);
 
-    /*
-    TEST a SQUARE
-    //auto
-    vertsfaces_pair = make_a_square(10.0);
-    */
-
-    // auto  _state.mc_result_verts = _state.mc -> result_verts;
-    // auto  _state.mc_result_faces = _state.mc->result_faces;
-    _state.mc_result_verts = std::move(vertsfaces_pair.first);
-    _state.mc_result_faces = std::move(vertsfaces_pair.second);
 
 
 
