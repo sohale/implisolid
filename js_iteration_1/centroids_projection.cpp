@@ -457,7 +457,7 @@ void  set_centers_on_surface(
     // g_a:
     boost::array<int, 2> g_a_shape = { n , 3 };
     vectorized_vect  g_a(g_a_shape);
-    // compute_centroid_gradient(X, g_a, object);
+    // compute_centroid_gradient(X, g_a, *object);
     object->eval_gradient(X, &g_a);
     mp5_implicit::vectorised_algorithms::normalise_inplace(g_a, mp5_implicit::CONFIG_C::center_projection::min_gradient_len);
     // print_vector("g_a", g_a, 100);
@@ -1261,7 +1261,7 @@ void centroids_projection(mp5_implicit::implicit_function* object, std::vector<R
 
     vectorized_vect  centroid_gradients(centroids_shape);
 
-    compute_centroid_gradient(centroids, centroid_gradients, object);
+    compute_centroid_gradient(centroids, centroid_gradients, *object);
 
     // fine_tune_mesh(verts);
 

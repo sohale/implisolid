@@ -464,7 +464,7 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
 }
 
 // todo: move into _state
-void polygonize_step0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report) {
+void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report) {
 
     auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
@@ -480,6 +480,17 @@ void polygonize_step0(state_t & _state, const mp5_implicit::implicit_function& o
     // auto  _state.mc_result_faces = _state.mc->result_faces;
     _state.mc_result_verts = std::move(vertsfaces_pair.first);
     _state.mc_result_faces = std::move(vertsfaces_pair.second);
+}
+
+void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report) {
+    timer t1;
+
+    const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
+
+    // result_verts is modified
+    apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
+    steps_report = steps_report + "V ";
+    t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
 }
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
@@ -509,7 +520,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // dim_t resolution = 28;
 
-    polygonize_step0(_state, *object, mc_settings_from_json, use_metaball, steps_report);
+    polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report);
 
 
 
@@ -532,11 +543,15 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
-        int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
+
+        timer timr;
+        timr.report_and_continue("timer started.");
+
+        const int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
         // disable hard-coded
-        bool apply_projection = true;
+        const bool apply_projection = true;
         // float c = 1.;
-        REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
+        const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
         #if NOTQUIET
         if (VERBOSE) {
@@ -548,19 +563,13 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         }
         #endif
 
-
-
-        timer timr;
-        timr.report_and_continue("timer started.");
-
-        int overall_repeats = mc_settings_from_json.overall_repeats;
+        const int overall_repeats = mc_settings_from_json.overall_repeats;
         for (int overall_iter = 0; overall_iter < overall_repeats; ++overall_iter) {
             for (int i=0; i < vresamp_iters; i++) {
-                timer t1;
-                // result_verts is modified
-                apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
-                steps_report = steps_report + "V ";
-                t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
+                
+                
+                polygonize_step_1(_state, *object, mc_settings_from_json, steps_report);
+
                 timr.report_and_continue("vertex resampling");
             }
             // break;
@@ -588,7 +597,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
                 }
 
-                bool is_last = overall_iter == overall_repeats-1;
+                const bool is_last = overall_iter == overall_repeats-1;
                 if (mc_settings_from_json.subdiv.enabled
                     &&
                     (overall_repeats <= 1 || is_last )  // Skip the last one if overall_repeats > 1
@@ -596,7 +605,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     std::clog << "Subdivision:" << std::endl;
 
                     // Incorrect logic:
-                    REAL scale_noise_according_to_matrix = 1.0 * 10.0;
+                    const REAL scale_noise_according_to_matrix = 1.0 * 10.0;
                     /*
                     if (ignore_root_matrix) {
                         scale_noise_according_to_matrix *= 1.0 / 10.0;
@@ -612,9 +621,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                     // Better logic: pass this as an argument:
                     // object->get_noise_generator(matrix, ignore);
 
-                    REAL actual_noise = mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix;
+                    const REAL actual_noise = is_last ?
+                            mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix
+                        :
+                            0;
                     if (!is_last) {
-                        actual_noise = 0;
                         std::clog << "noise skipped." << std::endl;
                     } else {
                         std::clog << "noise applied." << std::endl;
@@ -652,7 +663,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         float c = 2000.;
 
         for (int i=0; i < REPEATS_VR; i++){
-            apply_vertex_resampling_to_MC_buffers__VMS(object, c,  //    *(_state.mc));
+            apply_vertex_resampling_to_MC_buffers__VMS(*object, c,  //    *(_state.mc));
                 _state.mc_result_verts, _state.mc_result_faces, ??);
         }
 

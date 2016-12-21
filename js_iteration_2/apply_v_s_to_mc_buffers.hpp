@@ -224,7 +224,7 @@ void process2_vertex_resampling_relaxation_v2(
     boost::array<int, 2> centroid_normals_normalized_shape = { nfaces, 3 };
     vectorized_vect  centroid_normals_normalized(centroid_normals_normalized_shape);
 
-    compute_centroid_gradient(centroids, centroid_normals_normalized, object);
+    compute_centroid_gradient(centroids, centroid_normals_normalized, *object);
 
     std::vector< std::vector<faceindex_type>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
 
@@ -241,7 +241,7 @@ void process2_vertex_resampling_relaxation_v2(
 
 // NOT CALLED
 void apply_vertex_resampling_to_MC_buffers_vVV2(
-        mp5_implicit::implicit_function* object,
+        const mp5_implicit::implicit_function & object,
         const REAL c,
         std::vector<REAL>&result_verts,
         std::vector<vertexindex_type>& result_faces,
@@ -278,7 +278,7 @@ void apply_vertex_resampling_to_MC_buffers_vVV2(
 
 
 void apply_vertex_resampling_to_MC_buffers__VMS(
-        implicit_function* object,
+        const implicit_function & object,
         const REAL c,
         // MarchingCubes& mc
         std::vector<REAL>& result_verts,

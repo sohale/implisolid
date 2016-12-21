@@ -157,7 +157,7 @@ void process2_vertex_resampling_relaxation_v1(
         // output
         vectorized_vect& centroids, // overwritten! It's output-only
         // inputs
-        mp5_implicit::implicit_function* object, float c
+        const mp5_implicit::implicit_function & object, float c
     )
 {
 
@@ -185,7 +185,7 @@ void process2_vertex_resampling_relaxation_v1(
     vectorized_vect  centroid_normals_normalized(boost::extents[nfaces][3]);
 
     compute_centroid_gradient(centroids, centroid_normals_normalized, object);
-    object->eval_gradient(centroids, &centroid_normals_normalized);
+    object.eval_gradient(centroids, &centroid_normals_normalized);
     vectorised_algorithms::normalize_1111(centroid_normals_normalized);
 
     std::vector< std::vector<faceindex_type>> faceslist_neighbours_of_vertex = make_neighbour_faces_of_vertex(faces, verts.shape()[0]);
