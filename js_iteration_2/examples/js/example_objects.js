@@ -78,8 +78,30 @@ var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":
 
 var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","displayColor":{"x":0.7,"y":0.7,"z":0.7},"matrix":[8,0,0,0,0,8,0,0,0,0,8,0,0,0,0,1],"index":9185154}]}}';
 
+var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","axis":[[0,0,0.3165],[0.5, 0, -0.5]],"start_orientation": [0,1,0],"pitch": 2,"profile":"sin","diameter_inner":12.0,"diameter_outer":8.0,"end_type": "0","index":9185154}]}}';
 
+ // {
+ //                "type": "screw",
+ //                "axis": [
+ //                    [0,  0,  0.3165],    // A
+ //                    [0.5,  0,  -0.5],     // A+w*len
+ //                ],
+ //                "start_orientation": [0,1,0],   // the u vector
 
+ //                "pitch": 2,   //  2mm distance between two dents
+ //                "profile" : "sin+",        // "sin+" -> max{sin(t),0},   "sin"  -> sin(t)   profile of the indentation (thread profile)
+
+ //                "diameter_inner":  12,   // 12mm : all sizes in millimeters
+ //                "diameter_outer":  8,    // 8mm
+
+ //                "end_type": "0",   // Now only one type "0", but there are seveeal types: "C", "R", "F"
+
+ //                 // common in all mp5 objects:
+ //                "index": 6125140,
+ //                "displayColor": [ 0.71, 0.164, 0    ],
+ //                 // note that there is no "matrix" field. 
+ //            }
+ //        ]
 
 
 /**
@@ -139,13 +161,32 @@ function provide_input (subjective_time, is_update_mode, globals) {
         mp5_json_tetrahedron_dict.root.children=[tetrahedron_dict];
         var TETRAHEDRON = JSON.stringify(mp5_json_tetrahedron_dict);
 
+
+
+        var screw_dict = {
+            type:"screw",
+            axis:[[0,0,0.3165],[0.5, 0, -0.5]],
+            start_orientation: [0,1,0],
+            pitch: 2,
+            profile:"sin",
+            diameter_inner:12.0,
+            diameter_outer:8.0,
+            end_type: "0"
+        };
+        var mp5_json_screw_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
+        mp5_json_screw_dict.root.children=[screw_dict];
+        var SCREW = JSON.stringify(mp5_json_screw_dict);
+
         // Select the object to display
 
+        var used_matrix = true;
         // var mp5_json = HEART;     const BB_SIZE = 9;
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
-        var mp5_json = SIMPLE_CONE; const BB_SIZE = 12.0/10.0;
+        // var mp5_json = SIMPLE_SCREW; const BB_SIZE = 12.0/10.0; used_matrix = false;
+        var mp5_json = SCREW; const BB_SIZE = 12.0/10.0; used_matrix = false;
+
 
         var shape_dict = JSON.parse(mp5_json).root.children[0];
 
@@ -162,9 +203,12 @@ function provide_input (subjective_time, is_update_mode, globals) {
         */
 
         // Scale the object
-        shape_dict.matrix[0] = sz;
-        shape_dict.matrix[5] = sz;
-        shape_dict.matrix[10] = sz;
+        if (used_matrix) {
+            shape_dict.matrix[0] = sz;
+            shape_dict.matrix[5] = sz;
+            shape_dict.matrix[10] = sz;
+        }
+
 
         /*
             // Move the object
