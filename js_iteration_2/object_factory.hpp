@@ -2,7 +2,6 @@
 
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
-#include "Eigen/Dense"
 
 //#include "unit_sphere.hpp"
 #include "implicit_function/primitives.hpp"
@@ -101,117 +100,6 @@ void getCorners(std::vector<boost::array<REAL,3>>& corners, const pt::ptree& sha
 
     }
 }
-
-// void getABEigen(Eigen::Matrix<REAL, 3, 1>& A, Eigen::Matrix<REAL, 3, 1>& B, const pt::ptree& shapeparams_dict){
-
-//     int i = 0;
-//     for (const pt::ptree::value_type &element : shapeparams_dict.get_child("axis")) {
-//         int j = 0;
-//         for (const pt::ptree::value_type &cell : element.second)
-//         {   
-//             if (i==0) {
-//                 A(j, 0) = cell.second.get_value<REAL>();
-//             } else if (i==1){  
-//                 B(j, 0) = cell.second.get_value<REAL>();
-//             } else{
-//                 my_assert(i<=1, "i should only be 0 or 1.");
-//             }
-//             j++;
-//         }
-//         i++;
-
-//     }
-
-//     std::cout << "getAB" << std::endl;
-//     std::cout << A << std::endl;
-//     std::cout << B << std::endl;
-
-//     my_assert((A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
-//     my_assert((B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly A is not initialised correclt");
-
-// }
-
-
-void getScrewParameters(
-        Eigen::Matrix<REAL, 3, 1>& A, Eigen::Matrix<REAL, 3, 1>& B, Eigen::Matrix<REAL, 3, 1>& U, 
-        REAL& pitch_len, std::string& profile_shape, REAL& id,
-        REAL& od, std::string& end_type, const pt::ptree& shapeparams_dict
-    ){
-
-    int i = 0;
-    for (const pt::ptree::value_type &element : shapeparams_dict.get_child("axis")) {
-        int j = 0;
-        for (const pt::ptree::value_type &cell : element.second)
-        {   
-            if (i==0) {
-                A(j, 0) = cell.second.get_value<REAL>();
-            } else if (i==1){  
-                B(j, 0) = cell.second.get_value<REAL>();
-            } else{
-                my_assert(i<=1, "i should only be 0 or 1.");
-            }
-            j++;
-        }
-        my_assert(j == 3, "there shuold be three points");
-        i++;
-    }
-    my_assert(i == 2, "for axis you should provide two points");
-
-    std::cout << "getAB" << std::endl;
-    std::cout << A << std::endl;
-    std::cout << B << std::endl;
-
-    // my_assert(!(A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
-    // my_assert(!(B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly B is not initialised correclt");
-
-    std::cout << "getU" << std::endl;
-    int getU_counter = 0;
-    for (const pt::ptree::value_type &element : shapeparams_dict.get_child("start-orientation")) {
-            //std::clog << "matrix value : " << x << std::endl;
-        U(getU_counter, 0) = element.second.get_value<REAL>();
-
-        std::cout << element.second.get_value<REAL>() << std::endl;
-        my_assert(getU_counter<=2, "i should not exceed number 2");
-        getU_counter++;
-    }
-
-    std::cout << "getpitch_len" << std::endl;
-    pitch_len = shapeparams_dict.get<REAL>("pitch");
-
-    std::cout << pitch_len << std::endl;
-    std::cout << "getpitch_len" << std::endl;
-
-
-    std::cout << "get-profile_shape" << std::endl;
-    profile_shape = shapeparams_dict.get<std::string>("profile");
-
-    std::cout << profile_shape << std::endl;
-
-    std::cout << "get-profile_shape" << std::endl;
-
-    // okay 
-
-    // id = shapeparams_dict.get<REAL>("diameter-inner"); // this line has global affects destroy the screw 
-    // od = shapeparams_dict.get<REAL>("diameter-outer"); // this line has global affects destroy the screw 
-
-    // std::cout << "--------------------------------------" << std::endl;
-    // std::cout << shapeparams_dict.get<REAL>("diameter-inner") << std::endl;
-    // std::cout << shapeparams_dict.get<REAL>("diameter-outer") << std::endl;
-    // std::cout << "--------------------------------------" << std::endl;
-
-    id = 0.5;
-    od = 0.9;
-
-    std::cout << "get-end-typer" << std::endl;
-    end_type = shapeparams_dict.get<std::string>("end-type");
-
-    std::cout << end_type << std::endl;
-
-    std::cout << "get-end-typer" << std::endl;
-
-}
-
-
 
 void copy_eye(REAL matrix12[12]){
     REAL eye[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0 };
@@ -355,10 +243,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         register_new_object(object);
     }
     else if (name == "screw") {
-
-        std::cout << "--------------screw------------" <<std::endl;
-        // object = new mp5_implicit::screw();
-
         Eigen::Matrix<REAL, 3, 1> A;
         Eigen::Matrix<REAL, 3, 1> B;
         Eigen::Matrix<REAL, 3, 1> U;
@@ -367,57 +251,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         REAL inner_diameter;
         REAL outer_diameter;
         string end_type;
-
-        // std::cout << shapeparams_dict << std::endl;
-
-
-        // getScrewParameters(A, B, U, 
+        // error on the next command
+        // mp5_implicit::screw::getScrewParameters(A, B, U, 
         //                    pitch_len, profile_shape,
         //                    inner_diameter, outer_diameter, end_type,
         //                    shapeparams_dict);
-
-
-        // std::cout << shapeparams_dict << std::endl;
-
-        std::cout << "--------------output of getScrewParameters------------" <<std::endl;
-
-        std::cout << A << std::endl;
-        std::cout << B << std::endl;
-        std::cout << U << std::endl;
-        std::cout << pitch_len << std::endl;
-        std::cout << profile_shape << std::endl;
-        std::cout << inner_diameter << std::endl;
-        std::cout << outer_diameter << std::endl;
-        std::cout << end_type << std::endl;
-
-
-        A << 0,0,1;
-        B << 0,0,2;
-        U << 0,0,-1;
-        pitch_len = 0.4;
-        profile_shape = "sin";
-        inner_diameter = 0.5;
-        outer_diameter = 0.7;
-        end_type = "0";
-
-        std::cout << "--------------output of hardcoded------------" <<std::endl;
-
-        std::cout << A << std::endl;
-        std::cout << B << std::endl;
-        std::cout << U << std::endl;
-        std::cout << pitch_len << std::endl;
-        std::cout << profile_shape << std::endl;
-        std::cout << inner_diameter << std::endl;
-        std::cout << outer_diameter << std::endl;
-        std::cout << end_type << std::endl;
-
-
-        // object = new mp5_implicit::screw(
-        //     A, B, U, pitch_len, profile_shape, inner_diameter, outer_diameter, end_type);
-
-        // object = new mp5_implicit::screw();
         object = new mp5_implicit::screw();
-
         register_new_object(object);
     }
     else if (name == "Union") {

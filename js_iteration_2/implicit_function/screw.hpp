@@ -8,6 +8,8 @@
 #include <iostream>
 // #include <math.h>       /* sin */
 
+namespace pt = boost::property_tree ;
+
 using Eigen::Matrix;
 using Eigen::MatrixXf;
 using Eigen::Dynamic;
@@ -214,6 +216,9 @@ protected:
 
     }
 
+    
+
+
 public: 
 
     screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
@@ -289,6 +294,85 @@ public:
 
     virtual mp5_implicit::bounding_box getboundingbox() const {
         return mp5_implicit::bounding_box{1,2,3,4,5,6};
+    }
+
+    static void getScrewParameters(
+            Eigen::Matrix<REAL, 3, 1>& A, Eigen::Matrix<REAL, 3, 1>& B, Eigen::Matrix<REAL, 3, 1>& U, 
+            REAL& pitch_len, std::string& profile_shape, REAL& id,
+            REAL& od, std::string& end_type, const pt::ptree& shapeparams_dict
+    ){
+
+        int i = 0;
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("axis")) {
+            int j = 0;
+            for (const pt::ptree::value_type &cell : element.second)
+            {   
+                if (i==0) {
+                    A(j, 0) = cell.second.get_value<REAL>();
+                } else if (i==1){  
+                    B(j, 0) = cell.second.get_value<REAL>();
+                } else{
+                    my_assert(i<=1, "i should only be 0 or 1.");
+                }
+                j++;
+            }
+            my_assert(j == 3, "there shuold be three points");
+            i++;
+        }
+        my_assert(i == 2, "for axis you should provide two points");
+
+        std::cout << "getAB" << std::endl;
+        std::cout << A << std::endl;
+        std::cout << B << std::endl;
+
+        // my_assert(!(A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
+        // my_assert(!(B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly B is not initialised correclt");
+
+        std::cout << "getU" << std::endl;
+        int getU_counter = 0;
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("start-orientation")) {
+                //std::clog << "matrix value : " << x << std::endl;
+            U(getU_counter, 0) = element.second.get_value<REAL>();
+
+            std::cout << element.second.get_value<REAL>() << std::endl;
+            my_assert(getU_counter<=2, "i should not exceed number 2");
+            getU_counter++;
+        }
+
+        std::cout << "getpitch_len" << std::endl;
+        pitch_len = shapeparams_dict.get<REAL>("pitch");
+
+        std::cout << pitch_len << std::endl;
+        std::cout << "getpitch_len" << std::endl;
+
+
+        std::cout << "get-profile_shape" << std::endl;
+        profile_shape = shapeparams_dict.get<std::string>("profile");
+
+        std::cout << profile_shape << std::endl;
+
+        std::cout << "get-profile_shape" << std::endl;
+
+        // okay 
+
+        // id = shapeparams_dict.get<REAL>("diameter-inner"); // this line has global affects destroy the screw 
+        // od = shapeparams_dict.get<REAL>("diameter-outer"); // this line has global affects destroy the screw 
+
+        // std::cout << "--------------------------------------" << std::endl;
+        // std::cout << shapeparams_dict.get<REAL>("diameter-inner") << std::endl;
+        // std::cout << shapeparams_dict.get<REAL>("diameter-outer") << std::endl;
+        // std::cout << "--------------------------------------" << std::endl;
+
+        id = 0.5;
+        od = 0.9;
+
+        std::cout << "get-end-typer" << std::endl;
+        end_type = shapeparams_dict.get<std::string>("end-type");
+
+        std::cout << end_type << std::endl;
+
+        std::cout << "get-end-typer" << std::endl;
+
     }
 
 };
