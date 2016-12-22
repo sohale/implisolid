@@ -1,0 +1,34 @@
+{
+  "name": "@mp5/implisolid",
+  "version": "1.0.0",
+  "description": "A Solid Modelling Kernel in Javascript based on Implicit Surfaces, for MP5 file format",
+  "main": "npm/index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/sohale/implisolid.git"
+  },
+  "keywords": [
+    "implicit",
+    "mp5",
+    "wedesign",
+    "3d",
+    "3dprinting",
+    "printing",
+    "geometry",
+    "emscripten",
+    "c++",
+    "THREE.js"
+  ],
+  "author": "Sohail Siadatnejad <sohale@gmail.com> (https://sohale.github.io)",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=4.2.4"
+  }
+}
+
