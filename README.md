@@ -26,7 +26,7 @@ Implisolid was originally intended for use in Browsers without need to any serve
 
 ImpliSolid will soon be available in **WebAssembly** (tutorial comming soon).
 
-The **npm** will be published soon.
+The **npm** is available from [here](www.npmjs.com/package/@sohale/implisolid) (will be moved).
 
 ### C++
 ImpliSolid is written in C++.
@@ -137,8 +137,8 @@ The combined use of the Boost library and Emscripten makes compiling a little bi
 -----------
 
 ##### Compiling C++ to javascript using Docker
-You can use a pre installed socker container
-```docker pull mp51/solidmodel  ```
-(to be continued)
+You can use a pre installed docker container to compile implisolid:
+```docker run -v /Users/Tiger/Documents/mp5-private/implisolid:/src -t mp51/solidmodel /bin/bash /src/js_iteration_1/build_mcc2_docker.sh -o```
+
 ----------
 
