@@ -1,5 +1,5 @@
 {
-  "name": "@mp5/implisolid",
+  "name": "@sohale/implisolid",
   "version": "1.0.0",
   "description": "A Solid Modelling Kernel in Javascript based on Implicit Surfaces, for MP5 file format",
   "main": "npm/index.js",
