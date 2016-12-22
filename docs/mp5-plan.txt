@@ -324,3 +324,74 @@ Examples: Heart, etc.
 Long term future: 
 A gpu-based visualiser shader.
 
+
+
+License
+
+
+============
+December 2016
+
+
+
+
+
+
+
+Subtasks for Speed of CSG operations (Sohail)
+WebWorker communication: verts, faces
+design the right protocol
+Translating the current version into a Worker version
+Make updating in the background
+Update-med or replace mesh
+querying multi-mesh & sharp lines
+find_min_z
+query_bounding_box
+object3d (owner class, multipleindices)
+select surface
+select point
+multi-marching-cubes
+tip of the cone
+calculate curvatures (for closing the subdivision)
+marching-cubes resolution size
+bug for cyliner (Vitaliy)
+Free-form-shape
+
+Designer: Free-form Tetrahedron
+Designer: Free-form organic (TriVarSpline)
+refactor the metaballs
+refactor the C++ code
+Symbolic implicit
+fast run-time optimisation
+highlight hover curves/surfaces
+add point
+note-on-point
+exploring EmBind
+
+
+when it's live on firefox the screenshot is white
+suggestion: zoom in zoom out on mouse tip
+
+
+
+
+For VV:
+* Symbolic implicit + Auto Diff + AST + Runtime compiler/optimiser
+* Tetrahedron Point annotation
+* trivar Spline / Harmonic
+* put min_z into designer
+
+Myself:
+* put min_z into designer
+* calculate curvatures (for closing the subdivision)
+* snow
+* large MC
+* EmBind
+* Environment
+
+
+
+Old tasks are stored in various places:
+https://trello.com/b/Arijc350/rihanna-work
+
+
