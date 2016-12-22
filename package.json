@@ -1,6 +1,6 @@
 {
   "name": "@sohale/implisolid",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Solid Modelling Kernel in Javascript based on Implicit Surfaces, for MP5 file format",
   "main": "npm/index.js",
   "directories": {
