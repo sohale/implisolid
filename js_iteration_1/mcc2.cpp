@@ -464,7 +464,7 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
 }
 
 // todo: move into _state
-void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report) {
+void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
 
     auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
@@ -480,9 +480,11 @@ void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& 
     // auto  _state.mc_result_faces = _state.mc->result_faces;
     _state.mc_result_verts = std::move(vertsfaces_pair.first);
     _state.mc_result_faces = std::move(vertsfaces_pair.second);
+
+    timr.report_and_continue("marching cubes");
 }
 
-void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report) {
+void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
     timer t1;
 
     const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
@@ -491,6 +493,19 @@ void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& 
     apply_vertex_resampling_to_MC_buffers__VMS(object, c, _state.mc_result_verts, _state.mc_result_faces, false );
     steps_report = steps_report + "V ";
     t1.stop("vertex resampling");  // 400 -> 200 -> 52 msec  (40--70)
+
+    timr.report_and_continue("vertex resampling");
+}
+
+
+void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
+
+    std::clog << "centroids_projection:" << std::endl;
+    // Never send mc_settings_from_json as an argument
+    centroids_projection(&object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
+    steps_report = steps_report + "P ";
+
+    timr.report_and_continue("centroids_projection");
 }
 
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
@@ -520,7 +535,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     // dim_t resolution = 28;
 
-    polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report);
+    timer timr;
+    timr.report_and_continue("timer started.");
+
+    polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report, timr);
 
 
 
@@ -544,8 +562,6 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
 
-        timer timr;
-        timr.report_and_continue("timer started.");
 
         const int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
         // disable hard-coded
@@ -568,9 +584,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             for (int i=0; i < vresamp_iters; i++) {
                 
                 
-                polygonize_step_1(_state, *object, mc_settings_from_json, steps_report);
+                polygonize_step_1(_state, *object, mc_settings_from_json, steps_report, timr);
 
-                timr.report_and_continue("vertex resampling");
             }
             // break;
 
@@ -587,12 +602,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 */
 
                 if (mc_settings_from_json.projection.enabled) {
-                    std::clog << "centroids_projection:" << std::endl;
-                    // Never send mc_settings_from_json as an argument
-                    centroids_projection(object, _state.mc_result_verts, _state.mc_result_faces, mc_settings_from_json.qem.enabled);
-                    steps_report = steps_report + "P ";
 
-                    timr.report_and_continue("centroids_projection");
+                    polygonize_step_2(_state, *object, mc_settings_from_json, steps_report, timr);
+
                 } else {
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
                 }

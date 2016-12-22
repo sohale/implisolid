@@ -419,7 +419,7 @@ void print_out_array_of_vectors(const vectorized_vect& A, int count_elements, co
 
 // main function version v3s002
 void  set_centers_on_surface(
-      mp5_implicit::implicit_function* object,
+      const mp5_implicit::implicit_function* object,
       const vectorized_vect & centroids,
       const REAL average_edge,
       //nones_map
@@ -1218,7 +1218,7 @@ void  set_centers_on_surface(
 // #include "v2v_f2f.hpp"
 
 // rename: project_points_on_surface. (output_points)
-void centroids_projection(mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<vertexindex_type>& mesh_faces, bool enable_qem) {
+void centroids_projection(const mp5_implicit::implicit_function* object, std::vector<REAL>& result_verts, const std::vector<vertexindex_type>& mesh_faces, bool enable_qem) {
 
     // clog << "mesh_faces.size():" << mesh_faces.size() << std::endl;
 

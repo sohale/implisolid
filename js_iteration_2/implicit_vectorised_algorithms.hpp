@@ -170,9 +170,8 @@ void compute_centroids(const vectorized_faces& faces, const vectorized_vect& ver
     }
 }
 
-
 vectorized_scalar  eval_implicit_on_selected_points_indexed(
-        mp5_implicit::implicit_function* object,
+        const mp5_implicit::implicit_function* object,
         const vectorized_vect & X,
         const array_of_indices & active_indices,
         int count) {

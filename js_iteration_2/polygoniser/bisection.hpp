@@ -115,7 +115,7 @@ REAL mean_distance(const vectorized_vect& x1, const vectorized_vect& x2) {
     All x1 must be strictly outside, and x2 must be inside the solid.
 */
 void bisection(
-    mp5_implicit::implicit_function* object,
+    const mp5_implicit::implicit_function* object,
     vectorized_vect& res_x_arr,
     vectorized_vect& x1_arr,
     vectorized_vect& x2_arr,
