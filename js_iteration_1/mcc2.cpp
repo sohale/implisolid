@@ -508,6 +508,45 @@ void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& 
     timr.report_and_continue("centroids_projection");
 }
 
+void polygonize_step_3(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, bool is_last) {
+
+    // Incorrect logic:
+    const REAL scale_noise_according_to_matrix = 1.0 * 10.0;
+    /*
+    if (ignore_root_matrix) {
+        scale_noise_according_to_matrix *= 1.0 / 10.0;
+    } else {
+        scale_noise_according_to_matrix *= 1.0;
+    }
+    */
+
+    // For a realistic noise:
+    // get_actual_matrix (even if ignored, dont ignore this one)
+    // invert-it
+
+    // Better logic: pass this as an argument:
+    // object->get_noise_generator(matrix, ignore);
+
+    const REAL actual_noise = is_last ?
+            mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix
+        :
+            0;
+    if (!is_last) {
+        std::clog << "noise skipped." << std::endl;
+    } else {
+        std::clog << "noise applied." << std::endl;
+    }
+
+    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise
+        << "  actual noise: " << actual_noise << std::endl;
+    my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
+        actual_noise);
+    std::clog << "outisde my_subdiv_." << std::endl;
+    steps_report = steps_report + "Subdiv("+std::to_string(actual_noise)+")";
+
+    timr.report_and_continue("subdivisions");
+    
+}
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
 
@@ -613,44 +652,12 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 if (mc_settings_from_json.subdiv.enabled
                     &&
                     (overall_repeats <= 1 || is_last )  // Skip the last one if overall_repeats > 1
-                    ) {
+                    )
+                {
                     std::clog << "Subdivision:" << std::endl;
 
-                    // Incorrect logic:
-                    const REAL scale_noise_according_to_matrix = 1.0 * 10.0;
-                    /*
-                    if (ignore_root_matrix) {
-                        scale_noise_according_to_matrix *= 1.0 / 10.0;
-                    } else {
-                        scale_noise_according_to_matrix *= 1.0;
-                    }
-                    */
+                    polygonize_step_3(_state, *object, mc_settings_from_json, steps_report, timr, is_last);
 
-                    // For a realistic noise:
-                    // get_actual_matrix (even if ignored, dont ignore this one)
-                    // invert-it
-
-                    // Better logic: pass this as an argument:
-                    // object->get_noise_generator(matrix, ignore);
-
-                    const REAL actual_noise = is_last ?
-                            mc_settings_from_json.debug.post_subdiv_noise * scale_noise_according_to_matrix
-                        :
-                            0;
-                    if (!is_last) {
-                        std::clog << "noise skipped." << std::endl;
-                    } else {
-                        std::clog << "noise applied." << std::endl;
-                    }
-
-                    cout << "mc_settings_from_json.debug.post_subdiv_noise" << mc_settings_from_json.debug.post_subdiv_noise
-                        << "  actual noise: " << actual_noise << std::endl;
-                    my_subdiv_ ( _state.mc_result_verts, _state.mc_result_faces,
-                        actual_noise);
-                    std::clog << "outisde my_subdiv_." << std::endl;
-                    steps_report = steps_report + "Subdiv("+std::to_string(actual_noise)+")";
-
-                    timr.report_and_continue("subdivisions");
                 } else {
                     std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
                 }
