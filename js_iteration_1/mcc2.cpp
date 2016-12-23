@@ -485,7 +485,10 @@ public:
     {
 
     }
-
+/*
+shape_parameters_json, const char* mc_parameters_json
+*/
+    //static void polygonize_init(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr);
     static void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr);
     static void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
     static void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
@@ -494,6 +497,12 @@ public:
     static void polygonize_terminate(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
 };
 
+
+/*
+void polygonizer::polygonize_init(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
+    ;
+}
+*/
 
 // todo: move into _state
 void polygonizer::polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
@@ -610,16 +619,12 @@ void polygonizer::polygonize_terminate(state_t & _state, const mp5_implicit::imp
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
 
-    polygonizer algorithm;
-    //std::string steps_report = "";   ----> algorithm.steps_report
-
     if (!_state.check_state_null()) {
         clog << "build_geometry() called in a bad state.";
         return;
     }
-    // std::clog << "In build_geometry obj_name : " << obj_name << std::endl;
-    // std::clog << "Mc_params : " << mc_parameters_json << endl;
-    // std::clog << "shape_json : " << shape_parameters_json << endl;
+
+    polygonizer algorithm;
 
     const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
 
@@ -631,12 +636,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     bool use_metaball;  // output
     mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
 
-    // std::clog << "Leak-free : new" << std::endl;
-
-    // dim_t resolution = 28;
-
     timer timr;
     timr.report_and_continue("timer started.");
+
+    // polygonizer::polygonize_init(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
 
     polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
 
