@@ -107,6 +107,7 @@ void copy_eye(REAL matrix12[12]){
         matrix12[j] = eye[j];
 }
 
+
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
     // std::clog << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
@@ -218,7 +219,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
     }else if(name == "itorus" ){
         REAL matrix12[12];
-        getMatrix12(matrix12,shapeparams_dict);
+        getMatrix12(matrix12, shapeparams_dict);
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
@@ -243,20 +244,26 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         register_new_object(object);
     }
     else if (name == "screw") {
-        Eigen::Matrix<REAL, 3, 1> A;
-        Eigen::Matrix<REAL, 3, 1> B;
-        Eigen::Matrix<REAL, 3, 1> U;
-        REAL pitch_len;
-        string profile_shape;
-        REAL inner_diameter;
-        REAL outer_diameter;
-        string end_type;
-        // error on the next command
-        // mp5_implicit::screw::getScrewParameters(A, B, U, 
-        //                    pitch_len, profile_shape,
-        //                    inner_diameter, outer_diameter, end_type,
-        //                    shapeparams_dict);
-        object = new mp5_implicit::screw();
+
+        Matrix<REAL, 4, 4> transformation_matrix;
+        REAL pitch_len = 0.0;
+        std::string profile;
+        std::string end_type;
+        REAL delta_ratio = 0.0;
+        Matrix<REAL, 3, 1> v;
+
+        mp5_implicit::screw::getScrewParameters(
+                           transformation_matrix, pitch_len, profile, 
+                           end_type, delta_ratio, v, 
+                           shapeparams_dict);
+
+        object = new mp5_implicit::screw(transformation_matrix,
+                                         pitch_len,
+                                         profile,
+                                         end_type,
+                                         delta_ratio,
+                                         v);
+
         register_new_object(object);
     }
     else if (name == "Union") {

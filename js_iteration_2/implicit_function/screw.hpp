@@ -184,9 +184,9 @@ protected:
 
         Matrix<REAL, Dynamic, 1> zeros(num_points, 1);
         zeros = MatrixXf::Zero(num_points, 1);
-        inside_ness = (inside_ness.array() > 0).select(ones, zeros);
+        // inside_ness = (inside_ness.array() > 0).select(ones, zeros);
 
-        // inside_ness = ones; // debug
+        inside_ness = ones; // debug
 
         REAL pi2 = pi*2; //M_PI from math.h
 
@@ -221,29 +221,30 @@ protected:
 
 public: 
 
-    screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
-          REAL pitch_len, std::string profile_shape,
-          REAL inner_diameter, REAL outer_diameter,  std::string end_type) {
+    // screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
+    //       REAL pitch_len, std::string profile_shape,
+    //       REAL inner_diameter, REAL outer_diameter,  std::string end_type) {
 
-        this->A = A;
-        this->slen = (B - A).norm();
-        this->w = (B-A)/slen;
-        my_assert(slen != 0, "cannot divided by zero");
-        this->u = U;
-        my_assert(end_type != "0", "end_type can only be zero now");
-        my_assert(profile_shape != "sin" , "profile_shape can only be sin now");
-        this->r0 = (inner_diameter + outer_diameter)/2;
-        this->delta = outer_diameter - this->r0;
-        this->twist_rate = pitch_len;
+    //     this->A = A;
+    //     this->slen = (B - A).norm();
+    //     this->w = (B-A)/slen;
+    //     my_assert(slen != 0, "cannot divided by zero");
+    //     this->u = U;
+    //     my_assert(end_type != "0", "end_type can only be zero now");
+    //     my_assert(profile_shape != "sin" , "profile_shape can only be sin now");
+    //     this->r0 = (inner_diameter + outer_diameter)/2;
+    //     this->delta = outer_diameter - this->r0;
+    //     this->twist_rate = pitch_len;
 
-        this->v = this->u.cross(this->w); // vector defined orientation, orthogon to u, w
-        this->UVW << this->u, this->v, this->w;
-        this->UVW_inv = this->UVW.inverse();
+    //     this->v = this->u.cross(this->w); // vector defined orientation, orthogon to u, w
+    //     this->UVW << this->u, this->v, this->w;
+    //     this->UVW_inv = this->UVW.inverse();
 
-    }
+    // }
 
     screw()
     {
+        std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
         this->A << 0,0,1; // center of bottom
         this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
         this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
@@ -258,33 +259,53 @@ public:
         this->UVW_inv = (this->UVW).inverse();
     }
 
-    // screw(Matrix<REAL, 3, 4> matrix, REAL pitch_len, std::string profile, 
-    //       std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
-    // {   
+    screw(Matrix<REAL, 4, 4> matrix, REAL pitch_len, std::string profile, 
+          std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
+    {   
 
-    //     // screw current cannot do non-uniform 
-    //     this->slen = matrix.column(2).norm();
 
-    //     // consider u as transformation matrix * [0,1,0],
-    //     // consider v as transformation matrix * [1,0,0],
-    //     // consider w as transformation matrix * [0,0,1],
+        std::cout << matrix << endl;
+        std::cout << pitch_len << endl;
+        std::cout << profile << endl;
+        std::cout << end_type << endl;
+        std::cout << delta_ratio << endl;
+        std::cout << v << endl; 
 
-    //     // this is a problem since if the screw is stretched, the 
-    //     // matrix.column(0).norm() (length of u) and matrix.column(1).norm() (length of v)
-    //     REAL outer_diameter = matrix.column(0).norm(); 
+        std::cout << "------------------------using matrix screw constructor: v defined----------------------" << std::endl;
+        // screw current cannot do non-uniform 
 
-    //     this->u = matrix.column(0)/matrix.column(0).norm();
-    //     this->w = matrix.column(2)/this->slen;
-    //     this->v = v; // if v is defined or if v is not defined
-    //     this->A = matrix.column(3);
+        // consider u as transformation matrix * [0,1,0],
+        // consider v as transformation matrix * [1,0,0],
+        // consider w as transformation matrix * [0,0,1],
+
+        // this is a problem since if the screw is stretched, the 
+        // matrix.col(0).norm() (length of u) and matrix.col(1).norm() (length of v)
+
+        this->u << matrix(0, 0), matrix(1, 0), matrix(2, 0); // first three element from first column
+        this->u = (this->u.array()/this->u.norm()).matrix();
+
+        this->w << matrix(0, 2), matrix(1, 2), matrix(2, 2); // first three element from first column
+        this->slen = this->w.norm();
+        this->w = (this->w.array()/this->w.norm()).matrix();
+
+        this->v = v; // if v is defined or if v is not defined
+        REAL outer_diameter = this->v.norm(); 
+        this->v = (this->v.array()/this->v.norm()).matrix();
+
+
+        this->A << matrix(0, 3), matrix(1, 3), matrix(2, 3);
+        this->A  = (this->A.array() - this->slen/2).matrix();
         
-    //     REAL inner_diameter = outer_diameter/delta_ratio;
-    //     this->r0 = (inner_diameter + outer_diameter)/2;
-    //     this->delta = outer_diameter - this->r0;
-    //     this->twist_rate = pitch_len;
+        REAL inner_diameter = outer_diameter/delta_ratio;
+        this->r0 = inner_diameter/2;
+        this->delta = (outer_diameter/2 - inner_diameter/2);
+        this->twist_rate = pitch_len;
 
-    //     this->UVW << this->u, this->v, this->w;
-    //     this->UVW_inv = this->UVW.inverse();
+        this->UVW << this->u, this->v, this->w;
+        this->UVW_inv = this->UVW.inverse();
+
+        this->phi0 = 0.0; // not used
+    }
 
 
     // }
@@ -351,65 +372,86 @@ public:
     }
 
     static void getScrewParameters(
-            Eigen::Matrix<REAL, 3, 1>& A, Eigen::Matrix<REAL, 3, 1>& B, Eigen::Matrix<REAL, 3, 1>& U, 
-            REAL& pitch_len, std::string& profile_shape, REAL& id,
-            REAL& od, std::string& end_type, const pt::ptree& shapeparams_dict
+        Matrix<REAL, 4, 4>& matrix, REAL& pitch_len, std::string& profile, 
+        std::string& end_type, REAL& delta_ratio, Matrix<REAL, 3, 1>& v,
+        const pt::ptree& shapeparams_dict
     ){
 
         int i = 0;
-        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("axis")) {
-            int j = 0;
-            for (const pt::ptree::value_type &cell : element.second)
-            {   
-                if (i==0) {
-                    A(j, 0) = cell.second.get_value<REAL>();
-                } else if (i==1){  
-                    B(j, 0) = cell.second.get_value<REAL>();
-                } else{
-                    my_assert(i<=1, "i should only be 0 or 1.");
-                }
+        int j = 0;
+
+        std::cout << "--- here ---" << std::endl;
+
+
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+
+            std::cout << "--- in for loop ---" << std::endl;
+
+            std::cout << element.second.get_value<float>() << std::endl;
+
+            std::cout << "---i---" << std::endl;
+            std::cout << i << std::endl;
+            std::cout << "---j---" << std::endl;
+            std::cout << j << std::endl;
+
+            std::cout << "---m i j ---" << std::endl;
+
+            REAL x = element.second.get_value<float>();
+
+            matrix(i, j) = x;
+
+            std::cout << matrix(i, j) << std::endl;
+
+            // my_assert(j == 3, "there shuold be three points");
+            if (j == 3) {
+                j = 0;
+                i++;
+            } else {
                 j++;
             }
-            my_assert(j == 3, "there shuold be three points");
-            i++;
         }
-        my_assert(i == 2, "for axis you should provide two points");
 
-        std::cout << "getAB" << std::endl;
-        std::cout << A << std::endl;
-        std::cout << B << std::endl;
+        // my_assert(i == 3, "there should be three row");
+        // my_assert(j == 2, "last row there should be three col");
 
+        std::cout << "---matrix in screw parameter---" << std::endl;
+
+        std::cout << matrix << std::endl;
         // my_assert(!(A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
         // my_assert(!(B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly B is not initialised correclt");
 
-        std::cout << "getU" << std::endl;
-        int getU_counter = 0;
-        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("start-orientation")) {
+        std::cout << "getV" << std::endl;
+        int getv_counter = 0;
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("v")) {
                 //std::clog << "matrix value : " << x << std::endl;
-            U(getU_counter, 0) = element.second.get_value<REAL>();
+            v(getv_counter, 0) = element.second.get_value<float>();
 
-            std::cout << element.second.get_value<REAL>() << std::endl;
-            my_assert(getU_counter<=2, "i should not exceed number 2");
-            getU_counter++;
+            std::cout << element.second.get_value<float>() << std::endl;
+            // my_assert(getv_counter<=2, "i should not exceed number 2");
+            getv_counter++;
         }
+        std::cout << "getV" << std::endl;
 
         std::cout << "getpitch_len" << std::endl;
+        std::cout << shapeparams_dict.get<REAL>("pitch") << std::endl;
         pitch_len = shapeparams_dict.get<REAL>("pitch");
-
         std::cout << pitch_len << std::endl;
         std::cout << "getpitch_len" << std::endl;
 
 
-        std::cout << "get-profile_shape" << std::endl;
-        profile_shape = shapeparams_dict.get<std::string>("profile");
-
-        std::cout << profile_shape << std::endl;
-
-        std::cout << "get-profile_shape" << std::endl;
+        std::cout << "get-profile" << std::endl;
+        profile = shapeparams_dict.get<std::string>("profile");
+        std::cout << profile << std::endl;
+        std::cout << "get-profile" << std::endl;
 
         // okay 
 
-        // id = shapeparams_dict.get<REAL>("diameter-inner"); // this line has global affects destroy the screw 
+        std::cout << "delta_ratio" << std::endl;
+        std::cout << shapeparams_dict.get<REAL>("delta_ratio") << std::endl;
+        delta_ratio = shapeparams_dict.get<REAL>("delta_ratio"); // this line has global affects destroy the screw 
+        std::cout << delta_ratio << std::endl;
+        std::cout << "delta_ratio" << std::endl;
+
         // od = shapeparams_dict.get<REAL>("diameter-outer"); // this line has global affects destroy the screw 
 
         // std::cout << "--------------------------------------" << std::endl;
@@ -417,18 +459,15 @@ public:
         // std::cout << shapeparams_dict.get<REAL>("diameter-outer") << std::endl;
         // std::cout << "--------------------------------------" << std::endl;
 
-        id = 0.5;
-        od = 0.9;
 
         std::cout << "get-end-typer" << std::endl;
-        end_type = shapeparams_dict.get<std::string>("end-type");
+        end_type = shapeparams_dict.get<std::string>("end_type");
 
         std::cout << end_type << std::endl;
 
         std::cout << "get-end-typer" << std::endl;
-
     }
 
 };
 
-} //namespace
+}; //namespace

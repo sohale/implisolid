@@ -78,7 +78,7 @@ var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":
 
 var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","displayColor":{"x":0.7,"y":0.7,"z":0.7},"matrix":[8,0,0,0,0,8,0,0,0,0,8,0,0,0,0,1],"index":9185154}]}}';
 
-var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","axis":[[0,0,0.3165],[0.5, 0, -0.5]],"start_orientation": [0,1,0],"pitch": 2,"profile":"sin","diameter_inner":12.0,"diameter_outer":8.0,"end_type": "0","index":9185154}]}}';
+var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1, 0, 0, 2.5, 0, 2, 0, 2.5, 0, 0, 5, 1.5, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
  // {
  //                "type": "screw",
@@ -171,9 +171,10 @@ function provide_input (subjective_time, is_update_mode, globals) {
             diameter_outer:8.0,
             end_type: "0"
         };
+
         var mp5_json_screw_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
         mp5_json_screw_dict.root.children=[screw_dict];
-        var SCREW = JSON.stringify(mp5_json_screw_dict);
+        // var SCREW = JSON.stringify(mp5_json_screw_dict);
 
         // Select the object to display
 
@@ -182,6 +183,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
+        var mp5_json = SIMPLE_SCREW; const BB_SIZE = 3.0; used_matrix = false;
 
         var obj_selector = "screw";
         // var obj_selector = "cone";
@@ -275,7 +277,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         // create new geometry
         var mc_properties_json = {
-            resolution: Math.floor(14),
+            resolution: Math.floor(40),
             box: bbox,
             ignore_root_matrix: false,
 
