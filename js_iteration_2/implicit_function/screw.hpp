@@ -222,8 +222,8 @@ protected:
 public: 
 
     screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
-          REAL pitch_len, string profile_shape,
-          REAL inner_diameter, REAL outer_diameter,  string end_type) {
+          REAL pitch_len, std::string profile_shape,
+          REAL inner_diameter, REAL outer_diameter,  std::string end_type) {
 
         this->A = A;
         this->slen = (B - A).norm();
@@ -256,9 +256,63 @@ public:
         this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
         this->UVW << this->u, this->v, this->w;
         this->UVW_inv = (this->UVW).inverse();
-        
     }
 
+    // screw(Matrix<REAL, 3, 4> matrix, REAL pitch_len, std::string profile, 
+    //       std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
+    // {   
+
+    //     // screw current cannot do non-uniform 
+    //     this->slen = matrix.column(2).norm();
+
+    //     // consider u as transformation matrix * [0,1,0],
+    //     // consider v as transformation matrix * [1,0,0],
+    //     // consider w as transformation matrix * [0,0,1],
+
+    //     // this is a problem since if the screw is stretched, the 
+    //     // matrix.column(0).norm() (length of u) and matrix.column(1).norm() (length of v)
+    //     REAL outer_diameter = matrix.column(0).norm(); 
+
+    //     this->u = matrix.column(0)/matrix.column(0).norm();
+    //     this->w = matrix.column(2)/this->slen;
+    //     this->v = v; // if v is defined or if v is not defined
+    //     this->A = matrix.column(3);
+        
+    //     REAL inner_diameter = outer_diameter/delta_ratio;
+    //     this->r0 = (inner_diameter + outer_diameter)/2;
+    //     this->delta = outer_diameter - this->r0;
+    //     this->twist_rate = pitch_len;
+
+    //     this->UVW << this->u, this->v, this->w;
+    //     this->UVW_inv = this->UVW.inverse();
+
+
+    // }
+    // screw(Matrix<REAL, 3, 4> matrix, REAL pitch_len, std::string profile, 
+    //       std::string end_type, REAL delta_ratio)
+    // : screw()
+    // {   
+
+    //     // screw current cannot do non-uniform 
+
+    //     this->u = matrix.column(0)/matrix.column(0).norm();
+    //     this->w = matrix.column(2)/matrix.column(2).norm();
+    //     this->v = v;
+    //     this->A = matrix.column(3);
+
+    //     this->slen = w.norm();
+        
+    //     REAL outer_diameter = u.norm();
+    //     REAL inner_diameter = outer_diameter/delta_ratio;
+    //     this->r0 = (inner_diameter + outer_diameter)/2;
+    //     this->delta = outer_diameter - this->r0;
+    //     this->twist_rate = pitch_len;
+
+    //     this->UVW << this->u, this->v, this->w;
+    //     this->UVW_inv = this->UVW.inverse();
+
+
+    // }
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 

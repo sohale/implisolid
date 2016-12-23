@@ -127,27 +127,43 @@ bool invert_matrix(const REAL input_A[], REAL inverse_A[])
 
 
 void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
-    const REAL m0 = matou[0];
-    const REAL m1 = matou[1];
-    const REAL m2 = matou[2];
-    const REAL m3 = matou[3];
 
-    const REAL m4 = matou[4];
-    const REAL m5 = matou[5];
-    const REAL m6 = matou[6];
-    const REAL m7 = matou[7];
+    std::cout << "using not tested matrix_vector_product" << std::endl;
+    // not tested
 
-    const REAL m8 = matou[8];
-    const REAL m9 = matou[9];
-    const REAL m10 = matou[10];
-    const REAL m11 = matou[11];
+    /*
+      matou is 3 by 4
+      
+      matou dot vectou 
 
-    for (int i=0; i<vectou.shape()[0]; i++){
-        REAL vectou_0 = vectou[i][0];
-        REAL vectou_1 = vectou[i][1];
-        vectou[i][0] = m0*vectou_0 + m1*vectou_1 +  m2*vectou[i][2] + m3*1.;
-        vectou[i][1] = m4*vectou_0 + m5*vectou_1 +  m6*vectou[i][2] + m7*1.;
-        vectou[i][2] = m8*vectou_0 + m9*vectou_1 + m10*vectou[i][2] + m11*1.;
+      m is matrix 3 by 4
+      m = |m00, m01, m02, m03|
+          |m10, m11, m12, m13|
+          |m20, m21, m22, m23|
+    */
+
+    const REAL m00 = matou[0];
+    const REAL m01 = matou[1];
+    const REAL m02 = matou[2];
+    const REAL m03 = matou[3];
+
+    const REAL m10 = matou[4];
+    const REAL m11 = matou[5];
+    const REAL m12 = matou[6];
+    const REAL m13 = matou[7];
+
+    const REAL m20 = matou[8];
+    const REAL m21 = matou[9];
+    const REAL m22 = matou[10];
+    const REAL m23 = matou[11];
+
+    for (int i = 0, n = vectou.shape()[0]; i < n; ++i) {
+        const REAL v_x = vectou[i][0];
+        const REAL v_y = vectou[i][1];
+        const REAL v_z = vectou[i][2];
+        vectou[i][0] = m00 * v_x + m01 * v_y + m02 * v_z + m03;
+        vectou[i][1] = m10 * v_x + m11 * v_y + m12 * v_z + m13;
+        vectou[i][2] = m20 * v_x + m21 * v_y + m22 * v_z + m23;
     }
 
 }
