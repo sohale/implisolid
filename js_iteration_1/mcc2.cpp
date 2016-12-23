@@ -463,13 +463,35 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
     return std::make_pair(verts, faces);
 }
 
-// note that polygoniser__old
+/**
+    A class that contains the internal variables in the loop of the main algorithm.
+    The idea is to call the steps separately and externally (via web-worker, etc), while keeping the state.
+    Note that _state and polygoniser__old are different classes.
+   The class polygoniser__old was a failed attampt.
+*/
 struct polygonizer {
+public:
+    //state_t * _state;
+    //const mp5_implicit::implicit_function& object;
+    //const mp5_implicit::mc_settings & mc_settings_from_json;
+    std::string steps_report;
+    //timer & timr;
+public:
+    polygonizer()
+    :
+        steps_report("")
+    {
+
+    }
+
     static void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr);
     static void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
     static void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
     static void polygonize_step_3(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, bool is_last);
+
+    static void polygonize_terminate(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
 };
+
 
 // todo: move into _state
 void polygonizer::polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
@@ -556,10 +578,38 @@ void polygonizer::polygonize_step_3(state_t & _state, const mp5_implicit::implic
     timr.report_and_continue("subdivisions");
     
 }
+/*
+    stores the result into _state.
+    _state holds the result, and it will be available for later reference.
+    Results are left in _state, available in _state.
+*/
+void polygonizer::polygonize_terminate(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
+    //delete object;
+    //object = NULL;
+    gc_objects();
+
+    _state.active = true;
+
+    _state.check_state();
+    // std::clog << "MC:: v,f: " << _state.mc_result_verts.size() << " " << _state.mc_result_faces.size() << std::endl;
+
+    steps_report = steps_report + "finished.";
+    std::clog << "algorithm.steps_report: " << steps_report << std::endl;
+
+}
+
+
+/**
+*************************************************
+*        The grand algorithm                    *
+*************************************************
+*/
+
 // void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
 void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
 
-    std::string steps_report = "";
+    polygonizer algorithm;
+    //std::string steps_report = "";   ----> algorithm.steps_report
 
     if (!_state.check_state_null()) {
         clog << "build_geometry() called in a bad state.";
@@ -586,7 +636,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     timer timr;
     timr.report_and_continue("timer started.");
 
-    polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report, timr);
+    polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
 
 
 
@@ -632,7 +682,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             for (int i=0; i < vresamp_iters; i++) {
                 
                 
-                polygonizer::polygonize_step_1(_state, *object, mc_settings_from_json, steps_report, timr);
+                polygonizer::polygonize_step_1(_state, *object, mc_settings_from_json, algorithm.steps_report, timr);
 
             }
             // break;
@@ -651,7 +701,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
                 if (mc_settings_from_json.projection.enabled) {
 
-                    polygonizer::polygonize_step_2(_state, *object, mc_settings_from_json, steps_report, timr);
+                    polygonizer::polygonize_step_2(_state, *object, mc_settings_from_json, algorithm.steps_report, timr);
 
                 } else {
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
@@ -665,7 +715,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 {
                     std::clog << "Subdivision:" << std::endl;
 
-                    polygonizer::polygonize_step_3(_state, *object, mc_settings_from_json, steps_report, timr, is_last);
+                    polygonizer::polygonize_step_3(_state, *object, mc_settings_from_json, algorithm.steps_report, timr, is_last);
 
                 } else {
                     std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
@@ -699,17 +749,11 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     }
     */
 
+    polygonizer::polygonize_terminate(_state, *object, mc_settings_from_json, algorithm.steps_report, timr);
     //delete object;
     object = NULL;
-    gc_objects();
-
-    _state.active = true;
-
-    _state.check_state();
-    // std::clog << "MC:: v,f: " << _state.mc_result_verts.size() << " " << _state.mc_result_faces.size() << std::endl;
-
-    std::clog << "steps_report: " << steps_report << std::endl;
 }
+
 int get_f_size() {
     if (!_state.check_state()) return -1;
     return _state.mc_result_faces.size()/3;
