@@ -86,7 +86,7 @@ boost::multi_array<vertexindex_type, 2> copy_faces_from_vectorfaces(
 
     vectorized_vect::index  num_faces = static_cast<vectorized_vect::index>(mesh_faces.size()/3);
 
-    boost::array<vectorized_vect::index, 2> faces_shape = { num_faces , 3 };
+    boost::array<vectorized_vect::index, 2> faces_shape {{ num_faces , 3 }};
     vectorized_faces faces(faces_shape);
 
     int output_faces = 0;

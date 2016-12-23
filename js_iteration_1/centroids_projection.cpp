@@ -105,7 +105,7 @@ namespace mp5 {
     int global_rng_seed = 12;
 };
 vectorized_vect make_random_pm1(vindex_t n, int dims, REAL amplitude) {
-    //vectorized_vect result {n, dims};
+    //vectorized_vect result boost::extents[n][dims]};
     vectorized_vect result {boost::extents[n][dims]};
     //mt11213b r = boost::mt11213b();
     int seed = mp5::global_rng_seed;

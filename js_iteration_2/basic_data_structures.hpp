@@ -232,7 +232,7 @@ namespace mp5_implicit {
 
 inline array_shape_t make_shape_1d(array1d::index size) {
     my_assert(size>=0, "");
-    array_shape_t shape = { size, };
+    array_shape_t shape {{ size, }};
     return shape;
 }
 

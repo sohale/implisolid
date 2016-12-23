@@ -8,7 +8,7 @@
 
 vectorized_vect convert_vectorverts_to_vectorized_vect(const std::vector<REAL> & result_verts) {
 
-    boost::array<int, 2> verts_shape = { static_cast<int>( result_verts.size() / 3 ), 3 };
+    boost::array<int, 2> verts_shape = {{ static_cast<int>( result_verts.size() / 3 ), 3 }};
     vectorized_vect  verts(verts_shape);
 
     int output_verts=0;

@@ -90,6 +90,7 @@ then
             -s TOTAL_MEMORY=30100100    \
             -s ABORTING_MALLOC=0 \
             -DMORE_ABOUT_INFO='"BitCode"'   \
+            -Wall  \
             -pedantic -std=c++14  \
         mcc2.cpp  \
             -o  ../build/mcc2.compiled.js
@@ -118,6 +119,7 @@ then
         -s ASSERTIONS=1 \
         -s BUILD_AS_WORKER=0 -DNOT_BUILD_AS_WORKER  \
         -DMORE_ABOUT_INFO='"DEV"'   \
+        -Wall  \
         -pedantic -std=c++14 \
         mcc2.cpp -o ../build/mcc2.compiled.js
 #        --profiling \
@@ -146,6 +148,7 @@ then
         -s ASSERTIONS=1 \
         -s BUILD_AS_WORKER=1 -DBUILD_AS_WORKER  \
         -DMORE_ABOUT_INFO='"Worker+dev"'   \
+        -Wall  \
         -pedantic -std=c++14 \
         mcc2.cpp -o ../build/mcc2.compiled.js
 #        --profiling \
@@ -173,6 +176,7 @@ then
         -s ALLOW_MEMORY_GROWTH=1 \
         -s DISABLE_EXCEPTION_CATCHING=0  \
         -s DEMANGLE_SUPPORT=1 \
+        -Wall  \
         -pedantic -std=c++14  \
     mcc2.cpp  \
         -o  ../build/mcc2.compiled.js

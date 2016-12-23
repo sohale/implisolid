@@ -176,10 +176,10 @@ vectorized_scalar  eval_implicit_on_selected_points_indexed(
         const array_of_indices & active_indices,
         int count) {
     assert(count == active_indices.shape()[0]);
-    vectorized_scalar_shape scalar_shape { count    };
+    vectorized_scalar_shape scalar_shape {{ count    }};
     vectorized_scalar f_a(scalar_shape);
     // assign_vects_chosen_by_fancy_indexing(xa, X, active_indices, ???);
-    vectorized_vect_shape shape = {count, 3};
+    vectorized_vect_shape shape = {{count, 3}};
     vectorized_vect   xa(shape);
     for (int j=0; j < count; j++) {
         auto k = active_indices[j];
@@ -199,10 +199,10 @@ vectorized_scalar  eval_implicit_on_selected_points_indexed(
 
 vectorized_scalar  eval_implicit_on_selected_points_bool(mp5_implicit::implicit_function* object, const vectorized_vect & X, const vectorized_bool & selected_bool,  int count) {
     assert(count == selected_bool.shape()[0]);
-    vectorized_scalar_shape scalar_shape { count    };
+    vectorized_scalar_shape scalar_shape {{ count    }};
     vectorized_scalar f_a(scalar_shape);
     // assign_vects_chosen_by_fancy_indexing(xa, X, selected_bool, ???);
-    vectorized_vect_shape shape = {count, 3};
+    vectorized_vect_shape shape = {{count, 3}};
     vectorized_vect   xa(shape);
     for (int j=0; j < count; j++) {
         auto k = selected_bool[j];
@@ -258,7 +258,7 @@ bool check_all_are_root(mp5_implicit::implicit_function* object, const vectorize
     boost::array<int, 1> f1_relevant_shape = {m};
     */
     const vectorized_scalar::size_type nn = x_bisect.shape()[0];
-    vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1>{nn});
+    vectorized_scalar f(boost::array<vectorized_scalar::size_type, 1> {{ nn }});
     object->eval_implicit(x_bisect, &f);
 
     bool ok = true;

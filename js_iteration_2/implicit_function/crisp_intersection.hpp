@@ -86,7 +86,7 @@ public:
         vectorized_scalar f1 = vectorized_scalar(sf);  // first function
         vectorized_scalar f2 = vectorized_scalar(sf);  // second function
 
-        auto shape = boost::array<vectorized_vect::index, 2>{nsize, 3};
+        auto shape = boost::array<vectorized_vect::index, 2> {{nsize, 3}};
         vectorized_vect grad1 = vectorized_vect(shape);
         vectorized_vect grad2 = vectorized_vect(shape);
 

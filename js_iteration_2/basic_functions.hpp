@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cmath>  // for isnan
-void m() {
+
+/*void m() {
 auto q = std::isnan(0);
 }
+*/
 
 inline REAL squared(REAL x) {
     return x*x;
@@ -350,7 +352,8 @@ vectorized_vect prepare_inner_vectors(REAL* inv_transf_matrix, const vectorized_
 
     vectorized_vect::index nc = x.shape()[0];  // converts int -> uint
     vectorized_vect::index ndim = x.shape()[1];
-    auto shape_ = boost::array<vectorized_vect::index, 2>{nc, ndim};
+    // auto shape_ = boost::array<vectorized_vect::index, 2>{nc, ndim};
+    auto shape_ = boost::array<vectorized_vect::index, 2>{{nc, ndim}};
     vectorized_vect x_copy = vectorized_vect(shape_);
     std::copy(x.begin(), x.end(), x_copy.begin());
     //vectorized_vect x_copy = x;

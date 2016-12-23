@@ -1063,7 +1063,7 @@ bool set_x(void* verts, int n) {
         return false;
     }
 
-    ifunction_service.current_x = new vectorized_vect( shape_t{n, 3} );
+    ifunction_service.current_x = new vectorized_vect( boost::extents[n][3] );
     REAL* real_verts = reinterpret_cast<REAL*>(verts);
     for(int i = 0; i < n; i++) {
         (*ifunction_service.current_x)[i][0] = real_verts[i*3 + 0];
@@ -1080,9 +1080,9 @@ bool set_x(void* verts, int n) {
         */
     }
     //std::clog << std::endl;
-    ifunction_service.current_f = new vectorized_scalar( shape_t{n}  );  // n x 0 (?)
+    ifunction_service.current_f = new vectorized_scalar( boost::extents[n]  );  // n x 0 (?)
     //std::clog << "warning: size may be n x 0:  " << ifunction_service.current_f->shape()[0] << "x" << ifunction_service.current_f->shape()[1] << std::endl;
-    ifunction_service.current_grad = new vectorized_vect( shape_t{n, 3}  );
+    ifunction_service.current_grad = new vectorized_vect( boost::extents[n][3]  );
     #if ASSERT_USED
     //ifunction_service.current_grad  <- some init value
     #endif
