@@ -142,7 +142,7 @@ bool read_bool_from_json(
 
 }
 */
-const mp5_implicit::mc_settings parse_mc_properties_json(const char* mc_parameters_json) {
+const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_parameters_json) {
     std::stringstream mc_json_stream;
     mc_json_stream << mc_parameters_json;
 
