@@ -74,7 +74,7 @@ done
 if [ $SAVE_BC -eq 1 ]
 then
 
-    echo "Optimized version, bytecode will be emitted in the file " mcc2.ll
+    echo "BitCode version, bitecode will be emitted in the file. Optimisation is ON. " mcc2.ll
     em++ \
             --save-bc mcc2.bc \
             -I $BOOST_FOLDER   \
@@ -105,7 +105,7 @@ then
 if [ $OPTIM -eq 0 ]
 then
 
-    echo "** dev version (non-worker) **"
+    echo "** dev version (non-worker): Optimisations are off. Asserts are on. **"
 
     EMCC_DEBUG=1
 
@@ -134,7 +134,7 @@ then
 if [ $OPTIM -eq 0 ]
 then
 
-    echo "** dev worker version **"
+    echo "** Worker version (dev) **"
 
     EMCC_DEBUG=1
 
@@ -159,7 +159,7 @@ fi
 
 if [ $OPTIM -eq 1 ]
 then
-    echo "** optimised version **"
+    echo "** optimised version. Asserts are off. **"
 
     em++ \
         -I $BOOST_FOLDER   \
@@ -176,10 +176,10 @@ then
         -s ALLOW_MEMORY_GROWTH=1 \
         -s DISABLE_EXCEPTION_CATCHING=0  \
         -s DEMANGLE_SUPPORT=1 \
-        -Wall  \
         -pedantic -std=c++14  \
     mcc2.cpp  \
         -o  ../build/mcc2.compiled.js
     exit 0
 fi
+#         -Wall  \
 
