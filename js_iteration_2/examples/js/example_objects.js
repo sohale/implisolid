@@ -161,7 +161,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
 
 
-        var screw_dict = {
+        /*var screw_dict = {
             type:"screw",
             axis:[[0,0,0.3165],[0.5, 0, -0.5]],
             start_orientation: [0,1,0],
@@ -170,11 +170,13 @@ function provide_input (subjective_time, is_update_mode, globals) {
             diameter_inner:12.0,
             diameter_outer:8.0,
             end_type: "0"
-        };
+        };*/
+        var screw_dict = JSON.parse(SIMPLE_SCREW).root.children[0];
+        
 
         var mp5_json_screw_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
         mp5_json_screw_dict.root.children=[screw_dict];
-        // var SCREW = JSON.stringify(mp5_json_screw_dict);
+        var SCREW = JSON.stringify(mp5_json_screw_dict);
 
         // Select the object to display
 
@@ -183,10 +185,12 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var mp5_json = MOON;         const BB_SIZE = 9+9;
         // var mp5_json = TETRAHEDRON;  const BB_SIZE = 9;
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
-        var mp5_json = SIMPLE_SCREW; const BB_SIZE = 3.0; used_matrix = false;
+        // var mp5_json = SIMPLE_SCREW; var BB_SIZE = 3.0; used_matrix = false;
+        var mp5_json = null;
 
-        var obj_selector = "screw";
-        // var obj_selector = "cone";
+        //var obj_selector = "screw";
+        var obj_selector = "cone";
+
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
         switch (obj_selector) {
