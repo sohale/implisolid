@@ -93,7 +93,7 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 }
 */
 
-#include "mcc2_marching_cubes.hpp"
+#include "../js_iteration_2/marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"
 
 void meta_balls(MarchingCubes& mc, int num_blobs, REAL time, REAL scale) {
