@@ -14,7 +14,7 @@
 struct polygonizer {
 
 public:
-// 
+// accessible
     std::string steps_report;
     timer timr;
 
@@ -30,15 +30,14 @@ public:
     polygonizer(
         state_t & _state,
         mp5_implicit::implicit_function& object,
-        const std::string & mc_parameters_json,
-        timer & timr
+        const std::string & mc_parameters_json
     )
     :
         _state(_state),  // Does this assign a reference? or copies it into the referenced?
         object(object),
         mc_settings_from_json(parse_mc_properties_json(mc_parameters_json)),
         steps_report(""),
-        timr(timr)
+        timr()
     {
         timr.report_and_continue("timer started.");
     }
