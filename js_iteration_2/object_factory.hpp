@@ -246,19 +246,24 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     else if (name == "screw") {
 
         Matrix<REAL, 4, 4> transformation_matrix;
-        REAL pitch_len = 0.0;
+        REAL pitch = 0.0;
         std::string profile;
         std::string end_type;
         REAL delta_ratio = 0.0;
         Matrix<REAL, 3, 1> v;
 
         mp5_implicit::screw::getScrewParameters(
-                           transformation_matrix, pitch_len, profile, 
+                           transformation_matrix, pitch, profile, 
                            end_type, delta_ratio, v, 
                            shapeparams_dict);
 
+        transformation_matrix << 1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0,
+                                 0, 0, 0, 1;
+
         object = new mp5_implicit::screw(transformation_matrix,
-                                         pitch_len,
+                                         pitch,
                                          profile,
                                          end_type,
                                          delta_ratio,

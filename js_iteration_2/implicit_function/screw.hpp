@@ -222,7 +222,7 @@ protected:
 public: 
 
     // screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
-    //       REAL pitch_len, std::string profile_shape,
+    //       REAL pitch, std::string profile_shape,
     //       REAL inner_diameter, REAL outer_diameter,  std::string end_type) {
 
     //     this->A = A;
@@ -234,7 +234,7 @@ public:
     //     my_assert(profile_shape != "sin" , "profile_shape can only be sin now");
     //     this->r0 = (inner_diameter + outer_diameter)/2;
     //     this->delta = outer_diameter - this->r0;
-    //     this->twist_rate = pitch_len;
+    //     this->twist_rate = pitch;
 
     //     this->v = this->u.cross(this->w); // vector defined orientation, orthogon to u, w
     //     this->UVW << this->u, this->v, this->w;
@@ -259,13 +259,13 @@ public:
         this->UVW_inv = (this->UVW).inverse();
     }
 
-    screw(Matrix<REAL, 4, 4> matrix, REAL pitch_len, std::string profile, 
+    screw(Matrix<REAL, 4, 4> matrix, REAL pitch, std::string profile, 
           std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
     {   
 
 
         std::cout << matrix << endl;
-        std::cout << pitch_len << endl;
+        std::cout << pitch << endl;
         std::cout << profile << endl;
         std::cout << end_type << endl;
         std::cout << delta_ratio << endl;
@@ -294,12 +294,12 @@ public:
 
 
         this->A << matrix(0, 3), matrix(1, 3), matrix(2, 3);
-        this->A  = (this->A.array() - this->slen/2).matrix();
+        this->A  = (this->A.array() - (this->slen/2)*this->w.array()).matrix(); // this only works if w is 0, 0, 1
         
         REAL inner_diameter = outer_diameter/delta_ratio;
         this->r0 = inner_diameter/2;
         this->delta = (outer_diameter/2 - inner_diameter/2);
-        this->twist_rate = pitch_len;
+        this->twist_rate = pitch;
 
         this->UVW << this->u, this->v, this->w;
         this->UVW_inv = this->UVW.inverse();
@@ -309,7 +309,7 @@ public:
 
 
     // }
-    // screw(Matrix<REAL, 3, 4> matrix, REAL pitch_len, std::string profile, 
+    // screw(Matrix<REAL, 3, 4> matrix, REAL pitch, std::string profile, 
     //       std::string end_type, REAL delta_ratio)
     // : screw()
     // {   
@@ -327,7 +327,7 @@ public:
     //     REAL inner_diameter = outer_diameter/delta_ratio;
     //     this->r0 = (inner_diameter + outer_diameter)/2;
     //     this->delta = outer_diameter - this->r0;
-    //     this->twist_rate = pitch_len;
+    //     this->twist_rate = pitch;
 
     //     this->UVW << this->u, this->v, this->w;
     //     this->UVW_inv = this->UVW.inverse();
@@ -372,7 +372,7 @@ public:
     }
 
     static void getScrewParameters(
-        Matrix<REAL, 4, 4>& matrix, REAL& pitch_len, std::string& profile, 
+        Matrix<REAL, 4, 4>& matrix, REAL& pitch, std::string& profile, 
         std::string& end_type, REAL& delta_ratio, Matrix<REAL, 3, 1>& v,
         const pt::ptree& shapeparams_dict
     ){
@@ -432,11 +432,11 @@ public:
         }
         std::cout << "getV" << std::endl;
 
-        std::cout << "getpitch_len" << std::endl;
-        std::cout << shapeparams_dict.get<REAL>("pitch") << std::endl;
-        pitch_len = shapeparams_dict.get<REAL>("pitch");
-        std::cout << pitch_len << std::endl;
-        std::cout << "getpitch_len" << std::endl;
+        std::cout << "getpitch" << std::endl;
+        std::cout << shapeparams_dict.get<float>("pitch") << std::endl;
+        pitch = shapeparams_dict.get<float>("pitch");
+        std::cout << pitch << std::endl;
+        std::cout << "getpitch" << std::endl;
 
 
         std::cout << "get-profile" << std::endl;
