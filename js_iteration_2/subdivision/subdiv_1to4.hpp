@@ -68,9 +68,10 @@ auto subdivide_multiple_facets_1to4 (
     */
 
 
-    typedef tuple<vertexindex_type,vertexindex_type,vertexindex_type> face_triple;
 
     /*
+    typedef tuple<vertexindex_type,vertexindex_type,vertexindex_type> face_triple;
+
     std::vector<face_triple> new_faces__additional;
     // new_faces__additional.reserve(exact_total_number_of_new_faces);
     new_faces.resize(exact_total_number_of_new_faces);

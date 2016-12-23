@@ -296,7 +296,7 @@ extern "C" {
 typedef   std::tuple< vectorized_vect, vectorized_faces > vertsfaces_type;
 
 class polygoniser__old {
-    mp5_implicit::implicit_function const *  object;
+    mp5_implicit::implicit_function const *  object_;
 
     vertsfaces_type vertsfaces;  // not good
 
@@ -308,9 +308,11 @@ class polygoniser__old {
     const vectorized_vect & centroids,
     */
 
+private:
+    polygoniser__old() = delete;
 public:
     polygoniser__old(mp5_implicit::implicit_function const * ifunc_object)
-        :   object(ifunc_object)  // copy constructor
+        :   object_(ifunc_object)  // copy constructor
     {
         ;
     }
@@ -321,7 +323,7 @@ class state_t {
 public:
     bool active = 0;
     // MarchingCubes* mc = 0;
-    polygoniser__old pgonizer();
+    polygoniser__old pgonizer();  // why this does not generate an error?
     //todo: move this into this-> pgonizer
     std::vector<REAL> mc_result_verts;
     std::vector<vertexindex_type> mc_result_faces;
@@ -664,11 +666,10 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         const int vresamp_iters  =  mc_settings_from_json.vresampl.iters; //10; //3;
         // disable hard-coded
         const bool apply_projection = true;
-        // float c = 1.;
-        const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
 
         #if NOTQUIET
         if (VERBOSE) {
+            const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
             clog << "vresampl.c: " << c << std::endl;
             clog << "vresamp_iters: " << vresamp_iters << std::endl;
             clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
