@@ -295,7 +295,7 @@ extern "C" {
 
 typedef   std::tuple< vectorized_vect, vectorized_faces > vertsfaces_type;
 
-class polygoniser {
+class polygoniser__old {
     mp5_implicit::implicit_function const *  object;
 
     vertsfaces_type vertsfaces;  // not good
@@ -309,7 +309,7 @@ class polygoniser {
     */
 
 public:
-    polygoniser(mp5_implicit::implicit_function const * ifunc_object)
+    polygoniser__old(mp5_implicit::implicit_function const * ifunc_object)
         :   object(ifunc_object)  // copy constructor
     {
         ;
@@ -321,7 +321,7 @@ class state_t {
 public:
     bool active = 0;
     // MarchingCubes* mc = 0;
-    polygoniser pgonizer();
+    polygoniser__old pgonizer();
     //todo: move this into this-> pgonizer
     std::vector<REAL> mc_result_verts;
     std::vector<vertexindex_type> mc_result_faces;
@@ -463,8 +463,16 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
     return std::make_pair(verts, faces);
 }
 
+// note that polygoniser__old
+struct polygonizer {
+    static void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr);
+    static void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
+    static void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr);
+    static void polygonize_step_3(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, bool is_last);
+};
+
 // todo: move into _state
-void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
+void polygonizer::polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, bool use_metaball, std::string& steps_report, timer & timr) {
 
     auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
     // std::vector<REAL>, std::vector<int>
@@ -484,7 +492,7 @@ void polygonize_step_0(state_t & _state, const mp5_implicit::implicit_function& 
     timr.report_and_continue("marching cubes");
 }
 
-void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
+void polygonizer::polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
     timer t1;
 
     const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
@@ -498,7 +506,7 @@ void polygonize_step_1(state_t & _state, const mp5_implicit::implicit_function& 
 }
 
 
-void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
+void polygonizer::polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr) {
 
     std::clog << "centroids_projection:" << std::endl;
     // Never send mc_settings_from_json as an argument
@@ -508,7 +516,8 @@ void polygonize_step_2(state_t & _state, const mp5_implicit::implicit_function& 
     timr.report_and_continue("centroids_projection");
 }
 
-void polygonize_step_3(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, bool is_last) {
+
+void polygonizer::polygonize_step_3(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, bool is_last) {
 
     // Incorrect logic:
     const REAL scale_noise_according_to_matrix = 1.0 * 10.0;
@@ -577,7 +586,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     timer timr;
     timr.report_and_continue("timer started.");
 
-    polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report, timr);
+    polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, steps_report, timr);
 
 
 
@@ -623,7 +632,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
             for (int i=0; i < vresamp_iters; i++) {
                 
                 
-                polygonize_step_1(_state, *object, mc_settings_from_json, steps_report, timr);
+                polygonizer::polygonize_step_1(_state, *object, mc_settings_from_json, steps_report, timr);
 
             }
             // break;
@@ -642,7 +651,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
                 if (mc_settings_from_json.projection.enabled) {
 
-                    polygonize_step_2(_state, *object, mc_settings_from_json, steps_report, timr);
+                    polygonizer::polygonize_step_2(_state, *object, mc_settings_from_json, steps_report, timr);
 
                 } else {
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
@@ -656,7 +665,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 {
                     std::clog << "Subdivision:" << std::endl;
 
-                    polygonize_step_3(_state, *object, mc_settings_from_json, steps_report, timr, is_last);
+                    polygonizer::polygonize_step_3(_state, *object, mc_settings_from_json, steps_report, timr, is_last);
 
                 } else {
                     std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;
