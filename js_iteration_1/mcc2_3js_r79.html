@@ -747,7 +747,8 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
     /*
       function callMultipleTimes() {
             var mc_icounter=0;
-            setInterval(function(){ if(mc_icounter<10) update_mc(implisolid_, 0.2/10.*5); mc_icounter++; }, 30);
+            var delta_t = 0.2/10.*5;
+            setInterval(function(){ if(mc_icounter<10) update_mc(implisolid_, delta_t); mc_icounter++; }, 30);
         }
     */
 
@@ -760,9 +761,10 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
             var BURST_COUNT = 5; // 50;
             var INTERVAL_MSEC = 100; // 8-1; //40  // 1   // in Milliseconds
 
+            var delta_t = 0.2/10.*5 /5. * 5;
             //update_mc(implisolid_);
             callMultipleTimes (BURST_COUNT, INTERVAL_MSEC, function(){
-                update_mc(IMPLICIT, 0.2/10.*5 /5.);
+                update_mc(IMPLICIT, delta_t);
             });
             //change_arrow(arrow, implisolid_, globals.global_mp5);
         }
@@ -798,9 +800,10 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
 function update_mc(implisolid_, delta_t){
 
-    if(delta_t === undefined)
-        delta_t = 0.2;
+    assert(delta_t !== undefined)
+        // delta_t = 0.2 * 5;
     // Subjective time!
+    console.log("delta_t", delta_t);
     global_time += delta_t;
 
     var tuple = provide_input(global_time, 1, globals);
@@ -1050,7 +1053,7 @@ else{
 
 
         //if(delta_t === undefined)
-        var delta_t = 0.2;
+        var delta_t = 0.2 * 5;
         // Subjective time!
         global_time += delta_t;
 
@@ -1424,7 +1427,7 @@ else{
     function demo3(ver) {
         console.info("demo3 ver"+ver);
         // global_time += 2;
-        global_time = 4;
+        global_time = 4 * 5;
         var dct = provide_input(global_time, 1, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
@@ -1449,7 +1452,7 @@ else{
 
     function demo4() {
         console.info("demo4: Query implicit values for collision detection. Tests query_implicit_values_old()");
-        var demoshape = provide_input(global_time += 0.5, 1, globals);
+        var demoshape = provide_input(global_time += 0.5*5, 1, globals);
         var shapejson = JSON.stringify(demoshape.shape_json);
         console.log(shapejson);
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])

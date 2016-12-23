@@ -184,6 +184,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var mp5_json = SPHERE;  const BB_SIZE = 9;
 
         var obj_selector = "screw";
+        // var obj_selector = "cone";
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
         switch (obj_selector) {
@@ -215,6 +216,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
                     d.matrix[0] = sz;
                     d.matrix[5] = sz;
                     d.matrix[10] = sz;
+                    console.error("resizing", sz);
                 }
 
             break;
