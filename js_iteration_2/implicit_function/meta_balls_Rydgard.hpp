@@ -22,11 +22,27 @@ class meta_ball_Rydgård : public transformable_implicit_function {
    */
 
     int DUMP_VALUES = 0;  // used for debugging
+    constexpr static bool DEBUG_VERBOSE_ = false;
 
-public:
-    meta_ball_Rydgård(REAL matrix12[12], int num_blobs, REAL time, REAL scale) {
+ public:
+    meta_ball_Rydgård (REAL matrix12[12], int num_blobs, REAL time, REAL scale)
+    {
+        std::cout << "Metaballs Constructor: (";
+        std::cout << " blobs:" << num_blobs << ", time:" << time << ", scale:" << scale << ")  matrix: [";
+        for (int i=0; i<12; i++) {
+            if (i != 0)
+                std::cout << ",";
+            std::cout << matrix12[i];
+        }
+        std::cout << "]"  << std::endl;
 
-        global_counter = 0;
+        meta_ball_Rydgård::global_counter = 0;
+
+        //this->balls.resize(0);
+        //this->planes.resize(0);
+        my_assert(this->balls.size() == 0, "needs to be empty to begin with");
+        my_assert(this->planes.size() == 0, "needs to be empty to begin with");
+        std::cout << "bp:" << this->balls.size() << this->planes.size() << std::endl;
 
         int numblobs = num_blobs;  // default: 4
         for (int ball_i = 0; ball_i < numblobs; ball_i++) {
@@ -55,34 +71,40 @@ public:
 
     static int global_counter;
 
-    class ball {
+    class ball_t {
         REAL ballx, bally, ballz, strength, subtract, scale;
     public:
-        ball(REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale)
+        ball_t (REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale)
         : ballx(ballx), bally(bally), ballz(ballz), strength(strength), subtract(subtract), scale(scale)
         {
-            std::cout << "ball: Constructor:(" <<
-            this->ballx << "," << bally << "," << ballz << "), strength=" << strength << ",subtract=" << subtract << ",scale=" << scale
-            << std::endl;
+            if (meta_ball_Rydgård::DEBUG_VERBOSE_) {
+                std::cout << "ball_t: Constructor:(" <<
+                this->ballx << "," << bally << "," << ballz << "), strength=" << strength << ",subtract=" << subtract << ",scale=" << scale
+                << std::endl;
+            }
         }
 
         inline void implicit_ball(REAL realx, REAL realy, REAL realz, REAL & output) const {
-            REAL fz = realz - this->ballz;
-            REAL fz2 = fz * fz;
-            REAL fy = realy - this->bally;
-            REAL fy2 = fy * fy;
             REAL fx = realx - this->ballx;
             REAL fx2 = fx * fx;
-            REAL val = strength / ( (REAL)0.000001 + fx2 + fy2 + fz2 ) - this->subtract;
+            REAL fy = realy - this->bally;
+            REAL fy2 = fy * fy;
+            REAL fz = realz - this->ballz;
+            REAL fz2 = fz * fz;
+            REAL h = ( (REAL)0.000001 + fx2 + fy2 + fz2 );
+            REAL hinv = 1.0 / h;
+            REAL val = strength * hinv - this->subtract;
             //if ( val > 0.0 )
                 output += val / 100;
 
-            if( meta_ball_Rydgård::global_counter < 100 ){
-                std::cout << "implicit_ball: " <<
-                    realx <<","<< realy <<","<< realz <<","<< output <<","<< val
-                    << std::endl;
+            if (meta_ball_Rydgård::DEBUG_VERBOSE_) {
+                if( meta_ball_Rydgård::global_counter < 100 ){
+                    std::cout << "implicit_ball: " <<
+                        realx <<","<< realy <<","<< realz <<","<< output <<","<< val
+                        << std::endl;
+                }
+                meta_ball_Rydgård::global_counter++;
             }
-            meta_ball_Rydgård::global_counter++;
         }
         inline void gradient_ball(REAL realx, REAL realy, REAL realz, REAL & outputx, REAL & outputy, REAL & outputz) const {
             REAL fz = realz - this->ballz;
@@ -152,14 +174,14 @@ public:
         }
     };
 
-    class plane {
+    class plane_t {
     
         REAL strength;
         REAL subtract;
     public:
         char xyz;
     public:
-        plane(REAL strength, REAL subtract, char xyz) : strength(strength), subtract(subtract), xyz(xyz)
+        plane_t (REAL strength, REAL subtract, char xyz) : strength(strength), subtract(subtract), xyz(xyz)
         {}
 
         inline void implicitX(REAL realx, REAL realy, REAL realz, REAL & output) const {
@@ -177,7 +199,6 @@ public:
             REAL hinv = static_cast<REAL>(1) / h;
             // REAL val = this->strength / h - this->subtract;
             REAL val = this->strength * hinv - this->subtract;
-            // 
             if ( val > 0.0 ) {
                 //output += val;
                 REAL gradx = this->strength * (
@@ -185,7 +206,7 @@ public:
                     // (0.001+x**2)^-1  --> (-1) * (((0.001+x**2))^-2) * (0.001+x**2)'
                     // --> -((0.001+x**2)^-2) * (2*x)
                     // --> -2 * x * (h^-2)
-                    -2 * realx * hinv * hinv
+                    -2 * fx * hinv * hinv
                 );
                 outputx += gradx;
             }
@@ -207,7 +228,7 @@ public:
             REAL val = strength * hinv - subtract;
             if ( val > 0.0 ) {
                 // output += val;
-                REAL grady = this->strength * (-2) * realy * hinv * hinv;
+                REAL grady = this->strength * (-2) * fy * hinv * hinv;
                 outputy += grady;
             }
         }
@@ -231,7 +252,7 @@ public:
             REAL val = this->strength * hinv - subtract;
             if ( val > 0.0 ) {
                 // output += val;
-                REAL gradz = this->strength * (-2) * realz * hinv * hinv;
+                REAL gradz = this->strength * (-2) * fz * hinv * hinv;
                 outputz += gradz;
             }
         }
@@ -240,23 +261,23 @@ public:
 
 
 
-    std::vector<ball> balls;
-    std::vector<plane> planes;
+    std::vector<ball_t> balls;
+    std::vector<plane_t> planes;
 
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale) {
-        ball b {ballx, bally, ballz, strength, subtract, scale};
+        ball_t b {ballx, bally, ballz, strength, subtract, scale};
         balls.push_back(b);
     }
     void addPlaneX( REAL strength, REAL subtract ) {
-        plane p {strength, subtract, 'x'};
+        plane_t p {strength, subtract, 'x'};
         planes.push_back(p);
     }
     void addPlaneY( REAL strength, REAL subtract ) {
-        plane p (strength, subtract, 'y');
+        plane_t p (strength, subtract, 'y');
         planes.push_back(p);
     }
     void addPlaneZ( REAL strength, REAL subtract ) {
-        plane p (strength, subtract, 'z');
+        plane_t p (strength, subtract, 'z');
         planes.push_back(p);
     }
 
@@ -278,7 +299,7 @@ public:
         }
         const vectorized_vect local_x = prepare_inner_vectors(this->inv_transf_matrix, x);
 
-        for( const ball & b : balls ) {
+        for( const ball_t & b : balls ) {
             int output_ctr=0;
             for(auto i = local_x.begin(), e = local_x.end(); i < e; i++, output_ctr++){
                 const REAL x = (*i)[0];
@@ -288,7 +309,7 @@ public:
             }
         }
 
-        for( const plane & p : planes ) {
+        for( const plane_t & p : planes ) {
             switch (p.xyz) {
             case 'x':{
                 int output_ctr = 0;
@@ -322,14 +343,16 @@ public:
             }
         }
 
-        if (DUMP_VALUES > 0) {
-            std::cout << "eval i " ;
-            int output_ctr = 0;
-            for(auto i = local_x.begin(), e = local_x.end(); i < e; i++, output_ctr++){
-                std::cout << (*f_output)[output_ctr] << " ";
-                if (output_ctr >= DUMP_VALUES) break;
+        if (meta_ball_Rydgård::DEBUG_VERBOSE_) {
+            if (DUMP_VALUES > 0) {
+                std::cout << "eval i " ;
+                int output_ctr = 0;
+                for(auto i = local_x.begin(), e = local_x.end(); i < e; i++, output_ctr++){
+                    std::cout << (*f_output)[output_ctr] << " ";
+                    if (output_ctr >= DUMP_VALUES) break;
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
     }
 
@@ -367,11 +390,11 @@ public:
             g[0][2] = 0;
             auto gp = g.begin();
 
-            for( const ball & b : balls ) {
+            for( const ball_t & b : balls ) {
                     b.gradient_ball(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
             }
 
-            for( const plane & p : planes ) {
+            for( const plane_t & p : planes ) {
                 switch (p.xyz) {
                 case 'x':
                         p.gradientX(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
@@ -390,15 +413,17 @@ public:
             transform_and_store_gradient( /*&(((*output)[output_ctr]))*/ oi,  g[0][0], g[0][1], g[0][2] );
         }
 
-        if (DUMP_VALUES > 0) {
-            std::cout << "eval g " ;
-            int output_ctr = 0;
-            for(auto i = (*output).begin(), e = (*output).end(); i < e; i++) {
-                std::cout << (*i)[0] <<","<< (*i)[1] <<","<< (*i)[2] << " ";
-                if (output_ctr >= DUMP_VALUES) break;
-                output_ctr++;
+        if (meta_ball_Rydgård::DEBUG_VERBOSE_) {
+            if (DUMP_VALUES > 0) {
+                std::cout << "eval g " ;
+                int output_ctr = 0;
+                for(auto i = (*output).begin(), e = (*output).end(); i < e; i++) {
+                    std::cout << (*i)[0] <<","<< (*i)[1] <<","<< (*i)[2] << " ";
+                    if (output_ctr >= DUMP_VALUES) break;
+                    output_ctr++;
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
 
 
@@ -410,7 +435,7 @@ public:
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
         mp5_implicit::bounding_box result;
         bool first = true;
-        for ( const ball & b : balls ) {
+        for ( const ball_t & b : balls ) {
             mp5_implicit::bounding_box bb =  b.get_boundingbox();
             if (first)
                 result = bb;
@@ -430,7 +455,7 @@ public:
 // void MarchingCubes::addBall( REAL ballx, REAL bally, REAL ballz,  REAL strength, REAL subtract, REAL scale)
 
 inline
-void MarchingCubes::addBall(const ball & b)
+void MarchingCubes::addBall(const ball_t & b)
 {
     // Solves this equation:
     // 1.0 / (0.000001 + radius^2) * strength - subtract = 0

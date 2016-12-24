@@ -103,8 +103,9 @@ bool read_bool_from_json(
     std::string fieldname,
     bool default_value,
     bool *needs_abort,
+    std::string & abort_reason,
     std::vector<std::string> forbidden_names
-        = std::vector<std::string>()  //
+        = std::vector<std::string>()
 ) {
     // default is false. dont use boolean in Json for *.enabled
 
@@ -133,6 +134,7 @@ bool read_bool_from_json(
         if(mcparams_dict.get<int>(invalid_name, MAGICALNUMBER) != MAGICALNUMBER) {
             std::cerr << "Error: Use "<< fieldname << " instead of using" << invalid_name << ". Aborting! " << std::endl;
             *needs_abort = true;
+            abort_reason += "  field name instead of another one";
         }
     }
     return fieldval;
@@ -151,6 +153,7 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
     mp5_implicit::mc_settings DEFAULT_SETTINGS = mp5_implicit::mc_settings::default_settings();
 
     bool needs_abort = false;
+    std::string abort_reason = "";
 
     // MC settings:
     mp5_implicit::mc_settings  mc_settings_from_json;  // settings
@@ -175,6 +178,8 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
         zmax = 1;
 
         needs_abort = true;
+        abort_reason += "  err2";
+
     }
     mp5_implicit::bounding_box box = {xmin, xmax, ymin, ymax, zmin, zmax};  // {15,20,15,20,15,20};
     mc_settings_from_json.box = box;
@@ -188,6 +193,8 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
         if (static_cast<REAL>(resolution_int) != resolution_real) {
             cerr << "Error: resolution must be integer: " << static_cast<REAL>(resolution_int) << " != " << resolution_real << std::endl;
             needs_abort = true;
+            abort_reason += "  err3";
+
         }
         mc_settings_from_json.resolution = resolution_int;
     }
@@ -195,6 +202,7 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
         std::cerr << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
         // resolution = 28;
         needs_abort = true;
+        abort_reason += "  err4";
     }
 
 
@@ -236,10 +244,16 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
     // handling the default cases is frustrating. Also it's very difficult to use bool and int.
 
     mc_settings_from_json.projection.enabled = read_bool_from_json(mcparams_dict,
-        "projection.enabled", DEFAULT_SETTINGS.projection.enabled, &needs_abort, std::vector<std::string>{"projection.enable"});
+        "projection.enabled", DEFAULT_SETTINGS.projection.enabled, &needs_abort,
+        abort_reason,
+        std::vector<std::string>{"projection.enable"}
+    );
 
     mc_settings_from_json.qem.enabled = read_bool_from_json(mcparams_dict,
-        "qem.enabled", DEFAULT_SETTINGS.qem.enabled, &needs_abort, std::vector<std::string>{"qem.enable"});
+        "qem.enabled", DEFAULT_SETTINGS.qem.enabled, &needs_abort,
+        abort_reason,
+        std::vector<std::string>{"qem.enable"}
+    );
 
     // Used for correcting invalide bool numbers. Now we just use int.
 
@@ -247,7 +261,9 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
         read_bool_from_json(mcparams_dict,
             "subdiv.enabled",
             DEFAULT_SETTINGS.subdiv.enabled,
-            &needs_abort, std::vector<std::string>{"subdiv.enable"}
+            &needs_abort,
+            abort_reason,
+            std::vector<std::string>{"subdiv.enable"}
         );
 
 
@@ -274,11 +290,14 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
     ) {
         std::clog << "Invalid settings: QEM will not be applied if centroid projection is disabled" << std::endl;
         needs_abort = true;
+        abort_reason += "  err7";
     }
 
     mc_settings_from_json.report(cout);
 
     if (needs_abort) {
+        std::cout << "Aborting because of a problem in mc_settings_from_json. Abort reasons: "
+            << abort_reason << std::endl;
         abort();
     }
 

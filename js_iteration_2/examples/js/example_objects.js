@@ -240,25 +240,33 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
             break;
             case "metaballs":
+
                 var mp5_json = SIMPLE_CONE;
                 var shape_dict = JSON.parse(mp5_json).root.children[0];
                 shape_dict.type = "meta_balls";
-                console.log("mb mp5", shape_dict);
+                // shape_dict.time = subjective_time;  // 1 is not good.
+
                 var BB_SIZE = 0.55; used_matrix = false;
-                console.log("METABALL", BB_SIZE);
-                shape_dict.time = subjective_time;
+
+                console.error(shape_dict);
+                if(is_update_mode == 0) {
+                    //shape_dict.time = 0.1;
+                }
 
                 if(is_update_mode == 1 || is_update_mode == 2) {
                 }
 
                 resize_mp5 = function (d, sz) {
+                    for( var i=0; i<16; ++i) d.matrix[i] = 0;
                     d.matrix[0] = 1;
                     d.matrix[5] = 1;
                     d.matrix[10] = 1;
-                    console.error("no resizing", 1);
+                    d.matrix[15] = 1;
+                    d.time = sz;
+                    console.error("no resizing. time=", sz);
                 }
 
-                resize_mp5(shape_dict);
+                resize_mp5(shape_dict, 0);  //is called later
 
             break;
             default:
@@ -304,9 +312,10 @@ function provide_input (subjective_time, is_update_mode, globals) {
         //globals.global_mp5 = mp5_json;
         console.log(mp5_json);
 
-        const simple_MC_only_polygonization_json = {
+        const simple_MC_only_polygonization_json = function(BSH) { return {
             resolution: Math.floor( 14 ),
-            box: bbox,
+            box: //bbox,
+                {xmin: -BSH, xmax: +BSH, ymin: -BSH, ymax: +BSH, zmin: -BSH, zmax: +BSH},
             ignore_root_matrix: false,
 
             vresampl: {iters: 0, c: 1.0},
@@ -321,7 +330,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
                 // only_rank
                 post_subdiv_noise: 0.0,
             },
-        };
+        }};
 
 
     ;
@@ -332,6 +341,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         //const BB_SIZE = 9;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
+        var REPEATS = 1; // has no effect! ()?!)
         // create new geometry
         var mc_properties_json = {
             resolution: Math.floor(40),
@@ -342,7 +352,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
             projection: {enabled: 1},
             qem: {enabled: 1},
             subdiv: {enabled: 1},
-            overall_repeats: 3,
+            overall_repeats: REPEATS,
             debug: {
                 enabled_pointsets: 0,
                 // only_rank
@@ -351,10 +361,10 @@ function provide_input (subjective_time, is_update_mode, globals) {
             // bug: When vresampl.iters is large, the centroid projection projects into 0 (0,0,0)
         };
 
-        //mc_properties_json = simple_MC_only_polygonization_json;
-        console.error("mc_properties_json__update", mc_properties_json);
-        // watch: String.fromCharCode.apply(null, Module.HEAPU8.subarray(i2,i2+100) )
-        function ss(i2,n){return String.fromCharCode.apply(null, Module.HEAPU8.subarray(i2,i2+n));}
+        // mc_properties_json = simple_MC_only_polygonization_json(0.55);
+        console.log("mc_properties_json__update", mc_properties_json);
+        // // watch: String.fromCharCode.apply(null, Module.HEAPU8.subarray(i2,i2+100) )
+        //function ss(i2,n){return String.fromCharCode.apply(null, Module.HEAPU8.subarray(i2,i2+n));}
         return {shape_json: mp5_json, polygonization_json: mc_properties_json};
     }
 
@@ -368,6 +378,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         //var subjective_time = subjective_time * 5;
 
+        var REPEATS = 1;
         // update
         var mc_properties_json__update = {
             resolution: 28,
@@ -378,6 +389,8 @@ function provide_input (subjective_time, is_update_mode, globals) {
             vresampl: {iters: 1, c: 1.0},
             projection: {enabled: 1},
             qem: {enabled: 1},
+
+            overall_repeats: REPEATS,
 
             debug: {
                 post_subdiv_noise: 0.001 / 3.0,
@@ -409,7 +422,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         //globals.global_mp5 is not updated here. It is the original object before the update.
 
-        //return {shape_json: shape_json, polygonization_json: simple_MC_only_polygonization_json};
+        //return {shape_json: shape_json, polygonization_json: simple_MC_only_polygonization_json(0.55)};
         return {shape_json: shape_json, polygonization_json: mc_properties_json__update};
     }
 
