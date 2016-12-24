@@ -85,3 +85,4 @@ class TwistedObject::ImplicitObject(){
 #include "tetrahedron.hpp"
 #include "screw.hpp"
 
+#include "meta_balls_Rydgard.hpp"

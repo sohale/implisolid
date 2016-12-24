@@ -248,8 +248,18 @@ namespace mp5_implicit {
 
     struct bounding_box {
         REAL xmin, xmax, ymin, ymax, zmin, zmax;
+
+        // void init_infinity(const bounding_box & other) {...}
+
+        void grow(const bounding_box & other) {
+            if (xmin > other.xmin) xmin = other.xmin;
+            if (ymin > other.ymin) ymin = other.ymin;
+            if (zmin > other.zmin) zmin = other.zmin;
+
+            if (xmax < other.xmax) xmax = other.xmax;
+            if (ymax < other.ymax) ymax = other.ymax;
+            if (zmax < other.zmax) zmax = other.zmax;
+        }
     };
+}  // namespace mp5_implicit
 
-}
-
-//#include "configs.hpp"
