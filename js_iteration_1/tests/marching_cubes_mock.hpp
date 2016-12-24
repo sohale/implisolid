@@ -4,17 +4,17 @@ namespace marching_cubes {
 
 class MarchingCubesMock {
 public:
-    typedef std::map<index3_t, int>  e3map_t;
+    // typedef std::map<MarchingCubes::index3_t, int>  e3map_t;
 
 public:
     MarchingCubesMock( dim_t resolution, bool enableUvs, bool enableColors ) {};
     ~MarchingCubesMock() {}; //why does this have to be public: ?
 
     //void flush_geometry_queue(std::ostream&);
-    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubesMock::e3map_t &e3map, int& next_unique_vect_counter)
+    void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubes::e3map_t &e3map, int& next_unique_vect_counter)
         {};
 
-    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback ) {return 0;};
+    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& callback*/ ) {return 0;};
 
     REAL isolation;
 

@@ -7,11 +7,6 @@
 
 namespace marching_cubes {
     
-typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
-typedef boost::multi_array<index3_t, 1>   array1d_e3;
-
-
-struct callback_t { void call(void*) const { } callback_t(){} };
 
 REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
@@ -24,6 +19,13 @@ REAL lerp(REAL a, REAL b, REAL t ) {
     (MC_table_loopup) --> *list_buffer --> *Queue --> result_*
 */
 class MarchingCubes{
+
+    // types
+    typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
+    typedef boost::multi_array<index3_t, 1>   array1d_e3;
+    struct callback_t { void call(void*) const { } callback_t(){} };
+
+    //  member variables
 
     bool enableUvs, enableColors;
     //dim_t resolution;
@@ -91,7 +93,7 @@ inline void VIntY(index_t q, array1d& pout, array1d& nout,    int offset, REAL i
 inline void VIntZ(index_t q, array1d& pout, array1d& nout,    int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,  index_t ijk, array1d_e3& e3out);
 
 void compNorm( index_t q );
-void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list, int o1, int o2, int o3, const callback_t& renderCallback );
+void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list, int o1, int o2, int o3 /*, const callback_t& renderCallback*/ );
 
 void begin_queue();
 void finish_queue( const callback_t& renderCallback );
@@ -107,7 +109,7 @@ public:
     void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
-    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& callback );
+    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& callback*/ );
 
 //shape:
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale);
@@ -483,7 +485,7 @@ inline void MarchingCubes::compNorm( index_t q ) {
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol, const callback_t& renderCallback ) {
+inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& renderCallback*/ ) {
     /** Polygonise a single cube in the grid. */
 
     // cache indices
@@ -680,8 +682,9 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
             this->vlist_buffer, this->nlist_buffer, this->e3list_buffer,
             3 * MarchingCubes::mc_triangles_table[ o1 ],
             3 * MarchingCubes::mc_triangles_table[ o2 ],
-            3 * MarchingCubes::mc_triangles_table[ o3 ],
-            renderCallback );
+            3 * MarchingCubes::mc_triangles_table[ o3 ]
+            /*,renderCallback*/
+         );
         //renderCallback consumes them
 
         i += 3;
@@ -698,8 +701,8 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
 void MarchingCubes::posnormtriv(
     array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list,
-    int o1, int o2, int o3,
-    const callback_t& renderCallback ) {
+    int o1, int o2, int o3 /*,
+    const callback_t& renderCallback*/ ) {
     /** Moves data: _list[] into _Queue[] */
 
     int c = this->queue_counter * 3;
@@ -787,7 +790,7 @@ void MarchingCubes::posnormtriv(
         if ( this->enableColors ) {
             this->hasColors = true;
         }
-        renderCallback.call( (void*)this );
+        // renderCallback.call( (void*)this );
         this->sow();
     }
 }
@@ -1172,7 +1175,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
-                this->polygonize_cube( fx, fy, fz, q, this->isolation, renderCallback );
+                this->polygonize_cube( fx, fy, fz, q, this->isolation /*, renderCallback*/ );
 
                 /*
                 only prints zeros
