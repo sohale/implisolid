@@ -18,6 +18,7 @@ namespace mp5_implicit {
 */
 class meta_ball_Rydgård : public transformable_implicit_function {
 
+public:
     meta_ball_Rydgård(REAL matrix12[12], int num_blobs, REAL time, REAL scale) {
 
         int numblobs = num_blobs;  // default: 4

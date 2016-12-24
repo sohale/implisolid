@@ -390,7 +390,29 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         children.push_back(b);
         object = new mp5_implicit::transformed_subtract(children, matrix12);
         register_new_object(object);
+
+    } else if(name == "meta_balls") {
+
+        //REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
+        //std::clog << " META BALLS r : " << r << std::endl;
+        // (REAL matrix12[12], int num_blobs, REAL time, REAL scale)
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+
+        int num_blobs = 4;
+        REAL time = 0;  // 0.1
+        REAL scale = 1.0;
+        object = new mp5_implicit::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
+
+        register_new_object(object);
     }
+
+    
+    
     else{
         // if(name=="meta_balls")
         REAL f_argument = shapeparams_dict.get<REAL>("time", NaN);
