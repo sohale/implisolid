@@ -1,3 +1,7 @@
+#pragma once
+
+namespace marching_cubes {
+
 class MarchingCubesMock {
 public:
     typedef std::map<index3_t, int>  e3map_t;
@@ -24,7 +28,7 @@ public:
     void reset() {};
 
 //geometry/threejs interface side.
-    void render_geometry(const callback_t& renderCallback ) {};
+    void render_geometry(/*const callback_t& renderCallback */) {};
     void sow() {};
 
 // output. filled using sow()
@@ -33,3 +37,5 @@ public:
     std::vector<REAL> result_verts;
     std::vector<vertexindex_type> result_faces;
 };
+
+} // namespace marching_cubes

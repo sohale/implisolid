@@ -65,8 +65,8 @@ int main() {
 
   _state.mc->seal_exterior();
 
-  const callback_t renderCallback;
-  _state.mc->render_geometry(renderCallback);
+  //const callback_t renderCallback;
+  _state.mc->render_geometry(/*renderCallback*/);
 
   mcc2_MS::vertex_resampling_v1(object, f_argument, c, *(_state.mc));
 

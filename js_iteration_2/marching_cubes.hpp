@@ -5,6 +5,12 @@
 #include "../js_iteration_2/basic_functions.hpp"
 #include "../js_iteration_2/implicit_function/implicit_function.hpp"
 
+namespace marching_cubes {
+    
+typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
+typedef boost::multi_array<index3_t, 1>   array1d_e3;
+
+
 struct callback_t { void call(void*) const { } callback_t(){} };
 
 REAL lerp(REAL a, REAL b, REAL t ) {
@@ -119,7 +125,7 @@ public:
     void reset(); //???? Nobody calls this.
 
 //geometry/threejs interface side.
-    void render_geometry(const callback_t& renderCallback );
+    void render_geometry(/*const callback_t& renderCallback */);
     void sow();
 
 // output. filled using sow()
@@ -1135,7 +1141,10 @@ void MarchingCubes::reset_result() {
 }
 
 // Renderes a geometry.
-void MarchingCubes::render_geometry(const callback_t& renderCallback ) {
+void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
+    
+    const callback_t renderCallback;
+    
     this->reset_result();  //receiver of the queue
     this->begin_queue();
 
@@ -1845,3 +1854,7 @@ void MarchingCubes::subtract_dc(REAL dc_value){
           }
       }
 }
+
+}  // namespace marching_cubes
+
+using marching_cubes::MarchingCubes;

@@ -1,3 +1,4 @@
+/*
 class MarchingCubesMock {
 public:
     typedef std::map<index3_t, int>  e3map_t;
@@ -33,3 +34,4 @@ public:
     std::vector<REAL> result_verts;
     std::vector<vertexindex_type> result_faces;
 };
+*/

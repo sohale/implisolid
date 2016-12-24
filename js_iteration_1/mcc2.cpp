@@ -75,9 +75,6 @@ typedef boost::array<array1d::index, 1>  array_shape_t;
 // #define array1d  boost::multi_array<REAL, 1>
 typedef array1d::index  index_t;
 
-typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
-typedef boost::multi_array<index3_t, 1>   array1d_e3;
-
 #include "../js_iteration_2/marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"
 
@@ -246,8 +243,7 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
 
     _state_mc->seal_exterior(-10000000.0);
 
-    const callback_t renderCallback;
-    _state_mc->render_geometry(renderCallback);
+    _state_mc->render_geometry();
     // std::clog << "MC executed" << std::endl;
 
     // std::clog << "map4" << std::endl;
