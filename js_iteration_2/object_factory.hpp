@@ -3,10 +3,7 @@
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
-//#include "unit_sphere.hpp"
 #include "implicit_function/primitives.hpp"
-//#include "implicit_function/crisp_subtract.hpp"
-//#include "implicit_function/linearly_transformed.hpp"
 
 //#include""  will be moved into sweep.hpp, extrude.hpp, screw.hpp, etc
 #include "implicit_function/2d/primitives_2d.hpp"
@@ -15,67 +12,6 @@
 //using namespace mp5_implicit;
 using mp5_implicit::implicit_function;
 
-/*
-implicit_function*  object_factory_simple(REAL f_argument, std::string name){
-    std::cout << "This method is deprecated. Never call it" << std::endl;
-    implicit_function* object;
-    
-    if (name == "double_mushroom"){
-        object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
-        register_new_object(object);
-    }
-    else if (name == "egg"){
-        object = new mp5_implicit::egg(f_argument,f_argument,f_argument);
-        register_new_object(object);
-    }
-    else if (name == "sphere"){
-        object = new mp5_implicit::unit_sphere((sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*10);
-        register_new_object(object);
-    }
-    else if (name == "cube"){
-        object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
-        register_new_object(object);
-    }
-    else if (name == "super_bowl"){// not working
-        object = new mp5_implicit::super_bowl(1.5/(f_argument+3.0));
-        register_new_object(object);
-    }
-    else if (name == "scone"){
-        object = new mp5_implicit::scone(f_argument +2.5,f_argument +2.5,f_argument +2.5,-0.1);
-        register_new_object(object);
-    }
-    //else if (name == "scylinder"){
-    //    object = new mp5_implicit::scylinder(f_argument, 1.6); //0.7
-    //    register_new_object(object);
-    //}
-    //else
-
-    if(name == "meta_ball (NOT!)"){
-        REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
-        std::clog << " META BALLS r : " << r << std::endl;
-        object = new mp5_implicit::unit_sphere(r);
-        register_new_object(object);
-    }
-
-
-    else if(name == "sub_spheres"){
-        mp5_implicit::unit_sphere * s1 = new mp5_implicit::unit_sphere(2, 1, 1, 1);
-        mp5_implicit::unit_sphere * s2 = new mp5_implicit::unit_sphere(1.3);
-        object = new mp5_implicit::CrispSubtract(*s1, *s2);
-        register_new_object(s1);
-        register_new_object(s2);
-        register_new_object(object);
-    }
-
-    else {
-        std::clog << "Error! You must enter a valid name " <<  name << "! So I made a sphere!" << std::endl;
-        //object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
-        object = new mp5_implicit::unit_sphere(1000.);
-        register_new_object(object);
-    }
-    return object;
-}
-*/
 
 namespace pt = boost::property_tree ;
 
@@ -111,38 +47,13 @@ void copy_eye(REAL matrix12[12]){
         matrix12[j] = eye[j];
 }
 
-
+// Curated implicit_functions only
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_matrix) {
     // std::clog << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
-    //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
-    //std::clog << "############Name : " << name << std::endl;
-    //REAL zmax = shapeparams_dict.get<REAL>("box.zmax",NaN);
-    // int resolution = shapeparams_dict.get<int>("resolution",-1);
+    //std::cout << "-------------------------------------" <<std::endl;
+    //std::cout << name <<std::endl;
 
-    // if(isNaN(xmin) || isNaN(xmax) || isNaN(ymin) || isNaN(ymax) || isNaN(zmin) || isNaN(zmax) || resolution <= 2 ){
-    //     std::clog << "Error: missing or incorrect values in mc_parameters_json"<< std::endl;
-    //     xmin = -1;
-    //     xmax = 1;
-    //     ymin = -1;
-    //     ymax = 1;
-    //     zmin = -1;
-    //     zmax = 1;
-    //     resolution = 28;
-    // }
-    std::cout << "-------------------------------------" <<std::endl;
-    std::cout << name <<std::endl;
-
-
-    bool use_metaball = false;
-    /*
-    if(name=="meta_balls"){
-        use_metaball = true;
-    }
-    else{
-        use_metaball = false;
-    }
-    */
 
     implicit_function* object;
 
@@ -320,11 +231,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         }
         a = o_matrix;
         //std::clog  << "#####" << shapeparams_dict.get<string>("children") << std::endl;
-        //implicit_function * a = object_factory();
-        //implicit_function * b;
 
         object = a;
-        //object = new mp5_implicit::egg(matrix12);
         // register_new_object
     }else if (name == "Intersection") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
@@ -419,21 +327,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         object = new mp5_implicit::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
 
         register_new_object(object);
-    }
-
-    
-    
-    else{
+    } else {
         std::cerr << "Invalid object " << "you asked for: \"" << name << "\"" << std::endl;
         abort();
-        /*
-        // if(name=="meta_balls")
-        REAL f_argument = shapeparams_dict.get<REAL>("time", NaN);
-
-        std::clog << "otherwise " << "you asked for " << name << std::endl;
-        object = object_factory_simple(f_argument, name);
-        */
-
     }
 
     return object;
@@ -442,35 +338,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
 
 
-
-implicit_function*  object_factory(string shape_parameters_json, /*bool& use_metaball, */ bool ignore_root_matrix) {
-
-
-    /*
-    mp5_implicit :: unit_sphere   object(sin(0.033*10 * time * 3.1415*2.)*0.33+0.3);
-    // //_state.mc -> prepare_grid(1.0);
-    // //object.eval_implicit(grid, implicit_values);
-    _state.mc -> eval_shape(object, 1.0);
-    */
-
-
-/*
-    std::string name = std::string(obj_name);
-    std::clog << "Name : " << name << std::endl;
-
-    REAL f_argument = time;
-
-    implicit_function* object = object_factory_simple(f_argument, name);
-*/
-    //std::clog << "############################" << shape_parameters_json << std::endl;
+implicit_function*  object_factory(string shape_parameters_json, bool ignore_root_matrix)
+{
     std::stringstream shape_json_stream;
     shape_json_stream << shape_parameters_json ;
-
-
     pt::ptree shapeparams_dict;
-
     pt::read_json(shape_json_stream, shapeparams_dict);
-
     return object_factory(shapeparams_dict, ignore_root_matrix);
 
 }
