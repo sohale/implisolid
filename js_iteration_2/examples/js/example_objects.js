@@ -378,7 +378,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         //var subjective_time = subjective_time * 5;
 
-        var REPEATS = 1;
+        var REPEATS = 3;  // 3-> slow
         // update
         var mc_properties_json__update = {
             resolution: 28,
@@ -393,7 +393,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
             overall_repeats: REPEATS,
 
             debug: {
-                post_subdiv_noise: 0.001 / 3.0,
+                post_subdiv_noise: 0.001 / 3.0 * 0,
             },
         };
         //implisolid_.build_geometry( 28, mc_properties_json__update, "sphere", subjective_time);

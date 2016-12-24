@@ -96,7 +96,7 @@ boost::array<Index_Type, 1> make_shape_1d(Index_Type size)
 #include "../js_iteration_2/marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"
 
-void meta_balls(MarchingCubes& mc, int num_blobs, REAL time, REAL scale) {
+void meta_balls_old(MarchingCubes& mc, int num_blobs, REAL time, REAL scale) {
     int numblobs = num_blobs;  // default: 4
     for (int ball_i = 0; ball_i < numblobs; ball_i++) {
         REAL D = 1;
@@ -130,7 +130,7 @@ void build_vf(
 
 
     REAL time = 0.1;
-    meta_balls(mc, 4, time, scale);
+    meta_balls_old(mc, 4, time, scale);
     mc.seal_exterior();
 
     /*
@@ -176,7 +176,7 @@ void produce_object_old2(REAL* verts, int *nv, int* faces, int *nf, REAL time, R
     // MarchingCubesMock mc(resolution, enableUvs, enableColors);
 
     // REAL time = 0.1 ;
-    meta_balls(mc, 4, time, scale);
+    meta_balls_old(mc, 4, time, scale);
     mc.seal_exterior();
 
     /*
@@ -375,7 +375,7 @@ int get_pointset_size(char* id) {
 
 // The only usage of marching cubes
 
-std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_, const bool use_metaball) {
+std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_/*, const bool use_metaball*/) {
 
     bool enableUvs = true;
     bool enableColors = true;
@@ -392,10 +392,12 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
     vectorized_vect   mcgrid_vectorized = _state_mc -> prepare_grid();  // 10.0
     _state_mc -> eval_shape(*object, mcgrid_vectorized);
 
+    /*
      if (use_metaball) {
          REAL metaball_time = 0;
          meta_balls(*_state_mc, 4, metaball_time, 1.0);
      }
+     */
 
     _state_mc->seal_exterior(-10000000.0);
 
@@ -489,8 +491,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
     //unique_pointer<mp5_implicit::implicit_function> object = ...;
 
-    bool use_metaball;  // output
-    mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , use_metaball, ignore_root_matrix);
+    // bool use_metaball;  // output
+    mp5_implicit::implicit_function* object = object_factory(shape_parameters_json_str , /*use_metaball,*/ ignore_root_matrix);
 
     // timer timr;
     //timr.report_and_continue("timer started.");
@@ -500,7 +502,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // polygonizer::polygonize_init(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
 
     // polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
-    algorithm.polygonize_step_0(use_metaball);
+    algorithm.polygonize_step_0(/*use_metaball*/);
 
 
 
@@ -891,7 +893,7 @@ int set_object(const char* shape_parameters_json, bool ignore_root_matrix) {
 
     std::string str = std::string(shape_parameters_json);
     bool dummy;
-    ifunction_service.current_object = object_factory(str , dummy, ignore_root_matrix);
+    ifunction_service.current_object = object_factory(str, /*dummy,*/ ignore_root_matrix);
 
     //std::clog << "after: current_object " << ifunction_service.current_object << std::endl;
     int new_object_id = 1;

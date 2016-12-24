@@ -45,7 +45,7 @@ public:
 shape_parameters_json, const char* mc_parameters_json
 */
     //static void polygonize_init(state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr,*/ bool use_metaball);
-    void polygonize_step_0(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr,*/ bool use_metaball);
+    void polygonize_step_0(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr,*/ /*bool use_metaball*/);
     void polygonize_step_1(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr*/);
     void polygonize_step_2(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr*/);
     void polygonize_step_3(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr,*/ bool is_last);
@@ -61,9 +61,9 @@ void polygonizer::polygonize_init(state_t & _state, const mp5_implicit::implicit
 */
 
 // todo: move into _state
-void polygonizer::polygonize_step_0(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, */ bool use_metaball) {
+void polygonizer::polygonize_step_0(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr, */ /*bool use_metaball*/) {
 
-    auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box, use_metaball);
+    auto vertsfaces_pair = mc_start(&object, mc_settings_from_json.resolution, mc_settings_from_json.box /*, use_metaball*/);
     // std::vector<REAL>, std::vector<int>
     steps_report = steps_report + "MC. ";
 

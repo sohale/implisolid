@@ -15,9 +15,11 @@
 //using namespace mp5_implicit;
 using mp5_implicit::implicit_function;
 
+/*
 implicit_function*  object_factory_simple(REAL f_argument, std::string name){
+    std::cout << "This method is deprecated. Never call it" << std::endl;
     implicit_function* object;
-    /*
+    
     if (name == "double_mushroom"){
         object = new mp5_implicit::double_mushroom(0.8, 1/(f_argument+3), 1/(f_argument+3), f_argument+3);
         register_new_object(object);
@@ -47,14 +49,16 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     //    register_new_object(object);
     //}
     //else
-    */
-    if(name == "meta_ball==s"){
+
+    if(name == "meta_ball (NOT!)"){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
         std::clog << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
         register_new_object(object);
     }
-    /*else if(name == "sub_spheres"){
+
+
+    else if(name == "sub_spheres"){
         mp5_implicit::unit_sphere * s1 = new mp5_implicit::unit_sphere(2, 1, 1, 1);
         mp5_implicit::unit_sphere * s2 = new mp5_implicit::unit_sphere(1.3);
         object = new mp5_implicit::CrispSubtract(*s1, *s2);
@@ -62,7 +66,7 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
         register_new_object(s2);
         register_new_object(object);
     }
-    */
+
     else {
         std::clog << "Error! You must enter a valid name " <<  name << "! So I made a sphere!" << std::endl;
         //object = new mp5_implicit::unit_sphere(sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3);
@@ -71,7 +75,7 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     }
     return object;
 }
-
+*/
 
 namespace pt = boost::property_tree ;
 
@@ -108,7 +112,7 @@ void copy_eye(REAL matrix12[12]){
 }
 
 
-implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metaball, bool ignore_root_matrix) {
+implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_matrix) {
     // std::clog << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
     //REAL xmax = shapeparams_dict.get<REAL>("matrix",NaN);
@@ -130,6 +134,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     std::cout << name <<std::endl;
 
 
+    bool use_metaball = false;
     /*
     if(name=="meta_balls"){
         use_metaball = true;
@@ -289,9 +294,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a == NULL){
-                a = object_factory(element.second, use_metaball, false);
+                a = object_factory(element.second, false);
             } else {
-                implicit_function * b = object_factory(element.second, use_metaball, false);
+                implicit_function * b = object_factory(element.second, false);
 
                 //The following always prints an empty line:
                 //std::clog << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
@@ -334,13 +339,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         int count = 0;
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a==NULL){
-                a = object_factory(element.second, use_metaball, false);
+                a = object_factory(element.second, false);
             }else{
                 if(count > 1){
                     std::clog << "An CrispIntersection should have only 2 child" << std::endl;
                     break;
                 }
-                b = object_factory(element.second, use_metaball, false);
+                b = object_factory(element.second, false);
 
             }
             count++;
@@ -370,13 +375,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         int count = 0;
         for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
             if (a==NULL){
-                a = object_factory(element.second, use_metaball, false);
+                a = object_factory(element.second, false);
             }else{
                 if(count > 1){
                     std::clog << "An CrispSubstraction should have only 2 child" << std::endl;
                     break;
                 }
-                b = object_factory(element.second, use_metaball, false);
+                b = object_factory(element.second, false);
 
             }
             count++;
@@ -419,11 +424,15 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     
     
     else{
+        std::cerr << "Invalid object " << "you asked for: \"" << name << "\"" << std::endl;
+        abort();
+        /*
         // if(name=="meta_balls")
         REAL f_argument = shapeparams_dict.get<REAL>("time", NaN);
 
         std::clog << "otherwise " << "you asked for " << name << std::endl;
         object = object_factory_simple(f_argument, name);
+        */
 
     }
 
@@ -434,7 +443,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
 
 
 
-implicit_function*  object_factory(string shape_parameters_json, bool& use_metaball, bool ignore_root_matrix) {
+implicit_function*  object_factory(string shape_parameters_json, /*bool& use_metaball, */ bool ignore_root_matrix) {
 
 
     /*
@@ -462,6 +471,6 @@ implicit_function*  object_factory(string shape_parameters_json, bool& use_metab
 
     pt::read_json(shape_json_stream, shapeparams_dict);
 
-    return object_factory(shapeparams_dict, use_metaball, ignore_root_matrix);
+    return object_factory(shapeparams_dict, ignore_root_matrix);
 
 }
