@@ -78,10 +78,6 @@ typedef array1d::index  index_t;
 typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
 typedef boost::multi_array<index3_t, 1>   array1d_e3;
 
-
-struct callback_t { void call(void*) const { } callback_t(){} };
-
-
 #include "../js_iteration_2/marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"
 

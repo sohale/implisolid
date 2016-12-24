@@ -358,3 +358,8 @@ else{
 
         //#include "implicit_function/crisp_subtract.hpp"
         //#include "implicit_function/linearly_transformed.hpp"
+
+
+
+struct callback_t { void call(void*) const { } callback_t(){} };
+

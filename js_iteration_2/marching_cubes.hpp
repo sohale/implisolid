@@ -5,6 +5,8 @@
 #include "../js_iteration_2/basic_functions.hpp"
 #include "../js_iteration_2/implicit_function/implicit_function.hpp"
 
+struct callback_t { void call(void*) const { } callback_t(){} };
+
 REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
 }
