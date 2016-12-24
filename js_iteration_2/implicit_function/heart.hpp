@@ -2,6 +2,7 @@
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class heart : public transformable_implicit_function {
 
@@ -149,4 +150,5 @@ public:
     }
 };
 
-}
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

@@ -3,8 +3,7 @@
 #include "../basic_data_structures.hpp"
 //#include "../basic_functions.hpp"
 
-namespace mp5_implicit
-{
+namespace mp5_implicit {
 
 
 /**
@@ -43,14 +42,7 @@ public:
     virtual ~implicit_function() {};
 
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
-        float v1 = -1;
-        float v2 = 1;
-        float v3 = -1.1;
-        float v4 = 1.1;
-        float v5 = -1.1;
-        float v6 = 1.1;
-
-        return mp5_implicit::bounding_box{v1, v2, v3, v4, v5, v6};
+        return mp5_implicit::bounding_box{-0.51, +0.51, -0.51, +0.51, -0.51, +0.51 };
     };
 
     // todo:
@@ -59,4 +51,4 @@ public:
 
 };
 
-}
+}  // namespace mp5_implicit

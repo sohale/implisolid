@@ -6,6 +6,7 @@
 #include "transformed.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class linearly_transformed : public transformed {
 
@@ -86,4 +87,5 @@ public:
 
 };
 
-}
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

@@ -10,6 +10,7 @@
 
 #include "object_collector.hpp"
 //using namespace mp5_implicit;
+
 using mp5_implicit::implicit_function;
 
 
@@ -47,8 +48,28 @@ void copy_eye(REAL matrix12[12]){
         matrix12[j] = eye[j];
 }
 
+namespace mp5_implicit {
+
 // Curated implicit_functions only
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_matrix) {
+    
+    /*
+    using mp5_implicit::implicit_functions::double_mushroom;
+    using mp5_implicit::implicit_functions::linearly_transformed;
+    using mp5_implicit::implicit_functions::cube;
+    using mp5_implicit::implicit_functions::scylinder;
+    using mp5_implicit::implicit_functions::egg;
+    using mp5_implicit::implicit_functions::scone;
+    using mp5_implicit::implicit_functions::heart;
+    using mp5_implicit::implicit_functions::torus;
+    using mp5_implicit::implicit_functions::tetrahedron;
+    using mp5_implicit::implicit_functions::meta_ball_Rydgård;
+    using mp5_implicit::implicit_functions::transformed_subtract;
+    using mp5_implicit::implicit_functions::transformed_intersection;
+    using mp5_implicit::implicit_functions::transformed_union;
+    using mp5_implicit::implicit_functions::screw;
+    */
+
     // std::clog << "ignore_root_matrix: " << ignore_root_matrix << std::endl;
     std::string name = shapeparams_dict.get<std::string>("type");
     //std::cout << "-------------------------------------" <<std::endl;
@@ -61,8 +82,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
     if (name == "implicit_double_mushroom"){
         // std::clog << "implicit_double_mushroom case " << std::endl;
-        // object = new mp5_implicit::double_mushroom(0.9, 0.4 ,0.4 , 1/0.2 );
-        implicit_function* dm = new mp5_implicit::double_mushroom(0.9, 0.4/2, 0.4/2, 1/0.2 );
+        // object = new implicit_functions::double_mushroom(0.9, 0.4 ,0.4 , 1/0.2 );
+        implicit_function* dm = new implicit_functions::double_mushroom(0.9, 0.4/2, 0.4/2, 1/0.2 );
 
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
@@ -70,7 +91,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::linearly_transformed(dm, matrix12);
+        object = new implicit_functions::linearly_transformed(dm, matrix12);
         register_new_object(object);
         //object = dm;
     }
@@ -78,7 +99,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     /*if (name == "simple_sphere"){
         //std::clog << "******************* simple_sphere case " << std::endl;
         REAL radius = shapeparams_dict.get<REAL>("radius");
-        object = new mp5_implicit::unit_sphere(radius);
+        object = new implicit_functions::unit_sphere(radius);
         std::clog << "radius " << radius << std::endl;
         register_new_object(object);
     }
@@ -89,8 +110,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
-        object = new mp5_implicit::cube(matrix12);
-       // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        object = new implicit_functions::cube(matrix12);
+       // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
         register_new_object(object);
     }
     else
@@ -101,9 +122,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::scylinder(matrix12);
+        object = new implicit_functions::scylinder(matrix12);
         register_new_object(object);
-       // object = new mp5_implicit::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+       // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
         //register_new_object(object);
     }
     else
@@ -114,7 +135,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::egg(matrix12);
+        object = new implicit_functions::egg(matrix12);
         register_new_object(object);
     }else
     if (name == "icone" || name == "cone" ){
@@ -124,7 +145,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::scone(matrix12);
+        object = new implicit_functions::scone(matrix12);
         register_new_object(object);
     }else if(name == "iheart" ){
         REAL matrix12[12];
@@ -133,7 +154,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::heart(matrix12);
+        object = new implicit_functions::heart(matrix12);
         register_new_object(object);
 
     }else if(name == "itorus" ){
@@ -143,7 +164,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new mp5_implicit::torus(matrix12);
+        object = new implicit_functions::torus(matrix12);
         register_new_object(object);
 
     }
@@ -159,7 +180,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
-        object = new mp5_implicit::tetrahedron(corners, matrix12);
+        object = new implicit_functions::tetrahedron(corners, matrix12);
         register_new_object(object);
     }
     else if (name == "screw") {
@@ -171,7 +192,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         REAL delta_ratio = 0.0;
         Matrix<REAL, 3, 1> v;
 
-        mp5_implicit::screw::getScrewParameters(
+        implicit_functions::screw::getScrewParameters(
                            transformation_matrix, pitch, profile, 
                            end_type, delta_ratio, v, 
                            shapeparams_dict);
@@ -181,7 +202,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                                  0, 0, 1, 0,
                                  0, 0, 0, 1;
 
-        object = new mp5_implicit::screw(transformation_matrix,
+        object = new implicit_functions::screw(transformation_matrix,
                                          pitch,
                                          profile,
                                          end_type,
@@ -212,16 +233,16 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                 //The following always prints an empty line:
                 //std::clog << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
 
-                //a = new mp5_implicit::CrispUnion(*a, *b);
+                //a = new implicit_functions::CrispUnion(*a, *b);
                 // register_new_object(a);
                 //std::vector<const implicit_function*> versus std::vector<implicit_function*>
                 std::vector<implicit_function*> ab = std::vector<implicit_function*>();
                 ab.push_back(a);
                 ab.push_back(b);
-                o_matrix = new mp5_implicit::transformed_union(ab, matrix12);
+                o_matrix = new implicit_functions::transformed_union(ab, matrix12);
                 register_new_object(o_matrix);
                 REAL eye_matrix12[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0};
-                o_plain =  new mp5_implicit::transformed_union(ab, eye_matrix12);
+                o_plain =  new implicit_functions::transformed_union(ab, eye_matrix12);
                 a = o_plain;
                 register_new_object(o_plain);
             }
@@ -262,12 +283,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             }
         }
 
-        // object = new mp5_implicit::CrispIntersection(*a, *b);
-        //object = new mp5_implicit::transformed_intersection(*a, *b, matrix12);
+        // object = new implicit_functions::CrispIntersection(*a, *b);
+        //object = new implicit_functions::transformed_intersection(*a, *b, matrix12);
         std::vector<implicit_function *> children;
         children.push_back(a);
         children.push_back(b);
-        object = new mp5_implicit::transformed_intersection(children, matrix12);
+        object = new implicit_functions::transformed_intersection(children, matrix12);
         register_new_object(object);
 
     }else if (name == "Difference") {
@@ -299,12 +320,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         }
 
-        // object = new mp5_implicit::CrispSubtract(*a, *b);
-        // object = new mp5_implicit::transformed_subtract(*a, *b, matrix12);
+        // object = new implicit_functions::CrispSubtract(*a, *b);
+        // object = new implicit_functions::transformed_subtract(*a, *b, matrix12);
         std::vector<implicit_function *> children;
         children.push_back(a);
         children.push_back(b);
-        object = new mp5_implicit::transformed_subtract(children, matrix12);
+        object = new implicit_functions::transformed_subtract(children, matrix12);
         register_new_object(object);
 
     } else if(name == "meta_balls") {
@@ -324,7 +345,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         //REAL time = shapeparams_dict.get_value<REAL>("time", 0.1);   // get_value<REAL>() or get<REAL>()
         REAL time = shapeparams_dict.get<REAL>("time", 0.1);   // get_value<REAL>() or get<REAL>()
         REAL scale = 1.0;
-        object = new mp5_implicit::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
+        object = new implicit_functions::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
 
         register_new_object(object);
     } else {
@@ -347,3 +368,5 @@ implicit_function*  object_factory(string shape_parameters_json, bool ignore_roo
     return object_factory(shapeparams_dict, ignore_root_matrix);
 
 }
+
+}  // namespace mp5_implicit

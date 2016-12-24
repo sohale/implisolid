@@ -5,6 +5,7 @@
 #include "transformed.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class transformed_union : public transformed {
 
@@ -101,4 +102,5 @@ public:
 
 };
 
-}
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

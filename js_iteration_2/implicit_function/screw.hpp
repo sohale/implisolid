@@ -8,6 +8,8 @@
 #include <iostream>
 // #include <math.h>       /* sin */
 
+namespace mp5_implicit {
+
 namespace pt = boost::property_tree ;
 
 using Eigen::Matrix;
@@ -122,7 +124,7 @@ boost::multi_array<REAL, 1> Eigen_matrix_to_vectorized_scalar(const Matrix<REAL,
     return boost_matrix;
 }
 
-namespace mp5_implicit {
+namespace implicit_functions {
 
 class screw : public transformable_implicit_function {
 
@@ -470,4 +472,6 @@ public:
 
 };
 
-}; //namespace
+} //namespace
+} //namespace
+

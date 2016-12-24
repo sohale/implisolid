@@ -3,6 +3,7 @@
 //#include "basic_functions.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
 class unit_sphere : public transformable_implicit_function {
 
 protected:
@@ -105,4 +106,5 @@ public:
     }
 };
 
-}  // namespace
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

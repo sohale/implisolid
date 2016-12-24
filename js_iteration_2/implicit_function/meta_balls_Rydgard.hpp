@@ -3,6 +3,8 @@
 #include "../basic_functions.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
+
 
 //  Nov  2 18:36 2016
 //  Dec  23 9-10pm 2016
@@ -447,7 +449,7 @@ class meta_ball_Rydgård : public transformable_implicit_function {
         return result;
     }
 };
-}  // namespace mp5_implicit
+
 
 
 
@@ -609,3 +611,5 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 }
 */
 
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

@@ -3,6 +3,7 @@
 #include "../basic_functions.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class double_mushroom : public transformable_implicit_function {
 
@@ -155,4 +156,5 @@ public:
     }
 };
 
-}
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

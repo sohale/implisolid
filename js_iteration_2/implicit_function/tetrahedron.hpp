@@ -14,6 +14,7 @@
 
 /* part of the namespace mp5_implicit */
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class tetrahedron : public transformable_implicit_function {
 
@@ -339,7 +340,8 @@ public:
     }
 
 };
-}
+
+
 /*
  FAILED TESTS:
 
@@ -378,3 +380,6 @@ var mp5_json_tetrahedron = {
                 0,0,0,   1]
         };
 */
+
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

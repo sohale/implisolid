@@ -20,6 +20,9 @@
  */
 
 namespace mp5_implicit{
+namespace implicit_functions {
+
+
 class CrispUnion: public implicit_function {
 public:
 
@@ -98,4 +101,6 @@ public:
 private:
     const implicit_function &a, &b;  // reference a and b, this should be considered again.
 };
-}
+
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

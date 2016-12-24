@@ -18,7 +18,10 @@
  *
  */
 
-namespace mp5_implicit{
+namespace mp5_implicit {
+namespace implicit_functions {
+
+
 class CrispIntersection: public implicit_function {
 public:
 
@@ -111,4 +114,7 @@ public:
 private:
     const implicit_function &a, &b;  // reference a and b, this should be considered again.
 };
-}
+
+
+}  // namespace implicit_functions
+}  // namespace mp5_implicit

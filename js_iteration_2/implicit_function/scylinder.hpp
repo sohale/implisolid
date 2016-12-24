@@ -3,6 +3,7 @@
 //#include "../basic_functions.hpp"
 
 namespace mp5_implicit {
+namespace implicit_functions {
 
 class scylinder : public transformable_implicit_function {
 
@@ -186,4 +187,5 @@ public:
     }
 };
 
-}
+}  // namespace implicit_functions
+}  // namespace mp5_implicit
