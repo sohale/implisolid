@@ -48,7 +48,7 @@ implicit_function*  object_factory_simple(REAL f_argument, std::string name){
     //}
     //else
     */
-    if(name == "meta_balls"){
+    if(name == "meta_ball==s"){
         REAL r = (sin(0.033*10 * f_argument * 3.1415*2.)*0.33+0.3)*1;
         std::clog << " META BALLS r : " << r << std::endl;
         object = new mp5_implicit::unit_sphere(r);
@@ -130,15 +130,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
     std::cout << name <<std::endl;
 
 
-
+    /*
     if(name=="meta_balls"){
         use_metaball = true;
     }
     else{
         use_metaball = false;
     }
+    */
 
     implicit_function* object;
+
+    // name = "meta_balls";  // meta_balls demo
 
     if (name == "implicit_double_mushroom"){
         // std::clog << "implicit_double_mushroom case " << std::endl;
@@ -404,7 +407,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool& use_metabal
         }
 
         int num_blobs = 4;
-        REAL time = 0;  // 0.1
+        //REAL time = 0.1; //0;  // 0.1
+        //REAL time = shapeparams_dict.get_value<REAL>("time", 0.1);   // get_value<REAL>() or get<REAL>()
+        REAL time = shapeparams_dict.get<REAL>("time", 0.1);   // get_value<REAL>() or get<REAL>()
         REAL scale = 1.0;
         object = new mp5_implicit::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
 

@@ -17,16 +17,24 @@ namespace mp5_implicit {
  * http://webglsamples.googlecode.com/hg/blob/blob.html
 */
 class meta_ball_Rydgård : public transformable_implicit_function {
+   /**
+   The size is 1 x 1 x 1, and the boundaries of a metaballs object is [-0.5,+0.5]^3 but sometimes the metaballs go beyond this range.
+   */
+
+    int DUMP_VALUES = 0;  // used for debugging
 
 public:
     meta_ball_Rydgård(REAL matrix12[12], int num_blobs, REAL time, REAL scale) {
 
+        global_counter = 0;
+
         int numblobs = num_blobs;  // default: 4
         for (int ball_i = 0; ball_i < numblobs; ball_i++) {
+            REAL x0 = 0.5, y0 = 0.5, z0 = 0.5;
             REAL D = 1;
-            REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5;
-            REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D;  // dip into the floor
-            REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5;
+            REAL ballx = sin(ball_i + 1.26 * time * (1.03 + 0.5*cos(0.21 * ball_i))) * 0.27 * D + 0.5   - x0;
+            REAL bally = std::abs(cos(ball_i + 1.12 * time * cos(1.22 + 0.1424 * ball_i))) * 0.77 * D   - y0;  // dip into the floor
+            REAL ballz = cos(ball_i + 1.32 * time * 0.1*sin((0.92 + 0.53 * ball_i))) * 0.27 * D + 0.5   - z0;
             REAL subtract = 12;
             REAL strength = 1.2 / ((sqrt(numblobs)- 1) / 4 + 1);
             this->addBall(ballx, bally, ballz, strength, subtract, scale);
@@ -45,13 +53,18 @@ public:
 
     }
 
+    static int global_counter;
 
     class ball {
         REAL ballx, bally, ballz, strength, subtract, scale;
     public:
         ball(REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale)
         : ballx(ballx), bally(bally), ballz(ballz), strength(strength), subtract(subtract), scale(scale)
-        {}
+        {
+            std::cout << "ball: Constructor:(" <<
+            this->ballx << "," << bally << "," << ballz << "), strength=" << strength << ",subtract=" << subtract << ",scale=" << scale
+            << std::endl;
+        }
 
         inline void implicit_ball(REAL realx, REAL realy, REAL realz, REAL & output) const {
             REAL fz = realz - this->ballz;
@@ -61,8 +74,49 @@ public:
             REAL fx = realx - this->ballx;
             REAL fx2 = fx * fx;
             REAL val = strength / ( (REAL)0.000001 + fx2 + fy2 + fz2 ) - this->subtract;
-            if ( val > 0.0 )
+            //if ( val > 0.0 )
                 output += val / 100;
+
+            if( meta_ball_Rydgård::global_counter < 100 ){
+                std::cout << "implicit_ball: " <<
+                    realx <<","<< realy <<","<< realz <<","<< output <<","<< val
+                    << std::endl;
+            }
+            meta_ball_Rydgård::global_counter++;
+        }
+        inline void gradient_ball(REAL realx, REAL realy, REAL realz, REAL & outputx, REAL & outputy, REAL & outputz) const {
+            REAL fz = realz - this->ballz;
+            REAL fz2 = fz * fz;
+            REAL fy = realy - this->bally;
+            REAL fy2 = fy * fy;
+            REAL fx = realx - this->ballx;
+            REAL fx2 = fx * fx;
+            REAL h = 0.000001 + fx2 + fy2 + fz2;
+            REAL hinv = 1.0 / h;
+            REAL val = strength * hinv - this->subtract;
+            //if ( val > 0.0 )
+            {
+                // output += val / 100;
+                REAL gradx = this->strength * (
+                    // y^-1  --> (-1) * (y^-2) * y'
+                    // (0.001+xyz**2)^-1  --> (-1) * (((0.001+xyz**2))^-2) * (0.001+xyz**2)'
+                    // --> -((0.001+xyz**2)^-2) * (2*xyz)
+                    // --> -2 * x * (h^-2)
+                    -2 * fx * hinv * hinv
+                ) / 100;
+                REAL grady = this->strength * ( -2 * fy * hinv * hinv ) / 100;
+                REAL gradz = this->strength * ( -2 * fz * hinv * hinv ) / 100;
+
+                outputx += gradx;
+                outputy += grady;
+                outputz += gradz;
+
+                /*
+                std::cout << "implicit_ball: " <<
+                    realx <<","<< realy <<","<< realz <<": "<< outputx <<","<< outputy <<","<< outputz <<","<< val
+                    << std::endl;
+                */
+            }
         }
         mp5_implicit::bounding_box  get_boundingbox() const {
             REAL radius_ = std::sqrt(this->strength / this->subtract);
@@ -109,14 +163,16 @@ public:
         {}
 
         inline void implicitX(REAL realx, REAL realy, REAL realz, REAL & output) const {
-            REAL x2 = realx * realx;
+            REAL fx = realx - 0.5;
+            REAL x2 = fx * fx;
             REAL val = this->strength / (REAL)( 0.0001 + x2 ) - this->subtract;
             if ( val > 0.0 ) {
                 output += val;
             }
         }
         inline void gradientX(REAL realx, REAL realy, REAL realz, REAL & outputx, REAL & outputy, REAL & outputz) const {
-            REAL x2 = realx * realx;
+            REAL fx = realx - 0.5;
+            REAL x2 = fx * fx;
             REAL h = 0.0001 + x2;
             REAL hinv = static_cast<REAL>(1) / h;
             // REAL val = this->strength / h - this->subtract;
@@ -136,14 +192,16 @@ public:
         }
 
         inline void implicitY(REAL realx, REAL realy, REAL realz, REAL & output) const {
-            REAL y2 = realy * realy;
+            REAL fy = realy - 0.5;
+            REAL y2 = fy * fy;
             REAL val = strength / (REAL)( 0.0001 + y2 ) - subtract;
             if ( val > 0.0 ) {
                 output += val;
             }
         }
         inline void gradientY(REAL realx, REAL realy, REAL realz, REAL & outputx, REAL & outputy, REAL & outputz) const {
-            REAL y2 = realy * realy;
+            REAL fy = realy - 0.5;
+            REAL y2 = fy * fy;
             REAL h = 0.0001 + y2;
             REAL hinv = static_cast<REAL>(1) / h;
             REAL val = strength * hinv - subtract;
@@ -156,8 +214,9 @@ public:
 
         inline void implicitZ(REAL realx, REAL realy, REAL realz, REAL & output) const {
             //realz = z / (REAL)VOXELS;
-            REAL zz = realz * realz;
-            REAL val = strength / (REAL)( 0.0001 + zz ) - subtract;
+            REAL fz = realz - 0.5;
+            REAL z2 = fz * fz;
+            REAL val = strength / (REAL)( 0.0001 + z2 ) - subtract;
             if ( val > 0.0 ) {
                 output += val;
             }
@@ -165,8 +224,9 @@ public:
 
         inline void gradientZ(REAL realx, REAL realy, REAL realz, REAL & outputx, REAL & outputy, REAL & outputz) const {
             //realz = z / (REAL)VOXELS;
-            REAL zz = realz * realz;
-            REAL h = 0.0001 + zz;
+            REAL fz = realz - 0.5;
+            REAL z2 = fz * fz;
+            REAL h = 0.0001 + z2;
             REAL hinv = static_cast<REAL>(1) / h;
             REAL val = this->strength * hinv - subtract;
             if ( val > 0.0 ) {
@@ -210,6 +270,12 @@ public:
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
+        {
+            int output_ctr=0;
+            for(auto i = x.begin(), e = x.end(); i < e; i++, output_ctr++){
+                (*f_output)[output_ctr] = 0.0; //-0.00001;
+            }
+        }
         const vectorized_vect local_x = prepare_inner_vectors(this->inv_transf_matrix, x);
 
         for( const ball & b : balls ) {
@@ -239,7 +305,7 @@ public:
                     const REAL x = (*i)[0];
                     const REAL y = (*i)[1];
                     const REAL z = (*i)[2];
-                    p.implicitX(x, y, z, (*f_output)[output_ctr]);
+                    p.implicitY(x, y, z, (*f_output)[output_ctr]);
                 }}
                 break;
             case 'z':{
@@ -248,14 +314,26 @@ public:
                     const REAL x = (*i)[0];
                     const REAL y = (*i)[1];
                     const REAL z = (*i)[2];
-                    p.implicitX(x, y, z, (*f_output)[output_ctr]);
+                    p.implicitZ(x, y, z, (*f_output)[output_ctr]);
                 }}
                 break;
             default:
                 std::cout << "Error" << std::endl;
             }
         }
+
+        if (DUMP_VALUES > 0) {
+            std::cout << "eval i " ;
+            int output_ctr = 0;
+            for(auto i = local_x.begin(), e = local_x.end(); i < e; i++, output_ctr++){
+                std::cout << (*f_output)[output_ctr] << " ";
+                if (output_ctr >= DUMP_VALUES) break;
+            }
+            std::cout << std::endl;
+        }
     }
+
+
     // boost::sub_array<float, 2U - 1>
     // boost::multi_array<REAL, 1>
     // static vectorized_vect sample;
@@ -279,12 +357,51 @@ public:
             const REAL y = (*i)[1];
             const REAL z = (*i)[2];
 
-            REAL gx;
-            REAL gy;
-            REAL gz;
+            /*REAL gx = 0;
+            REAL gy = 0;
+            REAL gz = 0;
+            b.implicit_ball(x, y, z, (*f_output)[output_ctr]);*/
+            vectorized_vect g { boost::extents[1][3] };
+            g[0][0] = 0;
+            g[0][1] = 0;
+            g[0][2] = 0;
+            auto gp = g.begin();
 
-            transform_and_store_gradient( /*&(((*output)[output_ctr]))*/ oi, gx, gy, gz);
+            for( const ball & b : balls ) {
+                    b.gradient_ball(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
+            }
+
+            for( const plane & p : planes ) {
+                switch (p.xyz) {
+                case 'x':
+                        p.gradientX(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
+                    break;
+                case 'y':
+                        p.gradientY(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
+                    break;
+                case 'z':
+                        p.gradientZ(x, y, z,  (*gp)[0], (*gp)[1], (*gp)[2] );
+                    break;
+                //default:
+                    //std::cout << "Error" << std::endl;
+                }
+            }
+
+            transform_and_store_gradient( /*&(((*output)[output_ctr]))*/ oi,  g[0][0], g[0][1], g[0][2] );
         }
+
+        if (DUMP_VALUES > 0) {
+            std::cout << "eval g " ;
+            int output_ctr = 0;
+            for(auto i = (*output).begin(), e = (*output).end(); i < e; i++) {
+                std::cout << (*i)[0] <<","<< (*i)[1] <<","<< (*i)[2] << " ";
+                if (output_ctr >= DUMP_VALUES) break;
+                output_ctr++;
+            }
+            std::cout << std::endl;
+        }
+
+
     }
     bool integrity_invariant() const {
           return true;
@@ -401,7 +518,7 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
 
 void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     //int x, y, z;
-    REAL yy;
+    REAL y2;
     REAL val;
     REAL realy;
     int cy;
@@ -426,8 +543,8 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
                 for (int z = 0; z < VOXELS; z++ )
                     auto index = zd * z + cxy;
 
-        REAL yy = realy * realy;
-        REAL val = strength / (REAL)( 0.0001 + yy ) - subtract;
+        REAL y2 = realy * realy;
+        REAL val = strength / (REAL)( 0.0001 + y2 ) - subtract;
         if ( val > 0.0 ) {
                     field[ index ] += val;
             }
@@ -438,7 +555,7 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
 void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 {
     //int x, y, z;
-    REAL zz, val, realz;
+    REAL z2, val, realz;
     int cz, cyz;
 
     // cache attribute lookups
@@ -457,8 +574,8 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
                 for (int x = 0; x < VOXELS; x++ )
                     auto index = cyz + x;
         realz = z / (REAL)VOXELS;
-        zz = realz * realz;
-        val = strength / (REAL)( 0.0001 + zz ) - subtract;
+        z2 = realz * realz;
+        val = strength / (REAL)( 0.0001 + z2 ) - subtract;
         if ( val > 0.0 ) {
                     field[ index ] += val;
             }
