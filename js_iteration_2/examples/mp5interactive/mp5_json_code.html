@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>MP5 in Action</title>
+<style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        /*right: 60%; or 10%*/
+        left: 0;
+        z-index: 1000;
+    }
+.mycanvas3d {
+/*
+       position: absolute;
+       top: 0;
+       bottom: 0;
+       right: 0;
+       left: 0;
+*/
+       position: absolute;
+       right: 0;
+       z-index: -10;
+       /*left: 38%;*/
+      /* background-color: #f00;*/
+
+ }
+
+/*
+.ace-monokai {
+  background-color: red !important;
+  //background-color: #272822;
+  //color: #F8F8F2
+}
+*/
+/*
+.mybg {
+  background-color: red !important;
+}
+*/
+</style>
+</head>
+
+
+<script>
+    'use strict';
+     var S1 = {
+	    "printerSettings": {},
+	    "mp5-version": "0.3",
+	    "root": {
+		"type": "root",
+		"children": [{
+		    "type": "Difference",
+		    "children": [{
+		        "type": "cylinder",
+		        "matrix": [35, 0, 0, 0, 0, 35, 0, 0, 0, 0, 9, 0, 0, 0, 0, 1],
+		        "index": 652818
+		    }, {
+		        "type": "cylinder",
+		        "matrix": [8, 0, 0, 0.658,  0,19, 0, 6.215, 0, 0, 12, 0, 0, 0, 0, 1],
+		        "index": 246357
+		    }],
+		    "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+		}]
+	    }
+	};
+
+    //var startup_text = JSON.stringify(S1);
+    var MOON = '{"printSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","children":[{"type":"cylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.560,0,0,2.38119,6.90,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,0.0,0,0,0,1],"index":6565922}]}}';
+    var startup_text = MOON;
+    //var screw_mp5 = {"printerSettings":{"d":2},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1],"v":[0,2,0],"pitch":0.5,"profile":"sin","delta_ratio":1.5,"end_type":"0","index":9185154}]}};
+    //var startup_text = JSON.stringify(screw_mp5);
+</script>
+
+
+<body style="background-color: #000000;">
+
+<!--
+<canvas class="mycanvas3d" width="500" height="300" id="my_canvas"></canvas>
+-->
+
+<div id="editor" style="background-color: rgba(1,0,0,0);">
+</div>
+
+</body>
+
+<!-- ************************** THREE JS **************************-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"> </script>
+<!--script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script-->
+<script type="text/javascript" src="../../../js_iteration_1/controls/OrbitControls_r79.js"></script>
+
+<!-- ************************** IMPLISOLID CODE **************************-->
+
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/assert.js"></script>
+
+<script type="text/javascript" src="../../../js_iteration_2/geometry79.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/implisolid_main.js"></script>
+
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_objects.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
+<script type="text/javascript" src="../../../js_iteration_2/js/pointset_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js/arrow_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_materials.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/performance_graphs.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/misc_props.js"></script>
+
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/boundingbox_utils.js"></script>
+
+<!-- ************************** ACE CODE **************************-->
+<!-- 
+
+http://www.jsoneditoronline.org/
+
+src="/ace-builds/src-noconflict/ace.js" 
+
+https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js
+
+https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/ace.js
+
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-beautify.js" type="text/javascript" charset="utf-8"></script>
+<!--script src="https://raw.githubusercontent.com/beautify-web/js-beautify/master/js/lib/beautify.js" type="text/javascript" charset="utf-8"></script-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.6.4/beautify.min.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+    'use strict';
+    // see https://ace.c9.io/#nav=howto
+
+    var eglobals = {reactive: false};
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    //editor.setTheme("ace/theme/ace_theme_1");
+    //editor.setTheme("ace/theme/clouds");
+    //editor.setTheme("ace/theme/pastel_on_dark");
+    //editor.setTheme("ace/theme/twilight");
+    //editor.getSession().setMode("ace/mode/javascript");
+    editor.getSession().setMode("ace/mode/json");
+    editor.getSession().on('change', function(e) {
+        if (!eglobals.reactive) return;
+            var text = editor.getValue(); // or session.getValue
+            build_code(text);
+
+        return;
+        // e.type, etc
+	/*
+	action: "insert"
+	start: {column:..., row:...},
+	end: {column:..., row:...},
+	lines: [","]
+	*/
+	console.log("change", e);
+        var val = editor.getValue(); // or session.getValue
+	//console.log("editor.getValue()", val);
+        //var val = session.getValue;
+	//console.log("session.getValue", val);
+        try {
+        var mp5_str = editor.getValue(); // or session.getValue
+        var mp5 = JSON.parse(mp5_str);
+        console.log(mp5);
+        console.log(JSON.stringify(mp5));
+        //beautify.beautify(editor.session);  // loops forever until your OS crashes!
+        }catch(e){}
+    });
+    editor.commands.addCommand({
+        name: 'myCommand',
+        bindKey: {win: 'Ctrl-M',  mac: 'Command-M'},
+        exec: function(editor) {
+            console.log("Comand M :MyCommand");
+        },
+        readOnly: true // false if this command should not apply in readOnly mode
+    });
+    editor.$blockScrolling = Infinity;
+
+    editor.setValue(`  
+
+"Please Wait ..."
+
+`);
+
+    //editor.setValue(startup_text);
+    //editor.setValue({});
+
+
+    var beautify = ace.require("ace/ext/beautify");
+    //var editor = ace.edit("editor");
+    //beautify.beautify(editor.session);
+    setTimeout(function(){
+        editor.setValue(startup_text);
+        my_beautify();
+        eglobals.reactive = true;
+        build_code( editor.getValue() );
+    }, 1500);
+
+function my_beautify() {
+    beautify.beautify(editor.getSession());
+
+    var val = editor.getSession().getValue();
+    //Remove leading spaces
+    var array = val.split(/\n/);
+    array[0] = array[0].trim();
+    val = array.join("\n");
+    //Actual beautify (prettify) 
+    val = js_beautify(val);  // external
+    //Change current text to formatted text
+    editor.getSession().setValue(val);
+}
+
+function build_code(editor_text) {
+        try {
+            var mp5_json = editor_text;
+            var mp5 = JSON.parse(mp5_json);
+            var shape_dict = mp5.root.children[0];
+            var bb = getBoundingBoxForDict(shape_dict, false);
+            console.error("bbox", bb);
+            var shape_json = JSON.stringify(shape_dict);
+            console.error("shape_json11",shape_json);
+            console.log(JSON.parse(shape_json));
+            put_up_there(shape_json, bb);
+        } catch(e) {
+            if (shape_json)
+            console.error(shape_json);
+            console.error("Exception:", e);
+        }
+
+}
+</script>
+
+<!--  ********************************************************************  -->
+<script>
+'use strict';
+
+var globals = {mesh_solid: null, /*mesh_wireframe: null, normals: null, arrows: null,*/ chosen_matrial:null, geometry: null, scene:null };
+var CONFIG = {CHOSEN_MATERIAL_INDEX: 2, PERSPECTIVE: true, SHOW_WIREFRAME: false, SHOW_SOLID: true, SPEED: 3. / 100, MESH_SCALE: 1.0};
+
+const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify({
+    resolution: Math.floor( 30 ),
+    box: //bbox,
+        {xmin: -BSH, xmax: +BSH, ymin: -BSH, ymax: +BSH, zmin: -BSH, zmax: +BSH},
+    ignore_root_matrix: false,
+
+    vresampl: {iters: 0, c: 1.0},
+
+    projection: {enabled: 0},
+    qem: {enabled: 0},
+    subdiv: {enabled: 0},
+    overall_repeats: 1,
+
+    debug: {
+        enabled_pointsets: 0,
+        // only_rank
+        post_subdiv_noise: 0.0,
+    },
+});};
+
+function put_up_there(string_json, bb_arg) {
+    var polygonization_json = JSON.stringify(
+         {"resolution":40,"box":{"xmin":-0.55,"xmax":0.55,"ymin":-0.55,"ymax":0.55,"zmin":-0.55,"zmax":0.55},"ignore_root_matrix":false,"vresampl":{"iters":3,"c":1},"projection":{"enabled":1},"qem":{"enabled":1},"subdiv":{"enabled":1},"overall_repeats":1,"debug":{"enabled_pointsets":0,"post_subdiv_noise":0}}
+    );
+    polygonization_json = simple_MC_only_polygonization_json(0.5);
+    var shape_json = string_json;
+    //var polygonization_json = JSON.stringify(d.polygonization_json);
+    //console.error(shape_json);
+    //console.error(polygonization_json);
+    var ignore_root_matrix = false;
+    //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
+    if (!bb_arg) {
+        var box1 = JSON.parse(polygonization_json).box;
+        var bbox = {min: {x:box1.xmin, y:box1.ymin, z:box1.zmin}, max: {x:box1.xmax, y:box1.ymax, z:box1.zmax}};
+    } else {
+        var bbox = bb_arg;
+    }
+    CONFIG.implisolid = {default_mc_resolution: 20};
+    globals.geometry = IMPLICIT.getLiveGeometry(shape_json, bbox, true);
+    //globals.geometry = THREE.BoxGeometry();
+    assert(!CONFIG.SHOW_WIREFRAME);
+    assert(CONFIG.SHOW_SOLID);
+
+    if(globals.mesh_solid){
+        globals.scene.remove( globals.mesh_solid );
+        globals.mesh_solid = null;
+    }
+
+    if(CONFIG.SHOW_SOLID){
+        console.error(globals.geometry);
+        globals.mesh_solid = new THREE.Mesh( globals.geometry, globals.chosen_matrial );
+        globals.mesh_solid.position.set( 0, 0, 0 );
+        globals.mesh_solid.scale.set( CONFIG.MESH_SCALE, CONFIG.MESH_SCALE, CONFIG.MESH_SCALE );
+        globals.scene.add( globals.mesh_solid );
+        console.error("OK", globals.mesh_solid);
+    }
+}
+
+function meat() {
+    'use strict';
+/*
+        var global_time  = 0.2 * 5;
+
+        var d = provide_input(global_time, 0, globals);
+        var shape_json = d.shape_json;
+
+        put_up_there(shape_json);
+*/
+}
+
+function init_scene(IMPLICIT) {
+    'use strict';
+    var scene = new THREE.Scene();
+    globals.scene = scene;
+
+    // var render_canvas = document.getElementById('my_canvas');
+    /*var WIDTH = render_canvas.innerWidth,
+        HEIGHT = render_canvas.innerHeight;
+    */
+    //assert(WIDTH);
+    //assert(HEIGHT);
+    //desired_width, desired_height
+
+    globals.desired = {WIDTH:300, HEIGHT:250};
+
+    if (CONFIG.PERSPECTIVE) {
+        globals.camera = new THREE.PerspectiveCamera( 75, globals.desired.WIDTH / globals.desired.HEIGHT, 1, 10000 );  // ( fov, aspect, near, far )
+        //globals.camera.position.set();
+    } else {
+        // Use Orthogaphic camera
+        var span_per_pixel = 1.0/12.0;
+        var x0 = WIDTH/2.0*span_per_pixel;
+        var y0 = HEIGHT/2.0*span_per_pixel;
+        globals.camera = new THREE.OrthographicCamera( -x0,  +x0, -y0, +y0, 1, 10000 ); // ( left, right, top, bottom, near, far )
+    }
+    var GRID_CELL_SIZE = 1.0;
+    globals.camera.position.set(0, 2, 40*GRID_CELL_SIZE);  // tele
+    //globals.camera.position.set(0, 0, 3*GRID_CELL_SIZE);  // close up
+    //var grid = grid_bed(GRID_CELL_SIZE);
+    //globals.scene.add( grid );
+    /*
+    globals.sizeListener = function(w,h){
+        globals.camera.aspect = w/ h;
+    };
+    */
+
+    var materials_list = look_nice();
+    globals.chosen_matrial = materials_list[CONFIG.CHOSEN_MATERIAL_INDEX];
+
+    //var grid = grid_bed(GRID_CELL_SIZE);
+    //globals.scene.add( grid );
+
+    var dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(100, 100, 50);
+    globals.scene.add(dirLight);
+
+
+    var dirLight2 = new THREE.DirectionalLight(0x00ffff, 1);
+    dirLight2.position.set(-100, -100, -50);
+    globals.scene.add(dirLight2);
+
+    var renderer = new THREE.WebGLRenderer( { antialias: true/*, canvas: render_canvas*/ } );
+    //renderer.setSize ( 300, 300, true );
+    //renderer.setSize (desired_width, desired_height );
+    renderer.setSize ( globals.desired.WIDTH, globals.desired.HEIGHT, true);
+    globals.renderer = renderer;
+    document.body.appendChild( globals.renderer.domElement );
+
+    //var cnvs = document.querySelector('canvas');
+    var cnvs = globals.renderer.domElement;
+    //cnvs.classList.append("mycanvas3d");
+    cnvs.className = "mycanvas3d";
+
+    /*
+    globals.renderer.domElement.addEventListener('resize',function(e){
+        globals.sizeListener(e.width, e.height);
+    }, true);
+    */
+
+    var cameraControls = new THREE.OrbitControls( globals.camera, renderer.domElement );
+
+    cameraControls.rotateSpeed = 1.5;
+    cameraControls.zoomSpeed = 1.2;
+    cameraControls.panSpeed = 0.8;
+    cameraControls.enableZoom = true;
+    cameraControls.enablePan = true;
+    cameraControls.enableDamping = true;
+    cameraControls.dampingFactor = 0.6; //0.9; // 1.0; //motile: 0.3;
+    cameraControls.target.set( 0, 0, 0 );
+    cameraControls.addEventListener( 'change', function () {console.log("CC");} );
+    globals.cameraControls = cameraControls;
+
+}
+function animate() {
+    'use strict';
+
+    //assert(globals.mesh_solid);
+    if(globals.mesh_solid){
+        globals.mesh_solid.rotation.x += 0.01*CONFIG.SPEED;
+        globals.mesh_solid.rotation.y += 0.1*CONFIG.SPEED;
+        //globals.mesh_solid.rotation.set(10,10,10);
+        //console.error("rotate");
+    }
+    
+    globals.renderer.render( globals.scene, globals.camera );
+    // console.log(globals.camera, globals.mesh_solid);
+    requestAnimationFrame( animate );
+}
+    var IMPLICIT;
+    var PS_UTILS;
+
+    function startup_sequence() {
+    'use strict';
+        console.log("ready.");
+        assert = my_assert;
+
+        IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
+        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT); 
+
+        /*
+        //if(delta_t === undefined)
+        var delta_t = 0.2 * 5;
+        // Subjective time!
+        global_time += delta_t;
+        */
+
+        /*
+        var global_time  = 0.2 * 5;
+
+        var d = provide_input(global_time, 0, globals);
+        var shape_json = d.shape_json;
+        var polygonization_json = JSON.stringify(d.polygonization_json);*/
+
+        init_scene(IMPLICIT);
+        animate();
+        
+        meat();
+    };
+</script>
+
+<script>
+    'use strict';
+        var startup_sequence;
+        var Module;
+        if (!Module)
+        Module =
+        {
+            preRun:[ ],
+            onRuntimeInitialized: startup_sequence,
+            memoryInitializerPrefixURL: "../../../build/",
+        };
+</script>
+<script type="text/javascript" src="../../../build/mcc2.compiled.js"></script>
+<!--script type="text/javascript" src="https://beta.wedesign.live/mcc2.compiled.js"></script-->
+</html>
+
