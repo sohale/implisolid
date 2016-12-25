@@ -12,6 +12,7 @@ ImpliSolid is free software and open source under GPL3 license.
 
 [plan.md](./plan.md)
 
+[interactive mp5 editor](../js_iteration_2/examples/mp5interactive/mp5_json_code.html)
 
 Usage:
 
