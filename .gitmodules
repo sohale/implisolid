@@ -1,3 +1,4 @@
 [submodule "docs/implisolid-build"]
 	path = docs/implisolid-build
-	url = git@github.com:sohale/implisolid-build.git
+	url = https://github.com/sohale/implisolid-build.git
+
