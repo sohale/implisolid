@@ -356,6 +356,7 @@ calculate curvatures (for closing the subdivision)
 marching-cubes resolution size
 bug for cyliner (Vitaliy)
 Free-form-shape
+(update only live nodes. others consolidated are no longer updated)
 
 Designer: Free-form Tetrahedron
 Designer: Free-form organic (TriVarSpline)

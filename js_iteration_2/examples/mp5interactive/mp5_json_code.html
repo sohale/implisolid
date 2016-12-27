@@ -67,11 +67,66 @@
 	    }
 	};
 
+    // multi-object
+    var S2 = {
+    "printSettings": {},
+    "mp5-version": "0.3",
+    "root": {
+        "type": "root",
+        "children": [{
+            "type": "Difference",
+            "protected": false,
+            "children": [{
+                "type": "cylinder",
+                "displayColor": [0.77, 0.039, 0.17],
+                "matrix": [35, 0, 0, 0, 0, 35, 0, 0, 0, 0, 9, 0, 0, 0, 0, 1],
+                "index": 652818
+            },
+            {
+                "type": "Difference",
+                "children": [{
+                    "type": "cylinder",
+                    "displayColor": [0.81, 0.657, 0.736],
+                    "matrix": [10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1],
+                    "index": 1272174
+                },
+                {
+                    "type": "cylinder",
+                    "displayColor": [0.114, 0.075, 0.63],
+                    "matrix": [10, 0, 0, 0.658, 0, 10, 0, 6.2155, 0, 0, 10, 0, 0, 0, 0, 1],
+                    "index": 2463576
+                }],
+                "displayColor": [0.662, 0.45, 0.72],
+                "matrix": [2.381193, 0, 0, 0.36, 0, 2.3811, 0, 0.560, 0, 0, 2.38119, 6.90, 0, 0, 0, 1],
+                "index": 413872
+            }],
+            "displayColor": [0.55, 0.06, 0.11],
+            "matrix": [1, 0, 0, 0.329, 0, 1, 0, 0.156, 0, 0, 1, 0.0, 0, 0, 0, 1],
+            "index": 6565922
+        },
+                        {
+                    "type": "cylinder",
+                    "displayColor": [0.114, 0.075, 0.63],
+                    "matrix": [1, 0, 0, 0,     0, 1, 0, 0, 0, 0, 1, 0,   0, 0, 0, 1],
+                    "index": 2463576
+                }
+        ]
+    }
+};
+
+    var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.509044270623187,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":[],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
+
     //var startup_text = JSON.stringify(S1);
-    var MOON = '{"printSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","children":[{"type":"cylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.560,0,0,2.38119,6.90,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,0.0,0,0,0,1],"index":6565922}]}}';
-    var startup_text = MOON;
+
+    //var MOON = '{"printSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","children":[{"type":"cylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.560,0,0,2.38119,6.90,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,0.0,0,0,0,1],"index":6565922}]}}';
+    //var startup_text = MOON;
+
     //var screw_mp5 = {"printerSettings":{"d":2},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1],"v":[0,2,0],"pitch":0.5,"profile":"sin","delta_ratio":1.5,"end_type":"0","index":9185154}]}};
     //var startup_text = JSON.stringify(screw_mp5);
+
+    // var startup_text = JSON.stringify(S2);
+    var startup_text = JSON.stringify(necklace);
+
 </script>
 
 
@@ -87,26 +142,26 @@
 </body>
 
 <!-- ************************** THREE JS **************************-->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"> </script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"> </script>
 <!--script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script-->
-<script type="text/javascript" src="../../../js_iteration_1/controls/OrbitControls_r79.js"></script>
+<script type="text/javascript" src="../js/OrbitControls_r79.js"></script>
 
 <!-- ************************** IMPLISOLID CODE **************************-->
 
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/assert.js"></script>
+<script type="text/javascript" src="../js/assert.js"></script>
 
-<script type="text/javascript" src="../../../js_iteration_2/geometry79.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/implisolid_main.js"></script>
+<script type="text/javascript" src="../js/geometry79.js"></script>
+<script type="text/javascript" src="../js/implisolid_main.js"></script>
 
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_objects.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
-<script type="text/javascript" src="../../../js_iteration_2/js/pointset_utils.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/js/arrow_utils.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_materials.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/performance_graphs.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/misc_props.js"></script>
+<script type="text/javascript" src="../js/example_objects.js"></script>
+<script type="text/javascript" src="../js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
+<script type="text/javascript" src="../js/pointset_utils.js"></script>
+<script type="text/javascript" src="../js/arrow_utils.js"></script>
+<script type="text/javascript" src="../js/example_materials.js"></script>
+<script type="text/javascript" src="../js/performance_graphs.js"></script>
+<script type="text/javascript" src="../js/misc_props.js"></script>
 
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/boundingbox_utils.js"></script>
+<script type="text/javascript" src="../js/boundingbox_utils.js"></script>
 
 <!-- ************************** ACE CODE **************************-->
 <!-- 
@@ -121,7 +176,7 @@ https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/a
 
 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-beautify.js" type="text/javascript" charset="utf-8"></script>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-beautify.js" type="text/javascript" charset="utf-8"></script-->
 <!--script src="https://raw.githubusercontent.com/beautify-web/js-beautify/master/js/lib/beautify.js" type="text/javascript" charset="utf-8"></script-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.6.4/beautify.min.js" type="text/javascript" charset="utf-8"></script>
 
@@ -195,7 +250,7 @@ https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/a
     }, 1500);
 
 function my_beautify() {
-    beautify.beautify(editor.getSession());
+    // beautify.beautify(editor.getSession());
 
     var val = editor.getSession().getValue();
     //Remove leading spaces
@@ -212,13 +267,16 @@ function build_code(editor_text) {
         try {
             var mp5_json = editor_text;
             var mp5 = JSON.parse(mp5_json);
-            var shape_dict = mp5.root.children[0];
-            var bb = getBoundingBoxForDict(shape_dict, false);
-            console.error("bbox", bb);
-            var shape_json = JSON.stringify(shape_dict);
-            console.error("shape_json11",shape_json);
-            console.log(JSON.parse(shape_json));
-            put_up_there(shape_json, bb);
+            var sons = mp5.root.children;
+            for( var i = 0; i < sons.length; ++i) {
+                var shape_dict = sons[i];
+                var bb = getBoundingBoxForDict(shape_dict, false);
+                //console.error("bbox", bb);  // ****
+                var shape_json = JSON.stringify(shape_dict);
+                //console.error("shape_json11",shape_json);    // ****
+                console.log(JSON.parse(shape_json));
+                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix);
+            };
         } catch(e) {
             if (shape_json)
             console.error(shape_json);
@@ -232,7 +290,7 @@ function build_code(editor_text) {
 <script>
 'use strict';
 
-var globals = {mesh_solid: null, /*mesh_wireframe: null, normals: null, arrows: null,*/ chosen_matrial:null, geometry: null, scene:null };
+var globals = {mesh_solid: [], main_mesh: null, /*mesh_wireframe: null, normals: null, arrows: null,*/ chosen_matrial:null, geometry: null, scene:null };
 var CONFIG = {CHOSEN_MATERIAL_INDEX: 2, PERSPECTIVE: true, SHOW_WIREFRAME: false, SHOW_SOLID: true, SPEED: 3. / 100, MESH_SCALE: 1.0};
 
 const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify({
@@ -255,7 +313,7 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     },
 });};
 
-function put_up_there(string_json, bb_arg) {
+function put_up_there(string_json, bb_arg, i, matrix) {
     var polygonization_json = JSON.stringify(
          {"resolution":40,"box":{"xmin":-0.55,"xmax":0.55,"ymin":-0.55,"ymax":0.55,"zmin":-0.55,"zmax":0.55},"ignore_root_matrix":false,"vresampl":{"iters":3,"c":1},"projection":{"enabled":1},"qem":{"enabled":1},"subdiv":{"enabled":1},"overall_repeats":1,"debug":{"enabled_pointsets":0,"post_subdiv_noise":0}}
     );
@@ -278,19 +336,76 @@ function put_up_there(string_json, bb_arg) {
     assert(!CONFIG.SHOW_WIREFRAME);
     assert(CONFIG.SHOW_SOLID);
 
-    if(globals.mesh_solid){
-        globals.scene.remove( globals.mesh_solid );
-        globals.mesh_solid = null;
+    if ( i === undefined) i = 0;
+    while (globals.mesh_solid.length < i+1) {
+        globals.mesh_solid.push(null);
+    }
+
+    // remove everything
+    if(globals.mesh_solid[i]) {
+        //globals.scene.remove( globals.mesh_solid[i] );
+        globals.main_mesh.remove( globals.mesh_solid[i] );
+        globals.mesh_solid[i] = null;
+        //globals.scene.remove( globals.main_mesh );
+        //globals.main_mesh = null;  //never
+
+    }
+    /*
+    if(globals.main_mesh) {
+        globals.main_mesh.remove( globals.mesh_solid[i] );
+        globals.mesh_solid[i] = null;
+        globals.main_mesh = null;
+    }
+    */
+
+
+    if(!globals.main_mesh) {
+        globals.main_mesh = new THREE.Object3D();
+        globals.scene.add(globals.main_mesh);
     }
 
     if(CONFIG.SHOW_SOLID){
-        console.error(globals.geometry);
-        globals.mesh_solid = new THREE.Mesh( globals.geometry, globals.chosen_matrial );
-        globals.mesh_solid.position.set( 0, 0, 0 );
-        globals.mesh_solid.scale.set( CONFIG.MESH_SCALE, CONFIG.MESH_SCALE, CONFIG.MESH_SCALE );
-        globals.scene.add( globals.mesh_solid );
-        console.error("OK", globals.mesh_solid);
+        // console.error(globals.geometry);
+        var mesh = new THREE.Mesh( globals.geometry, globals.chosen_matrial );
+        mesh.position.set( 0, 0, 0 );
+        mesh.scale.set( CONFIG.MESH_SCALE, CONFIG.MESH_SCALE, CONFIG.MESH_SCALE );
+        //globals.scene.add( mesh );
+        //globals.scene.add( globals.main_mesh );
+        globals.main_mesh.add(mesh);
+        globals.mesh_solid[i] = mesh;
+        console.error("OK", globals.mesh_solid[i]);
+
+    //return globals.mesh_solid[i];
+    var submesh = globals.mesh_solid[i];
+
+                //globals.submesh.
+                submesh.matrixAutoUpdate=false;
+                //submesh.matrix.set(10,0,0,0,  0,10,0,0, 0,0,10,0, 0,0,0,1);
+                //var m = shape_dict.matrix;
+                var m = matrix;
+                //console.error(m);
+                //submesh.matrix.set(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
+                submesh.matrix.set(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
+
+		/*  submesh.matrix.set(
+		m[0],m[1],m[2], //m[3],
+		m[4],m[5],m[6], //m[7],
+		m[8],m[9],m[10], //m[12],
+		m[13],m[14],m[15], //m[16]);
+		m[3],m[7],m[12],m[16]);
+		*/
+		/*                submesh.matrix.set(
+		m[0],m[4],m[2], //m[3],
+		m[1],........m[5],m[6], //m[7],
+		m[2],m[6],m[10], //m[12],
+		m[3],m[14],m[15], //m[16]);
+		m[3],m[7],m[12],m[16]);
+		*/
+
+                console.error(m, submesh.matrix.elements);
+
     }
+
 }
 
 function meat() {
@@ -390,15 +505,21 @@ function init_scene(IMPLICIT) {
 }
 function animate() {
     'use strict';
-
-    //assert(globals.mesh_solid);
-    if(globals.mesh_solid){
-        globals.mesh_solid.rotation.x += 0.01*CONFIG.SPEED;
-        globals.mesh_solid.rotation.y += 0.1*CONFIG.SPEED;
-        //globals.mesh_solid.rotation.set(10,10,10);
-        //console.error("rotate");
+    /*
+    for (var i = 0; i < globals.mesh_solid.length; ++i) {
+        //assert(globals.mesh_solid[i]);
+        if(globals.mesh_solid[i]) {
+            globals.mesh_solid[i].rotation.x += 0.01*CONFIG.SPEED;
+            globals.mesh_solid[i].rotation.y += 0.1*CONFIG.SPEED;
+            //globals.mesh_solid[i].rotation.set(10,10,10);
+            //console.error("rotate");
+        }
     }
-    
+    */
+    if (globals.main_mesh){
+        globals.main_mesh.rotation.x += 0.01*CONFIG.SPEED;
+        globals.main_mesh.rotation.y += 0.1*CONFIG.SPEED;
+    }
     globals.renderer.render( globals.scene, globals.camera );
     // console.log(globals.camera, globals.mesh_solid);
     requestAnimationFrame( animate );
@@ -444,10 +565,10 @@ function animate() {
         {
             preRun:[ ],
             onRuntimeInitialized: startup_sequence,
-            memoryInitializerPrefixURL: "../../../build/",
+            memoryInitializerPrefixURL: "../js/",
         };
 </script>
-<script type="text/javascript" src="../../../build/mcc2.compiled.js"></script>
+<script type="text/javascript" src="../js/mcc2.compiled.js"></script>
 <!--script type="text/javascript" src="https://beta.wedesign.live/mcc2.compiled.js"></script-->
 </html>
 
