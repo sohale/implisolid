@@ -114,7 +114,7 @@
     }
 };
 
-    var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.509044270623187,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":[],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
+    var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.5,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":[],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
 
     //var startup_text = JSON.stringify(S1);
 
@@ -141,18 +141,17 @@
 
 </body>
 
+
 <!-- ************************** THREE JS **************************-->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"> </script>
 <!--script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script-->
-<script type="text/javascript" src="../js/OrbitControls_r79.js"></script>
 
+<script type="text/javascript" src="../js/OrbitControls_r79.js"></script>
 <!-- ************************** IMPLISOLID CODE **************************-->
 
 <script type="text/javascript" src="../js/assert.js"></script>
-
 <script type="text/javascript" src="../js/geometry79.js"></script>
 <script type="text/javascript" src="../js/implisolid_main.js"></script>
-
 <script type="text/javascript" src="../js/example_objects.js"></script>
 <script type="text/javascript" src="../js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
 <script type="text/javascript" src="../js/pointset_utils.js"></script>
@@ -160,20 +159,32 @@
 <script type="text/javascript" src="../js/example_materials.js"></script>
 <script type="text/javascript" src="../js/performance_graphs.js"></script>
 <script type="text/javascript" src="../js/misc_props.js"></script>
-
 <script type="text/javascript" src="../js/boundingbox_utils.js"></script>
+
+
+<!-- ************************** OLD ********************************  - -
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"> </script>
+< ! - -script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script - - >
+<script type="text/javascript" src="../../../js_iteration_1/controls/OrbitControls_r79.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/assert.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/geometry79.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/implisolid_main.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_objects.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js/js_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js/pointset_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js/arrow_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_materials.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/performance_graphs.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/misc_props.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js/boundingbox_utils.js"></script>
+-->
 
 <!-- ************************** ACE CODE **************************-->
 <!-- 
-
 http://www.jsoneditoronline.org/
-
 src="/ace-builds/src-noconflict/ace.js" 
-
 https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js
-
 https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/ace.js
-
 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
 <!--script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-beautify.js" type="text/javascript" charset="utf-8"></script-->
@@ -375,32 +386,11 @@ function put_up_there(string_json, bb_arg, i, matrix) {
         globals.mesh_solid[i] = mesh;
         console.error("OK", globals.mesh_solid[i]);
 
-    //return globals.mesh_solid[i];
     var submesh = globals.mesh_solid[i];
 
-                //globals.submesh.
                 submesh.matrixAutoUpdate=false;
-                //submesh.matrix.set(10,0,0,0,  0,10,0,0, 0,0,10,0, 0,0,0,1);
-                //var m = shape_dict.matrix;
                 var m = matrix;
-                //console.error(m);
-                //submesh.matrix.set(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
                 submesh.matrix.set(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
-
-		/*  submesh.matrix.set(
-		m[0],m[1],m[2], //m[3],
-		m[4],m[5],m[6], //m[7],
-		m[8],m[9],m[10], //m[12],
-		m[13],m[14],m[15], //m[16]);
-		m[3],m[7],m[12],m[16]);
-		*/
-		/*                submesh.matrix.set(
-		m[0],m[4],m[2], //m[3],
-		m[1],........m[5],m[6], //m[7],
-		m[2],m[6],m[10], //m[12],
-		m[3],m[14],m[15], //m[16]);
-		m[3],m[7],m[12],m[16]);
-		*/
 
                 console.error(m, submesh.matrix.elements);
 
@@ -565,10 +555,13 @@ function animate() {
         {
             preRun:[ ],
             onRuntimeInitialized: startup_sequence,
+            //memoryInitializerPrefixURL: "../../../build/",
             memoryInitializerPrefixURL: "../js/",
         };
 </script>
 <script type="text/javascript" src="../js/mcc2.compiled.js"></script>
+<script type="text/javascript" src="../../../build/mcc2.compiled.js"></script>
+
 <!--script type="text/javascript" src="https://beta.wedesign.live/mcc2.compiled.js"></script-->
 </html>
 
