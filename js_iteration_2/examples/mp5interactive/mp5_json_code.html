@@ -101,13 +101,13 @@
                 "index": 413872
             }],
             "displayColor": [0.55, 0.06, 0.11],
-            "matrix": [1, 0, 0, 0.329, 0, 1, 0, 0.156, 0, 0, 1, 0.0, 0, 0, 0, 1],
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
             "index": 6565922
         },
                         {
                     "type": "cylinder",
                     "displayColor": [0.114, 0.075, 0.63],
-                    "matrix": [1, 0, 0, 0,     0, 1, 0, 0, 0, 0, 1, 0,   0, 0, 0, 1],
+                    "matrix":  [10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1, 9, 0, 0, 0, 1],
                     "index": 2463576
                 }
         ]
@@ -281,7 +281,7 @@ function build_code(editor_text) {
             var sons = mp5.root.children;
             for( var i = 0; i < sons.length; ++i) {
                 var shape_dict = sons[i];
-                var bb = getBoundingBoxForDict(shape_dict, false);
+                var bb = getBoundingBoxForDict(shape_dict, true);
                 //console.error("bbox", bb);  // ****
                 var shape_json = JSON.stringify(shape_dict);
                 //console.error("shape_json11",shape_json);    // ****
@@ -308,7 +308,7 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     resolution: Math.floor( 30 ),
     box: //bbox,
         {xmin: -BSH, xmax: +BSH, ymin: -BSH, ymax: +BSH, zmin: -BSH, zmax: +BSH},
-    ignore_root_matrix: false,
+    ignore_root_matrix: true,
 
     vresampl: {iters: 0, c: 1.0},
 
@@ -325,21 +325,31 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
 });};
 
 function put_up_there(string_json, bb_arg, i, matrix) {
-    var polygonization_json = JSON.stringify(
-         {"resolution":40,"box":{"xmin":-0.55,"xmax":0.55,"ymin":-0.55,"ymax":0.55,"zmin":-0.55,"zmax":0.55},"ignore_root_matrix":false,"vresampl":{"iters":3,"c":1},"projection":{"enabled":1},"qem":{"enabled":1},"subdiv":{"enabled":1},"overall_repeats":1,"debug":{"enabled_pointsets":0,"post_subdiv_noise":0}}
-    );
-    polygonization_json = simple_MC_only_polygonization_json(0.5);
+    // var ignore_root_matrix = false;
+    //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
+
     var shape_json = string_json;
-    //var polygonization_json = JSON.stringify(d.polygonization_json);
     //console.error(shape_json);
     //console.error(polygonization_json);
-    var ignore_root_matrix = false;
-    //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
+
     if (!bb_arg) {
-        var box1 = JSON.parse(polygonization_json).box;
-        var bbox = {min: {x:box1.xmin, y:box1.ymin, z:box1.zmin}, max: {x:box1.xmax, y:box1.ymax, z:box1.zmax}};
+
+        var polygonization_json = JSON.stringify(
+             {"resolution":40,"box":{"xmin":-0.55,"xmax":0.55,"ymin":-0.55,"ymax":0.55,"zmin":-0.55,"zmax":0.55},"ignore_root_matrix":false,"vresampl":{"iters":3,"c":1},"projection":{"enabled":1},"qem":{"enabled":1},"subdiv":{"enabled":1},"overall_repeats":1,"debug":{"enabled_pointsets":0,"post_subdiv_noise":0}}
+        );
+        polygonization_json = simple_MC_only_polygonization_json(0.5);
+        //var polygonization_json = JSON.stringify(d.polygonization_json);
+        var shape_json = string_json;
+        //console.error(shape_json);
+        //console.error(polygonization_json);
+
+       var box1 = JSON.parse(polygonization_json).box;
+       var bbox = {min: {x:box1.xmin, y:box1.ymin, z:box1.zmin}, max: {x:box1.xmax, y:box1.ymax, z:box1.zmax}};
+
     } else {
+
         var bbox = bb_arg;
+
     }
     CONFIG.implisolid = {default_mc_resolution: 20};
     globals.geometry = IMPLICIT.getLiveGeometry(shape_json, bbox, true);
@@ -423,7 +433,7 @@ function init_scene(IMPLICIT) {
     //assert(HEIGHT);
     //desired_width, desired_height
 
-    globals.desired = {WIDTH:300, HEIGHT:250};
+    globals.desired = {WIDTH:400, HEIGHT:500};
 
     if (CONFIG.PERSPECTIVE) {
         globals.camera = new THREE.PerspectiveCamera( 75, globals.desired.WIDTH / globals.desired.HEIGHT, 1, 10000 );  // ( fov, aspect, near, far )
