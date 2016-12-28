@@ -114,7 +114,7 @@
     }
 };
 
-    var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.5,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":[],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
+    var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.5,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":["wd: sosi9"],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
 
 
     var asmjscb_example1 = 
@@ -141,13 +141,54 @@
                        }
                    ]
                },
-               "createdAt": "2016-12-27T00:16:07.739Z",
-               "title": "necklace",
-               "description": "My first hand-written MP5",
-               "contributors": [],
+               "createdAt": "2016-12-27",
+               "title": "first asmjscb object!",
+               "description": "Dynamically specify the function ans ASM JS fast JIT evaluation",
+               "contributors": ["sohail"],
                "unique_id": "3ef4a9f2-6175-4a9d-b421-720eac674d89",
                "licence": {}
            };
+    // ****************************************************
+    const asmjscb_example2 = {
+        "printerSettings": {
+            "PRINTER": "Ultimaker Origin",
+            "FILAMENT": "PLA",
+            "DEFAULT": 0
+        },
+        "mp5-version": "0.4",
+        "root": {
+            "type": "root",
+            "children": [{
+                "type": "asmjscb",
+                "displayColor": [0.114, 0.075, 0.63],
+                "param1": 0.5,
+                "matrix": [10, 0, 0, 0,   0, 10, 0, 0,   0, 0, 10, 0,   0, 0, 0, 1],
+                "index": 2463577,
+
+                "implicit": "_f =  (+param1)*(+param1) - ((_x/0.7) *(_x/0.7) + _y * _y + _z * _z);",
+                "gradient": "_gx = (-2) * _x /(0.7); _gy = -2 * _y; _gz = -2 * _z;"
+            },{
+                "type": "asmjscb",
+                "displayColor": [0.114, 0.4, 0.0],
+                "param1": 0.5,
+                "matrix": [10,0,0,5,    0,10,0,0,    0,0,10,0,    0,0,0,1],
+                "index": 2463578,
+                "implicit": "_f =  (+param1)*(+param1) - ((_x) *(_x) + _y * _y + _z * _z);",
+                "gradient": "_gx = (-2) * _x ; _gy = -2 * _y; _gz = -2 * _z;"
+            },{
+                "type": "cylinder",
+                "displayColor": [1, 0.075, 0],
+                "matrix": [5,0,0,8,  0,5,0,3,   0,0,10,0,   0,0,0,1],
+                "index": 2463579
+            }]
+        },
+        "createdAt": "2016-12-27",
+        "title": "asmjs example 2",
+        "description": "Multiple colours",
+        "contributors": ["sohail"],
+        "unique_id": "3ef4a9f2-6175-4a9d-b421-720eac674d89",
+        "licence": {}
+    };
     //, { "type": "cylinder", "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
 
 
@@ -161,7 +202,8 @@
 
     // var startup_text = JSON.stringify(S2);
     // var startup_text = JSON.stringify(necklace);  // nicest
-    var startup_text = JSON.stringify(asmjscb_example1);  // very experimental
+    // var startup_text = JSON.stringify(asmjscb_example1);  // very experimental
+    var startup_text = JSON.stringify(asmjscb_example2);  // actually works well. (apart from bad ellipsoid if hard-coded )
 
 </script>
 <script>
@@ -507,6 +549,7 @@ function my_beautify() {
 
 function build_code(editor_text) {
         try {
+            reset();
             var mp5_json = editor_text;
             var mp5 = JSON.parse(mp5_json);
             var sons = mp5.root.children;
@@ -555,6 +598,11 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     },
 });};
 
+function reset() {
+    // reset tables
+    asmjscb__func_table = {};
+}
+
 function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
     // var ignore_root_matrix = false;
     //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
@@ -592,6 +640,12 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         var idx = shapedict.index;
         assert(idx);
         var fg = make_fg(f,g);
+        if (asmjscb__func_table[idx]) {
+            alert("Two object with the same \"index\": An object with index ="+idx+" is already created. "+JSON.stringify(idx));
+        }
+        if (!idx) {
+            alert("Object must have an \"index\": with a non-zero integer number. "+JSON.stringify(idx));
+        }
         asmjscb__func_table[idx] = fg;
     }
     
@@ -613,7 +667,6 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         globals.mesh_solid[i] = null;
         //globals.scene.remove( globals.main_mesh );
         //globals.main_mesh = null;  //never
-
     }
     /*
     if(globals.main_mesh) {
@@ -631,10 +684,12 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
 
     if(CONFIG.SHOW_SOLID){
         // console.error(globals.geometry);
-        var mesh = new THREE.Mesh( globals.geometry, globals.chosen_matrial );
+        var material = look_nice()[CONFIG.CHOSEN_MATERIAL_INDEX];
+
+        var mesh = new THREE.Mesh( globals.geometry, material );
         if (color_rgb) {
             var alpha = color_rgb[3];
-            globals.chosen_matrial.color.setRGB(color_rgb[0], color_rgb[1], color_rgb[2]);
+            material.color.setRGB(color_rgb[0], color_rgb[1], color_rgb[2]);
             if (alpha !== undefined) {
                 mesh.transparent = true;
                 mesh.opacity = alpha;
@@ -685,7 +740,7 @@ function init_scene(IMPLICIT) {
     //assert(HEIGHT);
     //desired_width, desired_height
 
-    globals.desired = {WIDTH:400, HEIGHT:500};
+    globals.desired = {WIDTH:350, HEIGHT:400};
 
     if (CONFIG.PERSPECTIVE) {
         globals.camera = new THREE.PerspectiveCamera( 75, globals.desired.WIDTH / globals.desired.HEIGHT, 1, 10000 );  // ( fov, aspect, near, far )
@@ -708,8 +763,8 @@ function init_scene(IMPLICIT) {
     };
     */
 
-    var materials_list = look_nice();
-    globals.chosen_matrial = materials_list[CONFIG.CHOSEN_MATERIAL_INDEX];
+    //var materials_list = look_nice();
+    //globals.chosen_matrial = materials_list[CONFIG.CHOSEN_MATERIAL_INDEX];
 
     //var grid = grid_bed(GRID_CELL_SIZE);
     //globals.scene.add( grid );
