@@ -132,9 +132,12 @@
                        {
                            "type": "asmjscb",
                            "displayColor": [0.114, 0.075, 0.63],
+                           "param1": 0.5,
                            //"matrix": [10, 3, 0, 0, 0, 10, 0, 0, 0, 0, 1, 5.5, 0, 0, 0, 1],
                            "matrix": [10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1],
-                           "index": 2463576
+                           "index": 2463576,
+                           "implicit": "_f =  (+R)*(+R) - ((_x) *(_x) + _y * _y + _z * _z);",
+                           "gradient": "_gx = -2 * _x; _gy = -2 * _y; _gz = -2 * _z;"
                        }
                    ]
                },
@@ -162,6 +165,116 @@
 
 </script>
 <script>
+
+    'use strict';
+    var asmjscb__func_table = {};
+
+    // compiler !
+    function make_fg (expression, grad_expression) {
+        const prefix_f = `
+            'use asm';  //  "reports validation errors in developer consoles only where relevant."
+            param1 = +param1;
+            
+            //var R = +0.5;
+            var R = +param1;
+            var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+            var i = 0|0, i3 = 0|0;
+            for(i=0|0; i < points|0; ++i) {
+                i3 = (i|0)*3;
+        `, suffix_f = `
+            }
+        `, prefix_g = `
+            'use asm';
+            param1 = +param1;
+            var R = +param1;
+            
+            var i = 0|0, i3 = 0|0;
+            for(i = 0|0; i < points|0; ++i) {
+                i3 = (i|0)*3;
+        `, suffix_g = `
+            }
+        `;
+        var table = {
+            "_x": "(+x[(i3|0)])",
+            "_y": "(+x[(i3|0) + 1])",
+            "_z": "(+x[(i3|0) + 2])",
+            "_f": "f[i]",
+            "_gx": "(g[(i3|0)])",
+            "_gy": "(g[(i3|0) + 1])",
+            "_gz": "(g[(i3|0) + 2])",
+            //"p1": "(+param1)",
+        };
+
+        var expression_r = expression;
+        for (var k in table) {
+            do {
+                var old_expression_r = expression_r;
+                expression_r = expression_r.replace(k, table[k]);
+            } while (old_expression_r !== expression_r);
+            console.log(expression_r);
+        }
+        var grad_expression_r = grad_expression;
+        for (var k in table) {
+            //grad_expression_r = grad_expression_r.replace(k, table[k]);
+            do {
+                var old_grad_expression_r = grad_expression_r;
+                grad_expression_r = grad_expression_r.replace(k, table[k]);
+            } while (old_grad_expression_r !== grad_expression_r);
+            console.log(grad_expression_r);
+        }
+
+        var f_source_code = prefix_f + expression_r + suffix_f;
+        var g_source_code = prefix_g + grad_expression_r + suffix_g;
+        console.error(f_source_code);
+        //console.error(prefix_f);
+        //var func = new Function("_x", "_y", "_z", "_f", "param1","points", f_source_code);
+        //var gfunc = new Function("_x", "_y", "_z", "_gx", "_gy", "_gz", "param1","points", prefix_g + grad_expression_r + suffix_g);
+        var func = new Function("x", "f", "points", "param1",  f_source_code);
+        var gfunc = new Function("x", "g", "points", "param1", g_source_code);
+        console.error(func);
+        console.error(gfunc);
+        //asmjscb__func_table[95] = func;
+        //asmjscb__grad_table[95] = gfunc;
+        return {eval_implicit: func, eval_gradient: gfunc};
+        // todo: rtest whether asm.js works on this.
+        // http://asmjs.org/faq.html
+        // http://asmjs.org/spec/latest/#modules
+    }
+
+
+    function make_fg94 () {
+        const obj94_eval_implicit = function (x, f, points, param1) {
+            param1 = +param1;
+            
+            var R = +0.5;
+            var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+            var i = 0|0, i3 = 0|0;
+            for(i=0|0; i < points|0; ++i) {
+                i3 = (i|0)*3; // i3 = ((i|0) << 1) + (i|0);
+                //f[i] = +10 - Math.sqrt(+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
+                //f[i] = (+R)*(+R) - (+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
+                f[i] = (+R)*(+R) - ((+x[i3] - +x0)*(+x[i3] - +x0) + (+x[i3+1]- +y0)*(+x[i3+1] - +y0) + (+x[i3+2] - +z0)*(+x[i3+2] - +z0));
+            }
+            //console.log("x,f: ", x, f);
+        }
+
+        const obj94_eval_gradient = function (x, g, x_len, param1) {
+            var i = 0|0, i3 = 0|0;
+            for(i = 0|0; i < x_len|0; ++i) {
+                i3 = (i|0)*3; //((i|0) << 1) + (i|0);
+                //g[(i3|0)] = -2 * +x[(i3|0)];
+                //g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
+                //g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
+                //var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+                g[(i3|0)] = -2 * +x[(i3|0)];
+                g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
+                g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
+            }
+            //console.log("x, g: ", x, g);        
+        }
+        return {eval_implicit: obj94_eval_implicit, eval_gradient: obj94_eval_gradient};
+    }
+
     // function js_implcit_callback(){console.log("ASMJS", arguments);}
     function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
         'use asm';
@@ -179,11 +292,22 @@
         var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
         //console.log("x,f: ", x, f);
 
+        id = 95;
         id = id | 0;
-        if (id !== 94|0) throw "unknown ASMJS callback id";
 
+        if ((id|0) === (94|0)) {
 
-        obj94_eval_implicit(x, f, x_len, param1);
+            //obj94_eval_implicit(x, f, x_len, param1);
+            throw "no longer";
+
+        } else {
+
+            var fg = asmjscb__func_table[id|0];
+            
+            fg.eval_implicit(x, f, x_len, param1);
+
+            //throw "unknown ASMJS eval_implicit callback id";
+        }
     }
 
     function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
@@ -192,43 +316,47 @@
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
         var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
 
+        id = 95;
         id = id | 0;
-        if (id !== 94|0) throw "unknown ASMJS callback id";
+        //if (id !== 94|0) throw "unknown ASMJS callback id";
 
-        obj94_eval_gradient(x, g, x_len, param1);
-    }
+        if ((id|0) === (94|0)) {
 
-    function obj94_eval_implicit(x, f, points, param1) {
-        param1 = +param1;
-        
-        var R = +0.5;
-        var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
-        var i = 0|0, i3 = 0|0;
-        for(i=0|0; i < points|0; ++i) {
-            i3 = (i|0)*3; // i3 = ((i|0) << 1) + (i|0);
-            //f[i] = +10 - Math.sqrt(+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
-            //f[i] = (+R)*(+R) - (+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
-            f[i] = (+R)*(+R) - ((+x[i3] - +x0)*(+x[i3] - +x0) + (+x[i3+1]- +y0)*(+x[i3+1] - +y0) + (+x[i3+2] - +z0)*(+x[i3+2] - +z0));
+            //obj94_eval_gradient(x, g, x_len, param1);
+            throw "no longer";
+
+        } else {
+            
+            var fg = asmjscb__func_table[id|0];
+            
+            fg.eval_gradient(x, g, x_len, param1);
+
+            //throw "unknown ASMJS Gradient callback id";
+
         }
-        //console.log("x,f: ", x, f);
     }
-    //"f = _x *_x + _y * _y + _z * _z;"
-    
 
-    function obj94_eval_gradient(x, g, x_len, param1) {
-        var i = 0|0, i3 = 0|0;
-        for(i = 0|0; i < x_len|0; ++i) {
-            i3 = (i|0)*3; //((i|0) << 1) + (i|0);
-            //g[(i3|0)] = -2 * +x[(i3|0)];
-            //g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
-            //g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
-            //var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
-            g[(i3|0)] = -2 * +x[(i3|0)];
-            g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
-            g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
-        }
-        //console.log("x, g: ", x, g);        
-    }
+    // hard coded
+    const fg94 = make_fg94();
+
+    // runtime coded!
+    //var variables = ["R"];
+    var expression = `_f =  (+R)*(+R) - ((_x) *(_x) + _y * _y + _z * _z);`;
+    var grad_expression = `_gx = -2 * _x; _gy = -2 * _y; _gz = -2 * _z;`;
+
+    asmjscb__func_table[95] = make_fg (expression, grad_expression);
+
+/*
+(function($0,$1) {var stack = Runtime.stackSave();var str = $0;var ret = 0;
+   if (str !== null && str !== undefined && str !== 0) {
+    ret = Runtime.stackAlloc((str.length << 2) + 1);
+    writeStringToMemory(str, ret);
+   };$0=(ret);var str = $1;var ret = 0;
+   if (str !== null && str !== undefined && str !== 0) {
+    ret = Runtime.stackAlloc((str.length << 2) + 1);
+    writeStringToMemory(str, ret);
+   };$1=(ret);var ret = cfunc($0,$1);Runtime.stackRestore(stack);return ret})
+*/
 </script>
 
 
