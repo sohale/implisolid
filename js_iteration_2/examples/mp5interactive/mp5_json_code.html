@@ -165,17 +165,22 @@
     // function js_implcit_callback(){console.log("ASMJS", arguments);}
     function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
         'use asm';
+
+        //     [94, 8463584, 15625, 7537720, 0.009999999776482582]
+        //console.log("ASMJS", arguments);
+        //console.log("id:",id, " x_start_ptr:",x_start_ptr, " x_len:", x_len, " output_start_ptr:", output_start_ptr, " param1", param1);
+        // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
+
         id = id | 0;
         if (id !== 94|0) throw "unknown ASMJS callback id";
+        obj94_eval_implicit(x_start_ptr, x_len, output_start_ptr, param1);
+    }
+    function obj94_eval_implicit(x_start_ptr, x_len, output_start_ptr, param1) {
         x_start_ptr = x_start_ptr | 0;
         x_len = x_len | 0;
         //x_len = x_len * 2;
         output_start_ptr = output_start_ptr | 0;
         param1 = +param1;
-        //     [94, 8463584, 15625, 7537720, 0.009999999776482582]
-        //console.log("ASMJS", arguments);
-        console.log("id:",id, " x_start_ptr:",x_start_ptr, " x_len:", x_len, " output_start_ptr:", output_start_ptr, " param1", param1);
-        // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
         var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
         //console.log("x,f: ", x, f);
@@ -191,8 +196,16 @@
         }
         //console.log("x,f: ", x, f);
     }
+    //"f = _x *_x + _y * _y + _z * _z;"
     
     function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
+        //console.log("ASMJS GRAD", arguments);
+        id = id | 0;
+        if (id !== 94|0) throw "unknown ASMJS callback id";
+        obj94_eval_gradient(x_start_ptr, x_len, output_start_ptr, param1);
+    }
+
+    function obj94_eval_gradient(x_start_ptr, x_len, output_start_ptr, param1) {
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
         var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
         var i = 0|0, i3 = 0|0;
@@ -206,8 +219,7 @@
             g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
             g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
         }
-        //console.log("x, g: ", x, g);
-        //console.log("ASMJS GRAD", arguments);
+        //console.log("x, g: ", x, g);        
     }
 </script>
 
