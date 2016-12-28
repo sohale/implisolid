@@ -345,24 +345,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
     algorithm.polygonize_step_0(/*use_metaball*/);
 
-
-
-
-    /*
-    int vresamp_iters = 0; //3;
-    bool apply_projection = false;
-    float c = 1.;
-    */
-
-    /*
-    // For steps I, II
-    mc_settings_from_json.projection.enabled = true;
-    mc_settings_from_json.vresampl.c = 1.0;
-    mc_settings_from_json.vresampl.iters = 1;
-    mc_settings_from_json.qem.enabled = true;
-    */
-
-
+    algorithm.send_mesh_back_to_client();
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)
     if (!DISABLE_POSTPROCESSING) {
@@ -373,26 +356,17 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
         const bool apply_projection = true;
 
         #if NOTQUIET
-        if (VERBOSE) {
-            const REAL c =  mc_settings_from_json.vresampl.c;  // 1.0;
-            clog << "vresampl.c: " << c << std::endl;
-            clog << "vresamp_iters: " << vresamp_iters << std::endl;
-            clog << ".projection.enabled: " << mc_settings_from_json.projection.enabled << std::endl;
-            clog << ".qem.enabled: " << mc_settings_from_json.qem.enabled << std::endl;
-            clog << ".subdiv.enabled: " << mc_settings_from_json.subdiv.enabled << std::endl;
-        }
+        if (VERBOSE) mc_settings_from_json.report(clog);
         #endif
 
         const int overall_repeats = mc_settings_from_json.overall_repeats;
         for (int overall_iter = 0; overall_iter < overall_repeats; ++overall_iter) {
             for (int i=0; i < vresamp_iters; i++) {
-                
-                
-                //polygonizer::polygonize_step_1(_state, *object, mc_settings_from_json, algorithm.steps_report, timr);
+
                 algorithm.polygonize_step_1();
 
             }
-            // break;
+            algorithm.send_mesh_back_to_client();
 
             if (apply_projection) {
                 /*
@@ -408,8 +382,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
 
                 if (mc_settings_from_json.projection.enabled) {
 
-                    //polygonizer::polygonize_step_2(_state, *object, mc_settings_from_json, algorithm.steps_report, timr);
                     algorithm.polygonize_step_2();
+
+                    algorithm.send_mesh_back_to_client();
 
                 } else {
                     // std::clog << "centroids_projection (& qem) skipped because you asked for it." << std::endl;
@@ -423,8 +398,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
                 {
                     std::clog << "Subdivision:" << std::endl;
 
-                    // polygonizer::polygonize_step_3(_state, *object, mc_settings_from_json, algorithm.steps_report, timr, is_last);
                     algorithm.polygonizer::polygonize_step_3(is_last);
+
+                    //algorithm.send_mesh_back_to_client();
 
                 } else {
                     std::clog << "subdivisions skipped because you didn't asked for it." << std::endl;

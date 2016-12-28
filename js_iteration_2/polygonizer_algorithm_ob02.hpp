@@ -51,6 +51,7 @@ shape_parameters_json, const char* mc_parameters_json
     void polygonize_step_3(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr,*/ bool is_last);
 
     void polygonize_terminate(/*state_t & _state, const mp5_implicit::implicit_function& object, const mp5_implicit::mc_settings & mc_settings_from_json, std::string& steps_report, timer & timr*/);
+    void send_mesh_back_to_client();
 };
 
 
@@ -166,6 +167,9 @@ void polygonizer::polygonize_terminate(/*state_t & _state, const mp5_implicit::i
 }
 
 
+void polygonizer::send_mesh_back_to_client() {
+    ;
+}
 
 
 
