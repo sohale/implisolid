@@ -275,6 +275,7 @@
         return {eval_implicit: obj94_eval_implicit, eval_gradient: obj94_eval_gradient};
     }
 
+    // dispatcher
     // function js_implcit_callback(){console.log("ASMJS", arguments);}
     function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
         'use asm';
@@ -292,15 +293,14 @@
         var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
         //console.log("x,f: ", x, f);
 
-        id = 95;
         id = id | 0;
 
-        if ((id|0) === (94|0)) {
+        /*if ((id|0) === (94|0)) {
 
             //obj94_eval_implicit(x, f, x_len, param1);
             throw "no longer";
 
-        } else {
+        } else*/ {
 
             var fg = asmjscb__func_table[id|0];
             
@@ -316,16 +316,17 @@
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
         var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
 
-        id = 95;
+        //id = 95;
         id = id | 0;
         //if (id !== 94|0) throw "unknown ASMJS callback id";
 
+        /*
         if ((id|0) === (94|0)) {
 
             //obj94_eval_gradient(x, g, x_len, param1);
             throw "no longer";
 
-        } else {
+        } else*/ {
             
             var fg = asmjscb__func_table[id|0];
             
@@ -344,7 +345,7 @@
     var expression = `_f =  (+R)*(+R) - ((_x) *(_x) + _y * _y + _z * _z);`;
     var grad_expression = `_gx = -2 * _x; _gy = -2 * _y; _gz = -2 * _z;`;
 
-    asmjscb__func_table[95] = make_fg (expression, grad_expression);
+    asmjscb__func_table[94] = make_fg (expression, grad_expression);
 
 /*
 (function($0,$1) {var stack = Runtime.stackSave();var str = $0;var ret = 0;
@@ -569,7 +570,7 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         );
         polygonization_json = simple_MC_only_polygonization_json(0.5);
         //var polygonization_json = JSON.stringify(d.polygonization_json);
-        var shape_json = string_json;
+        //var shape_json = string_json;
         //console.error(shape_json);
         //console.error(polygonization_json);
 
@@ -581,6 +582,19 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         var bbox = bb_arg;
 
     }
+    
+    // "asmjscb" objects
+    var shapedict = JSON.parse(shape_json);
+    if (shapedict.type === "asmjscb") {
+        var f = shapedict.implicit;
+        var g = shapedict.gradient;
+        var p = shapedict.param1;
+        var idx = shapedict.index;
+        assert(idx);
+        var fg = make_fg(f,g);
+        asmjscb__func_table[idx] = fg;
+    }
+    
     CONFIG.implisolid = {default_mc_resolution: 20};
     globals.geometry = IMPLICIT.getLiveGeometry(shape_json, bbox, true);
     //globals.geometry = THREE.BoxGeometry();

@@ -214,7 +214,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     else if (name == "asmjscb") {
 
         REAL param1 = shapeparams_dict.get<REAL>("param1", 0.01);
-        int id = shapeparams_dict.get<int>("id", 94);
+        //int id = shapeparams_dict.get<int>("id", 94);
+        int id = shapeparams_dict.get<int>("index", 94);
 
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
