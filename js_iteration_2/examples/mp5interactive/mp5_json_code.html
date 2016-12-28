@@ -740,7 +740,7 @@ function init_scene(IMPLICIT) {
     //assert(HEIGHT);
     //desired_width, desired_height
 
-    globals.desired = {WIDTH:350, HEIGHT:400};
+    globals.desired = {WIDTH:380, HEIGHT:310};
 
     if (CONFIG.PERSPECTIVE) {
         globals.camera = new THREE.PerspectiveCamera( 75, globals.desired.WIDTH / globals.desired.HEIGHT, 1, 10000 );  // ( fov, aspect, near, far )
@@ -753,7 +753,8 @@ function init_scene(IMPLICIT) {
         globals.camera = new THREE.OrthographicCamera( -x0,  +x0, -y0, +y0, 1, 10000 ); // ( left, right, top, bottom, near, far )
     }
     var GRID_CELL_SIZE = 1.0;
-    globals.camera.position.set(0, 2, 40*GRID_CELL_SIZE);  // tele
+    //globals.camera.position.set(0, 2, 40*GRID_CELL_SIZE);  // tele
+    globals.camera.position.set(0, 2, 21*GRID_CELL_SIZE);  // tele
     //globals.camera.position.set(0, 0, 3*GRID_CELL_SIZE);  // close up
     //var grid = grid_bed(GRID_CELL_SIZE);
     //globals.scene.add( grid );
