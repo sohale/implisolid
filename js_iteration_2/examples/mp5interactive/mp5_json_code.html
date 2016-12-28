@@ -173,8 +173,10 @@
                 "param1": 0.5,
                 "matrix": [10,0,0,5,    0,10,0,0,    0,0,10,0,    0,0,0,1],
                 "index": 2463578,
-                "implicit": "_f =  (+param1)*(+param1) - ((_x) *(_x) + _y * _y + _z * _z);",
-                "gradient": "_gx = (-2) * _x ; _gy = -2 * _y; _gz = -2 * _z;"
+                //"implicit": "_f =  (+param1)*(+param1) - ((_x) *(_x) + _y * _y + _z * _z);",
+                //"gradient": "_gx = (-2) * _x ; _gy = -2 * _y; _gz = -2 * _z;"
+                "implicit": "m=6; _f =  (+param1)**m - ((_x) **m + _y **m + _z **m);",
+                "gradient": "m=6; _gx = (-m) * (_x**(m-1)) ; _gy = -2 *( _y**(m-1)); _gz = -2 * (_z**(m-1));"
             },{
                 "type": "cylinder",
                 "displayColor": [1, 0.075, 0],
@@ -190,7 +192,10 @@
         "licence": {}
     };
     //, { "type": "cylinder", "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
-
+    /*
+    "implicit": "m=4; _f =  (+param1)**m - ((_x) **m + _y **m + _z **m);",
+    "gradient": "m=4;_gx = (-m) * (_x**(m-1)) ; _gy = -2 *( _y**(m-1)); _gz = -2 * (_z**(m-1));"
+    */
 
     //var startup_text = JSON.stringify(S1);
 
