@@ -116,6 +116,38 @@
 
     var necklace = {"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","protected":false,"children":[{"type":"icylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.56,0,0,2.38119,6.9,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,4.5,0,0,0,1],"index":6565922},{"type":"icylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,3,0,0,0,10,0,0,0,0,1,5.5,0,0,0,1],"index":2463576}]},"createdAt":"2016-12-27T00:16:07.739Z","title":"necklace","description":"My first hand-written MP5","contributors":[],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}
 
+
+    var asmjscb_example1 = 
+           {
+               "printerSettings": {
+                   "PRINTER": "Ultimaker Origin",
+                   "FILAMENT": "PLA",
+                   "DEFAULT": 0
+               },
+               "mp5-version": "0.4",
+               "root": {
+                   "type": "root",
+                   "children":
+                   [
+                       {
+                           "type": "asmjscb",
+                           "displayColor": [0.114, 0.075, 0.63],
+                           //"matrix": [10, 3, 0, 0, 0, 10, 0, 0, 0, 0, 1, 5.5, 0, 0, 0, 1],
+                           "matrix": [10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1],
+                           "index": 2463576
+                       }
+                   ]
+               },
+               "createdAt": "2016-12-27T00:16:07.739Z",
+               "title": "necklace",
+               "description": "My first hand-written MP5",
+               "contributors": [],
+               "unique_id": "3ef4a9f2-6175-4a9d-b421-720eac674d89",
+               "licence": {}
+           };
+    //, { "type": "cylinder", "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
+
+
     //var startup_text = JSON.stringify(S1);
 
     //var MOON = '{"printSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"cylinder","displayColor":[0.77,0.039,0.17],"matrix":[35,0,0,0,0,35,0,0,0,0,9,0,0,0,0,1],"index":652818},{"type":"Difference","children":[{"type":"cylinder","displayColor":[0.81,0.657,0.736],"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":1272174},{"type":"cylinder","displayColor":[0.114,0.075,0.63],"matrix":[10,0,0,0.658,0,10,0,6.2155,0,0,10,0,0,0,0,1],"index":2463576}],"displayColor":[0.662,0.45,0.72],"matrix":[2.381193,0,0,0.36,0,2.3811,0,0.560,0,0,2.38119,6.90,0,0,0,1],"index":413872}],"displayColor":[0.55,0.06,0.11],"matrix":[1,0,0,0.329,0,1,0,0.156,0,0,1,0.0,0,0,0,1],"index":6565922}]}}';
@@ -125,8 +157,58 @@
     //var startup_text = JSON.stringify(screw_mp5);
 
     // var startup_text = JSON.stringify(S2);
-    var startup_text = JSON.stringify(necklace);
+    // var startup_text = JSON.stringify(necklace);  // nicest
+    var startup_text = JSON.stringify(asmjscb_example1);  // very experimental
 
+</script>
+<script>
+    // function js_implcit_callback(){console.log("ASMJS", arguments);}
+    function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
+        'use asm';
+        id = id | 0;
+        if (id !== 94|0) throw "unknown ASMJS callback id";
+        x_start_ptr = x_start_ptr | 0;
+        x_len = x_len | 0;
+        //x_len = x_len * 2;
+        output_start_ptr = output_start_ptr | 0;
+        param1 = +param1;
+        //     [94, 8463584, 15625, 7537720, 0.009999999776482582]
+        //console.log("ASMJS", arguments);
+        console.log("id:",id, " x_start_ptr:",x_start_ptr, " x_len:", x_len, " output_start_ptr:", output_start_ptr, " param1", param1);
+        // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
+        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
+        var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
+        //console.log("x,f: ", x, f);
+        
+        var R = +0.5;
+        var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+        var i = 0|0, i3 = 0|0;
+        for(i=0|0; i < x_len|0; ++i) {
+            i3 = (i|0)*3; // i3 = ((i|0) << 1) + (i|0);
+            //f[i] = +10 - Math.sqrt(+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
+            //f[i] = (+R)*(+R) - (+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
+            f[i] = (+R)*(+R) - ((+x[i3] - +x0)*(+x[i3] - +x0) + (+x[i3+1]- +y0)*(+x[i3+1] - +y0) + (+x[i3+2] - +z0)*(+x[i3+2] - +z0));
+        }
+        //console.log("x,f: ", x, f);
+    }
+    
+    function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
+        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
+        var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
+        var i = 0|0, i3 = 0|0;
+        for(i = 0|0; i < x_len|0; ++i) {
+            i3 = (i|0)*3; //((i|0) << 1) + (i|0);
+            //g[(i3|0)] = -2 * +x[(i3|0)];
+            //g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
+            //g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
+            //var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+            g[(i3|0)] = -2 * +x[(i3|0)];
+            g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
+            g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
+        }
+        //console.log("x, g: ", x, g);
+        //console.log("ASMJS GRAD", arguments);
+    }
 </script>
 
 
@@ -286,7 +368,7 @@ function build_code(editor_text) {
                 var shape_json = JSON.stringify(shape_dict);
                 //console.error("shape_json11",shape_json);    // ****
                 console.log(JSON.parse(shape_json));
-                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix);
+                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor);
             };
         } catch(e) {
             if (shape_json)
@@ -324,7 +406,7 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     },
 });};
 
-function put_up_there(string_json, bb_arg, i, matrix) {
+function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
     // var ignore_root_matrix = false;
     //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
 
@@ -388,6 +470,14 @@ function put_up_there(string_json, bb_arg, i, matrix) {
     if(CONFIG.SHOW_SOLID){
         // console.error(globals.geometry);
         var mesh = new THREE.Mesh( globals.geometry, globals.chosen_matrial );
+        if (color_rgb) {
+            var alpha = color_rgb[3];
+            globals.chosen_matrial.color.setRGB(color_rgb[0], color_rgb[1], color_rgb[2]);
+            if (alpha !== undefined) {
+                mesh.transparent = true;
+                mesh.opacity = alpha;
+            }
+        }
         mesh.position.set( 0, 0, 0 );
         mesh.scale.set( CONFIG.MESH_SCALE, CONFIG.MESH_SCALE, CONFIG.MESH_SCALE );
         //globals.scene.add( mesh );
@@ -548,6 +638,10 @@ function animate() {
         var d = provide_input(global_time, 0, globals);
         var shape_json = d.shape_json;
         var polygonization_json = JSON.stringify(d.polygonization_json);*/
+
+        //IMPLICIT.use_II = 0;
+        //IMPLICIT.use_III = 0;
+        //IMPLICIT.use_II_qem = 0;
 
         init_scene(IMPLICIT);
         animate();

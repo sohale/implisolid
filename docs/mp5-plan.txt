@@ -396,3 +396,4 @@ Old tasks are stored in various places:
 https://trello.com/b/Arijc350/rihanna-work
 
 
+Add check for matrix condition, i.e. matrix condition (min eigenvvalue in SVD) to the invariant function of each implicit_function.

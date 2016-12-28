@@ -211,6 +211,22 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         register_new_object(object);
     }
+    else if (name == "asmjscb") {
+
+        REAL param1 = shapeparams_dict.get<REAL>("param1", 0.01);
+        int id = shapeparams_dict.get<int>("id", 94);
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new implicit_functions::javascript_implicit_function(id, matrix12, param1);
+        register_new_object(object);
+    }
+
+
     else if (name == "Union") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];

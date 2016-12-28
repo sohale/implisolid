@@ -88,5 +88,6 @@ class TwistedObject::ImplicitObject(){
 #include "torus.hpp"
 #include "tetrahedron.hpp"
 #include "screw.hpp"
+#include "javascript_implicit_function.hpp"
 
 #include "meta_balls_Rydgard.hpp"

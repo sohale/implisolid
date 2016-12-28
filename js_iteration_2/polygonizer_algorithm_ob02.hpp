@@ -1,4 +1,4 @@
-
+#pragma once
 
 /**
     A class that contains the internal variables in the loop of the main algorithm.
@@ -25,6 +25,7 @@ private:
 
 // copy (input argument)
     const mp5_implicit::mc_settings mc_settings_from_json;
+    const bool report_back_enabled = false;
 
 public:
     polygonizer(
@@ -37,9 +38,12 @@ public:
         object(object),
         mc_settings_from_json(parse_mc_properties_json(mc_parameters_json)),
         steps_report(""),
-        timr()
+        timr(),
+        report_back_enabled(true)
     {
         timr.report_and_continue("timer started.");
+
+        // this->report_back_enabled = true;
     }
 /*
 shape_parameters_json, const char* mc_parameters_json
@@ -166,10 +170,15 @@ void polygonizer::polygonize_terminate(/*state_t & _state, const mp5_implicit::i
 
 }
 
+#include <emscripten.h>
 
 void polygonizer::send_mesh_back_to_client() {
-    ;
+    if (!this->report_back_enabled) return;
+    // _state.mc_result_verts, _state.mc_result_faces
+    int result = EM_ASM_INT({
+        console.log('Polyg. progress callback: verts: ptr, count:', $0, $1, " faces: ", $2, $3);
+        return 3;
+    }, _state.mc_result_verts.data(), _state.mc_result_verts.size()/3, 
+        _state.mc_result_faces.data(), _state.mc_result_faces.size()/3);
 }
-
-
 

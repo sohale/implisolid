@@ -177,6 +177,7 @@ then
         -s DISABLE_EXCEPTION_CATCHING=0  \
         -s DEMANGLE_SUPPORT=1 \
         -pedantic -std=c++14  \
+        -Wno-dollar-in-identifier-extension \
     mcc2.cpp  \
         -o  ../build/mcc2.compiled.js
     exit 0
