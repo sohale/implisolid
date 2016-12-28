@@ -171,24 +171,40 @@
         //console.log("id:",id, " x_start_ptr:",x_start_ptr, " x_len:", x_len, " output_start_ptr:", output_start_ptr, " param1", param1);
         // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
 
-        id = id | 0;
-        if (id !== 94|0) throw "unknown ASMJS callback id";
-        obj94_eval_implicit(x_start_ptr, x_len, output_start_ptr, param1);
-    }
-    function obj94_eval_implicit(x_start_ptr, x_len, output_start_ptr, param1) {
         x_start_ptr = x_start_ptr | 0;
         x_len = x_len | 0;
         //x_len = x_len * 2;
         output_start_ptr = output_start_ptr | 0;
-        param1 = +param1;
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
         var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
         //console.log("x,f: ", x, f);
+
+        id = id | 0;
+        if (id !== 94|0) throw "unknown ASMJS callback id";
+
+
+        obj94_eval_implicit(x, f, x_len, param1);
+    }
+
+    function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
+        //console.log("ASMJS GRAD", arguments);
+
+        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
+        var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
+
+        id = id | 0;
+        if (id !== 94|0) throw "unknown ASMJS callback id";
+
+        obj94_eval_gradient(x, g, x_len, param1);
+    }
+
+    function obj94_eval_implicit(x, f, points, param1) {
+        param1 = +param1;
         
         var R = +0.5;
         var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
         var i = 0|0, i3 = 0|0;
-        for(i=0|0; i < x_len|0; ++i) {
+        for(i=0|0; i < points|0; ++i) {
             i3 = (i|0)*3; // i3 = ((i|0) << 1) + (i|0);
             //f[i] = +10 - Math.sqrt(+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
             //f[i] = (+R)*(+R) - (+x[i3]*(+x[i3]) + +x[i3+1]*(+x[i3+1]) + +x[i3+2]*(+x[i3+2]));
@@ -198,16 +214,8 @@
     }
     //"f = _x *_x + _y * _y + _z * _z;"
     
-    function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
-        //console.log("ASMJS GRAD", arguments);
-        id = id | 0;
-        if (id !== 94|0) throw "unknown ASMJS callback id";
-        obj94_eval_gradient(x_start_ptr, x_len, output_start_ptr, param1);
-    }
 
-    function obj94_eval_gradient(x_start_ptr, x_len, output_start_ptr, param1) {
-        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
-        var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary 
+    function obj94_eval_gradient(x, g, x_len, param1) {
         var i = 0|0, i3 = 0|0;
         for(i = 0|0; i < x_len|0; ++i) {
             i3 = (i|0)*3; //((i|0) << 1) + (i|0);
