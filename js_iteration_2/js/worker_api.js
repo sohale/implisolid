@@ -401,12 +401,12 @@ wwapi.send_progress_update = function (verts, faces, progres_update_callback_id,
     //var timeDiff = endTime - startTime;
     //var result = {verts:verts, faces:faces};
     
-    console.error("COPY CONSTR");
+    //console.error("COPY CONSTR");
     var verts_a = new Float32Array(verts);  // suggested by Brion Vibber
     var faces_a = new Uint32Array(faces);  // suggested by Brion Vibber
     var result = {verts:verts_a, faces:faces_a};
 
-    wwapi = 0;
+    //wwapi = 0;
 
     postMessage(
         {return_callback_id:progres_update_callback_id, returned_data: result, call_id: call_id, shape_id:shape_id, is_progress_update: true}

@@ -174,6 +174,7 @@ public:
 
 public:
     bool check_state() {
+        return true;  // fixme. NOT WHEN UPDATING
         if (!this->active) {
             std::clog << "Error: There are no allocated geometry resources to deallocate.";
             return false;
