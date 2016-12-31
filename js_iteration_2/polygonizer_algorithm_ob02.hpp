@@ -26,13 +26,15 @@ private:
 // copy (input argument)
     const mp5_implicit::mc_settings mc_settings_from_json;
     const bool report_back_enabled = false;
+    const worker_call_sepcs_t worker_call_sepcs;
 
 public:
     polygonizer(
         state_t & _state,
         mp5_implicit::implicit_function& object,
         //const std::string & mc_parameters_json
-        const mp5_implicit::mc_settings mc_settings_from_json_
+        const mp5_implicit::mc_settings mc_settings_from_json_,
+        const worker_call_sepcs_t &  worker_call_sepcs
     )
     :
         _state(_state),  // Does this assign a reference? or copies it into the referenced?
@@ -41,7 +43,8 @@ public:
         mc_settings_from_json(mc_settings_from_json_),
         steps_report(""),
         timr(),
-        report_back_enabled(true)
+        report_back_enabled(true),
+        worker_call_sepcs(worker_call_sepcs)
     {
         timr.report_and_continue("timer started.");
 
@@ -176,11 +179,26 @@ void polygonizer::polygonize_terminate(/*state_t & _state, const mp5_implicit::i
 
 void polygonizer::send_mesh_back_to_client() {
     if (!this->report_back_enabled) return;
+    int progres_update_callback_id = this->worker_call_sepcs.progress_callback_id; //, shape_id, call_id
+    int shape_id = this->worker_call_sepcs.shape_id;
+    int call_id = this->worker_call_sepcs.call_id;
     // _state.mc_result_verts, _state.mc_result_faces
-    int result = EM_ASM_INT({
-        console.log('Polyg. progress callback: verts: ptr, count:', $0, $1, " faces: ", $2, $3);
-        return 3;
-    }, _state.mc_result_verts.data(), _state.mc_result_verts.size()/3, 
-        _state.mc_result_faces.data(), _state.mc_result_faces.size()/3);
+    int result = EM_ASM_INT(
+        {
+            console.log(
+                'Polyg. progress callback: verts: ptr, count:', $0, $1, " faces: ", $2, $3,
+                " progr callback-id:", $4, "shape_id:", $5, " call_id", $6
+            );
+            return 3;
+        },
+        _state.mc_result_verts.data(),  // $0
+        _state.mc_result_verts.size()/3,  // $1
+        _state.mc_result_faces.data(),  // $2
+        _state.mc_result_faces.size()/3,  // $3
+        progres_update_callback_id,  // $4
+        shape_id,  // $5
+        call_id  // $6
+    );
+
 }
 

@@ -363,7 +363,7 @@ inline void grand_algorithm(
     //timr.report_and_continue("timer started.");
 
     //polygonizer  algorithm(_state, *object, std::string(mc_parameters_json)/*, timr*/);
-    polygonizer algorithm(_state, *object, mc_settings_from_json /*, timr*/);
+    polygonizer algorithm(_state, *object, mc_settings_from_json /*, timr*/, worker_call_sepcs);
 
 
     // polygonizer::polygonize_init(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);

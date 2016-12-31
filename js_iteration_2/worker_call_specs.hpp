@@ -5,7 +5,7 @@ typedef int shapeid_t;
   Used when multiple results are sent back to the client from one single request.
 */
 struct worker_call_sepcs_t {
- protected:
+// protected:
     int progress_callback_id = -1;
     int call_id = -1;
     shapeid_t shape_id = -1;
