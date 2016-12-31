@@ -17,6 +17,11 @@ onmessage = function(event) {
     var data = event.data;
     var _call_id = data.call_id;  // call_identification
     var _callback_id = event.data.callbackId;
+
+    var _progressCallback_id = event.data.progressCallbackId;
+    var progressive_completion = !!_progressCallback_id;  // whether it is undefined
+
+    assert(!progressive_completion || typeof _progressCallback_id == 'number', "specified progress callback id sould be an integer");
     switch (data.funcName) {
         case "query_implicit_values":
             var shape_id = data.obj_id;  // data.obj_req_id
@@ -26,9 +31,11 @@ onmessage = function(event) {
             break;
 
         case "make_geometry":
+        //case "make_geometry_u":
+            // the only progressive
             var shape_id = data.obj_req_id;
             var result =
-                api.make_geometry__workerside(shape_id, data.mp5_str, data.polygonization_settings, _call_id);  // _call_id not needed here actually
+                api.make_geometry__workerside(shape_id, data.mp5_str, data.polygonization_settings, _call_id, {progressCallback_id: _progressCallback_id, call_id: _call_id, shape_id: shape_id});  // _call_id not needed here actually
             postMessage({return_callback_id:_callback_id, returned_data: result, call_id: _call_id, shape_id:shape_id});  // {result_allpositive:}
             break;
 
@@ -116,6 +123,7 @@ var Module_cwrapped = {
     // only functions that receive 'string' arguments need to be cwrap()ed.
     set_object: Module.cwrap('set_object','number',['string','number']),
     build_geometry: Module.cwrap('build_geometry', null, [ 'string', 'string']),
+    build_geometry_u: Module.cwrap('build_geometry_u', null, [ 'string', 'string', 'string']),
 
     // API Version 2:
 };
@@ -304,12 +312,20 @@ wwapi.needs_deallocation = false;  // state
 
 
 //based on  implisolid.js
-    wwapi.make_geometry__workerside = function (shape_id, mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg) {
+    wwapi.make_geometry__workerside = function (shape_id, mp5_str, polygonization_settings_json, /*result_callback,*/ call_id_arg, progress_update_specs) {
         // assert(typeof result_callback !== 'undefined');
         // assert(result_callback);
         assert(typeof call_id_arg !== 'undefined');
         assert(polygonization_settings_json);
         assert(typeof polygonization_settings_json === "string");
+
+        //progress_update_specs: {progressCallback_id: .., call_id:.., shape_id: ...}
+        var progressive_completion = !!progress_update_specs.progressCallback_id;  // whether it is undefined
+        // the only place call_id is usedful here. But we have it through progress_update_specs, so probably we don't need it as a call_id_arg arg, unless for debugging purposes.
+        //if (!progressive_completion)  progress_update_specs = {};
+        //var call_specs = JSON.stringify(progress_update_specs);  // string
+        var call_specs = undefined;
+        if (progressive_completion) call_specs = JSON.stringify(progress_update_specs);
 
         var startTime = new Date();
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -322,7 +338,14 @@ wwapi.needs_deallocation = false;  // state
         //mc_params.resolution = 40;
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
-        /*Module.*/ Module_cwrapped. build_geometry(mp5_str, polygonization_settings_json);
+        if (progressive_completion) {
+            // should call_specs be mixed with polygonization_settings_json or kept separate?
+            /*Module.*/ Module_cwrapped. build_geometry_u(mp5_str, polygonization_settings_json, call_specs); 
+        } else {
+            // should call_specs be mixed with polygonization_settings_json or kept separate?
+            assert(call_specs === undefined);
+            /*Module.*/ Module_cwrapped. build_geometry(mp5_str, polygonization_settings_json, call_specs);  // undefined!
+        }
         wwapi. needs_deallocation = true;
         var nverts = Module. _get_v_size();
         var nfaces = Module. _get_f_size();

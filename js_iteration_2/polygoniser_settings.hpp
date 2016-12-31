@@ -145,10 +145,6 @@ bool read_bool_from_json(
 }
 */
 const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_parameters_json) {
-    std::stringstream mc_json_stream;
-    mc_json_stream << mc_parameters_json;
-
-    prtree::ptree mcparams_dict;
 
     mp5_implicit::mc_settings DEFAULT_SETTINGS = mp5_implicit::mc_settings::default_settings();
 
@@ -160,6 +156,9 @@ const mp5_implicit::mc_settings parse_mc_properties_json(const std::string & mc_
 
     // TODO(charles): find an alternativ to catch exceptions prtree::json_parser::json_parser_error prtree::ptree_bad_path
     // try{
+    prtree::ptree mcparams_dict;
+    std::stringstream mc_json_stream;
+    mc_json_stream << mc_parameters_json;
     prtree::read_json(mc_json_stream, mcparams_dict);
 
     REAL xmin = mcparams_dict.get<REAL>("box.xmin", NaN);

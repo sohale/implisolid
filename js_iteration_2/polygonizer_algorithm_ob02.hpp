@@ -31,12 +31,14 @@ public:
     polygonizer(
         state_t & _state,
         mp5_implicit::implicit_function& object,
-        const std::string & mc_parameters_json
+        //const std::string & mc_parameters_json
+        const mp5_implicit::mc_settings mc_settings_from_json_
     )
     :
         _state(_state),  // Does this assign a reference? or copies it into the referenced?
         object(object),
-        mc_settings_from_json(parse_mc_properties_json(mc_parameters_json)),
+        // mc_settings_from_json(parse_mc_properties_json(mc_parameters_json)),
+        mc_settings_from_json(mc_settings_from_json_),
         steps_report(""),
         timr(),
         report_back_enabled(true)

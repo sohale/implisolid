@@ -1430,7 +1430,8 @@ else{
     function demo3(ver) {
         console.info("demo3 ver"+ver);
         // global_time += 2;
-        global_time = 4 * 5;
+        //global_time = 4 * 5;
+        global_time = 15 + Math.random()*5;
         var dct = provide_input(global_time, 1, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
@@ -1483,6 +1484,22 @@ else{
             assert(returned_result instanceof Float32Array);
             if (call_identification) console.info("Unique Call Identification Id:", call_identification);
             console.info("demo5() done. ", shape_id);
+        });
+    }
+
+    function demo6() {
+        console.info("demo6: PROGRESSIV UPDATING.  ");
+        global_time = 10 + Math.random()*10;
+        var dct = provide_input(global_time, 1, globals) ;
+        var shape_json = dct.shape_json ; // aleady stringified
+        var polygonization_settings_json = JSON.stringify(dct.polygonization_json) ;
+        
+        var stt = new Date() ;
+
+        var shape_id = 40005;
+        IMPLICIT_WORKER.update_geometry_from_json_progressive(globals.mesh_solid.geometry, shape_id, shape_json, polygonization_settings_json, function(shape_id, result){
+            console.info("demo3() done ", "called on shape:", shape_id) ;
+            console.info("TIME: ", new Date() - stt) ;
         });
     }
 

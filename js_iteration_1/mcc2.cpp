@@ -44,6 +44,7 @@ Todo:
 #include "../js_iteration_2/faces_verts_algorithms.hpp"
 
 #include "../js_iteration_2/polygoniser_settings.hpp"
+#include "../js_iteration_2/worker_call_specs.hpp"
 
 #include "timer.hpp"
 
@@ -87,6 +88,7 @@ typedef array1d::index  index_t;
 
 extern "C" {
     void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json);
+    void build_geometry_u(const char* shape_parameters_json, const char* mc_parameters_json, const char* call_specs);
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -310,15 +312,37 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>> make_a_square(REAL 
 
 #include "../js_iteration_2/polygonizer_algorithm_ob02.hpp"
 
+inline void grand_algorithm(const std::string shape_parameters_json_str, const mp5_implicit::mc_settings  mc_settings_from_json, const worker_call_sepcs_t  worker_call_sepcs);
+
+void build_geometry_u(const char* shape_parameters_json, const char* mc_parameters_json, const char* call_specs) {
+    std::clog << "PROGRESSIVE" << std::endl;
+    const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+    std::string shape_parameters_json_str = std::string(shape_parameters_json);
+    worker_call_sepcs_t  parse_worker_call_sepcs {std::string(call_specs)};
+    grand_algorithm(shape_parameters_json_str, mc_settings_from_json, parse_worker_call_sepcs);
+}
+
+// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
+void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json)
+{
+    std::clog << "NON-Progressive" << std::endl;
+    const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+    std::string shape_parameters_json_str = std::string(shape_parameters_json);
+    worker_call_sepcs_t  worker_call_sepcs {};
+    grand_algorithm(shape_parameters_json_str, mc_settings_from_json, worker_call_sepcs);
+}
 
 /**
 *************************************************
 *        The grand algorithm                    *
 *************************************************
 */
-
-// void build_geometry(int resolution, char* mc_parameters_json, char* obj_name, REAL time){
-void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json) {
+inline void grand_algorithm(
+    const std::string  shape_parameters_json_str,
+    const mp5_implicit::mc_settings  mc_settings_from_json,
+    //const std::string  mc_settings_from_json,
+    const worker_call_sepcs_t  worker_call_sepcs
+) {
 
     if (!_state.check_state_null()) {
         clog << "build_geometry() called in a bad state.";
@@ -326,8 +350,8 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     }
 
 
-    const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
-    std::string shape_parameters_json_str = std::string(shape_parameters_json);
+    //const mp5_implicit::mc_settings  mc_settings_from_json = parse_mc_properties_json(mc_parameters_json);
+    //const std::string shape_parameters_json_str = std::string(shape_parameters_json);
     bool ignore_root_matrix = mc_settings_from_json.ignore_root_matrix;
 
     //unique_pointer<mp5_implicit::implicit_function> object = ...;
@@ -338,7 +362,9 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     // timer timr;
     //timr.report_and_continue("timer started.");
 
-    polygonizer algorithm(_state, *object, std::string(mc_parameters_json)/*, timr*/);
+    //polygonizer  algorithm(_state, *object, std::string(mc_parameters_json)/*, timr*/);
+    polygonizer algorithm(_state, *object, mc_settings_from_json /*, timr*/);
+
 
     // polygonizer::polygonize_init(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
 

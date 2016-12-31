@@ -16,8 +16,10 @@ wapi1.w_api_info2 = {};  // w_api_info2.READABLE_COMPILE_TIME_NAME = ...  // suc
 wapi1.call_counter = 0;  // a clobal counter that assigns a unique id to each individual call, to make it easy to trace correspondence of call and callback.
 
 var wcodes1 = {};
+wcodes1.__wapi_query_implicit_values = 4;
 wcodes1.__wapi_get_latest_vf = 6;
 wcodes1.__wapi_make_geometry = 5;
+wcodes1.__wapi_make_geometry_progress_update = 7;
 
 var callstamps = {};
 
@@ -89,16 +91,30 @@ function worker_call_preparation(_callbackId, result_callback) {
 
 // Level 2
 var wapi2 = {};
-wapi2.wapi_make_geometry = function (shape_id0, mp5_str, polygonization_settings_json, result_callback) {
+/**
+* instead of result_callback --> completion_callback, updated_callback.
+*/
+wapi2.wapi_make_geometry = function (shape_id0, mp5_str, polygonization_settings_json, result_callback, progress_update_callback) {
     // based on implisolid_main.js
     //var startTime = new Date();
+    const usage_info = "Usage: wapi_make_geometry(shape_id, shape_json, polyg_json, callback_func, progress_callback_func)";
 
-    my_assert(typeof result_callback === 'function');
+    var progressive_completion = !!progress_update_callback;
+    assert(!progressive_completion || typeof progress_update_callback === 'function', "" + usage_info);
+
+    my_assert(typeof result_callback === 'function', "A completion callback is not provided. " + usage_info);
+    if (progressive_completion)
+    my_assert(typeof progress_update_callback === 'function', "The specified progress callback is not a function. " + usage_info);
+    
 
     var _callbackId = worker_call_preparation(wcodes1.__wapi_make_geometry, result_callback);
+    var _progressCallbackId = undefined;
+    if (progressive_completion)
+        _progressCallbackId = worker_call_preparation(wcodes1.__wapi_make_geometry_progress_update, progress_update_callback);
     var wreq = {
-            funcName: 'make_geometry',
+            funcName: 'make_geometry', //progressive_completion? 'make_geometry' : 'make_geometry_u',
             callbackId: _callbackId,
+            progressCallbackId: progressive_completion? _progressCallbackId : 0,
             call_id: wapi1.call_counter,
             // call_timestampe: new Date(),
 
@@ -288,8 +304,7 @@ wapi3.getLiveGeometry_from_json  = function(shape_id00, shape_json_str, polygoni
 
 
 wapi3.wapi_query_implicit_values = function (obj_id, mp5_str, points, result_callback) {
-
-    var _callbackId = worker_call_preparation(4, result_callback);
+    var _callbackId = worker_call_preparation(wcodes1.__wapi_query_implicit_values, result_callback);
 
     var wreq = {
             funcName: 'query_implicit_values',
@@ -351,9 +366,10 @@ wapi3.receive_mesh = function(shape_id_, result_callback) {
 /**
  ver 1 is a test for a recursive - like function in side another function (function composition; promise chaining).
 */
-wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, polygonization_json, done_callback) {
+wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, polygonization_json, done_callback, _extra) {
     //var startTime = new Date();
 
+    assert(_extra === undefined);
     if (typeof shape_json !== "string") {
         shape_json = JSON.stringify(shape_json);
     }
@@ -407,8 +423,9 @@ wapi3.update_geometry_from_json_ver1 = function(geometry, shape_id, shape_json, 
 /**
 ver 2 is faster (simpler), doing it in a single request. 
 */
-wapi3.update_geometry_from_json_ver2 = function(geometry, shape_id, shape_json, polygonization_json, done_callback) {
+wapi3.update_geometry_from_json_ver2 = function(geometry, shape_id, shape_json, polygonization_json, done_callback, _extra) {
     if (typeof shape_json !== "string") shape_json = JSON.stringify(shape_json);
+    assert(_extra === undefined);
     assert(typeof done_callback !== "number" && typeof done_callback !== "boolean");
     assert(typeof done_callback === "function");
     if (typeof polygonization_json !== "string") polygonization_json = JSON.stringify(polygonization_json);
@@ -425,6 +442,33 @@ wapi3.update_geometry_from_json_ver2 = function(geometry, shape_id, shape_json, 
     );
 };
 
+/* based on update_geometry_from_json_ver2() */
+wapi3.update_geometry_from_json_progressive = function(geometry, shape_id, shape_json, polygonization_json, done_callback, progress_update_callback) {
+    if (typeof shape_json !== "string") shape_json = JSON.stringify(shape_json);
+    assert(typeof done_callback !== "number" && typeof done_callback !== "boolean");
+    assert(typeof done_callback === "function");
+    if (typeof polygonization_json !== "string") polygonization_json = JSON.stringify(polygonization_json);
+
+    wapi2.wapi_make_geometry (shape_id, shape_json, polygonization_json, //result_callback,
+        function finished__c3(vf_result, call_id1, shape_id1) {
+            vf_result.faces; vf_result.verts;
+            assert(shape_id1 === shape_id);
+            var ignoreDefaultNormals = true;
+            var bool_reallocated = geometry.update_geometry1(vf_result.verts, vf_result.faces, ignoreDefaultNormals, false);
+            geometry.use_default_normals_from_vertices();
+            done_callback(shape_id1, null);
+        },
+        function progressed_update__c3(vf_result, call_id1, shape_id1) {
+            vf_result.faces; vf_result.verts;
+            assert(shape_id1 === shape_id);
+            var ignoreDefaultNormals = true;
+            var bool_reallocated = geometry.update_geometry1(vf_result.verts, vf_result.faces, ignoreDefaultNormals, false);
+            geometry.use_default_normals_from_vertices();
+            //done_callback(shape_id1, null);
+            progress_update_callback(shape_id1, null);
+        }
+    );
+};
 wapi3.query_implicit_values_old = wapi2.wapi_query_implicit_values_old;
 
 wapi3.wapi_query_a_normal = wapi2.wapi_query_a_normal;
