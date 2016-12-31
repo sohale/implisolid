@@ -189,6 +189,23 @@ void polygonizer::send_mesh_back_to_client() {
                 'Polyg. progress callback: verts: ptr, count:', $0, $1, " faces: ", $2, $3,
                 " progr callback-id:", $4, "shape_id:", $5, " call_id", $6
             );
+
+            if (typeof wwapi === "undefined") return;
+            
+            const _FLOAT_SIZE = 4;  // Float32Array.BYTES_PER_ELEMENT;
+            const _INT_SIZE = 4;  // Uint32Array.BYTES_PER_ELEMENT
+            var nverts = Module. _get_v_size();
+            var nfaces = Module. _get_f_size();
+            assert(nverts>=0);
+            assert(nfaces>=0);
+            var verts_address = Module. _get_v_ptr();
+            var faces_address = Module. _get_f_ptr();
+            var verts_a = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
+            var faces_a = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
+            //wapi.send_progress_update(verts, faces, progres_update_callback_id, shape_id, call_id);
+            // global
+            wwapi.send_progress_update(verts_a, faces_a, $4, $5, $6);
+
             return 3;
         },
         _state.mc_result_verts.data(),  // $0

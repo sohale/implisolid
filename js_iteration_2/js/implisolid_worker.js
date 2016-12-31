@@ -27,13 +27,18 @@ wapi1.worker.addEventListener('message', function(event) {
     if (WORKER_DEBUG)
         console.info("Message received from worker:", event, "data=", event.data);
 
+    var is_progress_update = event.data.is_progress_update;
+    var isFinal = !is_progress_update;
+
     var _callbackId = event.data.return_callback_id;
     var mycallback = wapi1.worker_response_callbacks_table[ _callbackId ];
+    
     if (mycallback) {
-        // delete wapi1.worker_response_callbacks_table[ _callbackId ];
-        // don’t delete array elements. It would make the array transition to a slower internal representation.
-        wapi1.worker_response_callbacks_table[ _callbackId ] = undefined;  // per-call
-        
+        if (isFinal) {
+            // delete wapi1.worker_response_callbacks_table[ _callbackId ];
+            // don’t delete array elements. It would make the array transition to a slower internal representation.
+            wapi1.worker_response_callbacks_table[ _callbackId ] = undefined;  // per-call
+        }
         if (WORKER_DEBUG) {
             // tracking calls, measuring the time, detecting orphan calls (calls with no return), etc.
             var call_id = event.data.call_id;
@@ -54,6 +59,13 @@ wapi1.worker.addEventListener('message', function(event) {
 
     var call_identification = event.data.call_id;
     var shape_id = event.data.shape_id;
+    //var is_progress_update = event.data.is_progress_update;
+    if (is_progress_update) {  //bad
+        // {return_callback_id:progres_update_callback_id, returned_data: result, call_id: call_id, shape_id:shape_id, is_progress_update: true}
+        // actually same format is used (same side args):
+        mycallback (event.data.returned_data, call_identification, shape_id);
+    }
+
     mycallback(event.data.returned_data, call_identification, shape_id);
     // todo: mycallback(event.data.returned_data, call_identification, event.data.shape_id);
 
@@ -105,7 +117,7 @@ wapi2.wapi_make_geometry = function (shape_id0, mp5_str, polygonization_settings
     my_assert(typeof result_callback === 'function', "A completion callback is not provided. " + usage_info);
     if (progressive_completion)
     my_assert(typeof progress_update_callback === 'function', "The specified progress callback is not a function. " + usage_info);
-    
+
 
     var _callbackId = worker_call_preparation(wcodes1.__wapi_make_geometry, result_callback);
     var _progressCallbackId = undefined;
@@ -447,6 +459,7 @@ wapi3.update_geometry_from_json_progressive = function(geometry, shape_id, shape
     if (typeof shape_json !== "string") shape_json = JSON.stringify(shape_json);
     assert(typeof done_callback !== "number" && typeof done_callback !== "boolean");
     assert(typeof done_callback === "function");
+    assert(typeof progress_update_callback === "function");
     if (typeof polygonization_json !== "string") polygonization_json = JSON.stringify(polygonization_json);
 
     wapi2.wapi_make_geometry (shape_id, shape_json, polygonization_json, //result_callback,
@@ -459,12 +472,14 @@ wapi3.update_geometry_from_json_progressive = function(geometry, shape_id, shape
             done_callback(shape_id1, null);
         },
         function progressed_update__c3(vf_result, call_id1, shape_id1) {
+            console.error("THE UPDATE: ", vf_result, call_id1, shape_id1);
+            //                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              assert(is_progress_update);
             vf_result.faces; vf_result.verts;
             assert(shape_id1 === shape_id);
             var ignoreDefaultNormals = true;
             var bool_reallocated = geometry.update_geometry1(vf_result.verts, vf_result.faces, ignoreDefaultNormals, false);
             geometry.use_default_normals_from_vertices();
-            //done_callback(shape_id1, null);
+            //done_callback(shape_id1, null);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
             progress_update_callback(shape_id1, null);
         }
     );
