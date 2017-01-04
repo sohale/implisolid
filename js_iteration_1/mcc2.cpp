@@ -228,7 +228,7 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
     MarchingCubes mc {resolution_, box_, enableUvs, enableColors};
     MarchingCubes * _state_mc = &mc;
 
-    _state_mc -> isolation = 80.0/4*0;
+   //  _state_mc -> isolation = 80.0/4*0;
 
 
 

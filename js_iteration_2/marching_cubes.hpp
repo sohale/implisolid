@@ -103,13 +103,13 @@ public:
     MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs, bool enableColors);
     ~MarchingCubes(); //why does this have to be public: ?
 
-    REAL isolation;
+    //REAL isolation;
 
     //void flush_geometry_queue(std::ostream&);
     void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
-    int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& callback*/ );
+    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q /*, REAL isol*/ /*, const callback_t& callback*/ );
 
 //shape:
     /*
@@ -174,7 +174,7 @@ MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_
     //if(VERBOSE)
     //    std::clog << resolution_x << " init"<< std::endl;
 
-    this->init( box);
+    this->init( box );
 
 /*
     //preallocate
@@ -198,7 +198,9 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         // parameters
 
-        this->isolation = 80.0;
+        //this->isolation = 80.0;
+
+        //std::clog << "isolation: * " << this->isolation << std::endl;
 
         // size of field, 32 is pushing it in Javascript :)
 
@@ -366,12 +368,13 @@ void MarchingCubes::kill()
 //index_t ijk, short_t dir
 
 inline void MarchingCubes:: VIntX(
-    index_t q, array1d &pout, array1d &nout,
-    int offset,
-    REAL isol,
-    REAL x, REAL y, REAL z,
-    REAL valp1,
-    REAL valp2,
+    const index_t q,
+    array1d &pout, array1d &nout,
+    const int offset,
+    const REAL isol,
+    const REAL x, REAL y, REAL z,
+    const REAL valp1,
+    const REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
     //std::clog << "VIntXX" << std::endl;
@@ -411,19 +414,9 @@ inline void MarchingCubes:: VIntX(
 
 }
 
-inline void fp(){
-    std::clog << "it";
-}
-//(void*()) fpp = fp;
-void (*fpp)() = fp;
-
 inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
-    //(*fpp)();
-
-    //std::clog << "VIntYY" << std::endl;
-
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& normal_cache = this->normal_cache;
 
@@ -496,8 +489,10 @@ inline void MarchingCubes::compNorm( index_t q ) {
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& renderCallback*/ ) {
+inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q /*, const REAL isol*/ /*, const callback_t& renderCallback*/ ) {
     /** Polygonise a single cube in the grid. */
+
+    constexpr REAL isol = 0.0; 
 
     // cache indices
     index_t qx = q + 1,
@@ -676,7 +671,7 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q,
 
     cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
 
-    //std::clog << "here3" << std::endl;
+    //std::clog << "isolation: " << this->isolation << std::endl;
 
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
@@ -1209,7 +1204,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
-                this->polygonize_cube( fx, fy, fz, q, this->isolation /*, renderCallback*/ );
+                this->polygonize_cube( fx, fy, fz, q /*, this->isolation*/ /*, renderCallback*/ );
 
                 /*
                 only prints zeros
