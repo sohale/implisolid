@@ -31,7 +31,8 @@ class MarchingCubes{
     index_t resolution_x, resolution_y, resolution_z;
     index_t size1x, size2xy, size3xyz; //todo: non-equal grid sizes
 
-    // global cube: for indices, local_cube: for actual storage.
+    // global cube: for indices (cube coords) in a larger virtual grid,
+    // local cube: for the current cube in the boundingbox,
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
 
@@ -1163,10 +1164,9 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
     this->reset_result();  //receiver of the queue
     this->begin_queue();
 
-    REAL xi0, yi0, zi0;
-    xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
-    yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
-    zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
+    REAL xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
+    REAL yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
+    REAL zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
 
     // Triangulate. Yeah, this is slow.
 
@@ -1190,6 +1190,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
+                // use sub-grids for buffer here.
                 this->polygonize_single_cube( fx, fy, fz, q /*, this->isolation*/ /*, renderCallback*/ );
 
                 /*
