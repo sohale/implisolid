@@ -197,10 +197,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                            end_type, delta_ratio, v, 
                            shapeparams_dict);
 
-        transformation_matrix << 1, 0, 0, 0,
-                                 0, 1, 0, 0,
-                                 0, 0, 1, 0,
-                                 0, 0, 0, 1;
+        if(ignore_root_matrix) {
+            transformation_matrix << 1, 0, 0, 0,
+                                     0, 1, 0, 0,
+                                     0, 0, 1, 0,
+                                     0, 0, 0, 1;
+        }
 
         object = new implicit_functions::screw(transformation_matrix,
                                          pitch,

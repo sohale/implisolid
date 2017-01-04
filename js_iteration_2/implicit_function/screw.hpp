@@ -130,6 +130,7 @@ class screw : public transformable_implicit_function {
 
 protected:
     // unsign for slen, r0??
+    Matrix<REAL, 4, 4> inv_transf_matrix;
     REAL slen, r0, delta, twist_rate, phi0; // is the REAL defined here??
     Matrix<REAL, 3, 1> A, w, u, v; // not using Eigen::Vector3d since Vector3d has only type double 
     Matrix<REAL, 3, 3> UVW, UVW_inv;
@@ -244,22 +245,22 @@ public:
 
     // }
 
-    screw()
-    {
-        std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
-        this->A << 0,0,1; // center of bottom
-        this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
-        this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
-        this->slen = 5; // screw length
-        this->r0 = 0.5; // radius of the cylinder
-        this->delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
-        this->twist_rate = 0.4; // number of cycle ~= slen/twist_rate
-        // this->phi0 = 0.0; // not used
+    // screw()
+    // {
+    //     std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
+    //     this->A << 0,0,1; // center of bottom
+    //     this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
+    //     this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
+    //     this->slen = 5; // screw length
+    //     this->r0 = 0.5; // radius of the cylinder
+    //     this->delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
+    //     this->twist_rate = 0.4; // number of cycle ~= slen/twist_rate
+    //     // this->phi0 = 0.0; // not used
 
-        this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
-        this->UVW << this->u, this->v, this->w;
-        this->UVW_inv = (this->UVW).inverse();
-    }
+    //     this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
+    //     this->UVW << this->u, this->v, this->w;
+    //     this->UVW_inv = (this->UVW).inverse();
+    // }
 
     screw(Matrix<REAL, 4, 4> matrix, REAL pitch, std::string profile, 
           std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
@@ -282,6 +283,16 @@ public:
 
         // this is a problem since if the screw is stretched, the 
         // matrix.col(0).norm() (length of u) and matrix.col(1).norm() (length of v)
+
+
+        // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+        Matrix<REAL, 4, 4> matrix_inverse = matrix.inverse();
+        this->inv_transf_matrix << matrix_inverse(0, 0), matrix_inverse(0, 1), matrix_inverse(0, 2),
+                                   matrix_inverse(1, 0), matrix_inverse(1, 1), matrix_inverse(1, 2),
+                                   matrix_inverse(2, 0), matrix_inverse(2, 1), matrix_inverse(2, 2);
+
+        std::cout << "----this->inv_transf_matrix----" << std::endl;
+        std::cout << this->inv_transf_matrix << std::endl;
 
         this->u << matrix(0, 0), matrix(1, 0), matrix(2, 0); // first three element from first column
         this->u = (this->u.array()/this->u.norm()).matrix();
@@ -342,6 +353,15 @@ public:
         Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
 
+        // matrix_vector_product(this->inv_transf_matrix, x_copy);
+
+        x_eigen_matrix = this->inv_transf_matrix * x_eigen_matrix;
+
+        std::cout << "tiger debug" << std::endl;
+        std::cout << x_eigen_matrix.row(0) << std::endl;
+        std::cout << x_eigen_matrix.row(1) << std::endl;
+        std::cout << x_eigen_matrix.row(2) << std::endl;
+
         Matrix<REAL, Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
         implicitFunctionOutput = implicitFunction(this->A, this->w,this->UVW_inv, this->slen, this->r0,
                          this->delta, this->twist_rate, this->phi0, x_eigen_matrix);
@@ -352,6 +372,11 @@ public:
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
+        Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
+        x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
+        x_eigen_matrix = this->inv_transf_matrix * x_eigen_matrix;
+
+
         for (int j=0;j<(*output).shape()[0];j++){
 
             gradient(this->A(0,0), this->A(1,0), this->A(2,0), 
@@ -360,9 +385,19 @@ public:
                      this->UVW(0,0), this->UVW(0,1), this->UVW(0,2),
                      this->UVW(1,0), this->UVW(1,1), this->UVW(1,2),
                      this->w(0, 0), this->w(1, 0), this->w(2, 0),
-                     x[j][0], x[j][1], x[j][2],
+                     x_eigen_matrix(j, 0), x_eigen_matrix(j, 1), x_eigen_matrix(j, 2),
                      (*(output))[j][0], (*(output))[j][1], (*(output))[j][2]
                      );
+
+              REAL g0 = (*output)[j][0];
+              REAL g1 = (*output)[j][1];
+              REAL g2 = (*output)[j][2];
+
+              (*output)[j][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
+              (*output)[j][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
+              (*output)[j][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
+
+
         };
     }
 
