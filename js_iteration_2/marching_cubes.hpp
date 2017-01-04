@@ -30,10 +30,12 @@ class MarchingCubes{
     //dim_t resolution_;
     index_t resolution_x, resolution_y, resolution_z;
     index_t size1x, size2xy, size3xyz; //todo: non-equal grid sizes
+
+    // global cube: for indices, local_cube: for actual storage.
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
-    //REAL halfsize;
 
+    //REAL halfsize;
     REAL deltax, deltay, deltaz;
     mp5_implicit::bounding_box box;
 
@@ -46,7 +48,7 @@ class MarchingCubes{
 
     //Queue, Buffer, Cache: sizes are: 4096, 16, 28**3, respectively.
 
-    static const bool ENABLE_NORMALS = false;
+    static constexpr bool ENABLE_NORMALS = false;
     static const int skip_count_l = 2; // -2
     static const int skip_count_h = 3;
 
@@ -109,7 +111,7 @@ public:
     void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
-    inline int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q /*, REAL isol*/ /*, const callback_t& callback*/ );
+    inline int polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, REAL isol*/ /*, const callback_t& callback*/ );
 
 //shape:
     /*
@@ -272,7 +274,7 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         #endif
         //todo: fill up other arrays with zero.
 
-        // temp buffers used in polygonize_cube
+        // temp buffers used in polygonize_single_cube
 
         // this->vlist_buffer = new Float32Array( 12 * 3 );
         // this->nlist_buffer = new Float32Array( 12 * 3 );
@@ -426,21 +428,13 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
 
     if(MarchingCubes::ENABLE_NORMALS){
         index_t q2 = q + this->yd * 3;
-
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
     }
-
-    //std::clog << "here2-a" << std::endl;
-
     index3_t e3x = ijk*3+1;
-    //std::clog << "here2-b" << std::endl;
-
     //std::clog << "e3out.size()" << e3out.size() << std::endl;
-
     e3out[offset/3] = e3x;
-    //std::clog << "here2-c" << std::endl;
 }
 
 inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
@@ -483,16 +477,14 @@ inline void MarchingCubes::compNorm( index_t q ) {
 }
 
 
-
-
 // Returns total number of triangles. Fills triangles.
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q /*, const REAL isol*/ /*, const callback_t& renderCallback*/ ) {
+inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, const REAL isol*/ /*, const callback_t& renderCallback*/ ) {
     /** Polygonise a single cube in the grid. */
 
-    constexpr REAL isol = 0.0; 
+    constexpr REAL isol = 0.0;
 
     // cache indices
     index_t qx = q + 1,
@@ -548,12 +540,6 @@ inline int MarchingCubes::polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q 
         fx2 = fx + dx,
         fy2 = fy + dy,
         fz2 = fz + dz;
-
-
-    //TODO: PUT A VLAUE HERE
-    index_t ijk = q;
-
-    //std::clog << "here1" << std::endl;
 
     // top of the cube
 
@@ -899,7 +885,7 @@ void MarchingCubes::addBall(
     int max_xi = floor( xs + radius ); if ( max_xi > this->resolution_x - 1 ) max_xi = this->resolution_x - 1;
 
 
-    // Don't polygonize_cube in the outer layer because normals aren't
+    // Don't polygonize_single_cube in the outer layer because normals aren't
     // well-defined there.
 
     // var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
@@ -1204,7 +1190,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
 
-                this->polygonize_cube( fx, fy, fz, q /*, this->isolation*/ /*, renderCallback*/ );
+                this->polygonize_single_cube( fx, fy, fz, q /*, this->isolation*/ /*, renderCallback*/ );
 
                 /*
                 only prints zeros
