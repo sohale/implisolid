@@ -78,7 +78,8 @@ mp5 is usable in the exact same way (without any transformation) outside wedeisn
 For example some printers in future may want to ue it directly.
 This is a high-priority decision and should be used in future. Contact SSi for this.
 
-mp5-format:
+# mp5-format
+
 Individual elements can include polygonisation settings.
 as well as print-settings.
 
@@ -114,14 +115,15 @@ designer ideas:
 (also implisolid):
 modelling-techniques.tex
 
-Shamfer
+Chamfer
 Special points (specific for Cone, etc). Used by a key (string).
 
 
-mp5-designer: refactor suggestion
+mp5-designer: refactoring suggestions
 
 mp5-designer:
 that open modeller language.
+OpenModellica and its JavaScript versions (its open-source contributors)
 
 small websites to showcase. in style of kovacsv/JSmodeler. and pathtrace.js.org
 

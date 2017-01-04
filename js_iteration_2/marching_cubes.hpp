@@ -12,8 +12,7 @@ REAL lerp(REAL a, REAL b, REAL t ) {
     return a + ( b - a ) * t;
 }
 
-//#define ENABLE_NORMALS false
-
+#define MARCHINGCUBES_ENABLE_NORMALS true
 
 /** Pipeline:
     (MC_table_loopup) --> *list_buffer --> *Queue --> result_*
@@ -23,13 +22,14 @@ class MarchingCubes{
     // types
     typedef index_t index3_t;  // Range of the element type has to be large enough, larger than (size^3)*3.
     typedef boost::multi_array<index3_t, 1>   array1d_e3;
-    struct callback_t { void call(void*) const { } callback_t(){} };
+    //struct callback_t { void call(void*) const { } callback_t(){} };
 
     //  member variables
 
     bool enableUvs, enableColors;
-    //dim_t resolution;
-    index_t resolution, size2, size3; //todo: non-equal grid sizes
+    //dim_t resolution_;
+    index_t resolution_x, resolution_y, resolution_z;
+    index_t size1x, size2xy, size3xyz; //todo: non-equal grid sizes
     index_t  yd, zd; // local: for the 'field' and normal_cache arrays
     index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
     //REAL halfsize;
@@ -96,7 +96,7 @@ void compNorm( index_t q );
 void posnormtriv( array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list, int o1, int o2, int o3 /*, const callback_t& renderCallback*/ );
 
 void begin_queue();
-void finish_queue( const callback_t& renderCallback );
+void finish_queue( /*const callback_t& renderCallback*/ );
 
 
 public:
@@ -112,12 +112,14 @@ public:
     int polygonize_cube( REAL fx, REAL fy, REAL fz, index_t q, REAL isol /*, const callback_t& callback*/ );
 
 //shape:
+    /*
     void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale);
     void addPlaneX( REAL strength, REAL subtract );
     void addPlaneZ( REAL strength, REAL subtract );
     void addPlaneY( REAL strength, REAL subtract );
+    */
     void seal_exterior(const REAL exterior_value = -100.);
-    void subtract_dc(REAL dc_value);
+    /*void subtract_dc(REAL dc_value);*/
 
     vectorized_vect  prepare_grid();
     //void eval_shape(const mp5_implicit::implicit_function& object, REAL mc_grid_real_size);
@@ -146,9 +148,11 @@ int EXCESS = 0;
 MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs=false, bool enableColors=false )
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
-        resolution(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
-        field(array1d( array_shape_t ({{ resolution*resolution*resolution }}) )),
-        normal_cache(array1d( array_shape_t({ resolution*resolution*resolution*3 *(MarchingCubes::ENABLE_NORMALS?1:0) }) )),
+        resolution_x(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
+        resolution_y(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
+        resolution_z(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
+        field(array1d( array_shape_t ({{ resolution_x * resolution_y * resolution_z }}) )),
+        normal_cache(array1d( array_shape_t({ resolution_x*resolution_y*resolution_z*3 *(MarchingCubes::ENABLE_NORMALS?1:0) }) )),
 
         vlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3} ) )),
         nlist_buffer(array1d( array_shape_t( {temp_buffer_size * 3 * (MarchingCubes::ENABLE_NORMALS?1:0) } ) )),
@@ -162,11 +166,13 @@ MarchingCubes::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_
 
     //THREE.ImmediateRenderObject.call( this, material );
 
+    #if MARCHINGCUBES_ENABLE_NORMALS
     this->enableUvs = enableUvs;
     this->enableColors = enableColors;
+    #endif
 
     //if(VERBOSE)
-    //    std::clog << resolution << " init"<< std::endl;
+    //    std::clog << resolution_x << " init"<< std::endl;
 
     this->init( box);
 
@@ -190,75 +196,78 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
-        //this->resolution = resolution;
-
         // parameters
 
         this->isolation = 80.0;
 
         // size of field, 32 is pushing it in Javascript :)
 
-        //dim_t resolution = apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h;
-        //this->size = resolution;
-        this->size2 = this->resolution * this->resolution;
-        this->size3 = this->size2 * this->resolution;
+        //dim_t resolution_ = apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h;
+        this->size1x = this->resolution_x;
+        this->size2xy = this->resolution_x * this->resolution_y;
+        this->size3xyz = this->size2xy * this->resolution_z;
 
         REAL widthx = box.xmax - box.xmin;
         REAL widthy = box.ymax - box.ymin;
         REAL widthz = box.zmax - box.zmin;
 
-        this->deltax = widthx / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );  // (2.0 / (REAL)resolution)*size
-        this->deltay = widthy / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
-        this->deltaz = widthz / (REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
-        //REAL halfsize = width / 2.0 / delta; // ((REAL)this->resolution) / 2.0;
+        // to make sure the skipped cubes are outside the bounding box.
+        auto exi = this->resolution_x - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
+        auto eyi = this->resolution_y - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
+        auto ezi = this->resolution_z - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
+
+        // width of each mini-cube (each one of the marching cubes)
+        this->deltax = widthx / (REAL)( exi );  // (2.0 / (REAL)resolution_)*size
+        this->deltay = widthy / (REAL)( eyi );
+        this->deltaz = widthz / (REAL)( ezi );
+        //REAL halfsize = width / 2.0 / delta; // ((REAL)this->resolution_) / 2.0;
 
         this->box = box;
 
         // deltas
-        //this->delta = delta;  // 2.0 / (REAL)this->resolution;
-        this->yd = this->resolution;
-        this->zd = this->size2;
-        this->yd_global = this->resolution;
-        this->zd_global = this->size2;
+        //this->delta = delta;  // 2.0 / (REAL)this->resolution_;
+        this->yd = this->size1x;
+        this->zd = this->size2xy;
+        this->yd_global = this->size1x;
+        this->zd_global = this->size2xy;
 
-        array_shape_t fsize = {(int)this->size3};
+        array_shape_t fsize = {(int)this->size3xyz};
         this->field = array1d(fsize);
-        // this->field = new Float32Array( this->size3 );
-        // this->field = boost::array<REAL, 1>(this->size3); //does not work
-        // this->field = std::array<REAL, this->size3>();
         // need a guarantee:
 
         // todo: get available heap.
         // todo: handle memory exception.
-        assert(this->size3 < 10000000);
-        assert(this->size3 > 0);
+        my_assert(this->size3xyz < 10000000, "size of the field is too large.");
+        assert(this->size3xyz > 0);
 
 
 /**
  *  COMMENTED OUT
  *
-        // auto field_shape = make_shape_1d((int)this->size3);
-        // //array_shape_t  field_shape = {{ (int)this->size3, }};
+        // auto field_shape = make_shape_1d((int)this->size3xyz);
+        // //array_shape_t  field_shape = {{ (int)this->size3xyz, }};
         //
         //
         // std::clog << "trouble begins" << std::endl;
-        // std::clog << (int)this->size3 << std::endl;
+        // std::clog << (int)this->size3xyz << std::endl;
         //
         // //this->field = array1d( field_shape );
         // this->field = array1d( field_shape );
         // //this->field = array1d( field_shape );
 */
 
+        #if MARCHINGCUBES_ENABLE_NORMALS
         if(MarchingCubes::ENABLE_NORMALS){
-            // this->normal_cache = new Float32Array( this->size3 * 3 );
-            array_shape_t normals_shape = make_shape_1d( (int)this->size3 * 3 );
-            // array_shape_t  normals_shape = {{ (int)this->size3 * 3, }};
+            // this->normal_cache = new Float32Array( this->size3xyz * 3 );
+            array_shape_t normals_shape = make_shape_1d( (int)this->size3xyz * 3 );
+            // array_shape_t  normals_shape = {{ (int)this->size3xyz * 3, }};
             this->normal_cache = array1d( normals_shape );
 
             // std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
             // std::fill from #include <algorithm>
             std::fill(this->normal_cache.begin(), this->normal_cache.end(), 0.0 );
         }
+        #endif
         //todo: fill up other arrays with zero.
 
         // temp buffers used in polygonize_cube
@@ -271,8 +280,10 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         if(false){
             this->vlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
+            #ifdef MARCHINGCUBES_ENABLE_NORMALS
             if(MarchingCubes::ENABLE_NORMALS)
                 this->nlist_buffer = array1d( make_shape_1d( temp_buffer_size * 3 ) );
+            #endif
         }
 
         // this::queueSize = 4096; // TODO: find the fastest size for this buffer
@@ -830,7 +841,7 @@ void MarchingCubes::begin_queue() {
 }
 
 //
-void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
+void MarchingCubes::finish_queue( /*const callback_t& renderCallback*/ ) {
     /** Finish with the queue. Prepares to sow by the callback. */
 
     // queue_counter := number of prepared (?)
@@ -856,7 +867,7 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
 
     //std::fill(this->e3Queue.begin() + (this->queue_counter), this->e3Queue.end(), 0 );
 
-    renderCallback.call(this);
+    /*renderCallback.call(this);*/
     sow();
 }
 
@@ -870,25 +881,27 @@ void MarchingCubes::finish_queue( const callback_t& renderCallback ) {
 // Adds a reciprocal ball (nice and blobby) that, to be fast, fades to zero after
 // a fixed distance, determined by strength and subtract.
 
+/*
 inline
 void MarchingCubes::addBall(
         REAL ballx, REAL bally, REAL ballz,
         REAL strength, REAL subtract, REAL scale) {
     // Solves this equation:
     // 1.0 / (0.000001 + radius^2) * strength - subtract = 0
-    REAL radius = this->resolution * sqrt(strength / subtract);
+    REAL dpi = this->resolution_x;
+    REAL radius = dpi * sqrt(strength / subtract);
 
     REAL
-        zs = ballz * this->resolution / scale,
-        ys = bally * this->resolution / scale,
-        xs = ballx * this->resolution / scale;
+        zs = ballz * dpi / scale,
+        ys = bally * dpi / scale,
+        xs = ballx * dpi / scale;
 
     int min_zi = floor( zs - radius ); if ( min_zi < 1 ) min_zi = 1;
-    int max_zi = floor( zs + radius ); if ( max_zi > this->resolution - 1 ) max_zi = this->resolution - 1;
+    int max_zi = floor( zs + radius ); if ( max_zi > this->resolution_z - 1 ) max_zi = this->resolution_z - 1;
     int min_yi = floor( ys - radius ); if ( min_yi < 1 ) min_yi = 1;
-    int max_yi = floor( ys + radius ); if ( max_yi > this->resolution - 1 ) max_yi = this->resolution - 1;
+    int max_yi = floor( ys + radius ); if ( max_yi > this->resolution_y - 1 ) max_yi = this->resolution_y - 1;
     int min_xi = floor( xs - radius ); if ( min_xi < 1  ) min_xi = 1;
-    int max_xi = floor( xs + radius ); if ( max_xi > this->resolution - 1 ) max_xi = this->resolution - 1;
+    int max_xi = floor( xs + radius ); if ( max_xi > this->resolution_x - 1 ) max_xi = this->resolution_x - 1;
 
 
     // Don't polygonize_cube in the outer layer because normals aren't
@@ -899,28 +912,30 @@ void MarchingCubes::addBall(
     REAL fx, fy, fz, fz2, fy2, val;  //Does doing like this make it faster?
     int y_offset, z_offset;
 
+    REAL dpi = (REAL)this->resolution_;
     for ( z = min_zi; z < max_zi; z++ ) {
 
-        z_offset = this->size2 * z,
-        fz = z / (REAL)this->resolution - ballz,
+        z_offset = this->size2xy * z,
+        fz = z / dpi - ballz,
         fz2 = fz * fz;
 
         for ( y = min_yi; y < max_yi; y++ ) {
 
-            y_offset = z_offset + this->resolution * y;
-            fy = y / (REAL)this->resolution - bally;
+            y_offset = z_offset + this->size1x * y;
+            fy = y / dpi - bally;
             fy2 = fy * fy;
 
             for ( x = min_xi; x < max_xi; x++ ) {
 
-                fx = x / (REAL)this->resolution - ballx;
+                fx = x / dpi - ballx;
                 val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
                 if ( val > 0.0 ) this->field[ y_offset + x ] += val / 100;
             }
         }
     }
 }
-
+*/
+/*
 void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL val;
@@ -929,61 +944,77 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
 
     // cache attribute lookups
     int yd = this->yd;
-    int resolution = this->resolution;
+    REAL dpi = std::max(this->u_resolution,);
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = resolution * sqrt(strength / (REAL)subtract);
+    REAL distx = dpi * sqrt(strength / (REAL)subtract);
 
-    if ( dist > resolution ) dist = resolution;
-    for ( x = 0; x < dist; x++ ) {
-        xdiv = x / (REAL)resolution;
+    if ( distx > this->resolution_x ) distx = this->resolution_x;
+    for ( x = 0; x < distx; x++ ) {
+        xdiv = x / dpi;
         xx = xdiv * xdiv;
         val = strength / (REAL)( 0.0001 + xx ) - subtract;
         if ( val > 0.0 ) {
-            for ( y = 0; y < resolution; y++ ) {
+            for ( y = 0; y < this->resolution_y; y++ ) {
                 cxy = x + y * yd;
-                for ( z = 0; z < resolution; z++ ) {
+                for ( z = 0; z < this->resolution_z; z++ ) {
                     field[ zd * z + cxy ] += val;
                 }
             }
         }
     }
 }
+*/
 
 void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
     //const REAL exterior_value = -1.;
 
     int x, y, z;
-    int cxy;
+    //int cxy;
 
     // cache attribute lookups
     int yd = this->yd;
-    int resolution = this->resolution;
     int zd = this->zd;
     array1d& field = this->field;
-    //REAL dist = resolution * sqrt(strength / (REAL)subtract);
 
-    for ( x = 0; x < resolution; x++ ) {
-        for ( y = 0; y < resolution; y++ ) {
-            cxy = x + y * yd;
+    for ( x = 0; x < this->resolution_x; x++ ) {
+        for ( y = 0; y < this->resolution_y; y++ ) {
+            // int cxy
+            int cxy = x + y * yd;
             /*
             {
             int z = 0;      field[ zd * z + cxy ] = exterior_value;
             }{
-            int z = resolution-1; field[ zd * z + cxy ] = exterior_value;
+            int z = resolution_z-1; field[ zd * z + cxy ] = exterior_value;
             }
-            bool border = (x == 0) || (x == resolution-1) || (y == 0) || (y == resolution-1);
+            bool border = (x == 0) || (x == resolution_x-1) || (y == 0) || (y == resolution_y-1);
             if(border){
-                for ( z = 0; z < resolution; z++ ) {
+                for ( z = 0; z < resolution_z; z++ ) {
                     field[ zd * z + cxy ] = exterior_value;
                 }
             }
             */
-            for ( z = 0; z < resolution; z++ ) {
-                //bool border = (x == 0) || (x == resolution-1) || (y == 0) || (y == resolution-1) || (z == 0) || (z == resolution-1);
-                bool border = (x == 1) || (x == resolution-1-1) || (y == 1) || (y == resolution-1-1) || (z == 1) || (z == resolution-1-1);
-                if(border){
+            for ( z = 0; z < this->resolution_z; z++ ) {
+                const bool border0 =
+                    (x == 0) ||
+                    (x == this->resolution_x-1) ||
+                    (y == 0) ||
+                    (y == this->resolution_y-1) ||
+                    (z == 0) ||
+                    (z == this->resolution_z-1);
+
+                // Important: It is necessary to leave two cubes empty for sealing.
+                const bool border = 
+                    (x == 1) || 
+                    (x == this->resolution_x-1-1) ||
+                    (y == 1) ||
+                    (y == this->resolution_y-1-1) ||
+                    (z == 1) ||
+                    (z == this->resolution_z-1-1);
+
+                // This may fix cylinder's problem
+                if (border || border0) {
                     field[ zd * z + cxy ] = exterior_value;
                 }
                 //if (z == 4 && x == 2)
@@ -1012,16 +1043,15 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
     // cache attribute lookups
     int yd = this->yd;
-    int resolution = this->resolution;
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = resolution * sqrt(strength / (REAL)subtract);
+    REAL distx = resolution_x * sqrt(strength / (REAL)subtract);
 
-    if ( dist > resolution ) dist = resolution; //????
-    for ( x = 0; x < dist; x++ ) {
-        for ( y = 0; y < resolution; y++ ) {
+    if ( distx > resolution_x ) distx = resolution_x; //????
+    for ( x = 0; x < distx; x++ ) {
+        for ( y = 0; y < resolution_y; y++ ) {
             cxy = x + y * yd;
-            for ( z = 0; z < resolution; z++ ) {
+            for ( z = 0; z < resolution_z; z++ ) {
                 bool border = false;
                 if(x==0) border = true;
                 if(x==0) border = true;
@@ -1031,6 +1061,7 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     }
 }
 */
+/*
 void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int x, y, z;
     REAL yy;
@@ -1040,23 +1071,22 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int cxy;
 
     // cache attribute lookups
-    int resolution = this->resolution;
     int yd = this->yd;
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = resolution * sqrt(strength / subtract);
+    REAL disty = resolution_y * sqrt(strength / subtract);
 
-    if ( dist > resolution ) dist = resolution;
+    if ( disty > resolution_y ) disty = resolution_y;
 
-    for ( y = 0; y < dist; y++ ) {
-        ydiv = y / (REAL)resolution;
+    for ( y = 0; y < disty; y++ ) {
+        ydiv = y / (REAL)resolution_y;
         yy = ydiv * ydiv;
         val = strength / (REAL)( 0.0001 + yy ) - subtract;
         if ( val > 0.0 ) {
             cy = y * yd;
-            for ( x = 0; x < resolution; x++ ) {
+            for ( x = 0; x < resolution_x; x++ ) {
                 cxy = cy + x;
-                for ( z = 0; z < resolution; z++ )
+                for ( z = 0; z < resolution_z; z++ )
                     field[ zd * z + cxy ] += val;
             }
         }
@@ -1070,28 +1100,27 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
     int cz, cyz;
 
     // cache attribute lookups
-    int resolution = this->resolution;
     int yd = this->yd;
     int zd = this->zd;
     array1d& field = this->field;
-    REAL dist = resolution * sqrt( strength / subtract );
+    REAL distz = resolution_z * sqrt( strength / subtract );
 
-    if ( dist > resolution ) dist = resolution;
-    for ( z = 0; z < dist; z++ ) {
-        zdiv = z / (REAL)resolution;
+    if ( distz > resolution_z ) distz = resolution_z;
+    for ( z = 0; z < distz; z++ ) {
+        zdiv = z / (REAL)resolution_z;
         zz = zdiv * zdiv;
         val = strength / (REAL)( 0.0001 + zz ) - subtract;
         if ( val > 0.0 ) {
             cz = zd * z;
-            for ( y = 0; y < resolution; y++ ) {
+            for ( y = 0; y < resolution_y; y++ ) {
                 cyz = cz + y * yd;
-                for ( x = 0; x < resolution; x++ )
+                for ( x = 0; x < resolution_x; x++ )
                     field[ cyz + x ] += val;
             }
         }
     }
 }
-
+*/
 
 
 
@@ -1102,10 +1131,12 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 void MarchingCubes::reset()
 {
     // wipe the normal cache
-    for (int i = 0; i < this->size3; i++ ) {
+    for (int i = 0; i < this->size3xyz; i++ ) {
+        #if MARCHINGCUBES_ENABLE_NORMALS
         if(MarchingCubes::ENABLE_NORMALS){
             this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
         }
+        #endif
         this->field[ i ] = 0.0;
     }
 }
@@ -1146,7 +1177,7 @@ void MarchingCubes::reset_result() {
 // Renderes a geometry.
 void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
     
-    const callback_t renderCallback;
+    //const callback_t renderCallback;
     
     this->reset_result();  //receiver of the queue
     this->begin_queue();
@@ -1158,19 +1189,22 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
 
     // Triangulate. Yeah, this is slow.
 
-    int smin2 = this->resolution - 2;
+    // Note: skip_count_l =is= 2.
+    int smin2_x = this->resolution_x - 2;
+    int smin2_y = this->resolution_y - 2;
+    int smin2_z = this->resolution_z - 2;
 
-    for ( int zi = 1; zi < smin2; zi++ ) {
+    for ( int zi = 1; zi < smin2_z; zi++ ) {
 
-        index_t z_offset = this->size2 * zi;
+        index_t z_offset = this->size2xy * zi;
         REAL fz = ( zi + zi0 ) * this->deltaz; //+ 1
 
-        for ( int yi = 1; yi < smin2; yi++ ) {
+        for ( int yi = 1; yi < smin2_y; yi++ ) {
 
-            index_t y_offset = z_offset + this->resolution * yi;
+            index_t y_offset = z_offset + this->size1x * yi;
             REAL fy = ( yi + yi0 ) * this->deltay; //+ 1
 
-            for ( int xi = 1; xi < smin2; xi++ ) {
+            for ( int xi = 1; xi < smin2_x; xi++ ) {
 
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
@@ -1189,7 +1223,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
             }
         }
     }
-    this->finish_queue(renderCallback);
+    this->finish_queue(/*renderCallback*/);
 }
 
 
@@ -1778,28 +1812,33 @@ void MarchingCubes::flush_geometry_queue(std::ostream& cout, int& normals_start,
 vectorized_vect
 MarchingCubes::prepare_grid() {
       int min_xi = 0;
-      int max_xi = this->resolution;
+      int max_xi = this->resolution_x;
       int min_yi = 0;
-      int max_yi = this->resolution;
+      int max_yi = this->resolution_y;
       int min_zi = 0;
-      int max_zi = this->resolution;
+      int max_zi = this->resolution_z;
 
       REAL wx = this->box.xmax - this->box.xmin ;
       REAL wy = this->box.ymax - this->box.ymin ;
       REAL wz = this->box.zmax - this->box.zmin ;
 
-      REAL xfactor = wx /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
-      REAL yfactor = wy /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
-      REAL zfactor = wz /(REAL)(this->resolution - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h );
+      // to make sure the skipped cubes are outside the bounding box.
+      auto exi = this->resolution_x - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
+      auto eyi = this->resolution_y - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
+      auto ezi = this->resolution_z - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
 
-      boost::array<vectorized_vect::index, 2> grid_shape = {{ this->resolution*this->resolution*this->resolution , 3 }};
+      REAL xfactor = wx /(REAL)( exi );
+      REAL yfactor = wy /(REAL)( eyi );
+      REAL zfactor = wz /(REAL)( ezi );
+
+      boost::array<vectorized_vect::index, 2> grid_shape = {{ this->resolution_x * this->resolution_y * this->resolution_z , 3 }};
       vectorized_vect  grid(grid_shape);
 
       // Todo: write an iterator
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                  vectorized_vect::index  i = x + y*this->resolution + z*this->size2;
+                  vectorized_vect::index  i = x + y * this->size1x + z * this->size2xy;
                   grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->deltax;
                   grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->deltay;
                   grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->deltaz;
@@ -1814,49 +1853,49 @@ void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, co
 
 
 
-      boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution*this->resolution*this->resolution }};
+      boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution_x * this->resolution_y * this->resolution_z }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
       object.eval_implicit(mcgrid_vectorized, &implicit_values);
 
-
       int min_xi = 0;
-      int max_xi = this->resolution;
+      int max_xi = this->resolution_x;
       int min_yi = 0;
-      int max_yi = this->resolution;
+      int max_yi = this->resolution_y;
       int min_zi = 0;
-      int max_zi = this->resolution;
+      int max_zi = this->resolution_z;
 
       // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                this->field[x + y*this->resolution + z*this->size2] += implicit_values[x + y*this->resolution + z*this->size2];
+                this->field[x + y*this->size1x + z*this->size2xy] += implicit_values[x + y*this->size1x + z*this->size2xy];
               }
           }
       }
 }
 
 
-
+/*
 void MarchingCubes::subtract_dc(REAL dc_value){
 
       int min_xi = 0;
-      int max_xi = this->resolution;
+      int max_xi = this->resolution_x;
       int min_yi = 0;
-      int max_yi = this->resolution;
+      int max_yi = this->resolution_y;
       int min_zi = 0;
-      int max_zi = this->resolution;
+      int max_zi = this->resolution_z;
 
       // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                this->field[x + y*this->resolution + z*this->size2] -= dc_value;
+                this->field[x + y*this->size1x + z*this->size2xy] -= dc_value;
               }
           }
       }
 }
+*/
 
 }  // namespace marching_cubes
 
