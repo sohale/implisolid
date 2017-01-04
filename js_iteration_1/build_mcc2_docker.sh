@@ -1,9 +1,15 @@
 #!/bin/bash
 
 # Deployment:
-IMPLISOLID=/src
+# IMPLISOLID=/src
 # Local:
-# IMPLISOLID=/home/wedesign/Documents/mp5-private/implisolid
+#IMPLISOLID=/home/$USER/mp5-private/implisolid
+
+
+if [ -z "$IMPLISOLID" ]; then
+    echo "deploymwnt mode"
+    IMPLISOLID=/src
+fi
 
 OPTIM=1
 DEV=2
