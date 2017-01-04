@@ -130,7 +130,7 @@ class screw : public transformable_implicit_function {
 
 protected:
     // unsign for slen, r0??
-    Matrix<REAL, 4, 4> inv_transf_matrix;
+    Matrix<REAL, 3, 3> inv_transf_matrix;
     REAL slen, r0, delta, twist_rate, phi0; // is the REAL defined here??
     Matrix<REAL, 3, 1> A, w, u, v; // not using Eigen::Vector3d since Vector3d has only type double 
     Matrix<REAL, 3, 3> UVW, UVW_inv;
@@ -286,10 +286,18 @@ public:
 
 
         // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-        Matrix<REAL, 4, 4> matrix_inverse = matrix.inverse();
-        this->inv_transf_matrix << matrix_inverse(0, 0), matrix_inverse(0, 1), matrix_inverse(0, 2),
-                                   matrix_inverse(1, 0), matrix_inverse(1, 1), matrix_inverse(1, 2),
-                                   matrix_inverse(2, 0), matrix_inverse(2, 1), matrix_inverse(2, 2);
+
+        Matrix<REAL, 3, 3> matrix_3_3;
+
+        matrix_3_3 << matrix(0, 0), matrix(0, 1), matrix(0, 2),
+                      matrix(1, 0), matrix(1, 1), matrix(1, 2),
+                      matrix(2, 0), matrix(2, 1), matrix(2, 2);
+
+        this->inv_transf_matrix = matrix_3_3.inverse();
+
+        // this->inv_transf_matrix << matrix_inverse(0, 0), matrix_inverse(0, 1), matrix_inverse(0, 2),
+        //                            matrix_inverse(1, 0), matrix_inverse(1, 1), matrix_inverse(1, 2),
+        //                            matrix_inverse(2, 0), matrix_inverse(2, 1), matrix_inverse(2, 2);
 
         std::cout << "----this->inv_transf_matrix----" << std::endl;
         std::cout << this->inv_transf_matrix << std::endl;
@@ -350,14 +358,28 @@ public:
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
+
+        std::cout << "tiger debug xxxxxxx" << std::endl;
+        std::cout << x[0][0] << std::endl;
+        std::cout << x[0][1] << std::endl;
+        std::cout << x[0][2] << std::endl;
+
         Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
 
         // matrix_vector_product(this->inv_transf_matrix, x_copy);
 
-        x_eigen_matrix = this->inv_transf_matrix * x_eigen_matrix;
+        std::cout << "tiger debug x_eigen_matrix" << std::endl;
+        std::cout << x_eigen_matrix.row(0) << std::endl;
+        std::cout << x_eigen_matrix.row(1) << std::endl;
+        std::cout << x_eigen_matrix.row(2) << std::endl;
 
-        std::cout << "tiger debug" << std::endl;
+        std::cout << "----this->inv_transf_matrix----" << std::endl;
+        std::cout << this->inv_transf_matrix << std::endl;
+
+        x_eigen_matrix = x_eigen_matrix * this->inv_transf_matrix;
+
+        std::cout << "tiger debug x_eigen_matrix" << std::endl;
         std::cout << x_eigen_matrix.row(0) << std::endl;
         std::cout << x_eigen_matrix.row(1) << std::endl;
         std::cout << x_eigen_matrix.row(2) << std::endl;
@@ -365,6 +387,11 @@ public:
         Matrix<REAL, Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
         implicitFunctionOutput = implicitFunction(this->A, this->w,this->UVW_inv, this->slen, this->r0,
                          this->delta, this->twist_rate, this->phi0, x_eigen_matrix);
+
+        std::cout << "tiger debug implicitFunctionOutput" << std::endl;
+        std::cout << implicitFunctionOutput.row(0) << std::endl;
+        std::cout << implicitFunctionOutput.row(1) << std::endl;
+        std::cout << implicitFunctionOutput.row(2) << std::endl;
 
         *(output) = Eigen_matrix_to_vectorized_scalar(implicitFunctionOutput);
 
