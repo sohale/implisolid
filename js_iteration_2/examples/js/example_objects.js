@@ -195,8 +195,8 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         // var obj_selector = "screw";
         //var obj_selector = "cone";
-        //var obj_selector = "metaballs";
-        var obj_selector = "extrusion";
+        var obj_selector = "metaballs";
+        //var obj_selector = "extrusion";
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
