@@ -52,7 +52,7 @@ namespace mp5_implicit {
 
 // Curated implicit_functions only
 implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_matrix) {
-    
+
     /*
     using mp5_implicit::implicit_functions::double_mushroom;
     using mp5_implicit::implicit_functions::linearly_transformed;
@@ -193,8 +193,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         Matrix<REAL, 3, 1> v;
 
         implicit_functions::screw::getScrewParameters(
-                           transformation_matrix, pitch, profile, 
-                           end_type, delta_ratio, v, 
+                           transformation_matrix, pitch, profile,
+                           end_type, delta_ratio, v,
                            shapeparams_dict);
 
         if(ignore_root_matrix) {
@@ -367,6 +367,15 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         object = new implicit_functions::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
 
         register_new_object(object);
+    } else if(name == "extrusion") {
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new implicit_functions::extrusion(matrix12);
+        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
     } else {
         std::cerr << "Invalid object " << "you asked for: \"" << name << "\"" << std::endl;
         abort();
@@ -375,7 +384,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     return object;
 
 }
-
 
 
 implicit_function*  object_factory(string shape_parameters_json, bool ignore_root_matrix)

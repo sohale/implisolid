@@ -80,6 +80,10 @@ var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"roo
 
 var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1, 0, 0, 2.5, 0, 2, 0, 2.5, 0, 0, 5, 1.5, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
+//test for extrusion
+var EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+
+
  // {
  //                "type": "screw",
  //                "axis": [
@@ -99,7 +103,7 @@ var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"ro
  //                 // common in all mp5 objects:
  //                "index": 6125140,
  //                "displayColor": [ 0.71, 0.164, 0    ],
- //                 // note that there is no "matrix" field. 
+ //                 // note that there is no "matrix" field.
  //            }
  //        ]
 
@@ -172,7 +176,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
             end_type: "0"
         };*/
         var screw_dict = JSON.parse(SIMPLE_SCREW).root.children[0];
-        
+
 
         var mp5_json_screw_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
         mp5_json_screw_dict.root.children=[screw_dict];
@@ -190,9 +194,9 @@ function provide_input (subjective_time, is_update_mode, globals) {
         var mp5_json = null;
 
         // var obj_selector = "screw";
-        var obj_selector = "cone";
+        //var obj_selector = "cone";
         //var obj_selector = "metaballs";
-
+        var obj_selector = "extrusion";
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
@@ -269,6 +273,23 @@ function provide_input (subjective_time, is_update_mode, globals) {
                 resize_mp5(shape_dict, 0);  //is called later
 
             break;
+            case "extrusion":
+                console.log("OK EXTRUSION", BB_SIZE)
+                var mp5_json = EXTRUSION; var BB_SIZE = 1.2; used_matrix = true;
+                var shape_dict = JSON.parse(mp5_json).root.children[0];
+
+                if(is_update_mode == 1 || is_update_mode == 2) {
+                    BB_SIZE = 0.9;
+                }
+
+                resize_mp5 = function (d, sz) {
+                    d.matrix[0] = sz;
+                    d.matrix[5] = sz;
+                    d.matrix[10] = sz;
+                    console.error("resizing", sz);
+                }
+            break;
+
             default:
                 console.error("error");
         }
@@ -344,7 +365,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         var REPEATS = 1; // has no effect! ()?!)
         // create new geometry
         var mc_properties_json = {
-            resolution: Math.floor(40),
+            resolution: Math.floor(20),
             box: bbox,
             ignore_root_matrix: false,
 
