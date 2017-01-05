@@ -222,11 +222,11 @@ int get_pointset_size(char* id) {
 
 std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp5_implicit::implicit_function* object, dim_t resolution_, const mp5_implicit::bounding_box & box_/*, const bool use_metaball*/) {
 
-    bool enableUvs = true;
-    bool enableColors = true;
+    constexpr bool enableUvs = true;
+    constexpr bool enableColors = true;
 
-    MarchingCubes<false> mc {resolution_, box_, enableUvs};
-    MarchingCubes<false> * _state_mc = &mc;
+    MarchingCubes<enableUvs,enableColors> mc {resolution_, box_};
+    MarchingCubes<enableUvs,enableColors> * _state_mc = &mc;
 
     _state_mc->produce_mesh ( *object );
 

@@ -14,7 +14,7 @@ namespace marching_cubes {
 /** Pipeline:
     (MC_table_loopup) --> *list_buffer --> *Queue --> result_*
 */
-template <bool enableColors=false>
+template <bool enableUvs=false, bool enableColors=false>
 class MarchingCubes {
 
     // types
@@ -24,7 +24,7 @@ class MarchingCubes {
 
     //  member variables
 
-    bool enableUvs; //, enableColors;
+    //bool enableUvs, enableColors;
     //dim_t resolution_;
     index_t resolution_x, resolution_y, resolution_z;
     //index_t size1x, size2xy, size3xyz; //todo: non-equal `grid` sizes
@@ -134,7 +134,7 @@ void finish_queue( /*const callback_t& renderCallback*/ );
 
 
 public:
-    MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs);
+    MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box/*, bool enableUvs*/);
     ~MarchingCubes(); //why does this have to be public: ?
 
     //void flush_geometry_queue(std::ostream&);
@@ -171,8 +171,8 @@ public:
 //static dim_t MarchingCubes::queueSize = ...;
 
 int EXCESS = 0;
-template<bool enableColors>
-MarchingCubes<enableColors>::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs)
+template <bool enableUvs, bool enableColors>
+MarchingCubes<enableUvs,enableColors>::MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box/*, bool enableUvs*/)
     :   //constructor's initialisation list: pre-constructor code
         //All memory allocation code is here. Because the size of arrays is determined in run-time.
         resolution_x(apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h ),
@@ -190,11 +190,10 @@ MarchingCubes<enableColors>::MarchingCubes( dim_t apparent_resolution, mp5_impli
         e3Queue(array1d_e3(make_shape_1d(MarchingCubes::queueSize )))
 
 {
-    enableUvs=false;
     //THREE.ImmediateRenderObject.call( this, material );
 
     #if MARCHINGCUBES_ENABLE_NORMALS
-    this->enableUvs = enableUvs;
+    //this->enableUvs = enableUvs;
     //this->enableColors = enableColors;
     #endif
 
@@ -218,8 +217,8 @@ MarchingCubes<enableColors>::MarchingCubes( dim_t apparent_resolution, mp5_impli
 
 
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::init( mp5_implicit::bounding_box box) {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::init( mp5_implicit::bounding_box box) {
         // May throw  std::bad_alloc. See #include <new>
         // init() is only called by the constructor
 
@@ -347,7 +346,7 @@ void MarchingCubes<enableColors>::init( mp5_implicit::bounding_box box) {
 
         // can throw  std::bad_alloc
 
-        if ( this->enableUvs ) {
+        if ( enableUvs ) {
             // this->uvQueue = new Float32Array( this->queueSize * 2 );
             this->uvQueue = 0; //for deconstructor, to see if this exited by an exception.
             this->uvQueue = new array1d(shape_maxCount_x_2);
@@ -365,13 +364,13 @@ void MarchingCubes<enableColors>::init( mp5_implicit::bounding_box box) {
         //    this->colorQueue = NULL;
 }
 
-template <bool enableColors>
-MarchingCubes<enableColors>::~MarchingCubes() //deconstructor
+template <bool enableUvs, bool enableColors>
+MarchingCubes<enableUvs,enableColors>::~MarchingCubes() //deconstructor
 {
     //if(VERBOSE)
     //    std::clog << "Destructor: ~MarchingCubes" << std::endl;
 
-    if ( this->enableUvs )
+    if ( enableUvs )
     {
         if(this->uvQueue){
             delete this->uvQueue;
@@ -390,16 +389,16 @@ MarchingCubes<enableColors>::~MarchingCubes() //deconstructor
     }
 }
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::kill()
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::kill()
 //opposite of init()
 {
     ;
 }
 
 //index_t ijk, short_t dir
-template <bool enableColors>
-inline void MarchingCubes<enableColors>:: VIntX(
+template <bool enableUvs, bool enableColors>
+inline void MarchingCubes<enableUvs,enableColors>:: VIntX(
     const index_t q,
     array1d &pout, array1d &nout,
     const int offset,
@@ -446,8 +445,8 @@ inline void MarchingCubes<enableColors>:: VIntX(
 
 }
 
-template <bool enableColors>
-inline void MarchingCubes<enableColors>:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
+template <bool enableUvs, bool enableColors>
+inline void MarchingCubes<enableUvs,enableColors>:: VIntY (index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
@@ -468,8 +467,8 @@ inline void MarchingCubes<enableColors>:: VIntY (index_t q, array1d& pout, array
     e3out[offset/3] = e3x;
 }
 
-template <bool enableColors>
-inline void MarchingCubes<enableColors>:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
+template <bool enableUvs, bool enableColors>
+inline void MarchingCubes<enableUvs,enableColors>:: VIntZ(index_t q, array1d& pout, array1d& nout, int offset, REAL isol, REAL x, REAL y, REAL z, REAL valp1, REAL valp2,
     index_t ijk, array1d_e3& e3out )
 {
 
@@ -494,8 +493,8 @@ inline void MarchingCubes<enableColors>:: VIntZ(index_t q, array1d& pout, array1
     e3out[offset/3] = e3x;
 }
 
-template <bool enableColors>
-inline void MarchingCubes<enableColors>::compNorm( index_t q ) {
+template <bool enableUvs, bool enableColors>
+inline void MarchingCubes<enableUvs,enableColors>::compNorm( index_t q ) {
         if(!MarchingCubes::ENABLE_NORMALS){
             std::clog << "This should not hapepn.";
             return;
@@ -514,8 +513,8 @@ inline void MarchingCubes<enableColors>::compNorm( index_t q ) {
 // (this is where most of time is spent - it's inner work of O(n3) loop )
 
 
-template <bool enableColors>
-inline int MarchingCubes<enableColors>::polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, const REAL isol*/ /*, const callback_t& renderCallback*/ ) {
+template <bool enableUvs, bool enableColors>
+inline int MarchingCubes<enableUvs,enableColors>::polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, const REAL isol*/ /*, const callback_t& renderCallback*/ ) {
     /** Polygonise a single cube in the grid. */
 
     constexpr REAL isol = 0.0;
@@ -723,8 +722,8 @@ inline int MarchingCubes<enableColors>::polygonize_single_cube( REAL fx, REAL fy
 // Immediate-render mode simulator
 /////////////////////////////////////
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::posnormtriv(
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::posnormtriv(
     array1d& pos__vlist, array1d& norm__nlist, array1d_e3& e3__e3list,
     int o1, int o2, int o3 /*,
     const callback_t& renderCallback*/ ) {
@@ -775,7 +774,7 @@ void MarchingCubes<enableColors>::posnormtriv(
     }
     // uvs
 
-    if ( this->enableUvs ) {
+    if ( enableUvs ) {
         int d = this->queue_counter * 2;
 
         (*this->uvQueue)[ d ]     = pos__vlist[ o1 ];
@@ -809,7 +808,7 @@ void MarchingCubes<enableColors>::posnormtriv(
     if ( this->queue_counter >= this->queueSize - 3 ) {  //why equal?
         this->hasPositions = true;
         this->hasNormals = MarchingCubes::ENABLE_NORMALS;
-        if ( this->enableUvs ) {
+        if ( enableUvs ) {
             this->hasUvs = true;
         }
         if ( enableColors ) {
@@ -829,8 +828,8 @@ static std::vector<vertexindex_type> result_faces; // static
 */
 
 // Takes the vales from the queue:
-template <bool enableColors>
-void MarchingCubes<enableColors>::sow() {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::sow() {
     /*
     typedef array1d::iterator  b_it;
     for(b_it b=this->vlist_buffer.begin(); b < this->vlist_buffer.end(); b++)
@@ -845,8 +844,8 @@ void MarchingCubes<enableColors>::sow() {
     this->flush_geometry_queue(std::clog, this->resultqueue_faces_start, this->result_normals,  this->result_verts, this->result_faces,  this->result_e3map, this->next_unique_vect_counter);
 }
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::begin_queue() {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::begin_queue() {
     /** resets the queue. */
     this->queue_counter = 0;
 
@@ -856,8 +855,8 @@ void MarchingCubes<enableColors>::begin_queue() {
     this->hasColors = false;
 }
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::finish_queue( /*const callback_t& renderCallback*/ ) {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::finish_queue( /*const callback_t& renderCallback*/ ) {
     /** Finish with the queue. Prepares to sow by the callback. */
 
     // queue_counter := number of prepared (?)
@@ -873,7 +872,7 @@ void MarchingCubes<enableColors>::finish_queue( /*const callback_t& renderCallba
     this->hasPositions = true;
     this->hasNormals = MarchingCubes::ENABLE_NORMALS;
 
-    if ( this->enableUvs ) {
+    if ( enableUvs ) {
         this->hasUvs = true;
     }
 
@@ -891,8 +890,8 @@ void MarchingCubes<enableColors>::finish_queue( /*const callback_t& renderCallba
 // todo: separate the addBall,seal,etc into the `field` [part of the] class.
 
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::seal_exterior(const REAL exterior_value) {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::seal_exterior(const REAL exterior_value) {
 
     //const REAL exterior_value = -1.;
 
@@ -967,8 +966,8 @@ void MarchingCubes<enableColors>::seal_exterior(const REAL exterior_value) {
 // Updates
 /////////////////////////////////////
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::reset_field()
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::reset_field()
 {
     // wipe the normal cache
     for (int i = 0; i < this->gridbox.full_stride; i++ ) {
@@ -981,8 +980,8 @@ void MarchingCubes<enableColors>::reset_field()
     }
 }
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::reset_result() {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::reset_result() {
     //std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<int> &faces3, e3map_t &e3map, int& next_unique_vect_counter
 
     /*
@@ -1015,8 +1014,8 @@ void MarchingCubes<enableColors>::reset_result() {
 }
 
 // Renderes a geometry.
-template <bool enableColors>
-void MarchingCubes<enableColors>::render_geometry(/*const callback_t& renderCallback*/ ) {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::render_geometry(/*const callback_t& renderCallback*/ ) {
     
     //const callback_t renderCallback;
     
@@ -1203,8 +1202,8 @@ THREE.MarchingCubes.prototype.constructor = THREE.MarchingCubes;
 
 // Maps (8bit -> 12 bit) all possible 2**8 configurations (cases of grid-node signs) into a set of edges (12 edges in total).
 // former name: edgeTable.
-template <bool enableColors>
-const int MarchingCubes<enableColors>::mc_edge_lookup_table[256] = {
+template <bool enableUvs, bool enableColors>
+const int MarchingCubes<enableUvs,enableColors>::mc_edge_lookup_table[256] = {
     0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
     0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
     0x190, 0x099, 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -1242,8 +1241,8 @@ const int MarchingCubes<enableColors>::mc_edge_lookup_table[256] = {
 
 // Contains 5*3+1 elements: 5 triples, plus a trailing -1
 // former name: triTable
-template<bool enableColors>
-const int MarchingCubes<enableColors>::mc_triangles_table[256*16] = {
+template <bool enableUvs, bool enableColors>
+const int MarchingCubes<enableUvs,enableColors>::mc_triangles_table[256*16] = {
                                           -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,
  0, 8, 3,                                            -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,
  0, 1, 9,                                            -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,-1,-1,  -1,
@@ -1516,8 +1515,8 @@ typedef struct {
 
 //void flush_geometry_queue(MarchingCubes& object) {
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::flush_geometry_queue(std::ostream& cout, int& normals_start,
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::flush_geometry_queue(std::ostream& cout, int& normals_start,
     //outputs:
     std::vector<REAL> &normals, std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter)
 {
@@ -1657,9 +1656,9 @@ void MarchingCubes<enableColors>::flush_geometry_queue(std::ostream& cout, int& 
     }
 }
 
-template <bool enableColors>
+template <bool enableUvs, bool enableColors>
 vectorized_vect
-MarchingCubes<enableColors>::prepare_grid() {
+MarchingCubes<enableUvs,enableColors>::prepare_grid() {
       int min_xi = 0;
       int max_xi = this->resolution_x;
       int min_yi = 0;
@@ -1698,8 +1697,8 @@ MarchingCubes<enableColors>::prepare_grid() {
 }
 
 //Based on mcc2_MS.cpp
-template <bool enableColors>
-void MarchingCubes<enableColors>::eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
 
       boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution_x * this->resolution_y * this->resolution_z }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
@@ -1724,8 +1723,8 @@ void MarchingCubes<enableColors>::eval_shape(const mp5_implicit::implicit_functi
       }
 }
 
-template <bool enableColors>
-void MarchingCubes<enableColors>::produce_mesh(const mp5_implicit::implicit_function& object) {
+template <bool enableUvs, bool enableColors>
+void MarchingCubes<enableUvs,enableColors>::produce_mesh(const mp5_implicit::implicit_function& object) {
     // moved from mcc2.cpp
 
     // Does thismake things slower ?
