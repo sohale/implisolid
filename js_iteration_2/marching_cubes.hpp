@@ -143,14 +143,11 @@ public:
     inline int polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, REAL isol*/ /*, const callback_t& callback*/ );
 
 //field:
+    void reset_field(); //???? Nobody calls this.
     void seal_exterior(const REAL exterior_value = -100.);
-    /*void subtract_dc(REAL dc_value);*/
-
     vectorized_vect  prepare_grid();
     void eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
-//field
-    void reset(); //???? Nobody calls this.
 
 //geometry/threejs interface side.
     void render_geometry(/*const callback_t& renderCallback */);
@@ -164,6 +161,10 @@ public:
     std::vector<vertexindex_type> result_faces;
     e3map_t result_e3map;
     int next_unique_vect_counter = 0;
+
+ public:
+    // high level:
+    void produce_mesh(const mp5_implicit::implicit_function& object);
 };
 
 //static dim_t MarchingCubes::queueSize = ...;
@@ -954,7 +955,7 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
 // Updates
 /////////////////////////////////////
 
-void MarchingCubes::reset()
+void MarchingCubes::reset_field()
 {
     // wipe the normal cache
     for (int i = 0; i < this->gridbox.full_stride; i++ ) {
@@ -1704,6 +1705,18 @@ void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, co
       }
 }
 
+
+void MarchingCubes::produce_mesh(const mp5_implicit::implicit_function& object) {
+    // moved from mcc2.cpp
+
+    // Does thismake things slower ?
+    vectorized_vect   mcgrid_vectorized = this -> prepare_grid();  // 10.0
+    this -> eval_shape(object, mcgrid_vectorized);
+    this -> seal_exterior(-10000000.0);
+
+    this -> render_geometry();
+
+}
 
 }  // namespace marching_cubes
 

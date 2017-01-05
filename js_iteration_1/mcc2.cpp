@@ -228,17 +228,7 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
     MarchingCubes mc {resolution_, box_, enableUvs, enableColors};
     MarchingCubes * _state_mc = &mc;
 
-    // ****************************
-    // Does thismake things slower ?
-    vectorized_vect   mcgrid_vectorized = _state_mc -> prepare_grid();  // 10.0
-    _state_mc -> eval_shape(*object, mcgrid_vectorized);
-
-    _state_mc->seal_exterior(-10000000.0);
-
-    _state_mc->render_geometry();
-    // std::clog << "MC executed" << std::endl;
-
-    // std::clog << "map4" << std::endl;
+    _state_mc->produce_mesh ( *object );
 
     if (REPORT_STATS) {
     int mapctr = 0;
