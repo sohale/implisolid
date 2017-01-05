@@ -28,30 +28,32 @@ class MarchingCubes{
     index_t resolution_x, resolution_y, resolution_z;
     //index_t size1x, size2xy, size3xyz; //todo: non-equal `grid` sizes
     struct gridbox_t {
+        constexpr static index_t xstride = 1;
         index_t  ystride;  // size1x
         index_t  zstride;  // size2xy
         index_t  full_stride;  // size3xyz
-    } gridbox;
+    } ;
+    
+    gridbox_t gridbox;
 
     // size1x=ystride, size2xy=zstride, size3xyz=?
     //  ((x)*y)*z  <-->  x, xy, xyz  <-->  ystride,zstride,fullstride  <-->
     // global cube: for indices (cube coords) in a larger virtual grid,
     // local cube: for the current cube in the boundingbox,
-    index_t  ystride, zstride; // local: for the 'field' and normal_cache arrays
-    struct globalbox_t {
-        //global: for indexing vertices and their edges, when not all the field is available
-        index_t  ystride;
-        index_t  zstride;
-        index_t  full_stride;
-    } globalbox; // globalgrid
-
+    //index_t  ystride, zstride; // local: for the 'field' and normal_cache arrays
+    gridbox_t  localgrid;
+    //global: for indexing vertices and their edges, when not all the field is available
+    gridbox_t globalbox; // globalgrid
+ 
     //buffer_stride, global_stride, grid_stride, subgrids, master_grid, buffer_grid, this_grid,    , globalgrid, midgrid
     // ystride(=size1x), zstride, xyzstride
+    /*
     struct midgrid_t {
         index_t resolution_x, resolution_y, resolution_z;
         constexpr static index_t xstride = 1;
         index_t  ystride, zstride, full_stride;  // size3xyz
-    } midgrid;
+    } midgrid */
+    gridbox_t midgrid;
 
     //REAL halfsize;
     REAL widthx, widthy, widthz;  // in millimeters
@@ -253,8 +255,8 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         this->gridbox.ystride = this->resolution_x;
         this->gridbox.zstride = this->resolution_x * this->resolution_y;
         this->gridbox.full_stride = this->gridbox.zstride * this->resolution_z;
-        this->ystride = this->gridbox.ystride;
-        this->zstride = this->gridbox.zstride;
+        this->localgrid.ystride = this->gridbox.ystride;
+        this->localgrid.zstride = this->gridbox.zstride;
         this->globalbox.ystride = this->gridbox.ystride;
         this->globalbox.zstride = this->gridbox.zstride;
         this->globalbox.full_stride = this->gridbox.full_stride;
@@ -451,7 +453,7 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
     pout[ offset + 2 ] = z;
 
     if(MarchingCubes::ENABLE_NORMALS){
-        index_t q2 = q + this->ystride * 3;
+        index_t q2 = q + this->localgrid.ystride * 3;
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
@@ -475,7 +477,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
     pout[ offset + 2 ] = z + mu * this->widthz;
 
     if(MarchingCubes::ENABLE_NORMALS){
-        index_t q2 = q + this->zstride * 3;
+        index_t q2 = q + this->localgrid.zstride * 3;
 
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
@@ -495,8 +497,8 @@ inline void MarchingCubes::compNorm( index_t q ) {
         //What if the x happens to be 0.0 ?
         if ( this->normal_cache[ q3 ] == 0.0 ) {
             this->normal_cache[ q3 ] = this->field[ q - 1 ]            - this->field[ q + 1 ];
-            this->normal_cache[ q3 + 1 ] = this->field[ q - this->ystride ] - this->field[ q + this->ystride ];
-            this->normal_cache[ q3 + 2 ] = this->field[ q - this->zstride ] - this->field[ q + this->zstride ];
+            this->normal_cache[ q3 + 1 ] = this->field[ q - this->localgrid.ystride ] - this->field[ q + this->localgrid.ystride ];
+            this->normal_cache[ q3 + 2 ] = this->field[ q - this->localgrid.zstride ] - this->field[ q + this->localgrid.zstride ];
         }
 }
 
@@ -512,12 +514,12 @@ inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, ind
 
     // cache indices
     index_t qx = q + 1,
-        qy = q + this->ystride,
-        qz = q + this->zstride,
-        qxy = qx + this->ystride,
-        qxz = qx + this->zstride,
-        qyz = q + this->ystride + this->zstride,
-        qxyz = qx + this->ystride + this->zstride;
+        qy = q + this->localgrid.ystride,
+        qz = q + this->localgrid.zstride,
+        qxy = qx + this->localgrid.ystride,
+        qxz = qx + this->localgrid.zstride,
+        qyz = q + this->localgrid.ystride + this->localgrid.zstride,
+        qxyz = qx + this->localgrid.ystride + this->localgrid.zstride;
 
     index3_t ijk_0 = q;
     index3_t
@@ -948,7 +950,7 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     int cxy;
 
     // cache attribute lookups
-    int ystride = this->ystride;
+    int ystride = this->localgrid.ystride;
     REAL dpi = std::max(this->u_resolution,);
     int zstride = this->zstride;
     array1d& field = this->field;
@@ -979,8 +981,8 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     //int cxy;
 
     // cache attribute lookups
-    int ystride = this->ystride;
-    int zstride = this->zstride;
+    int ystride = this->localgrid.ystride;
+    int zstride = this->localgrid.zstride;
     array1d& field = this->field;
 
     for ( x = 0; x < this->resolution_x; x++ ) {
@@ -1047,8 +1049,8 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     int cxy;
 
     // cache attribute lookups
-    int ystride = this->ystride;
-    int zstride = this->zstride;
+    int ystride = this->localgrid.ystride;
+    int zstride = this->localgrid.zstride;
     array1d& field = this->field;
     REAL distx = resolution_x * sqrt(strength / (REAL)subtract);
 
@@ -1076,8 +1078,8 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int cxy;
 
     // cache attribute lookups
-    int ystride = this->ystride;
-    int zstride = this->zstride;
+    int ystride = this->localgrid.ystride;
+    int zstride = this->localgrid.zstride;
     array1d& field = this->field;
     REAL disty = resolution_y * sqrt(strength / subtract);
 
@@ -1105,8 +1107,8 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
     int cz, cyz;
 
     // cache attribute lookups
-    int ystride = this->ystride;
-    int zstride = this->zstride;
+    int ystride = this->localgrid.ystride;
+    int zstride = this->localgrid.zstride;
     array1d& field = this->field;
     REAL distz = resolution_z * sqrt( strength / subtract );
 
