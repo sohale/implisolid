@@ -225,8 +225,8 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
     bool enableUvs = true;
     bool enableColors = true;
 
-    MarchingCubes mc {resolution_, box_, enableUvs, enableColors};
-    MarchingCubes * _state_mc = &mc;
+    MarchingCubes<false> mc {resolution_, box_, enableUvs};
+    MarchingCubes<false> * _state_mc = &mc;
 
     _state_mc->produce_mesh ( *object );
 
