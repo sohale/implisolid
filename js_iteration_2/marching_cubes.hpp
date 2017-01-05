@@ -28,17 +28,29 @@ class MarchingCubes{
     index_t resolution_x, resolution_y, resolution_z;
     index_t size1x, size2xy, size3xyz; //todo: non-equal grid sizes
 
+    // size1x=ystride, size2xy=zstride, size3xyz=?
+    //  ((x)*y)*z  <-->  x, xy, xyz  <-->  ystride,zstride,fullstride  <-->
     // global cube: for indices (cube coords) in a larger virtual grid,
     // local cube: for the current cube in the boundingbox,
     index_t  ystride, zstride; // local: for the 'field' and normal_cache arrays
-    index_t  ystride_global, zstride_global;  //global: for indexing vertices and their edges, when not all the field is available
+    struct globalbox_t {
+        index_t  ystride, zstride, full_stride;  //global: for indexing vertices and their edges, when not all the field is available
+    } globalbox; // globalgrid
+
+    //buffer_stride, global_stride, grid_stride, subgrids, master_grid, buffer_grid, this_grid,    , globalgrid, midgrid
+    // ystride(=size1x), zstride, xyzstride
+    struct midgrid_t {
+        index_t resolution_x, resolution_y, resolution_z;
+        constexpr static index_t xstride = 1;
+        index_t  ystride, zstride, full_stride;  // size3xyz
+    } midgrid;
 
     //REAL halfsize;
-    REAL deltax, deltay, deltaz;
+    REAL widthx, widthy, widthz;  // in millimeters
     mp5_implicit::bounding_box box;
 
     array1d field;      // local_ ystride and zstride
-    array1d normal_cache;
+    array1d normal_cache;  // size: 
 
     // parameters
     static const dim_t queueSize = 4096;  // Name history: maxCount
@@ -221,9 +233,9 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         auto ezi = this->resolution_z - MarchingCubes::skip_count_l - MarchingCubes::skip_count_h;
 
         // width of each mini-cube (each one of the marching cubes)
-        this->deltax = widthx / (REAL)( exi );  // (2.0 / (REAL)resolution_)*size
-        this->deltay = widthy / (REAL)( eyi );
-        this->deltaz = widthz / (REAL)( ezi );
+        this->widthx = widthx / (REAL)( exi );  // (2.0 / (REAL)resolution_)*size
+        this->widthy = widthy / (REAL)( eyi );
+        this->widthz = widthz / (REAL)( ezi );
         //REAL halfsize = width / 2.0 / delta; // ((REAL)this->resolution_) / 2.0;
 
         this->box = box;
@@ -235,8 +247,9 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         this->size3xyz = this->size2xy * this->resolution_z;
         this->ystride = this->size1x;
         this->zstride = this->size2xy;
-        this->ystride_global = this->size1x;
-        this->zstride_global = this->size2xy;
+        this->globalbox.ystride = this->size1x;
+        this->globalbox.zstride = this->size2xy;
+        this->globalbox.full_stride = this->size3xyz;
 
         array_shape_t fsize = {(int)this->size3xyz};
         this->field = array1d(fsize);
@@ -390,7 +403,7 @@ inline void MarchingCubes:: VIntX(
     REAL mu = ( isol - valp1 ) / ( valp2 - valp1 );
     const array1d& normal_cache = this->normal_cache;
 
-    pout[ offset ]     = x + mu * this->deltax;
+    pout[ offset ]     = x + mu * this->widthx;
     pout[ offset + 1 ] = y;
     pout[ offset + 2 ] = z;
 
@@ -426,7 +439,7 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
     const array1d& normal_cache = this->normal_cache;
 
     pout[ offset ]     = x;
-    pout[ offset + 1 ] = y + mu * this->deltay;
+    pout[ offset + 1 ] = y + mu * this->widthy;
     pout[ offset + 2 ] = z;
 
     if(MarchingCubes::ENABLE_NORMALS){
@@ -451,7 +464,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
 
     pout[ offset ]     = x;
     pout[ offset + 1 ] = y;
-    pout[ offset + 2 ] = z + mu * this->deltaz;
+    pout[ offset + 2 ] = z + mu * this->widthz;
 
     if(MarchingCubes::ENABLE_NORMALS){
         index_t q2 = q + this->zstride * 3;
@@ -500,12 +513,12 @@ inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, ind
 
     index3_t ijk_0 = q;
     index3_t
-             ijk_x = ijk_0 + 1 ,
-             ijk_y = ijk_0 + this->ystride_global ,
-             ijk_z = ijk_0 + this->zstride_global ,
-             ijk_xy = ijk_0 + 1 + this->ystride_global ,
-             ijk_yz = ijk_0 + this->ystride_global + this->zstride_global ,
-             ijk_xz = ijk_0 + 1 + this->zstride_global ;
+             ijk_x = ijk_0 + 1 ,  //xstride==1
+             ijk_y = ijk_0 + this->globalbox.ystride ,
+             ijk_z = ijk_0 + this->globalbox.zstride ,
+             ijk_xy = ijk_0 + 1 + this->globalbox.ystride ,
+             ijk_yz = ijk_0 + this->globalbox.ystride + this->globalbox.zstride ,
+             ijk_xz = ijk_0 + 1 + this->globalbox.zstride ;
 
     unsigned int cubeindex = 0;
 
@@ -536,9 +549,9 @@ inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, ind
 
     //std::clog  << cubeindex << " ";
 
-    REAL dx = this->deltax;
-    REAL dy = this->deltay;
-    REAL dz = this->deltaz;
+    REAL dx = this->widthx;
+    REAL dy = this->widthy;
+    REAL dz = this->widthz;
     REAL
         fx2 = fx + dx,
         fy2 = fy + dy,
@@ -1166,9 +1179,9 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
     this->reset_result();  //receiver of the queue
     this->begin_queue();
 
-    const REAL xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
-    const REAL yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
-    const REAL zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
+    const REAL xi0 = (+this->box.xmin) / widthx - MarchingCubes::skip_count_l;
+    const REAL yi0 = (+this->box.ymin) / widthy - MarchingCubes::skip_count_l;
+    const REAL zi0 = (+this->box.zmin) / widthz - MarchingCubes::skip_count_l;
 
     // Triangulate. Yeah, this is slow.
 
@@ -1184,16 +1197,16 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
     for ( int zi = start_z; zi < end_z; zi++ ) {
 
         index_t z_offset = this->size2xy * zi;
-        REAL fz = ( zi + zi0 ) * this->deltaz; //+ 1
+        REAL fz = ( zi + zi0 ) * this->widthz; //+ 1
 
         for ( int yi = start_y; yi < end_y; yi++ ) {
 
             index_t y_offset = z_offset + this->size1x * yi;
-            REAL fy = ( yi + yi0 ) * this->deltay; //+ 1
+            REAL fy = ( yi + yi0 ) * this->widthy; //+ 1
 
             for ( int xi = start_x; xi < end_x; xi++ ) {
 
-                REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
+                REAL fx = ( xi + xi0 ) * this->widthx; //+ 1
                 index_t q = y_offset + xi;
 
                 // use sub-grids for buffer here.
@@ -1827,9 +1840,9 @@ MarchingCubes::prepare_grid() {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
                   vectorized_vect::index  i = x + y * this->size1x + z * this->size2xy;
-                  grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->deltax;
-                  grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->deltay;
-                  grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->deltaz;
+                  grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->widthx;
+                  grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->widthy;
+                  grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->widthz;
               }
           }
       }
@@ -1844,13 +1857,14 @@ void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, co
       boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution_x * this->resolution_y * this->resolution_z }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
+      // todo: skip the skip_count_l and skip_count_h
       object.eval_implicit(mcgrid_vectorized, &implicit_values);
 
       int min_xi = 0;
-      int max_xi = this->resolution_x;
       int min_yi = 0;
-      int max_yi = this->resolution_y;
       int min_zi = 0;
+      int max_xi = this->resolution_x;
+      int max_yi = this->resolution_y;
       int max_zi = this->resolution_z;
 
       // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
