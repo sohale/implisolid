@@ -84,7 +84,7 @@ public:
 
  protected:
     //Buffers:
-    index_t  temp_buffer_size = 12;
+    index_t  temp_buffer_size = 12;  // why so small?
     // temp buffers used in polygonize
     array1d vlist_buffer;
     array1d nlist_buffer;  // size: 12 x 3
