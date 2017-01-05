@@ -26,7 +26,12 @@ class MarchingCubes{
     bool enableUvs, enableColors;
     //dim_t resolution_;
     index_t resolution_x, resolution_y, resolution_z;
-    index_t size1x, size2xy, size3xyz; //todo: non-equal grid sizes
+    //index_t size1x, size2xy, size3xyz; //todo: non-equal `grid` sizes
+    struct gridbox_t {
+        index_t  ystride;  // size1x
+        index_t  zstride;  // size2xy
+        index_t  full_stride;  // size3xyz
+    } gridbox;
 
     // size1x=ystride, size2xy=zstride, size3xyz=?
     //  ((x)*y)*z  <-->  x, xy, xyz  <-->  ystride,zstride,fullstride  <-->
@@ -34,7 +39,10 @@ class MarchingCubes{
     // local cube: for the current cube in the boundingbox,
     index_t  ystride, zstride; // local: for the 'field' and normal_cache arrays
     struct globalbox_t {
-        index_t  ystride, zstride, full_stride;  //global: for indexing vertices and their edges, when not all the field is available
+        //global: for indexing vertices and their edges, when not all the field is available
+        index_t  ystride;
+        index_t  zstride;
+        index_t  full_stride;
     } globalbox; // globalgrid
 
     //buffer_stride, global_stride, grid_stride, subgrids, master_grid, buffer_grid, this_grid,    , globalgrid, midgrid
@@ -242,34 +250,34 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         // deltas
         //this->delta = delta;  // 2.0 / (REAL)this->resolution_;
-        this->size1x = this->resolution_x;
-        this->size2xy = this->resolution_x * this->resolution_y;
-        this->size3xyz = this->size2xy * this->resolution_z;
-        this->ystride = this->size1x;
-        this->zstride = this->size2xy;
-        this->globalbox.ystride = this->size1x;
-        this->globalbox.zstride = this->size2xy;
-        this->globalbox.full_stride = this->size3xyz;
+        this->gridbox.ystride = this->resolution_x;
+        this->gridbox.zstride = this->resolution_x * this->resolution_y;
+        this->gridbox.full_stride = this->gridbox.zstride * this->resolution_z;
+        this->ystride = this->gridbox.ystride;
+        this->zstride = this->gridbox.zstride;
+        this->globalbox.ystride = this->gridbox.ystride;
+        this->globalbox.zstride = this->gridbox.zstride;
+        this->globalbox.full_stride = this->gridbox.full_stride;
 
-        array_shape_t fsize = {(int)this->size3xyz};
+        array_shape_t fsize = {(int)this->gridbox.full_stride};
         this->field = array1d(fsize);
         // need a guarantee:
 
         // todo: get available heap.
         // todo: handle memory exception.
-        my_assert(this->size3xyz < 10000000, "size of the field is too large.");
-        assert(this->size3xyz > 0);
+        my_assert(this->gridbox.full_stride < 10000000, "size of the field is too large.");
+        assert(this->gridbox.full_stride > 0);
 
 
 /**
  *  COMMENTED OUT
  *
-        // auto field_shape = make_shape_1d((int)this->size3xyz);
-        // //array_shape_t  field_shape = {{ (int)this->size3xyz, }};
+        // auto field_shape = make_shape_1d((int)this->gridbox.full_stride);
+        // //array_shape_t  field_shape = {{ (int)this->gridbox.full_stride, }};
         //
         //
         // std::clog << "trouble begins" << std::endl;
-        // std::clog << (int)this->size3xyz << std::endl;
+        // std::clog << (int)this->gridbox.full_stride << std::endl;
         //
         // //this->field = array1d( field_shape );
         // this->field = array1d( field_shape );
@@ -278,9 +286,9 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         #if MARCHINGCUBES_ENABLE_NORMALS
         if(MarchingCubes::ENABLE_NORMALS){
-            // this->normal_cache = new Float32Array( this->size3xyz * 3 );
-            array_shape_t normals_shape = make_shape_1d( (int)this->size3xyz * 3 );
-            // array_shape_t  normals_shape = {{ (int)this->size3xyz * 3, }};
+            // this->normal_cache = new Float32Array( this->gridbox.full_stride * 3 );
+            array_shape_t normals_shape = make_shape_1d( (int)this->gridbox.full_stride * 3 );
+            // array_shape_t  normals_shape = {{ (int)this->gridbox.full_stride * 3, }};
             this->normal_cache = array1d( normals_shape );
 
             // std::fill_n(this->normal_cache.begin(), this->normal_cache.size(), 0.0 );  // from #include <algorithm>
@@ -912,13 +920,13 @@ void MarchingCubes::addBall(
     REAL dpi = (REAL)this->resolution_;
     for ( z = min_zi; z < max_zi; z++ ) {
 
-        z_offset = this->size2xy * z,
+        z_offset = this->gridbox.zstride * z,
         fz = z / dpi - ballz,
         fz2 = fz * fz;
 
         for ( y = min_yi; y < max_yi; y++ ) {
 
-            y_offset = z_offset + this->size1x * y;
+            y_offset = z_offset + this->gridbox.ystride * y;
             fy = y / dpi - bally;
             fy2 = fy * fy;
 
@@ -1128,7 +1136,7 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
 void MarchingCubes::reset()
 {
     // wipe the normal cache
-    for (int i = 0; i < this->size3xyz; i++ ) {
+    for (int i = 0; i < this->gridbox.full_stride; i++ ) {
         #if MARCHINGCUBES_ENABLE_NORMALS
         if(MarchingCubes::ENABLE_NORMALS){
             this->normal_cache[ i * 3 ] = 0.0; // Why the other elements are not done?
@@ -1196,12 +1204,12 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
 
     for ( int zi = start_z; zi < end_z; zi++ ) {
 
-        index_t z_offset = this->size2xy * zi;
+        index_t z_offset = this->gridbox.zstride * zi;
         REAL fz = ( zi + zi0 ) * this->widthz; //+ 1
 
         for ( int yi = start_y; yi < end_y; yi++ ) {
 
-            index_t y_offset = z_offset + this->size1x * yi;
+            index_t y_offset = z_offset + this->gridbox.ystride * yi;
             REAL fy = ( yi + yi0 ) * this->widthy; //+ 1
 
             for ( int xi = start_x; xi < end_x; xi++ ) {
@@ -1839,7 +1847,7 @@ MarchingCubes::prepare_grid() {
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                  vectorized_vect::index  i = x + y * this->size1x + z * this->size2xy;
+                  vectorized_vect::index  i = x + y * this->gridbox.ystride + z * this->gridbox.zstride;
                   grid[i][0] = (REAL)x * xfactor + this->box.xmin - MarchingCubes::skip_count_l * this->widthx;
                   grid[i][1] = (REAL)y * yfactor + this->box.ymin - MarchingCubes::skip_count_l * this->widthy;
                   grid[i][2] = (REAL)z * zfactor + this->box.zmin - MarchingCubes::skip_count_l * this->widthz;
@@ -1871,7 +1879,7 @@ void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, co
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                this->field[x + y*this->size1x + z*this->size2xy] += implicit_values[x + y*this->size1x + z*this->size2xy];
+                this->field[x + y*this->gridbox.ystride + z*this->gridbox.zstride] += implicit_values[x + y*this->gridbox.ystride + z*this->gridbox.zstride];
               }
           }
       }
@@ -1892,7 +1900,7 @@ void MarchingCubes::subtract_dc(REAL dc_value){
       for (int z = min_zi; z < max_zi; z++ ) {
           for (int y = min_yi; y < max_yi; y++ ) {
               for (int x = min_xi; x < max_xi; x++ ) {
-                this->field[x + y*this->size1x + z*this->size2xy] -= dc_value;
+                this->field[x + y*this->gridbox.ystride + z*this->gridbox.zstride] -= dc_value;
               }
           }
       }

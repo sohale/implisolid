@@ -59,6 +59,7 @@ public:
     //copied from unit_sphere
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
 
+        // todo: apply matrix_vector_product()
         this->polygon->eval_implicit(  x,  f_output);
 /*
         my_assert(assert_implicit_function_io(x, *f_output), "");
@@ -83,7 +84,10 @@ public:
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
+        // todo: apply matrix_vector_product()
         this->polygon->eval_gradient(  x,  output);
+        // todo: apply inv_transf_matrix
+
         /*
         vectorized_vect x_copy = x;
         matrix_vector_product(this->inv_transf_matrix, x_copy);

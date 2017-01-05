@@ -182,8 +182,8 @@ public:
             REAL x = (*j)[0];
             REAL y = (*j)[1];
             auto min_val_which_pair = this->calc_minv(x, y);
-            (*output)[output_ctr][0] = nx[min_val_which_pair.second];
-            (*output)[output_ctr][1] = ny[min_val_which_pair.second];
+            (*output)[output_ctr][0] = -nx[min_val_which_pair.second];
+            (*output)[output_ctr][1] = -ny[min_val_which_pair.second];
         }
     }
 
