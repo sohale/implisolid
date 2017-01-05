@@ -8,9 +8,6 @@
 namespace marching_cubes {
     
 
-REAL lerp(REAL a, REAL b, REAL t ) {
-    return a + ( b - a ) * t;
-}
 
 #define MARCHINGCUBES_ENABLE_NORMALS true
 
@@ -33,14 +30,14 @@ class MarchingCubes{
 
     // global cube: for indices (cube coords) in a larger virtual grid,
     // local cube: for the current cube in the boundingbox,
-    index_t  yd, zd; // local: for the 'field' and normal_cache arrays
-    index_t  yd_global, zd_global;  //global: for indexing vertices and their edges, when not all the field is available
+    index_t  ystride, zstride; // local: for the 'field' and normal_cache arrays
+    index_t  ystride_global, zstride_global;  //global: for indexing vertices and their edges, when not all the field is available
 
     //REAL halfsize;
     REAL deltax, deltay, deltaz;
     mp5_implicit::bounding_box box;
 
-    array1d field;      // local_ yd and zd
+    array1d field;      // local_ ystride and zstride
     array1d normal_cache;
 
     // parameters
@@ -87,6 +84,11 @@ public:
     // MC's lookup tables
     static const int mc_edge_lookup_table[256];
     static const int mc_triangles_table[256*16];
+
+ protected:
+    inline REAL lerp(REAL a, REAL b, REAL t ) {
+        return a + ( b - a ) * t;
+    }
 
  protected:
     void init( mp5_implicit::bounding_box box);
@@ -208,9 +210,6 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         // size of field, 32 is pushing it in Javascript :)
 
         //dim_t resolution_ = apparent_resolution + MarchingCubes::skip_count_l + MarchingCubes::skip_count_h;
-        this->size1x = this->resolution_x;
-        this->size2xy = this->resolution_x * this->resolution_y;
-        this->size3xyz = this->size2xy * this->resolution_z;
 
         REAL widthx = box.xmax - box.xmin;
         REAL widthy = box.ymax - box.ymin;
@@ -231,10 +230,13 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
 
         // deltas
         //this->delta = delta;  // 2.0 / (REAL)this->resolution_;
-        this->yd = this->size1x;
-        this->zd = this->size2xy;
-        this->yd_global = this->size1x;
-        this->zd_global = this->size2xy;
+        this->size1x = this->resolution_x;
+        this->size2xy = this->resolution_x * this->resolution_y;
+        this->size3xyz = this->size2xy * this->resolution_z;
+        this->ystride = this->size1x;
+        this->zstride = this->size2xy;
+        this->ystride_global = this->size1x;
+        this->zstride_global = this->size2xy;
 
         array_shape_t fsize = {(int)this->size3xyz};
         this->field = array1d(fsize);
@@ -428,7 +430,7 @@ inline void MarchingCubes:: VIntY (index_t q, array1d& pout, array1d& nout, int 
     pout[ offset + 2 ] = z;
 
     if(MarchingCubes::ENABLE_NORMALS){
-        index_t q2 = q + this->yd * 3;
+        index_t q2 = q + this->ystride * 3;
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
@@ -452,7 +454,7 @@ inline void MarchingCubes:: VIntZ(index_t q, array1d& pout, array1d& nout, int o
     pout[ offset + 2 ] = z + mu * this->deltaz;
 
     if(MarchingCubes::ENABLE_NORMALS){
-        index_t q2 = q + this->zd * 3;
+        index_t q2 = q + this->zstride * 3;
 
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
@@ -472,8 +474,8 @@ inline void MarchingCubes::compNorm( index_t q ) {
         //What if the x happens to be 0.0 ?
         if ( this->normal_cache[ q3 ] == 0.0 ) {
             this->normal_cache[ q3 ] = this->field[ q - 1 ]            - this->field[ q + 1 ];
-            this->normal_cache[ q3 + 1 ] = this->field[ q - this->yd ] - this->field[ q + this->yd ];
-            this->normal_cache[ q3 + 2 ] = this->field[ q - this->zd ] - this->field[ q + this->zd ];
+            this->normal_cache[ q3 + 1 ] = this->field[ q - this->ystride ] - this->field[ q + this->ystride ];
+            this->normal_cache[ q3 + 2 ] = this->field[ q - this->zstride ] - this->field[ q + this->zstride ];
         }
 }
 
@@ -489,21 +491,21 @@ inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, ind
 
     // cache indices
     index_t qx = q + 1,
-        qy = q + this->yd,
-        qz = q + this->zd,
-        qxy = qx + this->yd,
-        qxz = qx + this->zd,
-        qyz = q + this->yd + this->zd,
-        qxyz = qx + this->yd + this->zd;
+        qy = q + this->ystride,
+        qz = q + this->zstride,
+        qxy = qx + this->ystride,
+        qxz = qx + this->zstride,
+        qyz = q + this->ystride + this->zstride,
+        qxyz = qx + this->ystride + this->zstride;
 
     index3_t ijk_0 = q;
     index3_t
              ijk_x = ijk_0 + 1 ,
-             ijk_y = ijk_0 + this->yd_global ,
-             ijk_z = ijk_0 + this->zd_global ,
-             ijk_xy = ijk_0 + 1 + this->yd_global ,
-             ijk_yz = ijk_0 + this->yd_global + this->zd_global ,
-             ijk_xz = ijk_0 + 1 + this->zd_global ;
+             ijk_y = ijk_0 + this->ystride_global ,
+             ijk_z = ijk_0 + this->zstride_global ,
+             ijk_xy = ijk_0 + 1 + this->ystride_global ,
+             ijk_yz = ijk_0 + this->ystride_global + this->zstride_global ,
+             ijk_xz = ijk_0 + 1 + this->zstride_global ;
 
     unsigned int cubeindex = 0;
 
@@ -925,9 +927,9 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
     int cxy;
 
     // cache attribute lookups
-    int yd = this->yd;
+    int ystride = this->ystride;
     REAL dpi = std::max(this->u_resolution,);
-    int zd = this->zd;
+    int zstride = this->zstride;
     array1d& field = this->field;
     REAL distx = dpi * sqrt(strength / (REAL)subtract);
 
@@ -938,9 +940,9 @@ void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
         val = strength / (REAL)( 0.0001 + xx ) - subtract;
         if ( val > 0.0 ) {
             for ( y = 0; y < this->resolution_y; y++ ) {
-                cxy = x + y * yd;
+                cxy = x + y * ystride;
                 for ( z = 0; z < this->resolution_z; z++ ) {
-                    field[ zd * z + cxy ] += val;
+                    field[ zstride * z + cxy ] += val;
                 }
             }
         }
@@ -956,24 +958,24 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     //int cxy;
 
     // cache attribute lookups
-    int yd = this->yd;
-    int zd = this->zd;
+    int ystride = this->ystride;
+    int zstride = this->zstride;
     array1d& field = this->field;
 
     for ( x = 0; x < this->resolution_x; x++ ) {
         for ( y = 0; y < this->resolution_y; y++ ) {
             // int cxy
-            int cxy = x + y * yd;
+            int cxy = x + y * ystride;
             /*
             {
-            int z = 0;      field[ zd * z + cxy ] = exterior_value;
+            int z = 0;      field[ zstride * z + cxy ] = exterior_value;
             }{
-            int z = resolution_z-1; field[ zd * z + cxy ] = exterior_value;
+            int z = resolution_z-1; field[ zstride * z + cxy ] = exterior_value;
             }
             bool border = (x == 0) || (x == resolution_x-1) || (y == 0) || (y == resolution_y-1);
             if(border){
                 for ( z = 0; z < resolution_z; z++ ) {
-                    field[ zd * z + cxy ] = exterior_value;
+                    field[ zstride * z + cxy ] = exterior_value;
                 }
             }
             */
@@ -997,23 +999,23 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
                 // This may fix cylinder's problem
                 if (border || border0) {
-                    field[ zd * z + cxy ] = exterior_value;
+                    field[ zstride * z + cxy ] = exterior_value;
                 }
                 //if (z == 4 && x == 2)
-                //    field[ zd * z + cxy ] = +2.;
+                //    field[ zstride * z + cxy ] = +2.;
             }
         }
     }
     /*
     std::clog << "seal_exterior "
         << field[0]  << ","
-        << field[yd]  << ","
-        << field[yd+zd]  << ";"
-        << field[zd+yd+1]  << ","
-        << field[zd+yd+2]  << ","
-        << field[zd+yd+3]  << ","
-        << field[zd+yd+4]  << ","
-        << field[ zd * 4 + 2 + (y=3) * yd ]
+        << field[ystride]  << ","
+        << field[ystride+zstride]  << ";"
+        << field[zstride+ystride+1]  << ","
+        << field[zstride+ystride+2]  << ","
+        << field[zstride+ystride+3]  << ","
+        << field[zstride+ystride+4]  << ","
+        << field[ zstride * 4 + 2 + (y=3) * ystride ]
         << std::endl;
     */
 }
@@ -1024,20 +1026,20 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
     int cxy;
 
     // cache attribute lookups
-    int yd = this->yd;
-    int zd = this->zd;
+    int ystride = this->ystride;
+    int zstride = this->zstride;
     array1d& field = this->field;
     REAL distx = resolution_x * sqrt(strength / (REAL)subtract);
 
     if ( distx > resolution_x ) distx = resolution_x; //????
     for ( x = 0; x < distx; x++ ) {
         for ( y = 0; y < resolution_y; y++ ) {
-            cxy = x + y * yd;
+            cxy = x + y * ystride;
             for ( z = 0; z < resolution_z; z++ ) {
                 bool border = false;
                 if(x==0) border = true;
                 if(x==0) border = true;
-                field[ zd * z + cxy ] = val;
+                field[ zstride * z + cxy ] = val;
             }
         }
     }
@@ -1053,8 +1055,8 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
     int cxy;
 
     // cache attribute lookups
-    int yd = this->yd;
-    int zd = this->zd;
+    int ystride = this->ystride;
+    int zstride = this->zstride;
     array1d& field = this->field;
     REAL disty = resolution_y * sqrt(strength / subtract);
 
@@ -1065,11 +1067,11 @@ void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
         yy = ydiv * ydiv;
         val = strength / (REAL)( 0.0001 + yy ) - subtract;
         if ( val > 0.0 ) {
-            cy = y * yd;
+            cy = y * ystride;
             for ( x = 0; x < resolution_x; x++ ) {
                 cxy = cy + x;
                 for ( z = 0; z < resolution_z; z++ )
-                    field[ zd * z + cxy ] += val;
+                    field[ zstride * z + cxy ] += val;
             }
         }
     }
@@ -1082,8 +1084,8 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
     int cz, cyz;
 
     // cache attribute lookups
-    int yd = this->yd;
-    int zd = this->zd;
+    int ystride = this->ystride;
+    int zstride = this->zstride;
     array1d& field = this->field;
     REAL distz = resolution_z * sqrt( strength / subtract );
 
@@ -1093,9 +1095,9 @@ void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
         zz = zdiv * zdiv;
         val = strength / (REAL)( 0.0001 + zz ) - subtract;
         if ( val > 0.0 ) {
-            cz = zd * z;
+            cz = zstride * z;
             for ( y = 0; y < resolution_y; y++ ) {
-                cyz = cz + y * yd;
+                cyz = cz + y * ystride;
                 for ( x = 0; x < resolution_x; x++ )
                     field[ cyz + x ] += val;
             }
@@ -1164,28 +1166,32 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
     this->reset_result();  //receiver of the queue
     this->begin_queue();
 
-    REAL xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
-    REAL yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
-    REAL zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
+    const REAL xi0 = (+this->box.xmin) / deltax - MarchingCubes::skip_count_l;
+    const REAL yi0 = (+this->box.ymin) / deltay - MarchingCubes::skip_count_l;
+    const REAL zi0 = (+this->box.zmin) / deltaz - MarchingCubes::skip_count_l;
 
     // Triangulate. Yeah, this is slow.
 
     // Note: skip_count_l =is= 2.
-    int smin2_x = this->resolution_x - 2;
-    int smin2_y = this->resolution_y - 2;
-    int smin2_z = this->resolution_z - 2;
+    const int end_x = this->resolution_x - 2;
+    const int end_y = this->resolution_y - 2;
+    const int end_z = this->resolution_z - 2;
 
-    for ( int zi = 1; zi < smin2_z; zi++ ) {
+    const int start_x = 1;
+    const int start_y = 1;
+    const int start_z = 1;
+
+    for ( int zi = start_z; zi < end_z; zi++ ) {
 
         index_t z_offset = this->size2xy * zi;
         REAL fz = ( zi + zi0 ) * this->deltaz; //+ 1
 
-        for ( int yi = 1; yi < smin2_y; yi++ ) {
+        for ( int yi = start_y; yi < end_y; yi++ ) {
 
             index_t y_offset = z_offset + this->size1x * yi;
             REAL fy = ( yi + yi0 ) * this->deltay; //+ 1
 
-            for ( int xi = 1; xi < smin2_x; xi++ ) {
+            for ( int xi = start_x; xi < end_x; xi++ ) {
 
                 REAL fx = ( xi + xi0 ) * this->deltax; //+ 1
                 index_t q = y_offset + xi;
