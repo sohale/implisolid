@@ -31,9 +31,9 @@ class MarchingCubes{
         constexpr static index_t xstride = 1;
         index_t  ystride;  // size1x
         index_t  zstride;  // size2xy
-        index_t  full_stride;  // size3xyz
-    } ;
-    
+        index_t  full_stride = -1;  // size3xyz
+    };
+
     gridbox_t gridbox;
 
     // size1x=ystride, size2xy=zstride, size3xyz=?
@@ -44,6 +44,12 @@ class MarchingCubes{
     gridbox_t  localgrid;
     //global: for indexing vertices and their edges, when not all the field is available
     gridbox_t globalbox; // globalgrid
+    /*
+        globalbox: used only for indexing the edges of triangles
+        localgrid: used for field and normal_cache (former zd,yd, ystride,zstride)
+        gridbox: ???used for seal only
+    */
+
  
     //buffer_stride, global_stride, grid_stride, subgrids, master_grid, buffer_grid, this_grid,    , globalgrid, midgrid
     // ystride(=size1x), zstride, xyzstride
@@ -255,11 +261,17 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         this->gridbox.ystride = this->resolution_x;
         this->gridbox.zstride = this->resolution_x * this->resolution_y;
         this->gridbox.full_stride = this->gridbox.zstride * this->resolution_z;
+
         this->localgrid.ystride = this->gridbox.ystride;
         this->localgrid.zstride = this->gridbox.zstride;
+
         this->globalbox.ystride = this->gridbox.ystride;
         this->globalbox.zstride = this->gridbox.zstride;
         this->globalbox.full_stride = this->gridbox.full_stride;
+
+        //gridbox
+        //localgrid = gridbox
+        //globalbox = gridbox
 
         array_shape_t fsize = {(int)this->gridbox.full_stride};
         this->field = array1d(fsize);
