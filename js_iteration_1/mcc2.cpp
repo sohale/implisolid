@@ -228,21 +228,10 @@ std::pair< std::vector<REAL>, std::vector<vertexindex_type>>  mc_start (const mp
     MarchingCubes mc {resolution_, box_, enableUvs, enableColors};
     MarchingCubes * _state_mc = &mc;
 
-   //  _state_mc -> isolation = 80.0/4*0;
-
-
-
     // ****************************
     // Does thismake things slower ?
     vectorized_vect   mcgrid_vectorized = _state_mc -> prepare_grid();  // 10.0
     _state_mc -> eval_shape(*object, mcgrid_vectorized);
-
-    /*
-     if (use_metaball) {
-         REAL metaball_time = 0;
-         meta_balls(*_state_mc, 4, metaball_time, 1.0);
-     }
-     */
 
     _state_mc->seal_exterior(-10000000.0);
 

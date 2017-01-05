@@ -136,26 +136,17 @@ public:
     MarchingCubes( dim_t apparent_resolution, mp5_implicit::bounding_box box, bool enableUvs, bool enableColors);
     ~MarchingCubes(); //why does this have to be public: ?
 
-    //REAL isolation;
-
     //void flush_geometry_queue(std::ostream&);
     void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, e3map_t &e3map, int& next_unique_vect_counter);
     void reset_result();
 
     inline int polygonize_single_cube( REAL fx, REAL fy, REAL fz, index_t q /*, REAL isol*/ /*, const callback_t& callback*/ );
 
-//shape:
-    /*
-    void addBall( REAL ballx, REAL bally, REAL ballz, REAL strength, REAL subtract, REAL scale);
-    void addPlaneX( REAL strength, REAL subtract );
-    void addPlaneZ( REAL strength, REAL subtract );
-    void addPlaneY( REAL strength, REAL subtract );
-    */
+//field:
     void seal_exterior(const REAL exterior_value = -100.);
     /*void subtract_dc(REAL dc_value);*/
 
     vectorized_vect  prepare_grid();
-    //void eval_shape(const mp5_implicit::implicit_function& object, REAL mc_grid_real_size);
     void eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized );
 
 //field
@@ -230,10 +221,6 @@ void MarchingCubes::init( mp5_implicit::bounding_box box) {
         // init() is only called by the constructor
 
         // parameters
-
-        //this->isolation = 80.0;
-
-        //std::clog << "isolation: * " << this->isolation << std::endl;
 
         // size of field, 32 is pushing it in Javascript :)
 
@@ -695,8 +682,6 @@ inline int MarchingCubes::polygonize_single_cube( REAL fx, REAL fy, REAL fz, ind
 
     cubeindex <<= 4;  // re-purpose cubeindex into an offset into mc_triangles_table
 
-    //std::clog << "isolation: " << this->isolation << std::endl;
-
     //not sure about the type:
     int o1, o2, o3, numtris = 0, i = 0;
 
@@ -891,99 +876,8 @@ void MarchingCubes::finish_queue( /*const callback_t& renderCallback*/ ) {
 }
 
 
-// todo: separate the following into the `field` [part of the] class.
+// todo: separate the addBall,seal,etc into the `field` [part of the] class.
 
-/////////////////////////////////////
-// Metaballs
-/////////////////////////////////////
-
-// Adds a reciprocal ball (nice and blobby) that, to be fast, fades to zero after
-// a fixed distance, determined by strength and subtract.
-
-/*
-inline
-void MarchingCubes::addBall(
-        REAL ballx, REAL bally, REAL ballz,
-        REAL strength, REAL subtract, REAL scale) {
-    // Solves this equation:
-    // 1.0 / (0.000001 + radius^2) * strength - subtract = 0
-    REAL dpi = this->resolution_x;
-    REAL radius = dpi * sqrt(strength / subtract);
-
-    REAL
-        zs = ballz * dpi / scale,
-        ys = bally * dpi / scale,
-        xs = ballx * dpi / scale;
-
-    int min_zi = floor( zs - radius ); if ( min_zi < 1 ) min_zi = 1;
-    int max_zi = floor( zs + radius ); if ( max_zi > this->resolution_z - 1 ) max_zi = this->resolution_z - 1;
-    int min_yi = floor( ys - radius ); if ( min_yi < 1 ) min_yi = 1;
-    int max_yi = floor( ys + radius ); if ( max_yi > this->resolution_y - 1 ) max_yi = this->resolution_y - 1;
-    int min_xi = floor( xs - radius ); if ( min_xi < 1  ) min_xi = 1;
-    int max_xi = floor( xs + radius ); if ( max_xi > this->resolution_x - 1 ) max_xi = this->resolution_x - 1;
-
-
-    // Don't polygonize_single_cube in the outer layer because normals aren't
-    // well-defined there.
-
-    // var x, y, z, y_offset, z_offset, fx, fy, fz, fz2, fy2, val;
-    int x, y, z;
-    REAL fx, fy, fz, fz2, fy2, val;  //Does doing like this make it faster?
-    int y_offset, z_offset;
-
-    REAL dpi = (REAL)this->resolution_;
-    for ( z = min_zi; z < max_zi; z++ ) {
-
-        z_offset = this->gridbox.zstride * z,
-        fz = z / dpi - ballz,
-        fz2 = fz * fz;
-
-        for ( y = min_yi; y < max_yi; y++ ) {
-
-            y_offset = z_offset + this->gridbox.ystride * y;
-            fy = y / dpi - bally;
-            fy2 = fy * fy;
-
-            for ( x = min_xi; x < max_xi; x++ ) {
-
-                fx = x / dpi - ballx;
-                val = strength / ( (REAL)0.000001 + fx * fx + fy2 + fz2 ) - subtract;
-                if ( val > 0.0 ) this->field[ y_offset + x ] += val / 100;
-            }
-        }
-    }
-}
-*/
-/*
-void MarchingCubes::addPlaneX(REAL strength, REAL subtract ) {
-    int x, y, z;
-    REAL val;
-    REAL xx, xdiv;
-    int cxy;
-
-    // cache attribute lookups
-    int ystride = this->localgrid.ystride;
-    REAL dpi = std::max(this->u_resolution,);
-    int zstride = this->zstride;
-    array1d& field = this->field;
-    REAL distx = dpi * sqrt(strength / (REAL)subtract);
-
-    if ( distx > this->resolution_x ) distx = this->resolution_x;
-    for ( x = 0; x < distx; x++ ) {
-        xdiv = x / dpi;
-        xx = xdiv * xdiv;
-        val = strength / (REAL)( 0.0001 + xx ) - subtract;
-        if ( val > 0.0 ) {
-            for ( y = 0; y < this->resolution_y; y++ ) {
-                cxy = x + y * ystride;
-                for ( z = 0; z < this->resolution_z; z++ ) {
-                    field[ zstride * z + cxy ] += val;
-                }
-            }
-        }
-    }
-}
-*/
 
 void MarchingCubes::seal_exterior(const REAL exterior_value) {
 
@@ -1054,93 +948,6 @@ void MarchingCubes::seal_exterior(const REAL exterior_value) {
         << std::endl;
     */
 }
-/*{
-    const REAL val = -1.;
-
-    int x, y, z;
-    int cxy;
-
-    // cache attribute lookups
-    int ystride = this->localgrid.ystride;
-    int zstride = this->localgrid.zstride;
-    array1d& field = this->field;
-    REAL distx = resolution_x * sqrt(strength / (REAL)subtract);
-
-    if ( distx > resolution_x ) distx = resolution_x; //????
-    for ( x = 0; x < distx; x++ ) {
-        for ( y = 0; y < resolution_y; y++ ) {
-            cxy = x + y * ystride;
-            for ( z = 0; z < resolution_z; z++ ) {
-                bool border = false;
-                if(x==0) border = true;
-                if(x==0) border = true;
-                field[ zstride * z + cxy ] = val;
-            }
-        }
-    }
-}
-*/
-/*
-void MarchingCubes::addPlaneY(REAL strength, REAL subtract ) {
-    int x, y, z;
-    REAL yy;
-    REAL val;
-    REAL ydiv;
-    int cy;
-    int cxy;
-
-    // cache attribute lookups
-    int ystride = this->localgrid.ystride;
-    int zstride = this->localgrid.zstride;
-    array1d& field = this->field;
-    REAL disty = resolution_y * sqrt(strength / subtract);
-
-    if ( disty > resolution_y ) disty = resolution_y;
-
-    for ( y = 0; y < disty; y++ ) {
-        ydiv = y / (REAL)resolution_y;
-        yy = ydiv * ydiv;
-        val = strength / (REAL)( 0.0001 + yy ) - subtract;
-        if ( val > 0.0 ) {
-            cy = y * ystride;
-            for ( x = 0; x < resolution_x; x++ ) {
-                cxy = cy + x;
-                for ( z = 0; z < resolution_z; z++ )
-                    field[ zstride * z + cxy ] += val;
-            }
-        }
-    }
-}
-
-void MarchingCubes::addPlaneZ( REAL strength, REAL subtract )
-{
-    int x, y, z;
-    REAL zz, val, zdiv;
-    int cz, cyz;
-
-    // cache attribute lookups
-    int ystride = this->localgrid.ystride;
-    int zstride = this->localgrid.zstride;
-    array1d& field = this->field;
-    REAL distz = resolution_z * sqrt( strength / subtract );
-
-    if ( distz > resolution_z ) distz = resolution_z;
-    for ( z = 0; z < distz; z++ ) {
-        zdiv = z / (REAL)resolution_z;
-        zz = zdiv * zdiv;
-        val = strength / (REAL)( 0.0001 + zz ) - subtract;
-        if ( val > 0.0 ) {
-            cz = zstride * z;
-            for ( y = 0; y < resolution_y; y++ ) {
-                cyz = cz + y * ystride;
-                for ( x = 0; x < resolution_x; x++ )
-                    field[ cyz + x ] += val;
-            }
-        }
-    }
-}
-*/
-
 
 
 /////////////////////////////////////
@@ -1232,7 +1039,7 @@ void MarchingCubes::render_geometry(/*const callback_t& renderCallback*/ ) {
                 index_t q = y_offset + xi;
 
                 // use sub-grids for buffer here.
-                this->polygonize_single_cube( fx, fy, fz, q /*, this->isolation*/ /*, renderCallback*/ );
+                this->polygonize_single_cube( fx, fy, fz, q /*, renderCallback*/ );
 
                 /*
                 only prints zeros
@@ -1874,8 +1681,6 @@ MarchingCubes::prepare_grid() {
 //Based on mcc2_MS.cpp
 void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, const boost::multi_array<REAL, 2>& mcgrid_vectorized ){
 
-
-
       boost::array<vectorized_vect::index, 1> implicit_values_shape = {{ this->resolution_x * this->resolution_y * this->resolution_z }};
       boost::multi_array<REAL, 1> implicit_values(implicit_values_shape);
 
@@ -1899,27 +1704,6 @@ void MarchingCubes::eval_shape(const mp5_implicit::implicit_function& object, co
       }
 }
 
-
-/*
-void MarchingCubes::subtract_dc(REAL dc_value){
-
-      int min_xi = 0;
-      int max_xi = this->resolution_x;
-      int min_yi = 0;
-      int max_yi = this->resolution_y;
-      int min_zi = 0;
-      int max_zi = this->resolution_z;
-
-      // todo: make this unnecessary, or a simple assignment. Or a simple flat for loop.
-      for (int z = min_zi; z < max_zi; z++ ) {
-          for (int y = min_yi; y < max_yi; y++ ) {
-              for (int x = min_xi; x < max_xi; x++ ) {
-                this->field[x + y*this->gridbox.ystride + z*this->gridbox.zstride] -= dc_value;
-              }
-          }
-      }
-}
-*/
 
 }  // namespace marching_cubes
 
