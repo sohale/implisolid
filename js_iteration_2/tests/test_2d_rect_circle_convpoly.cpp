@@ -61,7 +61,7 @@ TEST(ConvexPolygonTests, Triangle) {
     //std::vector<REAL> yarray {0, 1, 0};
     std::vector<REAL> xarray {0, 2, 1};
     std::vector<REAL> yarray {0, 0, 1};
-    mp5_implicit::concave_polygon cc (xarray, yarray);
+    mp5_implicit::convex_polygon cc (xarray, yarray);
 
 
     const int number_of_test_points = 6;    // size of input vector

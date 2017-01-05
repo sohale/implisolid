@@ -13,7 +13,7 @@ namespace mp5_implicit {
 
 // todo: For convex version, see HyperFun's review by Pasko & Adzhiev (incl. Implicit Curved Polygons - HyperFun)
 
-class concave_polygon : public implicit_function_2d {
+class convex_polygon : public implicit_function_2d {
 public:
     // typedef struct { REAL x, y; } xy_t;
     std::vector<REAL> nx;
@@ -40,25 +40,25 @@ public:
     }
     */
 
-    concave_polygon (std::vector<REAL> corners_x, std::vector<REAL> corners_y)
+    convex_polygon (std::vector<REAL> corners_x, std::vector<REAL> corners_y)
         :
         //nx(corners_x.size()),
         //ny(corners_x.size()),
         //n0(corners_x.size()),
         //corners(conv1(corners_x, corners_y)),
-        //concave_polygon(conv1(corners_x, corners_y))
+        //convex_polygon(conv1(corners_x, corners_y))
 
         //polygon(corners_x, corners_y),
-        //concave_polygon(polygon)
+        //convex_polygon(polygon)
         // polygon(corners_x, corners_y),
-        concave_polygon(polygon_handler{corners_x, corners_y})
+        convex_polygon(polygon_handler{corners_x, corners_y})
     {
     }
 
 
     /* Corners have to be arranged counter-clockwise, and form a convex polygon. */
-    //concave_polygon (std::vector<xy_t> _corners)
-    concave_polygon (polygon_handler _polygon)
+    //convex_polygon (std::vector<xy_t> _corners)
+    convex_polygon (polygon_handler _polygon)
         :
         polygon(_polygon),
         nx(_polygon.corners.size()),
@@ -98,7 +98,7 @@ public:
         my_assert(this->integrity_invariant(), "");
     }
 
-    ~concave_polygon () {
+    ~convex_polygon () {
     }
 
 public:

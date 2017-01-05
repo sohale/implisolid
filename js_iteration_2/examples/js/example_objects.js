@@ -81,7 +81,7 @@ var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"roo
 var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1, 0, 0, 2.5, 0, 2, 0, 2.5, 0, 0, 5, 1.5, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
 //test for extrusion
-var EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+var EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
 
  // {

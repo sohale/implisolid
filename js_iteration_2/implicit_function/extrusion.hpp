@@ -1,6 +1,8 @@
 #pragma once
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
+#include "2d/implicit_function_2d.hpp"
+
 namespace mp5_implicit {
 namespace implicit_functions {
 
@@ -9,6 +11,7 @@ class extrusion : public transformable_implicit_function {
 protected:
     //REAL h;
     REAL r;
+    const unique_ptr<implicit_function_2d> polygon;
     //REAL x; REAL y; REAL z;
 
 
@@ -35,9 +38,12 @@ public:
       }
     }*/
 
-    extrusion(REAL matrix12[12]){
+    extrusion(REAL matrix12[12], unique_ptr<implicit_function_2d> &_polygon)
+    : polygon {std::move(_polygon)}
+    {
 
       this->r = 0.5;
+      // this->polygon = std::move(_polygon);
 
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
@@ -53,6 +59,8 @@ public:
     //copied from unit_sphere
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
 
+        this->polygon->eval_implicit(  x,  f_output);
+/*
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
@@ -69,12 +77,14 @@ public:
             const REAL x = (*i)[0];
             const REAL y = (*i)[1];
             (*f_output)[output_ctr] = r2 - norm_squared(x, y, 0);
-        }
+        }*/
     }
 
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
+        this->polygon->eval_gradient(  x,  output);
+        /*
         vectorized_vect x_copy = x;
         matrix_vector_product(this->inv_transf_matrix, x_copy);
 
@@ -97,6 +107,7 @@ public:
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*gx + this->inv_transf_matrix[5]*gy + this->inv_transf_matrix[9]*gz;
             (*output)[output_ctr][2] = this->inv_transf_matrix[2]*gx + this->inv_transf_matrix[6]*gy + this->inv_transf_matrix[10]*gz;
         }
+        */
     }
 /*
     bool integrity_invariant() const {
