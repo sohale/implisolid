@@ -2,6 +2,8 @@
 
 #include <cmath>  // for isnan
 
+
+const REAL PI = 3.141592653589793238463;
 /*void m() {
 auto q = std::isnan(0);
 }
@@ -24,6 +26,11 @@ inline REAL sign(REAL v, REAL ROOT_TOLERANCE) {
         :
             (0.0)
         ;
+}
+
+inline void polarToCartesian(REAL r, REAL theta, REAL& x, REAL& y){
+    x = r*cos(theta);
+    y = r*sin(theta);
 }
 
 /*
@@ -135,8 +142,8 @@ void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
 
     /*
       matou is 3 by 4
-      
-      matou dot vectou 
+
+      matou dot vectou
 
       m is matrix 3 by 4
       m = |m00, m01, m02, m03|

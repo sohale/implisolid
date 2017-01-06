@@ -377,17 +377,18 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     } else if(name == "extrusion") {
         REAL matrix12[12];
 
+        /*
         //polygon is a square for now
         std::vector<REAL> corners_x = {0.1, -0.5, -0.5, 0.5};
         std::vector<REAL> corners_y = {0.1, 0.5, -0.5, -0.5};
         convex_polygon* square = new convex_polygon(corners_x, corners_y);
         unique_ptr<implicit_function_2d> polygon {square};
-
+        */
         getMatrix12(matrix12,shapeparams_dict);
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
-         object = new implicit_functions::extrusion(matrix12, polygon);
+         object = new implicit_functions::extrusion(matrix12, 12);
         // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
         register_new_object(object);
     } else {

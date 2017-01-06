@@ -2,6 +2,7 @@
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
 #include "2d/implicit_function_2d.hpp"
+#include "2d/GDT/convex_polygon.hpp"
 
 namespace mp5_implicit {
 namespace implicit_functions {
@@ -11,7 +12,9 @@ class extrusion : public transformable_implicit_function {
 protected:
     //REAL h;
     REAL r;
-    const unique_ptr<implicit_function_2d> polygon;
+    // const unique_ptr<implicit_function_2d> polygon;
+    // need to remove const because of std::move called in constructor
+    unique_ptr<implicit_function_2d> polygon;
     //REAL x; REAL y; REAL z;
 
 
@@ -44,6 +47,42 @@ public:
 
       this->r = 0.5;
       // this->polygon = std::move(_polygon);
+
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
+
+      for (int i=0; i<12; i++){
+          transf_matrix[i] = matrix12[i];
+      }
+
+      invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+      my_assert(this->integrity_invariant(), "");
+    }
+
+    extrusion(REAL matrix12[12], int polygon_size)
+    {
+
+      this->r = 0.5;
+      // this->polygon = std::move(_polygon);
+
+      REAL rotAngle = 2*PI/polygon_size;
+      std::vector<REAL> corners_x = {0};
+      std::vector<REAL> corners_y = {0.5};
+
+      std::vector<REAL> corners_theta = {PI/2};
+      REAL radius= 0.5;
+
+      for(int i=1; i<polygon_size; i++){
+          REAL theta = PI/2.0+i*rotAngle;
+          REAL x, y;
+          polarToCartesian(radius, theta, x, y);
+          corners_x.push_back(x);
+          corners_y.push_back(y);
+      }
+
+      convex_polygon* convex_poly = new convex_polygon(corners_x, corners_y);
+      unique_ptr<implicit_function_2d>  p_ {convex_poly};
+      polygon = std::move (p_);
 
       this->transf_matrix = new REAL [12];
       this->inv_transf_matrix = new REAL [12];
