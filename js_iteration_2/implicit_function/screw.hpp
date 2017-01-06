@@ -130,7 +130,9 @@ class screw : public transformable_implicit_function {
 
 protected:
     // unsign for slen, r0??
-    Matrix<REAL, 3, 3> inv_transf_matrix;
+    Matrix<REAL, 4, 4> inv_transf_matrix;
+    Matrix<REAL, 3, 3> inv_transf_matrix_3_3;
+    Matrix<REAL, 3, 1> inv_transf_matrix_neg_xyz;
     REAL slen, r0, delta, twist_rate, phi0; // is the REAL defined here??
     Matrix<REAL, 3, 1> A, w, u, v; // not using Eigen::Vector3d since Vector3d has only type double 
     Matrix<REAL, 3, 3> UVW, UVW_inv;
@@ -144,7 +146,8 @@ protected:
                           const REAL& delta,
                           const REAL& twist_rate,
                           const REAL& phi0,
-                          const Matrix<REAL, Dynamic, 3>& x)
+                          const Matrix<REAL, Dynamic, 3>& x,
+                          const bool return_arg)
     {   
         int num_points = x.rows();
         const Matrix<REAL, Dynamic, 3> aa(num_points, 3);
@@ -203,6 +206,21 @@ protected:
             )
             * inside_ness.array()).matrix();
 
+        // screw_ness = (x.col(2).array() > 0.5).select(-1*x.col(2).array() + 0.5, screw_ness);
+
+        constexpr int _Z = 2;
+        const auto top_sdf    =  +0.5 - x.col(_Z).array();
+        const auto bottom_sdf =  +0.5 + x.col(_Z).array();
+
+        // screw_ness = (x.col(2).array() < - 0.5).select(x.col(2).array() + 0.5, screw_ness);
+
+        // screw_ness = (x.col(2).array() >= 0.5).select(x.col(2).array() - 0.5, screw_ness);
+        // screw_ness = (x.col(2).array() <= - 0.5).select(-1*x.col(2).array() - 0.5, screw_ness);
+
+        // std::cout << "----------------x.col(2)-------------" << std::endl;
+        // std::cout << x.col(2) << std::endl;
+
+        screw_ness = screw_ness.array().min(top_sdf).min(bottom_sdf);
         return screw_ness;
 
     };
@@ -213,14 +231,34 @@ protected:
                   REAL x, REAL y, REAL z,
                   REAL& dx, REAL& dy, REAL& dz) {
 
-        dx = M_PI*delta*(-((uvwi00*(-std::pow(wx, 2) + 1) - uvwi01*wx*wy - uvwi02*wx*wz)*(-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(uvwi10*(-std::pow(wx, 2) + 1) - uvwi11*wx*wy - uvwi12*wx*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
-        dy = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wy + uvwi11*(-std::pow(wy, 2) + 1) - uvwi12*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wy + uvwi01*(-std::pow(wy, 2) + 1) - uvwi02*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
-        dz = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wz - uvwi11*wy*wz + uvwi12*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wz - uvwi01*wy*wz + uvwi02*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0/2.0)*(-2*std::pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+        if (z > 0.5){
+            dx = 0;
+            dy = 0;
+            dz = -1;
+            return;
+        }
+        else if (z < -0.5){
+            dx = 0;
+            dy = 0;
+            dz = +1;
+            return;
+        }
+        else{
+            dx = M_PI*delta*(-((uvwi00*(-std::pow(wx, 2) + 1) - uvwi01*wx*wy - uvwi02*wx*wz)*(-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(uvwi10*(-std::pow(wx, 2) + 1) - uvwi11*wx*wy - uvwi12*wx*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+            dy = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wy + uvwi11*(-std::pow(wy, 2) + 1) - uvwi12*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wy + uvwi01*(-std::pow(wy, 2) + 1) - uvwi02*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+            dz = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wz - uvwi11*wy*wz + uvwi12*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wz - uvwi01*wy*wz + uvwi02*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0/2.0)*(-2*std::pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
+            return;
+        };
 
     }
 
     
-
+    static inline void eigen_matrix_vector_product(const Matrix<REAL, 3, 3>& matrix, 
+                                                   const Matrix<REAL, 3, 1>& matrix_xyz,
+                                                   Matrix<REAL, Dynamic, 3>& vector){
+        vector = (matrix*vector.transpose()).transpose();
+        vector = vector.rowwise() + matrix_xyz.transpose();
+    }
 
 public: 
 
@@ -262,7 +300,7 @@ public:
     //     this->UVW_inv = (this->UVW).inverse();
     // }
 
-    screw(Matrix<REAL, 4, 4> matrix, REAL pitch, std::string profile, 
+    screw(Matrix<REAL, 3, 4> matrix, REAL pitch, std::string profile, 
           std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
     {   
 
@@ -287,34 +325,93 @@ public:
 
         // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
-        Matrix<REAL, 3, 3> matrix_3_3;
+        std::cout << "----matrix----" << std::endl;
+        std::cout << matrix << std::endl;
 
-        matrix_3_3 << matrix(0, 0), matrix(0, 1), matrix(0, 2),
+        Matrix<REAL, 4, 4> matrix_4_4;
+
+        matrix_4_4 << matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
+                      matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
+                      matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
+                      0, 0, 0, 1;
+
+        this->inv_transf_matrix = matrix_4_4.inverse();
+
+        this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
+                                      inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
+                                      inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
+
+        this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
+
+        Matrix<REAL, 4, 4> identity = Matrix<REAL, 4, 4>::Identity();
+
+        assert((this->inv_transf_matrix*matrix_4_4 - identity).maxCoeff() < 0.0001);
+        assert((matrix_4_4*this->inv_transf_matrix - identity).maxCoeff() < 0.0001);
+
+        if ((this->inv_transf_matrix*matrix_4_4 - identity).maxCoeff() < 0.0001) {
+            std::cout << "check true 0 " << std::endl;
+        }
+
+        if ((matrix_4_4*this->inv_transf_matrix - identity).maxCoeff() < 0.0001) {
+            std::cout << "check true 1" << std::endl;
+        }
+
+        {   
+
+            Matrix<REAL, 3, 3> identity_3_3 = Matrix<REAL, 3, 3>::Identity();
+            Matrix<REAL, 3, 3> matrix_3_3;
+            matrix_3_3 << matrix(0, 0), matrix(0, 1), matrix(0, 2),
                       matrix(1, 0), matrix(1, 1), matrix(1, 2),
                       matrix(2, 0), matrix(2, 1), matrix(2, 2);
 
-        this->inv_transf_matrix = matrix_3_3.inverse();
+            assert((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
 
-        // this->inv_transf_matrix << matrix_inverse(0, 0), matrix_inverse(0, 1), matrix_inverse(0, 2),
-        //                            matrix_inverse(1, 0), matrix_inverse(1, 1), matrix_inverse(1, 2),
-        //                            matrix_inverse(2, 0), matrix_inverse(2, 1), matrix_inverse(2, 2);
+
+            if ((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
+                std::cout << "check true 2" << std::endl;
+            }
+
+
+            assert((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
+
+            if ((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
+                std::cout << "check true 2" << std::endl;
+            }
+
+
+        }
 
         std::cout << "----this->inv_transf_matrix----" << std::endl;
         std::cout << this->inv_transf_matrix << std::endl;
+        std::cout << "----this->inv_transf_matrix_neg_xyz----" << std::endl;
+        std::cout << this->inv_transf_matrix_neg_xyz << std::endl;
 
-        this->u << matrix(0, 0), matrix(1, 0), matrix(2, 0); // first three element from first column
-        this->u = (this->u.array()/this->u.norm()).matrix();
+        // this->u << matrix(0, 0), matrix(1, 0), matrix(2, 0); // first three element from first column
+        this->u << 1, 0, 0;
+        // this->u = (this->u.array()/this->u.norm()).matrix();
 
-        this->w << matrix(0, 2), matrix(1, 2), matrix(2, 2); // first three element from first column
-        this->slen = this->w.norm();
-        this->w = (this->w.array()/this->w.norm()).matrix();
+        // this->w << matrix(0, 2), matrix(1, 2), matrix(2, 2); // first three element from first column
+        this->w << 0, 0, 1; 
+        this->slen = this->w.norm(); // 1
 
-        this->v = v; // if v is defined or if v is not defined
+        std::cout << "----this->slen----" << std::endl;
+        std::cout << this->slen<< std::endl;
+
+        // this->w = (this->w.array()/this->w.norm()).matrix();
+
+        // this->v = v; // if v is defined or if v is not defined
+        // this->v = this->u.cross(this->w);
+        this->v << 0, 1, 0;
         REAL outer_diameter = this->v.norm(); 
-        this->v = (this->v.array()/this->v.norm()).matrix();
+
+        std::cout << "----this->outer_diameter----" << std::endl;
+        std::cout << outer_diameter << std::endl;
+
+        // this->v = (this->v.array()/this->v.norm()).matrix();
 
 
-        this->A << matrix(0, 3), matrix(1, 3), matrix(2, 3);
+        // this->A << matrix(0, 3), matrix(1, 3), matrix(2, 3);
+        this->A << 0, 0, 0;
         this->A  = (this->A.array() - (this->slen/2)*this->w.array()).matrix(); // this only works if w is 0, 0, 1
         
         REAL inner_diameter = outer_diameter/delta_ratio;
@@ -322,8 +419,26 @@ public:
         this->delta = (outer_diameter/2 - inner_diameter/2);
         this->twist_rate = pitch;
 
+        std::cout << "----this->inner_diameter----" << std::endl;
+        std::cout << inner_diameter << std::endl;
+
+        std::cout << "----this->r0----" << std::endl;
+        std::cout << this->r0 << std::endl;
+        std::cout << "----this->delta----" << std::endl;
+        std::cout << this->delta << std::endl;
+        std::cout << "----this->twist_rate----" << std::endl;
+        std::cout << this->twist_rate << std::endl;
+
+        std::cout << "----this->delta----" << std::endl;
+        std::cout << this->delta<< std::endl;
+        std::cout << "----this->twist_rate----" << std::endl;
+        std::cout << this->twist_rate<< std::endl;
+
         this->UVW << this->u, this->v, this->w;
         this->UVW_inv = this->UVW.inverse();
+
+        std::cout << "----this->UVW----" << std::endl;
+        std::cout << this->UVW<< std::endl;
 
         this->phi0 = 0.0; // not used
     }
@@ -359,7 +474,7 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
 
-        std::cout << "tiger debug xxxxxxx" << std::endl;
+        std::cout << "tiger debug eval_implicit" << std::endl;
         std::cout << x[0][0] << std::endl;
         std::cout << x[0][1] << std::endl;
         std::cout << x[0][2] << std::endl;
@@ -370,28 +485,29 @@ public:
         // matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         std::cout << "tiger debug x_eigen_matrix" << std::endl;
-        std::cout << x_eigen_matrix.row(0) << std::endl;
-        std::cout << x_eigen_matrix.row(1) << std::endl;
-        std::cout << x_eigen_matrix.row(2) << std::endl;
+        std::cout << x_eigen_matrix(0, 0) << std::endl;
+        std::cout << x_eigen_matrix(0, 1) << std::endl;
+        std::cout << x_eigen_matrix(0, 2) << std::endl;
 
         std::cout << "----this->inv_transf_matrix----" << std::endl;
         std::cout << this->inv_transf_matrix << std::endl;
 
-        x_eigen_matrix = x_eigen_matrix * this->inv_transf_matrix;
+        // inverse transform matrix apply on the left
+        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         std::cout << "tiger debug x_eigen_matrix" << std::endl;
-        std::cout << x_eigen_matrix.row(0) << std::endl;
-        std::cout << x_eigen_matrix.row(1) << std::endl;
-        std::cout << x_eigen_matrix.row(2) << std::endl;
+        std::cout << x_eigen_matrix(0, 0) << std::endl;
+        std::cout << x_eigen_matrix(0, 1) << std::endl;
+        std::cout << x_eigen_matrix(0, 2) << std::endl;
 
         Matrix<REAL, Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
         implicitFunctionOutput = implicitFunction(this->A, this->w,this->UVW_inv, this->slen, this->r0,
-                         this->delta, this->twist_rate, this->phi0, x_eigen_matrix);
+                         this->delta, this->twist_rate, this->phi0, x_eigen_matrix, false);
 
         std::cout << "tiger debug implicitFunctionOutput" << std::endl;
-        std::cout << implicitFunctionOutput.row(0) << std::endl;
-        std::cout << implicitFunctionOutput.row(1) << std::endl;
-        std::cout << implicitFunctionOutput.row(2) << std::endl;
+        std::cout << implicitFunctionOutput(0, 0) << std::endl;
+        std::cout << implicitFunctionOutput(0, 1) << std::endl;
+        std::cout << implicitFunctionOutput(0, 2) << std::endl;
 
         *(output) = Eigen_matrix_to_vectorized_scalar(implicitFunctionOutput);
 
@@ -401,7 +517,12 @@ public:
 
         Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        x_eigen_matrix = this->inv_transf_matrix * x_eigen_matrix;
+
+        // inverse transform matrix apply on the left
+        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+
+        std::cout << "----this->inv_transf_matrix----" << std::endl;
+        std::cout << this->inv_transf_matrix << std::endl;
 
 
         for (int j=0;j<(*output).shape()[0];j++){
@@ -416,14 +537,21 @@ public:
                      (*(output))[j][0], (*(output))[j][1], (*(output))[j][2]
                      );
 
-              REAL g0 = (*output)[j][0];
-              REAL g1 = (*output)[j][1];
-              REAL g2 = (*output)[j][2];
+              REAL g0 = (*output)[j][0]; // gx 
+              REAL g1 = (*output)[j][1]; // gy
+              REAL g2 = (*output)[j][2]; // gz
+
+              // std::cout << g0 << std::endl;
+              // std::cout << g1 << std::endl;
+              // std::cout << g2 << std::endl;
 
               (*output)[j][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
               (*output)[j][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
               (*output)[j][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
 
+              // std::cout << g0 << std::endl;
+              // std::cout << g1 << std::endl;
+              // std::cout << g2 << std::endl;
 
         };
     }
@@ -436,7 +564,7 @@ public:
     }
 
     static void getScrewParameters(
-        Matrix<REAL, 4, 4>& matrix, REAL& pitch, std::string& profile, 
+        Matrix<REAL, 3, 4>& matrix, REAL& pitch, std::string& profile, 
         std::string& end_type, REAL& delta_ratio, Matrix<REAL, 3, 1>& v,
         const pt::ptree& shapeparams_dict
     ){
@@ -466,12 +594,16 @@ public:
 
             std::cout << matrix(i, j) << std::endl;
 
-            // my_assert(j == 3, "there shuold be three points");
+            // my_assert(j == 3, "there shuold be three points")
+
             if (j == 3) {
                 j = 0;
                 i++;
             } else {
                 j++;
+            }
+            if (i==3) {
+                break;
             }
         }
 

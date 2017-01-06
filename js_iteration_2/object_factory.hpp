@@ -187,7 +187,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     }
     else if (name == "screw") {
 
-        Matrix<REAL, 4, 4> transformation_matrix;
+        Matrix<REAL, 3, 4> transformation_matrix;
         REAL pitch = 0.0;
         std::string profile;
         std::string end_type;
@@ -202,10 +202,15 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             transformation_matrix << 1, 0, 0, 0,
                                      0, 1, 0, 0,
-                                     0, 0, 1, 0,
-                                     0, 0, 0, 1;
+                                     0, 0, 1, 0;
         }
 
+        std::cout << "--------------ignore_root_matrix------------" << std::endl;
+        std::cout << ignore_root_matrix << std::endl;
+
+        std::cout << "--------------transformation_matrix------------" << std::endl;
+        std::cout << transformation_matrix << std::endl;
+        
         object = new implicit_functions::screw(transformation_matrix,
                                          pitch,
                                          profile,
