@@ -91,3 +91,4 @@ class TwistedObject::ImplicitObject(){
 #include "meta_balls_Rydgard.hpp"
 #include "javascript_implicit_function.hpp"
 #include "extrusion.hpp"
+#include "half_plane.hpp"

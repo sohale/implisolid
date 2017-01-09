@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>  // for isnan
+#include "Eigen/Dense"
 
 
 const REAL PI = 3.141592653589793238463;
@@ -548,6 +549,14 @@ void randomize_verts(vectorized_vect & verts, REAL amplitude) {
             (*j) += (static_cast<REAL>(rand())/static_cast<REAL>(RAND_MAX) - 0.5) * amplitude ;
         }
     }
+}
+
+// eigen function
+void eigen_matrix_vector_product(const Eigen::Matrix<REAL, 3, 3>& matrix, 
+                                                 const Eigen::Matrix<REAL, 3, 1>& matrix_xyz,
+                                                 Eigen::Matrix<REAL, Eigen::Dynamic, 3>& vector){
+      vector = (matrix*vector.transpose()).transpose();
+      vector = vector.rowwise() + matrix_xyz.transpose();
 }
 
 }  // namespace mp5_implicit

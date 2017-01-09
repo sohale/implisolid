@@ -78,7 +78,12 @@ var MOON = '{"printerSettings":{"name":"test","layerThickness":0.2,"emptyLayer":
 
 var SIMPLE_CONE = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","displayColor":{"x":0.7,"y":0.7,"z":0.7},"matrix":[8,0,0,0,0,8,0,0,0,0,8,0,0,0,0,1],"index":9185154}]}}';
 
-var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1, 0, 0, 2.5, 0, 2, 0, 2.5, 0, 0, 5, 1.5, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+// var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"screw","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+// var SIMPLE_SCREW = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Union","protected":false,"children":[{"type":"icone","displayColor":[0,0,1],"matrix":[2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 1],"index":1769767},{"type":"iellipsoid","displayColor":[0,0,1],"matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],"index":117621}],"displayColor":[0.8705882352941177,0.4196078431372549,0.8705882352941177],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":6389872}]},"createdAt":"2017-01-05T17:47:01.921Z","title":"Unnamed (2017-01-05T17-52-32)","contributors":[],"unique_id":"197bba0a-1e1e-45f0-8aba-2796307ba05c","licence":{}}'
+var SIMPLE_SCREW = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"Difference","protected":false,"children":[{"type":"Difference","protected":false,"children":[{"type":"icone","displayColor":[1,0,0],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":4423185},{"type":"half_plane","plane_vector":[0,0,1],"plane_point":[0,0,0.2],"displayColor":[0.0057981841651877,0.76608476471992,0.025145201935641],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":4532637}],"displayColor":[0.50980392156863,0.031372549019608,0.37647058823529],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":2937721},{"type":"half_plane","plane_vector":[0,0,-1],"plane_point":[0,0,-0.2],"displayColor":[0.0057981841651877,0.76608476471992,0.025145201935641],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":5610308}],"displayColor":[0.66274509803922,0.45490196078431,0.72156862745098],"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"index":6578438}]},"createdAt":"2017-01-05T17:47:01.921Z","title":"Unnamed (2017-01-05T17-52-32)","contributors":[],"unique_id":"197bba0a-1e1e-45f0-8aba-2796307ba05c","licence":{}}'
+
+
+
 
 //test for extrusion
 var EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
@@ -193,9 +198,9 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var shape_dict = JSON.parse(mp5_json).root.children[0];
         var mp5_json = null;
 
-        // var obj_selector = "screw";
+        var obj_selector = "screw";
         //var obj_selector = "cone";
-        var obj_selector = "metaballs";
+        // var obj_selector = "metaballs";
         //var obj_selector = "extrusion";
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
@@ -203,8 +208,8 @@ function provide_input (subjective_time, is_update_mode, globals) {
         switch (obj_selector) {
             case "screw":
                 console.log("OK SCREW")
-                // var mp5_json = SIMPLE_SCREW; const BB_SIZE = 12.0/10.0; used_matrix = false;
-                var mp5_json = SCREW; var BB_SIZE = 12.0/10.0; used_matrix = false;
+                var mp5_json = SIMPLE_SCREW; var BB_SIZE = 12.0/10.0;var used_matrix = false;
+                // var mp5_json = SCREW; var BB_SIZE = 12.0/10.0; used_matrix = false;
                 var shape_dict = JSON.parse(mp5_json).root.children[0];
 
                 if(is_update_mode == 1 || is_update_mode == 2) {

@@ -219,6 +219,38 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                                          v);
 
         register_new_object(object);
+    } else if (name == "half_plane") {
+
+        Eigen::Matrix<REAL, 3, 4> matrix;
+        Eigen::Matrix<REAL, 3, 1> plane_vector;
+        Eigen::Matrix<REAL, 3, 1> plane_point;
+
+        half_plane::getHalfPlaneParameters(
+            matrix,
+            plane_vector,
+            plane_point,
+            shapeparams_dict
+        );
+
+        if(ignore_root_matrix) {
+            matrix << 1, 0, 0, 0,
+                      0, 1, 0, 0,
+                      0, 0, 1, 0;
+        };
+
+        std::cout << "--------------ignore_root_matrix------------" << std::endl;
+        std::cout << ignore_root_matrix << std::endl;
+
+        std::cout << "--------------transformation_matrix------------" << std::endl;
+        std::cout << matrix << std::endl;
+        
+        object = new half_plane(matrix,
+                                         plane_vector,
+                                         plane_point
+                                         );
+
+        register_new_object(object);
+
     }
     else if (name == "asmjscb") {
 
@@ -341,7 +373,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             }
             count++;
             if (count > 2) {
-                std::clog << "Error: Intersection cannot be applied to more than two objects." << std::endl;
+                std::clog << "Error: Difference cannot be applied to more than two objects." << std::endl;
             }
 
         }
