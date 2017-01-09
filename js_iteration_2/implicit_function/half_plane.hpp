@@ -100,6 +100,46 @@ public:
     }
 
 
+    static void getHalfPlaneParametersMatrixOnly(
+        Eigen::Matrix<REAL, 3, 4>& matrix, 
+        const pt::ptree& shapeparams_dict
+    ){
+
+        int i = 0;
+        int j = 0;
+        for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
+
+
+
+            REAL x = element.second.get_value<float>();
+
+            matrix(i, j) = x;
+
+            std::cout << matrix(i, j) << std::endl;
+
+            // my_assert(j == 3, "there shuold be three points")
+
+            if (j == 3) {
+                j = 0;
+                i++;
+            } else {
+                j++;
+            }
+            if (i==3) {
+                break;
+            }
+        }
+
+        // my_assert(i == 3, "there should be three row");
+        // my_assert(j == 2, "last row there should be three col");
+
+        std::cout << "---matrix in half plane parameter---" << std::endl;
+
+        std::cout << matrix << std::endl;
+        // my_assert(!(A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
+        // my_assert(!(B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly B is not initialised correclt");
+    }
+
     half_plane(Eigen::Matrix<REAL, 3, 4> matrix,
                Eigen::Matrix<REAL, 3, 1> plane_vector,
                Eigen::Matrix<REAL, 3, 1> plane_point) {
@@ -109,9 +149,14 @@ public:
 
         std::cout << "----this->plane_vector----" << std::endl;
         std::cout << this->plane_vector << std::endl;
+
         assert(abs(this->plane_vector.norm() - 1) < 0.0001);
 
+
         this->plane_point = plane_point;
+
+        std::cout << "----this->plane_point----" << std::endl;
+        std::cout << this->plane_point << std::endl;
 
         // How to make sure 12 elements are provided? (how to assert)
         Eigen::Matrix<REAL, 4, 4> matrix_4_4;
@@ -152,18 +197,25 @@ public:
         this->eval_implicit(x, &implicitFunctionOutput); // inplace change
 
         for (int i=0;i<x.shape()[0];i++) {
-            if (implicitFunctionOutput[i] >= 0) {
-                (*(output))[i][0] = this->plane_vector(0, 0);
-                (*(output))[i][1] = this->plane_vector(1, 0);
-                (*(output))[i][2] = this->plane_vector(2, 0);
-            } else {
+            if (implicitFunctionOutput[i] >= 0) { // distance to the plane, in the half plane
                 (*(output))[i][0] = -this->plane_vector(0, 0);
                 (*(output))[i][1] = -this->plane_vector(1, 0);
                 (*(output))[i][2] = -this->plane_vector(2, 0);
+            } else { // distance to the plane, not in the half plane
+                (*(output))[i][0] = this->plane_vector(0, 0);
+                (*(output))[i][1] = this->plane_vector(1, 0);
+                (*(output))[i][2] = this->plane_vector(2, 0);
             }
+
+        REAL g0 = (*output)[i][0]; // gx 
+        REAL g1 = (*output)[i][1]; // gy
+        REAL g2 = (*output)[i][2]; // gz
+
+        (*output)[i][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
+        (*output)[i][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
+        (*output)[i][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
+
         }
-        // *(output) = (implicitFunctionOutput.array() > 0).select(this->plane_vector, -this->plane_vector)
-        // inside_ness = (inside_ness.array() > 0).select(ones, zeros);
 
     };
 

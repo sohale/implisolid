@@ -187,6 +187,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     }
     else if (name == "screw") {
 
+        // dangerous
+        // ignore_root_matrix = !ignore_root_matrix;
+
         Matrix<REAL, 3, 4> transformation_matrix;
         REAL pitch = 0.0;
         std::string profile;
@@ -199,26 +202,81 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                            end_type, delta_ratio, v,
                            shapeparams_dict);
 
-        if(ignore_root_matrix) {
+        if(true) {
             transformation_matrix << 1, 0, 0, 0,
                                      0, 1, 0, 0,
                                      0, 0, 1, 0;
+        }        
+        // object = new implicit_functions::screw(transformation_matrix,
+        //                                  pitch,
+        //                                  profile,
+        //                                  end_type,
+        //                                  delta_ratio,
+        //                                  v);
+
+        // register_new_object(object);
+
+        // the following code is taken from difference
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+        a = new implicit_functions::screw(transformation_matrix,
+                                                         pitch,
+                                                         profile,
+                                                         end_type,
+                                                         delta_ratio,
+                                                         v);
+
+        Eigen::Matrix<REAL, 3, 1> plane_vector;
+        Eigen::Matrix<REAL, 3, 1> plane_point;
+        plane_vector << 0.0, 0.0, 1.0;
+        plane_point << 0.0, 0.0, 0.25;
+
+        implicit_function * hp = NULL;
+        hp = new half_plane(transformation_matrix,
+                             plane_vector,
+                             plane_point);
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
         }
 
-        std::cout << "--------------ignore_root_matrix------------" << std::endl;
-        std::cout << ignore_root_matrix << std::endl;
+        std::vector<implicit_function *> children_first;
+        children_first.push_back(a);
+        children_first.push_back(hp);
 
-        std::cout << "--------------transformation_matrix------------" << std::endl;
-        std::cout << transformation_matrix << std::endl;
-        
-        object = new implicit_functions::screw(transformation_matrix,
-                                         pitch,
-                                         profile,
-                                         end_type,
-                                         delta_ratio,
-                                         v);
+        implicit_function* first_object;
+
+        copy_eye(matrix12);
+        first_object = new implicit_functions::transformed_subtract(children_first, matrix12);
+
+
+        Eigen::Matrix<REAL, 3, 1> plane_vector_bottom;
+        Eigen::Matrix<REAL, 3, 1> plane_point_bottom;
+        plane_vector_bottom << 0.0, 0.0, -1.0;
+        plane_point_bottom << 0.0, 0.0, -0.25;
+
+        implicit_function * hp_bottom = NULL;
+        hp_bottom = new half_plane(transformation_matrix,
+                             plane_vector_bottom,
+                             plane_point_bottom);
+
+        std::vector<implicit_function *> children;
+        children.push_back(first_object);
+        children.push_back(hp_bottom);
+
+
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new implicit_functions::transformed_subtract(children, matrix12);
+
 
         register_new_object(object);
+
     } else if (name == "half_plane") {
 
         Eigen::Matrix<REAL, 3, 4> matrix;
@@ -231,6 +289,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             plane_point,
             shapeparams_dict
         );
+
+        // plane_vector << 0, 0, 1;
+        // plane_point << 0, 0, 0.5;
+        // half_plane::getHalfPlaneParametersMatrixOnly(
+        //     matrix,
+        //     shapeparams_dict
+        // );
 
         if(ignore_root_matrix) {
             matrix << 1, 0, 0, 0,
@@ -245,9 +310,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         std::cout << matrix << std::endl;
         
         object = new half_plane(matrix,
-                                         plane_vector,
-                                         plane_point
-                                         );
+                                 plane_vector,
+                                 plane_point
+                                 );
 
         register_new_object(object);
 
