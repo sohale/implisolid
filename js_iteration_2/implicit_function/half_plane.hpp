@@ -207,13 +207,13 @@ public:
                 (*(output))[i][2] = this->plane_vector(2, 0);
             }
 
-        REAL g0 = (*output)[i][0]; // gx 
-        REAL g1 = (*output)[i][1]; // gy
-        REAL g2 = (*output)[i][2]; // gz
+            REAL g0 = (*output)[i][0]; // gx 
+            REAL g1 = (*output)[i][1]; // gy
+            REAL g2 = (*output)[i][2]; // gz
 
-        (*output)[i][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
-        (*output)[i][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
-        (*output)[i][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
+            (*output)[i][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
+            (*output)[i][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
+            (*output)[i][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
 
         }
 

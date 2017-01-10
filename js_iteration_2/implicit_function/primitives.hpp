@@ -92,3 +92,4 @@ class TwistedObject::ImplicitObject(){
 #include "javascript_implicit_function.hpp"
 #include "extrusion.hpp"
 #include "half_plane.hpp"
+#include "top_bottom_lid.hpp"
