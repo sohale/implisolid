@@ -13,7 +13,6 @@ namespace mp5_implicit {
 namespace pt = boost::property_tree ;
 
 using Eigen::Matrix;
-using Eigen::MatrixXf;
 using Eigen::Dynamic;
 using Eigen::Array;
 
@@ -103,16 +102,6 @@ Array<REAL, Dynamic, 1> phi(const Array<REAL, Dynamic, 1>& x)
 
 //     return sane;
 // };
-
-
-boost::multi_array<REAL, 1> Eigen_matrix_to_vectorized_scalar(const Matrix<REAL, Dynamic, 1> x)
-{   
-    boost::multi_array<REAL, 1> boost_matrix(boost::extents[x.rows()]);
-    for (int j=0;j<x.rows();j++){
-        boost_matrix[j] = x(j,0);
-    }
-    return boost_matrix;
-}
 
 namespace implicit_functions {
 

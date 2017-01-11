@@ -591,4 +591,13 @@ Eigen::Matrix<REAL, Eigen::Dynamic, 3> vectorized_vect_to_Eigen_matrix(const vec
     return eigen_matrix;
 }
 
+boost::multi_array<REAL, 1> Eigen_matrix_to_vectorized_scalar(const Eigen::Matrix<REAL, Eigen::Dynamic, 1> x)
+{
+    boost::multi_array<REAL, 1> boost_matrix(boost::extents[x.rows()]);
+    for (int j=0;j<x.rows();j++){
+        boost_matrix[j] = x(j,0);
+    }
+    return boost_matrix;
+}
+
 }  // namespace mp5_implicit

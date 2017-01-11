@@ -11,21 +11,19 @@
 
 namespace mp5_implicit {
 
-using Eigen::Dynamic;
-
 
 class top_bottom_lid : public implicit_functions::transformable_implicit_function {
 
 protected:
     //REAL h;
 
-    Eigen::Matrix<REAL, 4, 4> inv_transf_matrix;
-    Eigen::Matrix<REAL, 3, 3> inv_transf_matrix_3_3;
-    Eigen::Matrix<REAL, 3, 1> inv_transf_matrix_neg_xyz;
+    // Eigen::Matrix<REAL, 4, 4> inv_transf_matrix;
+    // Eigen::Matrix<REAL, 3, 3> inv_transf_matrix_3_3;
+    // Eigen::Matrix<REAL, 3, 1> inv_transf_matrix_neg_xyz;
 
 
-    Eigen::Matrix<REAL, 3, 1> plane_vector;
-    Eigen::Matrix<REAL, 3, 1> plane_point;
+    // Eigen::Matrix<REAL, 3, 1> plane_vector;
+    // Eigen::Matrix<REAL, 3, 1> plane_point;
 
     virtual bool integrity_invariant() const {return true;};
 
@@ -77,23 +75,31 @@ public:
     top_bottom_lid(Eigen::Matrix<REAL, 3, 4> matrix) 
     {   
 
-        std::cout << "top_bottom_lid" << std::endl;
-        Eigen::Matrix<REAL, 4, 4> matrix_4_4;
+        {
+            if (matrix(0, 0) != 1 && matrix(0, 1) != 0 && matrix(0, 2) != 0 &&
+                matrix(1, 0) != 0 && matrix(1, 1) != 1 && matrix(1, 2) != 0 &&
+                matrix(2, 0) != 0 && matrix(2, 1) != 0 && matrix(2, 2) != 1) {
+                std::cout << "top_bottom_lid matrix should always be identity throwing error" << "\n";
+                throw;
+            }
+        }
+        // std::cout << "top_bottom_lid" << std::endl;
+        // Eigen::Matrix<REAL, 4, 4> matrix_4_4;
 
-        matrix_4_4 << matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
-                      matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
-                      matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
-                      0, 0, 0, 1;
+        // matrix_4_4 << matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
+        //               matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
+        //               matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
+        //               0, 0, 0, 1;
 
-        this->inv_transf_matrix = matrix_4_4.inverse();
+        // this->inv_transf_matrix = matrix_4_4.inverse();
 
-        this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
-                                      inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
-                                      inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
+        // this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
+        //                               inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
+        //                               inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
 
-        this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
+        // this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
 
-        std::cout << "top_bottom_lid finish constuctor" << std::endl;
+        // std::cout << "top_bottom_lid finish constuctor" << std::endl;
 
 
     };
@@ -102,7 +108,7 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        // matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
@@ -115,43 +121,43 @@ public:
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
-        std::cout << "top_bottom_lid eval_gradient" << std::endl;
+        // std::cout << "top_bottom_lid eval_gradient" << std::endl;
 
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
-
+        // matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         for (int i=0;i<x.shape()[0];i++) {
-            if (x_eigen_matrix(i, 2) >= 0.5) { // distance to the plane, in the half plane
-                (*(output))[i][0] = 0;
-                (*(output))[i][1] = 0;
+
+            const REAL z = x_eigen_matrix(i, 2);
+
+            (*output)[i][0] = 0;
+            (*output)[i][1] = 0;
+
+            if (z >= 0.5 && (0.0 > z && z >= -0.5)) { // distance to the plane, in the half plane
                 (*(output))[i][2] = -1;
-            } else if (0.5 > x_eigen_matrix(i, 2) >= 0.0) {
-                (*(output))[i][0] = 0;
-                (*(output))[i][1] = 0;
-                (*(output))[i][2] = 1;
-            } else if (0.0 > x_eigen_matrix(i, 2) >= -0.5) {
-                (*(output))[i][0] = 0;
-                (*(output))[i][1] = 0;
-                (*(output))[i][2] = -1;
-            } else if (-0.5 > x_eigen_matrix(i, 2)) { // distance to the plane, not in the half plane
-                (*(output))[i][0] = 0;
-                (*(output))[i][1] = 0;
-                (*(output))[i][2] = 1;
             } else {
-                std::cout << "this should never happen" << std::endl;
+                (*(output))[i][2] = 1;
             }
+            
+            // if (z >= 0.5) { // distance to the plane, in the half plane
+            //     (*(output))[i][2] = -1;
+            // } else if (0.5 > z >= 0.0) {
+            //     (*(output))[i][2] = 1;
+            // } else if (0.0 > z >= -0.5) {
+            //     (*(output))[i][2] = -1;
+            // } else if (-0.5 > z) { // distance to the plane, not in the half plane
+            //     (*(output))[i][2] = 1;
+            // } else {
+            //     std::cout << "this should never happen" << std::endl;
+            // }
 
 
-            REAL g0 = (*output)[i][0]; // gx 
-            REAL g1 = (*output)[i][1]; // gy
-            REAL g2 = (*output)[i][2]; // gz
-
-            (*output)[i][0] = this->inv_transf_matrix(0, 0)*g0 + this->inv_transf_matrix(1, 0)*g1 + this->inv_transf_matrix(2, 0)*g2;
-            (*output)[i][1] = this->inv_transf_matrix(0, 1)*g0 + this->inv_transf_matrix(1, 1)*g1 + this->inv_transf_matrix(2, 1)*g2;
-            (*output)[i][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
+            // REAL g0 = (*output)[i][0]; // gx 0
+            // REAL g1 = (*output)[i][1]; // gy 0
+            // REAL g2 = (*output)[i][2]; // gz
+            // (*output)[i][2] =  this->inv_transf_matrix(2, 2)*g2;
 
         }
 

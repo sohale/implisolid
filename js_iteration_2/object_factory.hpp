@@ -302,8 +302,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
     } else if (name == "screw") {
 
+        // inf screw subtract top bottom lid
         std::cout << "new _screw " << std::endl;
-
 
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
@@ -311,10 +311,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
         
-
-        std::cout << "matrix12" << std::endl;
-
-
         Matrix<REAL, 3, 4> transformation_matrix;
         REAL pitch = 0.0;
         std::string profile;
@@ -327,11 +323,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                            end_type, delta_ratio, v,
                            shapeparams_dict);
 
-        if(true) {
-            transformation_matrix << 1, 0, 0, 0,
-                                     0, 1, 0, 0,
-                                     0, 0, 1, 0;
-        }        
+  
+        transformation_matrix << 1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0;    
 
         // // the following code is taken from difference
 
@@ -346,42 +341,9 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         b = new top_bottom_lid(transformation_matrix);
 
-        std::cout << "a b " << std::endl;
-        std::cout << a << std::endl;
-        std::cout << b << std::endl;
-
-        // testing
-        // Eigen::Matrix<REAL, 3, 1> plane_vector_bottom;
-        // Eigen::Matrix<REAL, 3, 1> plane_point_bottom;
-        // plane_vector_bottom << 0.0, 0.0, -1.0;
-        // plane_point_bottom << 0.0, 0.0, -0.25;
-
-        // b = new half_plane(transformation_matrix,
-        //                      plane_vector_bottom,
-        //                      plane_point_bottom);
-        // testing
-
-
         std::vector<implicit_function *> children;
         children.push_back(a);
         children.push_back(b);
-
-        // std::cout << "new screw -------- 1 " << std::endl;
-
-        std::cout << "children" << std::endl;
-
-        for (int i=0;i<2;i++) {
-
-            std::cout << children[i] << std::endl;
-        }
-
-        std::cout << "transformed_subtract" << std::endl;
-
-
-        for (int i=0;i<12;i++) {
-
-            std::cout << matrix12[i] << std::endl;
-        }
 
         object = new implicit_functions::transformed_subtract(children, matrix12);
 
