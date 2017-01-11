@@ -104,16 +104,6 @@ Array<REAL, Dynamic, 1> phi(const Array<REAL, Dynamic, 1>& x)
 //     return sane;
 // };
 
-Matrix<REAL, Dynamic, Dynamic> vectorized_vect_to_Eigen_matrix(const vectorized_vect x)
-{   
-    Matrix<REAL, Dynamic, Dynamic> eigen_matrix(x.shape()[0], x.shape()[1]);
-    for (int i=0;i<x.shape()[0];i++){
-        for (int j=0;j<x.shape()[1];j++){
-            eigen_matrix(i,j) = x[i][j];
-        }
-    }
-    return eigen_matrix;
-}
 
 boost::multi_array<REAL, 1> Eigen_matrix_to_vectorized_scalar(const Matrix<REAL, Dynamic, 1> x)
 {   
@@ -283,22 +273,110 @@ public:
 
     // }
 
-    // screw()
-    // {
-    //     std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
-    //     this->A << 0,0,1; // center of bottom
-    //     this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
-    //     this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
-    //     this->slen = 5; // screw length
-    //     this->r0 = 0.5; // radius of the cylinder
-    //     this->delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
-    //     this->twist_rate = 0.4; // number of cycle ~= slen/twist_rate
-    //     // this->phi0 = 0.0; // not used
+    screw()
+    {
+        // std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
+        // this->A << 0,0,1; // center of bottom
+        // this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
+        // this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
+        // this->slen = 5; // screw length
+        // this->r0 = 0.5; // radius of the cylinder
+        // this->delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
+        // this->twist_rate = 0.4; // number of cycle ~= slen/twist_rate
+        // // this->phi0 = 0.0; // not used
 
-    //     this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
-    //     this->UVW << this->u, this->v, this->w;
-    //     this->UVW_inv = (this->UVW).inverse();
-    // }
+        // this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
+        // this->UVW << this->u, this->v, this->w;
+        // this->UVW_inv = (this->UVW).inverse();
+
+
+        // std::cout << matrix << endl;
+        // std::cout << pitch << endl;
+        // std::cout << profile << endl;
+        // std::cout << end_type << endl;
+        // std::cout << delta_ratio << endl;
+        // std::cout << v << endl; 
+
+        // std::cout << "------------------------using matrix screw constructor: v defined----------------------" << std::endl;
+        // screw current cannot do non-uniform 
+
+        // consider u as transformation matrix * [0,1,0],
+        // consider v as transformation matrix * [1,0,0],
+        // consider w as transformation matrix * [0,0,1],
+
+        // this is a problem since if the screw is stretched, the 
+        // matrix.col(0).norm() (length of u) and matrix.col(1).norm() (length of v)
+
+
+        // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+
+
+        Matrix<REAL, 4, 4> matrix_4_4;
+
+        matrix_4_4 << 1, 0, 0, 0,
+                      0, 1, 0, 0,
+                      0, 0, 1, 0,
+                      0, 0, 0, 1;
+
+
+        this->inv_transf_matrix = matrix_4_4.inverse();
+
+        std:cout << matrix_4_4 << "\n";
+
+        this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
+                                      inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
+                                      inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
+
+        this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
+
+        Matrix<REAL, 4, 4> identity = Matrix<REAL, 4, 4>::Identity();
+
+
+        this->u << 1, 0, 0;
+
+        this->w << 0, 0, 1; 
+        this->slen = this->w.norm(); // 1
+
+        this->v << 0, 1, 0;
+        REAL outer_diameter = this->v.norm(); 
+
+        this->A << 0, 0, 0;
+        this->A  = (this->A.array() - (this->slen/2)*this->w.array()).matrix(); // this only works if w is 0, 0, 1
+        
+        REAL delta_ratio = 1.5;
+        REAL pitch = 0.5;
+        string profile = "sin";
+        string end_type = "0";
+
+        REAL inner_diameter = outer_diameter/delta_ratio;
+        this->r0 = inner_diameter/2;
+        this->delta = (outer_diameter/2 - inner_diameter/2);
+        this->twist_rate = pitch;
+
+        std::cout << "----this->inner_diameter----" << std::endl;
+        std::cout << inner_diameter << std::endl;
+
+        std::cout << "----this->r0----" << std::endl;
+        std::cout << this->r0 << std::endl;
+        std::cout << "----this->delta----" << std::endl;
+        std::cout << this->delta << std::endl;
+        std::cout << "----this->twist_rate----" << std::endl;
+        std::cout << this->twist_rate << std::endl;
+
+        std::cout << "----this->delta----" << std::endl;
+        std::cout << this->delta<< std::endl;
+        std::cout << "----this->twist_rate----" << std::endl;
+        std::cout << this->twist_rate<< std::endl;
+
+        this->UVW << this->u, this->v, this->w;
+        this->UVW_inv = this->UVW.inverse();
+
+        std::cout << "----this->UVW----" << std::endl;
+        std::cout << this->UVW<< std::endl;
+
+        this->phi0 = 0.0; // not used
+
+    }
 
     screw(Matrix<REAL, 3, 4> matrix, REAL pitch, std::string profile, 
           std::string end_type, REAL delta_ratio, Matrix<REAL, 3, 1> v)
@@ -474,7 +552,7 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
 
-        // std::cout << "tiger debug eval_implicit" << std::endl;
+        std::cout << "tiger screw eval_implicit" << "\n";
         // std::cout << x[0][0] << std::endl;
         // std::cout << x[0][1] << std::endl;
         // std::cout << x[0][2] << std::endl;
@@ -510,6 +588,8 @@ public:
         // std::cout << implicitFunctionOutput(0, 2) << std::endl;
 
         *(output) = Eigen_matrix_to_vectorized_scalar(implicitFunctionOutput);
+
+        std::cout << "tiger screw eval_implicit finish" << "\n";
 
     }
 

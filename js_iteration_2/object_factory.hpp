@@ -217,6 +217,14 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         // dangerous
         // ignore_root_matrix = !ignore_root_matrix;
 
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        REAL eye[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0 };
+
         Matrix<REAL, 3, 4> transformation_matrix;
         REAL pitch = 0.0;
         std::string profile;
@@ -264,20 +272,13 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                              plane_vector,
                              plane_point);
 
-        REAL matrix12[12];
-        getMatrix12(matrix12, shapeparams_dict);
-        if(ignore_root_matrix) {
-            copy_eye(matrix12);
-        }
-
         std::vector<implicit_function *> children_first;
         children_first.push_back(a);
         children_first.push_back(hp);
 
         implicit_function* first_object;
 
-        copy_eye(matrix12);
-        first_object = new implicit_functions::transformed_subtract(children_first, matrix12);
+        first_object = new implicit_functions::transformed_subtract(children_first, eye);
 
 
         Eigen::Matrix<REAL, 3, 1> plane_vector_bottom;
@@ -294,11 +295,6 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         children.push_back(first_object);
         children.push_back(hp_bottom);
 
-
-        getMatrix12(matrix12, shapeparams_dict);
-        if(ignore_root_matrix) {
-            copy_eye(matrix12);
-        }
         object = new implicit_functions::transformed_subtract(children, matrix12);
 
 
@@ -430,7 +426,52 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         register_new_object(object);
 
-     } else if (name == "top_bottom_lid") {
+    } else if (name == "screw_gradient_wrong"){
+
+        std::cout << "screw_tbb\n";
+
+        Eigen::Matrix<REAL, 3, 4> eye;
+        eye << 1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, 1, 0;
+
+
+        Matrix<REAL, 3, 4> transformation_matrix;
+        REAL pitch = 0.0;
+        std::string profile;
+        std::string end_type;
+        REAL delta_ratio = 0.0;
+        Matrix<REAL, 3, 1> v;
+
+        implicit_functions::screw::getScrewParameters(
+                           transformation_matrix, pitch, profile,
+                           end_type, delta_ratio, v,
+                           shapeparams_dict);
+
+
+        // implicit_functions::screw s  = new implicit_functions::screw(transformation_matrix,
+        //                                  pitch,
+        //                                  profile,
+        //                                  end_type,
+        //                                  delta_ratio,
+        //                                  v);
+
+//        convex_polygon* square = new convex_polygon(corners_x, corners_y);
+//        unique_ptr<implicit_function_2d> polygon {square};
+
+
+       implicit_function* s = new implicit_functions::screw(transformation_matrix,
+                                         pitch,
+                                         profile,
+                                         end_type,
+                                         delta_ratio,
+                                         v);
+       unique_ptr<implicit_function> screw {s};
+
+        object = new implicit_functions::inf_top_bot_bound(transformation_matrix, screw);
+        register_new_object(object);
+
+    } else if (name == "top_bottom_lid") {
 
         Eigen::Matrix<REAL, 3, 4> matrix;
         Eigen::Matrix<REAL, 3, 1> plane_vector;

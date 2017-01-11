@@ -1,5 +1,6 @@
 #pragma once
 
+#include "basic_data_structures.hpp"
 #include <cmath>  // for isnan
 #include "Eigen/Dense"
 
@@ -557,6 +558,38 @@ void eigen_matrix_vector_product(const Eigen::Matrix<REAL, 3, 3>& matrix,
                                                  Eigen::Matrix<REAL, Eigen::Dynamic, 3>& vector){
       vector = (matrix*vector.transpose()).transpose();
       vector = vector.rowwise() + matrix_xyz.transpose();
+}
+
+Eigen::Matrix<REAL, Eigen::Dynamic, 1> vectorized_scalar_to_Eigen_matrix(const vectorized_scalar& x)
+{   
+    const int x_row_number = x.shape()[0];
+    Eigen:: Matrix<REAL, Eigen::Dynamic, 1> eigen_matrix(x_row_number, 1);
+    my_assert(x.shape()[1] != 1, "wrong usage of vectorized_scalar_to_Eigen_matrix");
+    for (int i=0;i<x_row_number;i++){
+        eigen_matrix(i, 0) = x[i];
+    }
+
+    std::cout << "eigen_matrix.row(0)" << "\n";
+    std::cout << eigen_matrix.row(0) << "\n";
+    std::cout << eigen_matrix.row(1) << "\n";
+    std::cout << eigen_matrix.row(2) << "\n";
+
+    return eigen_matrix;
+}
+
+Eigen::Matrix<REAL, Eigen::Dynamic, Eigen::Dynamic> vectorized_vect_to_Eigen_matrix(const vectorized_vect x)
+{
+    Eigen::Matrix<REAL, Eigen::Dynamic, Eigen::Dynamic> eigen_matrix(x.shape()[0], x.shape()[1]);
+
+    const int x_row_number = x.shape()[0];
+    const int x_col_number = x.shape()[1];
+
+    for (int i=0;i<x_row_number;i++){
+        for (int j=0;j<x_col_number;j++){
+            eigen_matrix(i,j) = x[i][j];
+        }
+    }
+    return eigen_matrix;
 }
 
 }  // namespace mp5_implicit

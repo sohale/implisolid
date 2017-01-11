@@ -93,3 +93,4 @@ class TwistedObject::ImplicitObject(){
 #include "extrusion.hpp"
 #include "half_plane.hpp"
 #include "top_bottom_lid.hpp"
+#include "inf_top_bot_bound.hpp"

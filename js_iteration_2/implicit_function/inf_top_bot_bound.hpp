@@ -26,17 +26,18 @@ class inf_top_bot_bound : public transformable_implicit_function {
 
 protected:
     const REAL height = 1.0;
-    implicit_functions::screw imp_func = implicit_functions::screw();
     Eigen::Matrix<REAL, 4, 4> inv_transf_matrix;
     Eigen::Matrix<REAL, 3, 3> inv_transf_matrix_3_3;
     Eigen::Matrix<REAL, 3, 1> inv_transf_matrix_neg_xyz;
 
-    unique_ptr<implicit_function> imf_func;
+    unique_ptr<implicit_function> imp_func;
 
 
 public:
 
-    inf_top_bot_bound(Eigen::Matrix<REAL, 3, 4> matrix)
+    inf_top_bot_bound(Eigen::Matrix<REAL, 3, 4> matrix, unique_ptr<implicit_function> &_imp_func)
+    : imp_func {std::move(_imp_func)}
+
     {
 
         Eigen::Matrix<REAL, 4, 4> matrix_4_4;
@@ -66,7 +67,7 @@ public:
         const int x_row_number = x.shape()[0];
 
         // todo inverse x..
-        this->imp_func.eval_implicit(x, output);
+        this->imp_func->eval_implicit(x, output);
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(x_row_number, 1);
         imp_func_output = vectorized_scalar_to_Eigen_matrix(*(output));
@@ -85,7 +86,7 @@ public:
         // todo: change o.25 to 0.5
 
 
-        tbb_output = ((x_eigen_matrix.col(2).array() - 0.25).max((x_eigen_matrix.col(2).array() + 0.25) * -1)).matrix();
+        tbb_output = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
         std::cout << tbb_output.row(0) << "\n";
         std::cout << tbb_output.row(1) << "\n";
@@ -112,19 +113,19 @@ public:
 
 
         // for (int i=0;i<x.shape()[0];i++) {
-        //     if (x_eigen_matrix(i, 2) >= 0.25) { // distance to the plane, in the half plane
+        //     if (x_eigen_matrix(i, 2) >= 0.5) { // distance to the plane, in the half plane
         //         (*(output))[i][0] = 0;
         //         (*(output))[i][1] = 0;
         //         (*(output))[i][2] = -1;
-        //     } else if (0.25 > x_eigen_matrix(i, 2) >= 0.0) {
+        //     } else if (0.5 > x_eigen_matrix(i, 2) >= 0.0) {
         //         (*(output))[i][0] = 0;
         //         (*(output))[i][1] = 0;
         //         (*(output))[i][2] = 1;
-        //     } else if (0.0 > x_eigen_matrix(i, 2) >= -0.25) {
+        //     } else if (0.0 > x_eigen_matrix(i, 2) >= -0.5) {
         //         (*(output))[i][0] = 0;
         //         (*(output))[i][1] = 0;
         //         (*(output))[i][2] = -1;
-        //     } else if (-0.25 > x_eigen_matrix(i, 2)) { // distance to the plane, not in the half plane
+        //     } else if (-0.5 > x_eigen_matrix(i, 2)) { // distance to the plane, not in the half plane
         //         (*(output))[i][0] = 0;
         //         (*(output))[i][1] = 0;
         //         (*(output))[i][2] = 1;
@@ -150,21 +151,21 @@ public:
 
         // implicit value calculation
         // boost::multi_array<REAL, 1> imp_func_value_output;
-        // this->imp_func.eval_implicit(x, &imp_func_value_output);
+        // this->imp_func->eval_implicit(x, &imp_func_value_output);
 
         // Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(x_row_number, 1);
         // imp_func_output = vectorized_scalar_to_Eigen_matrix(imp_func_value_output);
 
         // Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(x_row_number, 1);
-        // tbb_output = ((x_eigen_matrix.col(2).array() - 0.25).max((x_eigen_matrix.col(2).array() + 0.25) * -1)).matrix();
+        // tbb_output = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
-        this->imp_func.eval_gradient(x, output);
+        this->imp_func->eval_gradient(x, output);
         for (int i=0; i < x_eigen_matrix.rows(); i++) {
-            if (x_eigen_matrix(i, 2)>0.25) {
+            if (x_eigen_matrix(i, 2)>=0.5) {
                 (*output)[i][0] = 0;
                 (*output)[i][1] = 0;
                 (*output)[i][2] = -1;
-            } else if (x_eigen_matrix(i, 2)<-0.25) {
+            } else if (x_eigen_matrix(i, 2)<=-0.5) {
                 (*output)[i][0] = 0;
                 (*output)[i][1] = 0;
                 (*output)[i][2] = 1;
@@ -205,7 +206,7 @@ public:
         std::cout << "tt eval_gradient gate 0" << std::endl;
 
         boost::multi_array<REAL, 1> imp_func_value_output;
-        this->imp_func.eval_implicit(x, &imp_func_value_output);
+        this->imp_func->eval_implicit(x, &imp_func_value_output);
 
         std::cout << "imp_func_value_output" << "\n";
         std::cout << imp_func_value_output[0] << "\n";
@@ -224,13 +225,13 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(x_row_number, 1);
         // todo: change o.25 to 0.5
-        tbb_output = ((x_eigen_matrix.col(2).array() - 0.25).max((x_eigen_matrix.col(2).array() + 0.25) * -1)).matrix();
+        tbb_output = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
         // my_assert(imp_func_output.rows() == tbb_output.rows(), "row number diff");
 
 
         boost::multi_array<REAL, 2> output_gradient;
-        this->imp_func.eval_gradient(x,  &output_gradient);
+        this->imp_func->eval_gradient(x,  &output_gradient);
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> imp_func_gradient(x_row_number, 3);
 
         imp_func_gradient = vectorized_vect_to_Eigen_matrix(output_gradient);
@@ -249,7 +250,7 @@ public:
 
         for (int i=0;i<x_row_number;i++) {
 
-            if (x_eigen_matrix(i, 2) >= 0.25 || (0>=x_eigen_matrix(i, 2) && x_eigen_matrix(i, 2) >=-0.25)) {
+            if (x_eigen_matrix(i, 2) >= 0.5 || (0>=x_eigen_matrix(i, 2) && x_eigen_matrix(i, 2) >=-0.5)) {
                 // cout << x_eigen_matrix(i, 2) << "true\n";
                 eigen_gradient(i, 2) = -1;
 

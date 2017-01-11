@@ -113,7 +113,7 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
 
-        implicitFunctionOutput = ((x_eigen_matrix.col(2).array() - 0.25).max((x_eigen_matrix.col(2).array() + 0.25) * -1)).matrix();
+        implicitFunctionOutput = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
         std::cout << "--implicitFunctionOutput.row(0)--" << std::endl;
         std::cout << implicitFunctionOutput.row(0) << std::endl;
