@@ -86,7 +86,7 @@ var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"ro
 // cone top_bottom_lid
 // var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"top_bottom_lid","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
-
+var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"asmjscb","displayColor":[0.114,0.075,0.63],"param1":0.5,"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":2463577,"implicit":"_f =  (+param1)*(+param1) - ((_x/0.7) *(_x/0.7) + _y * _y + _z * _z);","gradient":"_gx = (-2) * _x /(0.7); _gy = -2 * _y; _gz = -2 * _z;"}]},"createdAt":"2016-12-27","title":"asmjs example 2","description":"Multiple colours","contributors":["sohail"],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}';
 
 
 //test for extrusion
@@ -202,10 +202,11 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var shape_dict = JSON.parse(mp5_json).root.children[0];
         var mp5_json = null;
 
-        var obj_selector = "screw";
+        // var obj_selector = "screw";
         //var obj_selector = "cone";
         // var obj_selector = "metaballs";
         //var obj_selector = "extrusion";
+        var obj_selector = "asmjs";
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
@@ -298,7 +299,21 @@ function provide_input (subjective_time, is_update_mode, globals) {
                     console.error("resizing", sz);
                 }
             break;
+            case "asmjs":
+                console.log("OK asmjs", BB_SIZE)
+                var mp5_json = asmjs; var BB_SIZE = 1.5; used_matrix = true;
+                var shape_dict = JSON.parse(mp5_json).root.children[0];
 
+
+                resize_mp5 = function (d, sz) {
+                    d.matrix[0] = sz;
+                    d.matrix[5] = sz;
+                    d.matrix[10] = sz;
+                    console.error("resizing", sz);
+                }
+
+
+            break;
             default:
                 console.error("error");
         }
@@ -373,15 +388,16 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         var REPEATS = 1; // has no effect! ()?!)
         // create new geometry
+        // tiger
         var mc_properties_json = {
-            resolution: Math.floor(28),
+            resolution: Math.floor(80),
             box: bbox,
             ignore_root_matrix: false,
 
-            vresampl: {iters: 1, c: 1.0},
-            projection: {enabled: 1},
-            qem: {enabled: 1},
-            subdiv: {enabled: 1},
+            vresampl: {iters: 0, c: 1.0},
+            projection: {enabled: 0},
+            qem: {enabled: 0},
+            subdiv: {enabled: 0},
             overall_repeats: REPEATS,
             debug: {
                 enabled_pointsets: 0,

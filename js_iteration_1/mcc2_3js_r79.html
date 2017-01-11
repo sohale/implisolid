@@ -1508,3 +1508,115 @@ else{
     }
 
  </script >
+
+ <script>
+
+    var asmjscb__func_table = {};
+    asmjscb__func_table[2463577] = {
+        eval_implicit: function (x, f, points, param1) {
+            console.log("tiger debug points", points);
+            for (var i=0; i<points; i++) {
+                var x_0 = x[i*3];
+                var x_1 = x[i*3 + 1];
+                var x_2 = x[i*3 + 2];
+
+
+                // heart
+                // f[i] = 0.0000000001 - (Math.pow((x_0*x_0 + (9/4)*x_1*x_1 + x_2*x_2 - 1), 3) - x_0*x_0*x_2*x_2*x_2 - (9/80)*x_1*x_1*x_2*x_2*x_2 );
+
+                 f[i] =  1 - (Math.cos(3*x_0)*Math.cos(3*x_0) + Math.cos(3*x_1)*Math.cos(3*x_1) + Math.cos(3*x_2)*Math.cos(3*x_2));
+
+                // f[i] = 0.001 - (Math.cos(x_0)*Math.cos(x_0) + Math.cos(x_1)*Math.cos(x_1) + Math.cos(x_2)*Math.cos(x_2));
+
+                // f[i] = 0.3 - x_0*x_0 - x_1*x_1 - x_2*x_2;
+
+                // console.log(x_0, x_1, x_2);
+                // if (i <= 5) {
+                //     console.log("i", i);
+                //     console.log(f[i]);
+                // }
+            }
+        },
+        eval_gradient: function (x, g, points, param1) {
+            for (var i=0; i<points; i++) {
+
+                var x_0 = x[i*3];
+                var x_1 = x[i*3 + 1];
+                var x_2 = x[i*3 + 2];
+
+                // g[i*3] = - 2*x_0;
+                // g[i*3 + 1] = - 2*x_1;
+                // g[i*3 + 2] = - 2*x_2;
+
+                g[i*3] = - 2*x_0;
+                g[i*3 + 1] = - 2*x_1;
+                g[i*3 + 2] = - 2*x_2;
+                // console.log(x_0, x_1, x_2);
+                // console.log(g[0], g[1], g[2]);
+            }
+        }
+    }
+
+    function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
+        'use asm';
+        console.log('----use asm');
+        console.log(id);
+        console.log(x_start_ptr);
+        console.log(x_len);
+        console.log(output_start_ptr);
+        console.log(param1);
+
+        //     [94, 8463584, 15625, 7537720, 0.009999999776482582]
+        //console.log("ASMJS", arguments);
+        //console.log("id:",id, " x_start_ptr:",x_start_ptr, " x_len:", x_len, " output_start_ptr:", output_start_ptr, " param1", param1);
+        // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
+
+        x_start_ptr = x_start_ptr | 0;
+        x_len = x_len | 0;
+        //x_len = x_len * 2;
+        output_start_ptr = output_start_ptr | 0;
+        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
+        var f = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + (x_len|0));
+        //console.log("x,f: ", x, f);
+
+        id = id | 0;
+
+        /*if ((id|0) === (94|0)) {
+
+            //obj94_eval_implicit(x, f, x_len, param1);
+            throw "no longer";
+
+        } else*/ {
+
+            var fg = asmjscb__func_table[id|0];
+            fg.eval_implicit(x, f, x_len, param1);
+
+            //throw "unknown ASMJS eval_implicit callback id";
+        }
+    }
+
+    function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
+        //console.log("ASMJS GRAD", arguments);
+
+        var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);
+        var g = Module.HEAPF32.subarray(output_start_ptr >> 2, (output_start_ptr >> 2) + ((x_len|0) * 3));  // prantheses are necesary
+
+        //id = 95;
+        id = id | 0;
+        //if (id !== 94|0) throw "unknown ASMJS callback id";
+
+        /*
+        if ((id|0) === (94|0)) {
+
+            //obj94_eval_gradient(x, g, x_len, param1);
+            throw "no longer";
+
+        } else*/ {
+            var fg = asmjscb__func_table[id|0];
+            fg.eval_gradient(x, g, x_len, param1);
+
+            //throw "unknown ASMJS Gradient callback id";
+
+        }
+    }
+ </script>

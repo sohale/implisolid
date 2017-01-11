@@ -58,12 +58,25 @@ public:
             (*f_output)[output_ctr] = 1 - norm_squared(((*i)[0]-this->x0)/this->a, ((*i)[1]-this->y0)/this->b, ((*i)[2]-this->z0)/this->c);
         }
         */
+
+
+        std::cout << "f_output[i]" << "\n";
+        for (int i = 0; i<=10 ;i++) {
+            std::cout << i << "\n";
+            std::cout << (*f_output)[i] << "\n";
+        }
         int result = EM_ASM_INT({
             console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
             js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, (void*)(&((*(x_copy.begin()))[0])), x_copy.shape()[0], (void*)(f_output->data()), this->param1);
+
+        std::cout << "f_output[i]" << "\n";
+        for (int i = 0; i<=10 ;i++) {
+            std::cout << i << "\n";
+            std::cout << (*f_output)[i] << "\n";
+        }
     }
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
