@@ -139,9 +139,6 @@ bool invert_matrix(const REAL input_A[], REAL inverse_A[])
 
 void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
 
-    std::cout << "using not tested matrix_vector_product" << std::endl;
-    // not tested
-
     /*
       matou is 3 by 4
 
@@ -179,6 +176,13 @@ void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
 
 }
 
+// eigen function
+void matrix_vector_product(const Eigen::Matrix<REAL, 3, 3>& matrix, 
+                           const Eigen::Matrix<REAL, 3, 1>& matrix_xyz,
+                           Eigen::Matrix<REAL, Eigen::Dynamic, 3>& vector){
+      vector = (matrix*vector.transpose()).transpose();
+      vector = vector.rowwise() + matrix_xyz.transpose();
+}
 
 /**
  * Function: Matrix_Vector_Product_0
@@ -189,16 +193,16 @@ void matrix_vector_product(const REAL matou[], vectorized_vect& vectou){
  * Notes:
  */
 
-void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
-  for (int i=0; i<vectou.shape()[0]; i++){
-    REAL vectou_0 = vectou[i][0];
-    REAL vectou_1 = vectou[i][1];
-    vectou[i][0] = matou[0]*vectou_0 + matou[1]*vectou_1 + matou[2]*vectou[i][2] + matou[3]*1.;
-    vectou[i][1] = matou[4]*vectou_0 + matou[5]*vectou_1 + matou[6]*vectou[i][2] + matou[7]*1.;
-    vectou[i][2] = matou[8]*vectou_0 + matou[9]*vectou_1 + matou[10]*vectou[i][2] + matou[11]*1.;
-  }
+// void Matrix_Vector_Product_0(const REAL matou[], vectorized_vect& vectou){
+//   for (int i=0; i<vectou.shape()[0]; i++){
+//     REAL vectou_0 = vectou[i][0];
+//     REAL vectou_1 = vectou[i][1];
+//     vectou[i][0] = matou[0]*vectou_0 + matou[1]*vectou_1 + matou[2]*vectou[i][2] + matou[3]*1.;
+//     vectou[i][1] = matou[4]*vectou_0 + matou[5]*vectou_1 + matou[6]*vectou[i][2] + matou[7]*1.;
+//     vectou[i][2] = matou[8]*vectou_0 + matou[9]*vectou_1 + matou[10]*vectou[i][2] + matou[11]*1.;
+//   }
 
-}
+// }
 
 
 /**
@@ -552,43 +556,38 @@ void randomize_verts(vectorized_vect & verts, REAL amplitude) {
     }
 }
 
-// eigen function
-void eigen_matrix_vector_product(const Eigen::Matrix<REAL, 3, 3>& matrix, 
-                                                 const Eigen::Matrix<REAL, 3, 1>& matrix_xyz,
-                                                 Eigen::Matrix<REAL, Eigen::Dynamic, 3>& vector){
-      vector = (matrix*vector.transpose()).transpose();
-      vector = vector.rowwise() + matrix_xyz.transpose();
-}
-
 Eigen::Matrix<REAL, Eigen::Dynamic, 1> vectorized_scalar_to_Eigen_matrix(const vectorized_scalar& x)
 {   
-    const int x_row_number = x.shape()[0];
-    Eigen:: Matrix<REAL, Eigen::Dynamic, 1> eigen_matrix(x_row_number, 1);
-    my_assert(x.shape()[1] != 1, "wrong usage of vectorized_scalar_to_Eigen_matrix");
-    for (int i=0;i<x_row_number;i++){
+    const int num_points = x.shape()[0];
+    const int x_col_number = x.shape()[1];
+
+    Eigen:: Matrix<REAL, Eigen::Dynamic, 1> eigen_matrix(num_points, 1);
+
+    my_assert(x_col_number != 1, "wrong usage of vectorized_scalar_to_Eigen_matrix");
+
+    for (int i=0;i<num_points;i++){
         eigen_matrix(i, 0) = x[i];
     }
-
-    std::cout << "eigen_matrix.row(0)" << "\n";
-    std::cout << eigen_matrix.row(0) << "\n";
-    std::cout << eigen_matrix.row(1) << "\n";
-    std::cout << eigen_matrix.row(2) << "\n";
 
     return eigen_matrix;
 }
 
-Eigen::Matrix<REAL, Eigen::Dynamic, Eigen::Dynamic> vectorized_vect_to_Eigen_matrix(const vectorized_vect x)
+Eigen::Matrix<REAL, Eigen::Dynamic, 3> vectorized_vect_to_Eigen_matrix(const vectorized_vect& x)
 {
-    Eigen::Matrix<REAL, Eigen::Dynamic, Eigen::Dynamic> eigen_matrix(x.shape()[0], x.shape()[1]);
 
-    const int x_row_number = x.shape()[0];
-    const int x_col_number = x.shape()[1];
+    const int num_points = x.shape()[0];
+    const int x_col_number = 3;
 
-    for (int i=0;i<x_row_number;i++){
+    my_assert(x.shape()[1]==3, "there should be 3 column");
+
+    Eigen::Matrix<REAL, Eigen::Dynamic, 3> eigen_matrix(num_points, 3);
+
+    for (int i=0;i<num_points;i++){
         for (int j=0;j<x_col_number;j++){
             eigen_matrix(i,j) = x[i][j];
         }
     }
+
     return eigen_matrix;
 }
 

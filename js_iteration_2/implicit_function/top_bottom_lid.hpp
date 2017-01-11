@@ -100,28 +100,17 @@ public:
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
-        std::cout << "top_bottom_lid eval_implicit" << std::endl;
-
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
-
-        std::cout << "--x_eigen_matrix.row(0)--" << std::endl;
-        std::cout << x_eigen_matrix.row(0) << std::endl;
-        std::cout << x_eigen_matrix.row(1) << std::endl;
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
 
         implicitFunctionOutput = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
-        std::cout << "--implicitFunctionOutput.row(0)--" << std::endl;
-        std::cout << implicitFunctionOutput.row(0) << std::endl;
-        std::cout << implicitFunctionOutput.row(1) << std::endl;
-
         *(output) = Eigen_matrix_to_vectorized_scalar(implicitFunctionOutput);
 
-        std::cout << "top_bottom_lid eval_implicit finish" << std::endl;
     };
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
@@ -131,7 +120,7 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
 
         for (int i=0;i<x.shape()[0];i++) {

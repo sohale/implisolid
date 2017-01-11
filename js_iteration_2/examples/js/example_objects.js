@@ -212,7 +212,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         switch (obj_selector) {
             case "screw":
                 console.log("OK SCREW")
-                var mp5_json = SIMPLE_SCREW; var BB_SIZE = 12.0/10.0;var used_matrix = false;
+                var mp5_json = SIMPLE_SCREW; var BB_SIZE = 0.5;var used_matrix = false;
                 // var mp5_json = SCREW; var BB_SIZE = 12.0/10.0; used_matrix = false;
                 var shape_dict = JSON.parse(mp5_json).root.children[0];
 
@@ -374,7 +374,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         var REPEATS = 1; // has no effect! ()?!)
         // create new geometry
         var mc_properties_json = {
-            resolution: Math.floor(20),
+            resolution: Math.floor(28),
             box: bbox,
             ignore_root_matrix: false,
 

@@ -180,7 +180,7 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 1> implicitFunctionOutput(x.shape()[0], 1);
         implicitFunctionOutput = (x_eigen_matrix.rowwise() - this->plane_point.transpose()) * this->plane_vector;
@@ -191,7 +191,7 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
         // Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         // x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        // eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        // matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         vectorized_scalar  implicitFunctionOutput(boost::extents[x.shape()[0]]);
         this->eval_implicit(x, &implicitFunctionOutput); // inplace change

@@ -64,25 +64,25 @@ public:
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
-        const int x_row_number = x.shape()[0];
+        const int num_points = x.shape()[0];
 
         // todo inverse x..
         this->imp_func->eval_implicit(x, output);
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(x_row_number, 1);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(num_points, 1);
         imp_func_output = vectorized_scalar_to_Eigen_matrix(*(output));
 
 
         // setup fpr eigen
-        Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x_row_number, 3);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(num_points, 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         std::cout << "x_eigen_matrix.row(0)" << "\n";
         std::cout << x_eigen_matrix.row(0) << "\n";
         std::cout << x_eigen_matrix.row(1) << "\n";
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(x_row_number, 1);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(num_points, 1);
         // todo: change o.25 to 0.5
 
 
@@ -109,7 +109,7 @@ public:
 
         Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
 
         // for (int i=0;i<x.shape()[0];i++) {
@@ -147,16 +147,16 @@ public:
 
         // new code 
 
-        // const int x_row_number = x.shape()[0];
+        // const int num_points = x.shape()[0];
 
         // implicit value calculation
         // boost::multi_array<REAL, 1> imp_func_value_output;
         // this->imp_func->eval_implicit(x, &imp_func_value_output);
 
-        // Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(x_row_number, 1);
+        // Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(num_points, 1);
         // imp_func_output = vectorized_scalar_to_Eigen_matrix(imp_func_value_output);
 
-        // Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(x_row_number, 1);
+        // Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(num_points, 1);
         // tbb_output = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
         this->imp_func->eval_gradient(x, output);
@@ -195,11 +195,11 @@ public:
 
         std::cout << "tt eval_gradient start" << std::endl;
 
-        const int x_row_number = x.shape()[0];
+        const int num_points = x.shape()[0];
      
-        Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(x_row_number, 3);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 3> x_eigen_matrix(num_points, 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         // implicit value calculation
 
@@ -213,7 +213,7 @@ public:
         std::cout << imp_func_value_output[1] << "\n";
         std::cout << imp_func_value_output[2] << "\n";
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(x_row_number, 1);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 1> imp_func_output(num_points, 1);
         imp_func_output = vectorized_scalar_to_Eigen_matrix(imp_func_value_output);
 
         std::cout << "---imp_func_output start" << "\n";
@@ -223,7 +223,7 @@ public:
         std::cout << "---imp_func_output end" << "\n";
 
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(x_row_number, 1);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 1> tbb_output(num_points, 1);
         // todo: change o.25 to 0.5
         tbb_output = ((x_eigen_matrix.col(2).array() - 0.5).max((x_eigen_matrix.col(2).array() + 0.5) * -1)).matrix();
 
@@ -232,11 +232,11 @@ public:
 
         boost::multi_array<REAL, 2> output_gradient;
         this->imp_func->eval_gradient(x,  &output_gradient);
-        Eigen::Matrix<REAL, Eigen::Dynamic, 3> imp_func_gradient(x_row_number, 3);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 3> imp_func_gradient(num_points, 3);
 
         imp_func_gradient = vectorized_vect_to_Eigen_matrix(output_gradient);
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 3> eigen_gradient(x_row_number, 3);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 3> eigen_gradient(num_points, 3);
         eigen_gradient.col(0).setZero();
         eigen_gradient.col(1).setZero();
 
@@ -248,7 +248,7 @@ public:
 
         // eigen_gradient.col(2) = (x_eigen_matrix.col(2).array()>=0.5 && (0>=x_eigen_matrix.col(2).array()>=-0.5)).select(-1, 1);
 
-        for (int i=0;i<x_row_number;i++) {
+        for (int i=0;i<num_points;i++) {
 
             if (x_eigen_matrix(i, 2) >= 0.5 || (0>=x_eigen_matrix(i, 2) && x_eigen_matrix(i, 2) >=-0.5)) {
                 // cout << x_eigen_matrix(i, 2) << "true\n";
@@ -264,9 +264,9 @@ public:
         // std::cout << "x_eigen_matrix.col(2) after" << "\n";
         // std::cout << eigen_gradient.col(2) << "\n";
 
-        Eigen::Matrix<REAL, Eigen::Dynamic, 3> comparison_output(x_row_number, 3);
+        Eigen::Matrix<REAL, Eigen::Dynamic, 3> comparison_output(num_points, 3);
 
-        for (int i=0;i<x_row_number;i++) {
+        for (int i=0;i<num_points;i++) {
             if (imp_func_output(i, 0) > tbb_output(i, 0)) {
                 comparison_output.row(i) = eigen_gradient.row(i);
             } else {
@@ -278,7 +278,7 @@ public:
         // std::cout << "comparison_output \n";
         // std::cout << comparison_output;
 
-        for (int i=0;i<x_row_number;i++) {
+        for (int i=0;i<num_points;i++) {
             REAL g0 = comparison_output(i, 0);
             REAL g1 = comparison_output(i, 1);
             REAL g2 = comparison_output(i, 2);
@@ -289,7 +289,7 @@ public:
            (*output)[i][2] = this->inv_transf_matrix(0, 2)*g0 + this->inv_transf_matrix(1, 2)*g1 + this->inv_transf_matrix(2, 2)*g2;
         }
         
-        for (int i=0;i<x_row_number;i++) {
+        for (int i=0;i<num_points;i++) {
                 (*output)[i][0] = 0;
                 (*output)[i][1] = 1;
                 (*output)[i][2] = 1;

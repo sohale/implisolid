@@ -168,148 +168,34 @@ protected:
         Matrix<REAL, Dynamic, 1> r(num_points, 1);
         r = (x - p.transpose()).rowwise().norm(); // length to center
 
-        Matrix<REAL, Dynamic, 1> inside_ness(num_points, 1);
-
-
-        inside_ness = t/slen; // whether the point is inside the range of length of screw
-
-        Matrix<REAL, Dynamic, 1> ones(num_points, 1);
-        ones = MatrixXf::Ones(num_points, 1);
-
-        inside_ness = 1*ones - 2*((inside_ness-0.5*ones).cwiseAbs());
-
-        Matrix<REAL, Dynamic, 1> zeros(num_points, 1);
-        zeros = MatrixXf::Zero(num_points, 1);
-        // inside_ness = (inside_ness.array() > 0).select(ones, zeros);
-
-        inside_ness = ones; // debug
-
-        REAL pi2 = pi*2; //M_PI from math.h
+        REAL pi2 = pi*2;
 
         Matrix<REAL, Dynamic, 1> screw_ness(num_points, 1);
 
-
         screw_ness = (
-            (
-                -r.array() + r0 + delta * 
-                phi( t_transpose.array()/twist_rate - theta.array()/pi2 )
-            )
-            * inside_ness.array()).matrix();
+                      -r.array() + r0 + delta * 
+                        phi( t_transpose.array()/twist_rate - theta.array()/pi2 )
+                     ).matrix();
 
-        // screw_ness = (x.col(2).array() > 0.5).select(-1*x.col(2).array() + 0.5, screw_ness);
-
-        // constexpr int _Z = 2;
-        // const auto top_sdf    =  +0.5 - x.col(_Z).array();
-        // const auto bottom_sdf =  +0.5 + x.col(_Z).array();
-
-        // screw_ness = (x.col(2).array() < - 0.5).select(x.col(2).array() + 0.5, screw_ness);
-
-        // screw_ness = (x.col(2).array() >= 0.5).select(x.col(2).array() - 0.5, screw_ness);
-        // screw_ness = (x.col(2).array() <= - 0.5).select(-1*x.col(2).array() - 0.5, screw_ness);
-
-        // std::cout << "----------------x.col(2)-------------" << std::endl;
-        // std::cout << x.col(2) << std::endl;
-
-        // screw_ness = screw_ness.array().min(top_sdf).min(bottom_sdf);
         return screw_ness;
 
     };
 
-    static inline void gradient(REAL ax, REAL ay, REAL az, REAL delta, REAL phi0, REAL twist_rate, 
-                  REAL uvwi00, REAL uvwi01, REAL uvwi02, REAL uvwi10, REAL uvwi11, REAL uvwi12,
-                  REAL wx, REAL wy, REAL wz,
-                  REAL x, REAL y, REAL z,
+    static inline void gradient(const REAL ax, const REAL ay, const REAL az, const REAL delta, const REAL phi0, const REAL twist_rate, 
+                  const REAL uvwi00, const REAL uvwi01, const REAL uvwi02, const REAL uvwi10, const REAL uvwi11, const REAL uvwi12,
+                  const REAL wx, const REAL wy, const REAL wz,
+                  const REAL x, const REAL y, const REAL z,
                   REAL& dx, REAL& dy, REAL& dz) {
-
-        // if (z > 0.5){
-        //     dx = 0;
-        //     dy = 0;
-        //     dz = -1;
-        //     return;
-        // }
-        // else if (z < -0.5){
-        //     dx = 0;
-        //     dy = 0;
-        //     dz = +1;
-        //     return;
-        // }
-        // else{
         dx = M_PI*delta*(-((uvwi00*(-std::pow(wx, 2) + 1) - uvwi01*wx*wy - uvwi02*wx*wz)*(-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(uvwi10*(-std::pow(wx, 2) + 1) - uvwi11*wx*wy - uvwi12*wx*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wx/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - wx*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wx, 2) + 2)*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
         dy = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wy + uvwi11*(-std::pow(wy, 2) + 1) - uvwi12*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wy + uvwi01*(-std::pow(wy, 2) + 1) - uvwi02*wy*wz)/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wy/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wy*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z) + (1.0/2.0)*(-2*std::pow(wy, 2) + 2)*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
         dz = M_PI*delta*(-((uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi10*wx*wz - uvwi11*wy*wz + uvwi12*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)) + (-uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) - uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))*(-uvwi00*wx*wz - uvwi01*wy*wz + uvwi02*(-std::pow(wz, 2) + 1))/(std::pow(uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2) + std::pow(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), 2)))/M_PI + 2*wz/twist_rate)*cos(M_PI*(2*phi0 - atan2(uvwi10*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi11*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi12*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z), uvwi00*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) + uvwi01*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + uvwi02*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/M_PI + 2*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z))/twist_rate)) - (-wx*wz*(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x) - wy*wz*(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y) + (1.0/2.0)*(-2*std::pow(wz, 2) + 2)*(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z))/std::sqrt(std::pow(-ax - wx*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + x, 2) + std::pow(-ay - wy*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + y, 2) + std::pow(-az - wz*(wx*(-ax + x) + wy*(-ay + y) + wz*(-az + z)) + z, 2));
-        return;
-        // };
-
-    }
-
-    
-    static inline void eigen_matrix_vector_product(const Matrix<REAL, 3, 3>& matrix, 
-                                                   const Matrix<REAL, 3, 1>& matrix_xyz,
-                                                   Matrix<REAL, Dynamic, 3>& vector){
-        vector = (matrix*vector.transpose()).transpose();
-        vector = vector.rowwise() + matrix_xyz.transpose();
     }
 
 public: 
 
-    // screw(Matrix<REAL, 3, 1> A, Matrix<REAL, 3, 1> B, Matrix<REAL, 3, 1> U, 
-    //       REAL pitch, std::string profile_shape,
-    //       REAL inner_diameter, REAL outer_diameter,  std::string end_type) {
-
-    //     this->A = A;
-    //     this->slen = (B - A).norm();
-    //     this->w = (B-A)/slen;
-    //     my_assert(slen != 0, "cannot divided by zero");
-    //     this->u = U;
-    //     my_assert(end_type != "0", "end_type can only be zero now");
-    //     my_assert(profile_shape != "sin" , "profile_shape can only be sin now");
-    //     this->r0 = (inner_diameter + outer_diameter)/2;
-    //     this->delta = outer_diameter - this->r0;
-    //     this->twist_rate = pitch;
-
-    //     this->v = this->u.cross(this->w); // vector defined orientation, orthogon to u, w
-    //     this->UVW << this->u, this->v, this->w;
-    //     this->UVW_inv = this->UVW.inverse();
-
-    // }
 
     screw()
     {
-        // std::cout << "------------------------using empty screw constructor----------------------" << std::endl;
-        // this->A << 0,0,1; // center of bottom
-        // this->w << 0,0,-1; // vector defined orientation, orthogonal to u, v
-        // this->u << 1,0,0; // vector defined orientation, orthogonal to u, v
-        // this->slen = 5; // screw length
-        // this->r0 = 0.5; // radius of the cylinder
-        // this->delta = 0.2; // how much does the screw extend out and subtract in since the phi function is between -1 to 1
-        // this->twist_rate = 0.4; // number of cycle ~= slen/twist_rate
-        // // this->phi0 = 0.0; // not used
-
-        // this->v = (this->u).cross(this->w); // vector defined orientation, orthogon to u, w
-        // this->UVW << this->u, this->v, this->w;
-        // this->UVW_inv = (this->UVW).inverse();
-
-
-        // std::cout << matrix << endl;
-        // std::cout << pitch << endl;
-        // std::cout << profile << endl;
-        // std::cout << end_type << endl;
-        // std::cout << delta_ratio << endl;
-        // std::cout << v << endl; 
-
-        // std::cout << "------------------------using matrix screw constructor: v defined----------------------" << std::endl;
-        // screw current cannot do non-uniform 
-
-        // consider u as transformation matrix * [0,1,0],
-        // consider v as transformation matrix * [1,0,0],
-        // consider w as transformation matrix * [0,0,1],
-
-        // this is a problem since if the screw is stretched, the 
-        // matrix.col(0).norm() (length of u) and matrix.col(1).norm() (length of v)
-
-
-        // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
-
 
         Matrix<REAL, 4, 4> matrix_4_4;
 
@@ -318,16 +204,15 @@ public:
                       0, 0, 1, 0,
                       0, 0, 0, 1;
 
-
         this->inv_transf_matrix = matrix_4_4.inverse();
 
-        std:cout << matrix_4_4 << "\n";
+        // std:cout << matrix_4_4 << "\n";
 
-        this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
-                                      inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
-                                      inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
+        // this->inv_transf_matrix_3_3 << inv_transf_matrix(0, 0), inv_transf_matrix(0, 1), inv_transf_matrix(0, 2),
+        //                               inv_transf_matrix(1, 0), inv_transf_matrix(1, 1), inv_transf_matrix(1, 2),
+        //                               inv_transf_matrix(2, 0), inv_transf_matrix(2, 1), inv_transf_matrix(2, 2);
 
-        this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
+        // this->inv_transf_matrix_neg_xyz << inv_transf_matrix(0, 3), inv_transf_matrix(1, 3), inv_transf_matrix(2, 3);
 
         Matrix<REAL, 4, 4> identity = Matrix<REAL, 4, 4>::Identity();
 
@@ -353,26 +238,8 @@ public:
         this->delta = (outer_diameter/2 - inner_diameter/2);
         this->twist_rate = pitch;
 
-        std::cout << "----this->inner_diameter----" << std::endl;
-        std::cout << inner_diameter << std::endl;
-
-        std::cout << "----this->r0----" << std::endl;
-        std::cout << this->r0 << std::endl;
-        std::cout << "----this->delta----" << std::endl;
-        std::cout << this->delta << std::endl;
-        std::cout << "----this->twist_rate----" << std::endl;
-        std::cout << this->twist_rate << std::endl;
-
-        std::cout << "----this->delta----" << std::endl;
-        std::cout << this->delta<< std::endl;
-        std::cout << "----this->twist_rate----" << std::endl;
-        std::cout << this->twist_rate<< std::endl;
-
         this->UVW << this->u, this->v, this->w;
         this->UVW_inv = this->UVW.inverse();
-
-        std::cout << "----this->UVW----" << std::endl;
-        std::cout << this->UVW<< std::endl;
 
         this->phi0 = 0.0; // not used
 
@@ -383,14 +250,14 @@ public:
     {   
 
 
-        std::cout << matrix << endl;
-        std::cout << pitch << endl;
-        std::cout << profile << endl;
-        std::cout << end_type << endl;
-        std::cout << delta_ratio << endl;
-        std::cout << v << endl; 
+        // std::cout << matrix << endl;
+        // std::cout << pitch << endl;
+        // std::cout << profile << endl;
+        // std::cout << end_type << endl;
+        // std::cout << delta_ratio << endl;
+        // std::cout << v << endl; 
 
-        std::cout << "------------------------using matrix screw constructor: v defined----------------------" << std::endl;
+        // std::cout << "------------------------using matrix screw constructor: v defined----------------------" << std::endl;
         // screw current cannot do non-uniform 
 
         // consider u as transformation matrix * [0,1,0],
@@ -403,8 +270,8 @@ public:
 
         // invert_matrix(this->transf_matrix, this->inv_transf_matrix);
 
-        std::cout << "----matrix----" << std::endl;
-        std::cout << matrix << std::endl;
+        // std::cout << "----matrix----" << std::endl;
+        // std::cout << matrix << std::endl;
 
         Matrix<REAL, 4, 4> matrix_4_4;
 
@@ -426,43 +293,43 @@ public:
         assert((this->inv_transf_matrix*matrix_4_4 - identity).maxCoeff() < 0.0001);
         assert((matrix_4_4*this->inv_transf_matrix - identity).maxCoeff() < 0.0001);
 
-        if ((this->inv_transf_matrix*matrix_4_4 - identity).maxCoeff() < 0.0001) {
-            std::cout << "check true 0 " << std::endl;
-        }
+        // if ((this->inv_transf_matrix*matrix_4_4 - identity).maxCoeff() < 0.0001) {
+        //     std::cout << "check true 0 " << std::endl;
+        // }
 
-        if ((matrix_4_4*this->inv_transf_matrix - identity).maxCoeff() < 0.0001) {
-            std::cout << "check true 1" << std::endl;
-        }
+        // if ((matrix_4_4*this->inv_transf_matrix - identity).maxCoeff() < 0.0001) {
+        //     std::cout << "check true 1" << std::endl;
+        // }
 
-        {   
+        // {   
 
-            Matrix<REAL, 3, 3> identity_3_3 = Matrix<REAL, 3, 3>::Identity();
-            Matrix<REAL, 3, 3> matrix_3_3;
-            matrix_3_3 << matrix(0, 0), matrix(0, 1), matrix(0, 2),
-                      matrix(1, 0), matrix(1, 1), matrix(1, 2),
-                      matrix(2, 0), matrix(2, 1), matrix(2, 2);
+        //     Matrix<REAL, 3, 3> identity_3_3 = Matrix<REAL, 3, 3>::Identity();
+        //     Matrix<REAL, 3, 3> matrix_3_3;
+        //     matrix_3_3 << matrix(0, 0), matrix(0, 1), matrix(0, 2),
+        //               matrix(1, 0), matrix(1, 1), matrix(1, 2),
+        //               matrix(2, 0), matrix(2, 1), matrix(2, 2);
 
-            assert((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
-
-
-            if ((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
-                std::cout << "check true 2" << std::endl;
-            }
+        //     assert((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
 
 
-            assert((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
-
-            if ((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
-                std::cout << "check true 2" << std::endl;
-            }
+        //     if ((this->inv_transf_matrix_3_3*matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
+        //         std::cout << "check true 2" << std::endl;
+        //     }
 
 
-        }
+        //     assert((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001);
 
-        std::cout << "----this->inv_transf_matrix----" << std::endl;
-        std::cout << this->inv_transf_matrix << std::endl;
-        std::cout << "----this->inv_transf_matrix_neg_xyz----" << std::endl;
-        std::cout << this->inv_transf_matrix_neg_xyz << std::endl;
+        //     if ((matrix_3_3*this->inv_transf_matrix_3_3 - identity_3_3).maxCoeff() < 0.0001) {
+        //         std::cout << "check true 2" << std::endl;
+        //     }
+
+
+        // }
+
+        // std::cout << "----this->inv_transf_matrix----" << std::endl;
+        // std::cout << this->inv_transf_matrix << std::endl;
+        // std::cout << "----this->inv_transf_matrix_neg_xyz----" << std::endl;
+        // std::cout << this->inv_transf_matrix_neg_xyz << std::endl;
 
         // this->u << matrix(0, 0), matrix(1, 0), matrix(2, 0); // first three element from first column
         this->u << 1, 0, 0;
@@ -472,8 +339,8 @@ public:
         this->w << 0, 0, 1; 
         this->slen = this->w.norm(); // 1
 
-        std::cout << "----this->slen----" << std::endl;
-        std::cout << this->slen<< std::endl;
+        // std::cout << "----this->slen----" << std::endl;
+        // std::cout << this->slen<< std::endl;
 
         // this->w = (this->w.array()/this->w.norm()).matrix();
 
@@ -482,8 +349,8 @@ public:
         this->v << 0, 1, 0;
         REAL outer_diameter = this->v.norm(); 
 
-        std::cout << "----this->outer_diameter----" << std::endl;
-        std::cout << outer_diameter << std::endl;
+        // std::cout << "----this->outer_diameter----" << std::endl;
+        // std::cout << outer_diameter << std::endl;
 
         // this->v = (this->v.array()/this->v.norm()).matrix();
 
@@ -497,26 +364,26 @@ public:
         this->delta = (outer_diameter/2 - inner_diameter/2);
         this->twist_rate = pitch;
 
-        std::cout << "----this->inner_diameter----" << std::endl;
-        std::cout << inner_diameter << std::endl;
+        // std::cout << "----this->inner_diameter----" << std::endl;
+        // std::cout << inner_diameter << std::endl;
 
-        std::cout << "----this->r0----" << std::endl;
-        std::cout << this->r0 << std::endl;
-        std::cout << "----this->delta----" << std::endl;
-        std::cout << this->delta << std::endl;
-        std::cout << "----this->twist_rate----" << std::endl;
-        std::cout << this->twist_rate << std::endl;
+        // std::cout << "----this->r0----" << std::endl;
+        // std::cout << this->r0 << std::endl;
+        // std::cout << "----this->delta----" << std::endl;
+        // std::cout << this->delta << std::endl;
+        // std::cout << "----this->twist_rate----" << std::endl;
+        // std::cout << this->twist_rate << std::endl;
 
-        std::cout << "----this->delta----" << std::endl;
-        std::cout << this->delta<< std::endl;
-        std::cout << "----this->twist_rate----" << std::endl;
-        std::cout << this->twist_rate<< std::endl;
+        // std::cout << "----this->delta----" << std::endl;
+        // std::cout << this->delta<< std::endl;
+        // std::cout << "----this->twist_rate----" << std::endl;
+        // std::cout << this->twist_rate<< std::endl;
 
         this->UVW << this->u, this->v, this->w;
         this->UVW_inv = this->UVW.inverse();
 
-        std::cout << "----this->UVW----" << std::endl;
-        std::cout << this->UVW<< std::endl;
+        // std::cout << "----this->UVW----" << std::endl;
+        // std::cout << this->UVW<< std::endl;
 
         this->phi0 = 0.0; // not used
     }
@@ -552,7 +419,6 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* output) const {
 
 
-        std::cout << "tiger screw eval_implicit" << "\n";
         // std::cout << x[0][0] << std::endl;
         // std::cout << x[0][1] << std::endl;
         // std::cout << x[0][2] << std::endl;
@@ -571,7 +437,7 @@ public:
         // std::cout << this->inv_transf_matrix << std::endl;
 
         // inverse transform matrix apply on the left
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
         // std::cout << "tiger debug x_eigen_matrix" << std::endl;
         // std::cout << x_eigen_matrix(0, 0) << std::endl;
@@ -589,23 +455,24 @@ public:
 
         *(output) = Eigen_matrix_to_vectorized_scalar(implicitFunctionOutput);
 
-        std::cout << "tiger screw eval_implicit finish" << "\n";
 
     }
 
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
-        Matrix<REAL, Dynamic, 3> x_eigen_matrix(x.shape()[0], 3);
+        const int num_points = x.shape()[0];
+
+        Matrix<REAL, Dynamic, 3> x_eigen_matrix(num_points, 3);
         x_eigen_matrix = vectorized_vect_to_Eigen_matrix(x);
 
         // inverse transform matrix apply on the left
-        eigen_matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
+        matrix_vector_product(this->inv_transf_matrix_3_3, this->inv_transf_matrix_neg_xyz, x_eigen_matrix);
 
-        std::cout << "----this->inv_transf_matrix----" << std::endl;
-        std::cout << this->inv_transf_matrix << std::endl;
+        // std::cout << "----this->inv_transf_matrix----" << std::endl;
+        // std::cout << this->inv_transf_matrix << std::endl;
 
 
-        for (int j=0;j<(*output).shape()[0];j++){
+        for (int j=0;j<num_points;j++){
 
             gradient(this->A(0,0), this->A(1,0), this->A(2,0), 
                      this->delta, this->phi0,
@@ -652,27 +519,27 @@ public:
         int i = 0;
         int j = 0;
 
-        std::cout << "--- here ---" << std::endl;
+        // std::cout << "--- here ---" << std::endl;
 
 
         for (const pt::ptree::value_type &element : shapeparams_dict.get_child("matrix")){
 
-            std::cout << "--- in for loop ---" << std::endl;
+            // std::cout << "--- in for loop ---" << std::endl;
 
-            std::cout << element.second.get_value<float>() << std::endl;
+            // std::cout << element.second.get_value<float>() << std::endl;
 
-            std::cout << "---i---" << std::endl;
-            std::cout << i << std::endl;
-            std::cout << "---j---" << std::endl;
-            std::cout << j << std::endl;
+            // std::cout << "---i---" << std::endl;
+            // std::cout << i << std::endl;
+            // std::cout << "---j---" << std::endl;
+            // std::cout << j << std::endl;
 
-            std::cout << "---m i j ---" << std::endl;
+            // std::cout << "---m i j ---" << std::endl;
 
             REAL x = element.second.get_value<float>();
 
             matrix(i, j) = x;
 
-            std::cout << matrix(i, j) << std::endl;
+            // std::cout << matrix(i, j) << std::endl;
 
             // my_assert(j == 3, "there shuold be three points")
 
@@ -690,13 +557,13 @@ public:
         // my_assert(i == 3, "there should be three row");
         // my_assert(j == 2, "last row there should be three col");
 
-        std::cout << "---matrix in screw parameter---" << std::endl;
+        // std::cout << "---matrix in screw parameter---" << std::endl;
 
-        std::cout << matrix << std::endl;
+        // std::cout << matrix << std::endl;
         // my_assert(!(A(0,0)==0 && A(1,0)==0 && A(2,0)==0), "possibly A is not initialised correclt");
         // my_assert(!(B(0,0)==0 && B(1,0)==0 && B(2,0)==0), "possibly B is not initialised correclt");
 
-        std::cout << "getV" << std::endl;
+        // std::cout << "getV" << std::endl;
         int getv_counter = 0;
         for (const pt::ptree::value_type &element : shapeparams_dict.get_child("v")) {
                 //std::clog << "matrix value : " << x << std::endl;
@@ -706,27 +573,27 @@ public:
             // my_assert(getv_counter<=2, "i should not exceed number 2");
             getv_counter++;
         }
-        std::cout << "getV" << std::endl;
+        // std::cout << "getV" << std::endl;
 
-        std::cout << "getpitch" << std::endl;
-        std::cout << shapeparams_dict.get<float>("pitch") << std::endl;
+        // std::cout << "getpitch" << std::endl;
+        // std::cout << shapeparams_dict.get<float>("pitch") << std::endl;
         pitch = shapeparams_dict.get<float>("pitch");
-        std::cout << pitch << std::endl;
-        std::cout << "getpitch" << std::endl;
+        // std::cout << pitch << std::endl;
+        // std::cout << "getpitch" << std::endl;
 
 
-        std::cout << "get-profile" << std::endl;
+        // std::cout << "get-profile" << std::endl;
         profile = shapeparams_dict.get<std::string>("profile");
-        std::cout << profile << std::endl;
-        std::cout << "get-profile" << std::endl;
+        // std::cout << profile << std::endl;
+        // std::cout << "get-profile" << std::endl;
 
         // okay 
 
-        std::cout << "delta_ratio" << std::endl;
-        std::cout << shapeparams_dict.get<REAL>("delta_ratio") << std::endl;
+        // std::cout << "delta_ratio" << std::endl;
+        // std::cout << shapeparams_dict.get<REAL>("delta_ratio") << std::endl;
         delta_ratio = shapeparams_dict.get<REAL>("delta_ratio"); // this line has global affects destroy the screw 
-        std::cout << delta_ratio << std::endl;
-        std::cout << "delta_ratio" << std::endl;
+        // std::cout << delta_ratio << std::endl;
+        // std::cout << "delta_ratio" << std::endl;
 
         // od = shapeparams_dict.get<REAL>("diameter-outer"); // this line has global affects destroy the screw 
 
@@ -736,12 +603,12 @@ public:
         // std::cout << "--------------------------------------" << std::endl;
 
 
-        std::cout << "get-end-typer" << std::endl;
+        // std::cout << "get-end-typer" << std::endl;
         end_type = shapeparams_dict.get<std::string>("end_type");
 
-        std::cout << end_type << std::endl;
+        // std::cout << end_type << std::endl;
 
-        std::cout << "get-end-typer" << std::endl;
+        // std::cout << "get-end-typer" << std::endl;
     }
 
 };
