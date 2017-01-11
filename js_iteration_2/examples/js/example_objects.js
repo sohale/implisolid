@@ -90,7 +90,7 @@ var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","
 
 
 //test for extrusion
-var EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
 
  // {
@@ -133,7 +133,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
     const DONT_CHANGE = false;  // Whether use the mode=0 for mode 1. Should be false.
 
 
-        // var ellipsoid_radius = 8.0 * 0.1; // subjective_time;
+        >>>// var ellipsoid_radius = 8.0 * 0.1; // subjective_time;
         var ellipsoid_radius = 8.0; // subjective_time;
         var sphere_dict1 = {
             type: "ellipsoid",
@@ -191,6 +191,12 @@ function provide_input (subjective_time, is_update_mode, globals) {
         mp5_json_screw_dict.root.children=[screw_dict];
         var SCREW = JSON.stringify(mp5_json_screw_dict);
 
+        var extrusion_dict = JSON.parse(SIMPLE_EXTRUSION).root.children[0];
+
+
+        var mp5_json_extrusion_dict= JSON.parse(JSON.stringify(MP5_GENERIC_EXAMPLE_MOON));
+        mp5_json_extrusion_dict.root.children=[extrusion_dict];
+        var EXTRUSION = JSON.stringify(mp5_json_extrusion_dict);
         // Select the object to display
 
         var used_matrix = true;
@@ -207,6 +213,8 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var obj_selector = "metaballs";
         //var obj_selector = "extrusion";
         var obj_selector = "asmjs";
+        //var obj_selector = "metaballs";
+        //var obj_selector = "extrusion";
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
