@@ -133,7 +133,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
     const DONT_CHANGE = false;  // Whether use the mode=0 for mode 1. Should be false.
 
 
-        >>>// var ellipsoid_radius = 8.0 * 0.1; // subjective_time;
+        // var ellipsoid_radius = 8.0 * 0.1; // subjective_time;
         var ellipsoid_radius = 8.0; // subjective_time;
         var sphere_dict1 = {
             type: "ellipsoid",
