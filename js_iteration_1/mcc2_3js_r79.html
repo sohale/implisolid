@@ -754,6 +754,7 @@ function init_scene(IMPLICIT, shape_json, polygonization_json) {
 
 
     function doKeyDownListener(event) {
+        return ; // tiger debug
         const CONTROL_KEY = 17;
         const SHIFT_KEY = 16;
         if ( event.keyCode == SHIFT_KEY ) {
@@ -1493,7 +1494,6 @@ else{
         var dct = provide_input(global_time, 1, globals) ;
         var shape_json = dct.shape_json ; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json) ;
-        
         var stt = new Date() ;
 
         var shape_id = 40005;
@@ -1506,60 +1506,366 @@ else{
             }
         );
     }
+    function demo7() {
+        // set_off();
+        var delta_t = 0.2/10.*5 /5. * 5;
+        update_mc(IMPLICIT, delta_t);
+    }
 
  </script >
 
- <script>
+<style type="text/css" media="screen">
+    #editor {
+        position: relative;
+        bottom: 0;
+        right: 0;
+        width: 600px;
+        height: 200px;
+    }
+    #editor_container { 
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 600px;
+        height: 220px;
+    }
+</style>
 
-    var asmjscb__func_table = {};
+<div id="editor_container">
+    <div id="editor">// function (x, y, z) {
+    implicit_value = 0.5 - (x*x + y*y + z*z); // your powerful stuff!
+    return implicit_value;
+// }
+    </div>
+    <button onclick="click_button()">Update</button>
+</div>
+
+<script src="./ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+    window.editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+
+    // this is intented to run only on loading
+    var f_source_code = editor.getValue(); // or session.getValue
+    func_example = new Function("x", "y", "z", f_source_code);
+
+    function click_button() {
+        var f_source_code = editor.getValue(); // or session.getValue
+        console.log(f_source_code);
+        func_example = new Function("x", "y", "z", f_source_code);
+        console.log(func_example);
+        console.log(func_example(1, 1, 0));
+
+    asmjscb__func_table[1] = {};
+    console.log(asmjscb__func_table);
     asmjscb__func_table[2463577] = {
-        eval_implicit: function (x, f, points, param1) {
-            console.log("tiger debug points", points);
-            for (var i=0; i<points; i++) {
-                var x_0 = x[i*3];
-                var x_1 = x[i*3 + 1];
-                var x_2 = x[i*3 + 2];
 
+        eval_implicit: function (_x, f, points, param1) {
+            console.log("tiger debug new eval_implicit", points);
+            for (var i=0; i<points; i++) {
+                var x = _x[i*3];
+                var y = _x[i*3 + 1];
+                var z = _x[i*3 + 2];
+
+                // console.log("eval_implicit", x, y, z);
 
                 // heart
                 // f[i] = 0.0000000001 - (Math.pow((x_0*x_0 + (9/4)*x_1*x_1 + x_2*x_2 - 1), 3) - x_0*x_0*x_2*x_2*x_2 - (9/80)*x_1*x_1*x_2*x_2*x_2 );
 
-                 f[i] =  1 - (Math.cos(3*x_0)*Math.cos(3*x_0) + Math.cos(3*x_1)*Math.cos(3*x_1) + Math.cos(3*x_2)*Math.cos(3*x_2));
+                f[i] =  func_example(x, y, z);
 
                 // f[i] = 0.001 - (Math.cos(x_0)*Math.cos(x_0) + Math.cos(x_1)*Math.cos(x_1) + Math.cos(x_2)*Math.cos(x_2));
 
                 // f[i] = 0.3 - x_0*x_0 - x_1*x_1 - x_2*x_2;
 
-                // console.log(x_0, x_1, x_2);
-                // if (i <= 5) {
-                //     console.log("i", i);
-                //     console.log(f[i]);
-                // }
+                // console.log(x, y, z);
+                if (i <= 5) {
+                    console.log("i", i);
+                    console.log(func_example(x, y, z));
+                    console.log(f[i]);
+                }
             }
         },
-        eval_gradient: function (x, g, points, param1) {
-            for (var i=0; i<points; i++) {
+        eval_gradient: function (_x, g, points, param1) {
+            for (var i=0; i<(points|0); i++) {
 
-                var x_0 = x[i*3];
-                var x_1 = x[i*3 + 1];
-                var x_2 = x[i*3 + 2];
+                var epsilon = 0.0001;
+                var x = _x[(i*3|0)];
+                var y = _x[(i*3|0) + 1];
+                var z = _x[(i*3|0) + 2];
+
+                // console.log("eval_gradient", x, y, z);
 
                 // g[i*3] = - 2*x_0;
                 // g[i*3 + 1] = - 2*x_1;
                 // g[i*3 + 2] = - 2*x_2;
 
-                g[i*3] = - 2*x_0;
-                g[i*3 + 1] = - 2*x_1;
-                g[i*3 + 2] = - 2*x_2;
-                // console.log(x_0, x_1, x_2);
                 // console.log(g[0], g[1], g[2]);
+
+                const f_x_y_z = func_example(x , y, z);
+                var dx = (func_example(x + epsilon, y, z) - f_x_y_z)/epsilon;
+                var dy = (func_example(x , y + epsilon, z) - f_x_y_z)/epsilon;
+                var dz = (func_example(x, y, z + epsilon) - f_x_y_z)/epsilon;
+
+                g[(i*3|0)] = dx;
+                g[(i*3|0) + 1] = dy;
+                g[(i*3|0) + 2] = dz;
+
+                if (i <= 5) {
+                    console.log("---grad i", i);
+                    console.log("length", length);
+                    console.log(dx, dy, dz);
+                    console.log(g[(i*3|0)], g[(i*3|0) + 1], g[(i*3|0) + 2]);
+                    console.log(2*Math.sin(x*x)*x*x - Math.cos(x*x), -2*y, -2*z);
+                    // console.log(2*Math.sin(x*x)*x*x - Math.cos(x*x)/g[(i*3|0)], g[(i*3|0) + 1]/(-2*y), g[(i*3|0) + 2]/(-2*z));
+                    // console.log(-2*x, -2*y, -2*z);
+
+                }
+
+                // g[(i*3|0)] = 2*Math.sin(x*x)*x*x - Math.cos(x*x);
+                // g[(i*3|0) + 1] = -2*y;
+                // g[(i*3|0) + 2] = -2*z;
+
+                // console.log(g[(i*3|0)], g[(i*3|0)+ 1], g[(i*3|0)+ 2]);
+                // g[i*3] = 1.0;
+                // g[i*3 + 1] = 1.0;
+                // g[i*3 + 2] = 1.0;
+
             }
         }
     }
 
+    'use strict';
+    // global
+    var IMPLICIT;
+    var PS_UTILS;
+    demo7();
+
+    }
+</script>
+
+ <script>
+
+    var asmjscb__func_table = {};
+
+
+    function make_fg (expression, grad_expression) {
+            const prefix_f = `
+                'use asm';  //  "reports validation errors in developer consoles only where relevant."
+                param1 = +param1;
+                //var R = +0.5;
+                var R = +param1;
+                var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
+                var i = 0|0, i3 = 0|0;
+                for(i=0|0; i < points|0; ++i) {
+                    i3 = (i|0)*3;
+            `, suffix_f = `
+                }
+            `, prefix_g = `
+                'use asm';
+                param1 = +param1;
+                var R = +param1;
+                var i = 0|0, i3 = 0|0;
+                for(i = 0|0; i < points|0; ++i) {
+                    i3 = (i|0)*3;
+            `, suffix_g = `
+                }
+            `;
+            var table = {
+                "_x": "(+x[(i3|0)])",
+                "_y": "(+x[(i3|0) + 1])",
+                "_z": "(+x[(i3|0) + 2])",
+                "_f": "f[i]",
+                "_gx": "(g[(i3|0)])",
+                "_gy": "(g[(i3|0) + 1])",
+                "_gz": "(g[(i3|0) + 2])",
+                //"p1": "(+param1)",
+            };
+
+            var expression_r = expression;
+            for (var k in table) {
+                do {
+                    var old_expression_r = expression_r;
+                    expression_r = expression_r.replace(k, table[k]);
+                } while (old_expression_r !== expression_r);
+                console.log(expression_r);
+            }
+            var grad_expression_r = grad_expression;
+            for (var k in table) {
+                //grad_expression_r = grad_expression_r.replace(k, table[k]);
+                do {
+                    var old_grad_expression_r = grad_expression_r;
+                    grad_expression_r = grad_expression_r.replace(k, table[k]);
+                } while (old_grad_expression_r !== grad_expression_r);
+                console.log(grad_expression_r);
+            }
+
+            var f_source_code = prefix_f + expression_r + suffix_f;
+            var g_source_code = prefix_g + grad_expression_r + suffix_g;
+            console.error(f_source_code);
+            //console.error(prefix_f);
+            //var func = new Function("_x", "_y", "_z", "_f", "param1","points", f_source_code);
+            //var gfunc = new Function("_x", "_y", "_z", "_gx", "_gy", "_gz", "param1","points", prefix_g + grad_expression_r + suffix_g);
+            var func = new Function("x", "f", "points", "param1",  f_source_code);
+            var gfunc = new Function("x", "g", "points", "param1", g_source_code);
+            console.error(func);
+            console.error(gfunc);
+            //asmjscb__func_table[95] = func;
+            //asmjscb__grad_table[95] = gfunc;
+            return {eval_implicit: func, eval_gradient: gfunc};
+            // todo: rtest whether asm.js works on this.
+            // http://asmjs.org/faq.html
+            // http://asmjs.org/spec/latest/#modules
+        }
+
+    // func_example = function(x, y, z) {
+    //     // console.log('in func_example');
+    //     // return 1 - (Math.cos(3*x)*Math.cos(3*x) + Math.cos(3*y)*Math.cos(3*y) + Math.cos(3*z)*Math.cos(3*z));
+
+    //     question = 0 - (Math.cos(x) + Math.cos(y) + Math.cos(z));
+    //     // ball =  0.5 - (x + y*y + z*z);
+
+    //     // return - Math.max(question, ball);
+    //     // return ball;
+    //     // return x;
+    //     return 0.1-question;
+    // }
+
+
+    var f_source_code = `
+
+      var circle_left = function(x, y, z) {
+        return 0.5 - ((x + 0.5)**2 + y**2 + z**2);
+      }
+
+      var circle_right = function(x, y, z) {
+        return 0.5 - ((x - 0.5)**2 + y**2 + z**2);
+      }
+
+      var union = function(val_0, val_1) {
+        return Math.max(val_0, val_1);
+      }
+
+
+    // exponential smooth max (k = 32);
+    var smooth_union = function(val_0, val_1)
+    {
+        // console.log("smooth_union...");
+        // console.log(val_0, val_1);
+        var k = 8;
+        var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
+        res = -(-Math.log( res )/k);
+        // console.log(res);
+        return res;
+    }
+
+
+    // exponential smooth max (k = 32);
+    var plus_union = function(val_0, val_1)
+    {
+        console.log(val_0, val_1);
+        console.log(val_0 + val_1)
+        return val_0 + val_1;
+    }
+
+      var intersection = function(val_0, val_1) {
+        return Math.min(val_0, val_1);
+      }
+
+      circle_l = circle_left(x, y, z);
+      circle_r = circle_right(x, y, z);
+
+       return smooth_union(circle_l, circle_r);
+    `;
+
+    // var func_example = new Function("x", "y", "z", f_source_code);
+
+    asmjscb__func_table[2463577] = {
+        eval_implicit: function (_x, f, points, param1) {
+            console.log("tiger debug points", points);
+            for (var i=0; i<points; i++) {
+                var x = _x[i*3];
+                var y = _x[i*3 + 1];
+                var z = _x[i*3 + 2];
+
+                // console.log("eval_implicit", x, y, z);
+
+                // heart
+                // f[i] = 0.0000000001 - (Math.pow((x_0*x_0 + (9/4)*x_1*x_1 + x_2*x_2 - 1), 3) - x_0*x_0*x_2*x_2*x_2 - (9/80)*x_1*x_1*x_2*x_2*x_2 );
+
+                f[i] =  func_example(x, y, z);
+
+                // f[i] = 0.001 - (Math.cos(x_0)*Math.cos(x_0) + Math.cos(x_1)*Math.cos(x_1) + Math.cos(x_2)*Math.cos(x_2));
+
+                // f[i] = 0.3 - x_0*x_0 - x_1*x_1 - x_2*x_2;
+
+                // console.log(x, y, z);
+                if (i <= 5) {
+                    console.log("i", i);
+                    console.log(func_example(x, y, z));
+                    console.log(f[i]);
+                }
+            }
+        },
+        eval_gradient: function (_x, g, points, param1) {
+            for (var i=0; i<(points|0); i++) {
+
+                var epsilon = 0.0001;
+                var x = _x[(i*3|0)];
+                var y = _x[(i*3|0) + 1];
+                var z = _x[(i*3|0) + 2];
+
+                // console.log("eval_gradient", x, y, z);
+
+                // g[i*3] = - 2*x_0;
+                // g[i*3 + 1] = - 2*x_1;
+                // g[i*3 + 2] = - 2*x_2;
+
+                // console.log(g[0], g[1], g[2]);
+
+                const f_x_y_z = func_example(x , y, z);
+                var dx = (func_example(x + epsilon, y, z) - f_x_y_z)/epsilon;
+                var dy = (func_example(x , y + epsilon, z) - f_x_y_z)/epsilon;
+                var dz = (func_example(x, y, z + epsilon) - f_x_y_z)/epsilon;
+
+                g[(i*3|0)] = dx;
+                g[(i*3|0) + 1] = dy;
+                g[(i*3|0) + 2] = dz;
+
+                if (i <= 5) {
+                    console.log("---grad i", i);
+                    console.log("length", length);
+                    console.log(dx, dy, dz);
+                    console.log(g[(i*3|0)], g[(i*3|0) + 1], g[(i*3|0) + 2]);
+                    console.log(2*Math.sin(x*x)*x*x - Math.cos(x*x), -2*y, -2*z);
+                    // console.log(2*Math.sin(x*x)*x*x - Math.cos(x*x)/g[(i*3|0)], g[(i*3|0) + 1]/(-2*y), g[(i*3|0) + 2]/(-2*z));
+                    // console.log(-2*x, -2*y, -2*z);
+
+                }
+
+                // g[(i*3|0)] = 2*Math.sin(x*x)*x*x - Math.cos(x*x);
+                // g[(i*3|0) + 1] = -2*y;
+                // g[(i*3|0) + 2] = -2*z;
+
+                // console.log(g[(i*3|0)], g[(i*3|0)+ 1], g[(i*3|0)+ 2]);
+                // g[i*3] = 1.0;
+                // g[i*3 + 1] = 1.0;
+                // g[i*3 + 2] = 1.0;
+
+            }
+        }
+    }
+
+    // var expression = `_f =  (+R)*(+R) - (_x * _x + _y * _y + _z * _z);`;
+    // var grad_expression = `_gx = -2 * _x; _gy = -2 * _y; _gz = -2 * _z;`;
+
+    // asmjscb__func_table[2463577] = make_fg(expression, grad_expression);
+
     function js_implcit_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
         'use asm';
-        console.log('----use asm');
+        console.log('---- new use asm');
         console.log(id);
         console.log(x_start_ptr);
         console.log(x_len);
@@ -1595,7 +1901,7 @@ else{
         }
     }
 
-    function js_gradient_callback (id, x_start_ptr, x_len, output_start_ptr, param1) {
+    function js_gradient_callback(id, x_start_ptr, x_len, output_start_ptr, param1) {
         //console.log("ASMJS GRAD", arguments);
 
         var x = Module.HEAPF32.subarray(x_start_ptr >> 2, (x_start_ptr>>2) + (x_len|0) * 3);

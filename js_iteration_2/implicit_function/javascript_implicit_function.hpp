@@ -60,13 +60,13 @@ public:
         */
 
 
-        std::cout << "f_output[i]" << "\n";
-        for (int i = 0; i<=10 ;i++) {
-            std::cout << i << "\n";
-            std::cout << (*f_output)[i] << "\n";
-        }
+        std::cout << "javascript eval_implicit EM_ASM_INT" << "\n";
+        // emscripten_run_script("console.log('hi')");
+        // emscripten_run_script("console.log(window)");
         int result = EM_ASM_INT({
-            console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
+            // console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
+            console.log('hello');
+            console.log(eval('window'));
             js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
@@ -90,6 +90,17 @@ public:
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, &((*(x_copy.begin()))[0]), x_copy.shape()[0], (void*)(output->data()));
+
+        std::cout << "-- gradient --" << std::endl;
+
+        std::cout << (*output)[0][0] << std::endl;
+        std::cout << (*output)[0][1] << std::endl;
+        std::cout << (*output)[0][2] << std::endl;
+
+        std::cout << (*output)[1][0] << std::endl;
+        std::cout << (*output)[1][1] << std::endl;
+        std::cout << (*output)[1][2] << std::endl;
+
         /*
         int output_ctr=0;
         auto e = x_copy.end();

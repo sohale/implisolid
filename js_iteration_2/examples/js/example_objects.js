@@ -309,16 +309,16 @@ function provide_input (subjective_time, is_update_mode, globals) {
             break;
             case "asmjs":
                 console.log("OK asmjs", BB_SIZE)
-                var mp5_json = asmjs; var BB_SIZE = 1.5; used_matrix = true;
+                var mp5_json = asmjs; var BB_SIZE = 3; used_matrix = true;
                 var shape_dict = JSON.parse(mp5_json).root.children[0];
 
 
-                resize_mp5 = function (d, sz) {
-                    d.matrix[0] = sz;
-                    d.matrix[5] = sz;
-                    d.matrix[10] = sz;
-                    console.error("resizing", sz);
-                }
+                // resize_mp5 = function (d, sz) {
+                //     d.matrix[0] = sz;
+                //     d.matrix[5] = sz;
+                //     d.matrix[10] = sz;
+                //     console.error("resizing", sz);
+                // }
 
 
             break;
@@ -391,7 +391,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
-        //const BB_SIZE = 9;
+        // const BB_SIZE = 9;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
         var REPEATS = 1; // has no effect! ()?!)
@@ -402,10 +402,10 @@ function provide_input (subjective_time, is_update_mode, globals) {
             box: bbox,
             ignore_root_matrix: false,
 
-            vresampl: {iters: 0, c: 1.0},
-            projection: {enabled: 0},
-            qem: {enabled: 0},
-            subdiv: {enabled: 0},
+            vresampl: {iters: 1, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            subdiv: {enabled: 1},
             overall_repeats: REPEATS,
             debug: {
                 enabled_pointsets: 0,
