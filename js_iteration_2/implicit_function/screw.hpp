@@ -117,7 +117,7 @@ protected:
     Matrix<REAL, 3, 3> UVW, UVW_inv;
     REAL x0, y0, z0;
 
-    static inline Matrix<REAL, Dynamic, 1> implicitFunction(const Matrix<REAL, 3, 1>& A,
+    static Matrix<REAL, Dynamic, 1> implicitFunction(const Matrix<REAL, 3, 1>& A,
                           const Matrix<REAL, 3, 1>& w,
                           const Matrix<REAL, 3, 3>& UVW_inv,
                           const REAL& slen,
@@ -127,7 +127,7 @@ protected:
                           const REAL& phi0,
                           const Matrix<REAL, Dynamic, 3>& x,
                           const bool return_arg)
-    {   
+    {
         int num_points = x.rows();
         const Matrix<REAL, Dynamic, 3> aa(num_points, 3);
         const Matrix<REAL, 1, 3> A_transpose = A.transpose();
@@ -170,7 +170,7 @@ protected:
 
     };
 
-    static inline void gradient(const REAL ax, const REAL ay, const REAL az, const REAL delta, const REAL phi0, const REAL twist_rate, 
+    static void gradient(const REAL ax, const REAL ay, const REAL az, const REAL delta, const REAL phi0, const REAL twist_rate, 
                   const REAL uvwi00, const REAL uvwi01, const REAL uvwi02, const REAL uvwi10, const REAL uvwi11, const REAL uvwi12,
                   const REAL wx, const REAL wy, const REAL wz,
                   const REAL x, const REAL y, const REAL z,
