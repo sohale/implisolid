@@ -1,12 +1,9 @@
+////////////////////////////////////////////////////////////
 // util
-
-
 var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var abs = Math.abs;
-
-// utilities
 function assert(condition, message) {
     if (!condition) {
         message = message || "Assertion failed";
@@ -25,12 +22,12 @@ function bbox_center(xmin, xmax, ymin, ymax, zmin, zmax) {
 
 function length(x, y, z) {
   if (z === undefined) {
-    return sqrt(x*x + y*y);
+    return Math.sqrt(x*x + y*y);
   } else {
     if (x === undefined | y === undefined) {
       throw SyntaxError('x or y should not be undefined');
     }
-    return sqrt(x*x + y*y + z*z);
+    return Math.sqrt(x*x + y*y + z*z);
   }
 }
 
@@ -45,10 +42,41 @@ function subtract(val_0, val_1) {
 }
 
 
-function base_circle(x, y, z, radius) {
-  return radius - (x*x + y*y + z*z);
+function intersect(val_0, val_1) {
+  return Math.min(val_0, val_1);
 }
 
+function displacement(x, y, z) {
+  // usage displacement(x, y, z) + shape(x, y, z) see displacement circle below
+  return Math.sin(10*x) + Math.sin(10*y) + Math.sin(10*z);
+}
+
+function twist(x, y, z) {
+    // usage : change the coordinates x, y, z
+    var c = Math.cos(4*y);
+    var s = Math.sin(4*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+
+// exponential smooth max (k = 32);
+var smooth_union = function(val_0, val_1)
+{
+    // console.log("smooth_union...");
+    // console.log(val_0, val_1);
+    var k = 8;
+    var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
+    res = -(-Math.log( res )/k);
+    // console.log(res);
+    return res;
+}
+
+// based shape
+function circle(x, y, z, radius_square, center_x, center_y, center_z) {
+    var x = x - center_x;
+    var y = y - center_y;
+    var z = z - center_z;
+    return radius_square - (x*x + y*y + z*z);
+}
 
 ///////////////////////////////////////////////////////
 // iterative shape
@@ -378,5 +406,604 @@ var abs = Math.abs;
 
 
 return union(x_y, x_z);
+//////////////////////////////////////////////////////
+// heart
+x_0 = x;
+x_1 = y;
+x_2 = z;
+implicit_value = 0.00001 - (Math.pow((x_0*x_0 + (9/4)*x_1*x_1 + x_2*x_2 - 1), 3) - x_0*x_0*x_2*x_2*x_2 - (9/80)*x_1*x_1*x_2*x_2*x_2 ); // your powerful stuff!
+return implicit_value;
 
+/////////////////
+// displacement circle
+// tiger
+function displacement(x, y, z) {
+    return Math.sin(10*x) + Math.sin(10*y) + Math.sin(10*z);
+}
+
+function circle(x, y, z, radius_square, center_x, center_y, center_z) {
+    var x = x - center_x;
+    var y = y - center_y;
+    var z = z - center_z;
+    return radius_square - (x*x + y*y + z*z);
+}
+
+var cir = circle(x, y, z, 1, 0, 0, 0);
+var dis = displacement(x, y, z);
+return cir + dis;
+///////////
+
+// twist demo
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(4*y);
+    var s = Math.sin(4*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+new_coor = twist(x, y, z);
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2];
+
+function sd_torus(x, y, z, para_outer, para_inner) {
+//    vec2 q = vec2(length(p.xz)-t.x,p.y);
+//   return length(q)-t.y;
+    var q_0 = length(x, z) - para_outer;
+    var q_1 = y;
+    return 0.5 - length(q_0 - para_inner, q_1 - para_inner);
+}
+
+return sd_torus(x, y, z, 0.5, 0.5);
+
+////////////////////////////////////////////////
+// smooth union
+
+function circle_left(x, y, z) {
+    var x = x - 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function circle_right(x, y, z) {
+    var x = x + 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+var smooth_union = function(val_0, val_1)
+{
+    // console.log("smooth_union...");
+    // console.log(val_0, val_1);
+    var k = 8;
+    var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
+    res = -(-Math.log( res )/k);
+    // console.log(res);
+    return res;
+}
+
+
+return smooth_union(circle_left(x, y, z), circle_right(x, y, z));
+
+/////////////////////////////////////
+// random nice shape launching rocker
+
+function displacement(x, y, z) {
+    // usage displacement(x, y, z) + shape(x, y, z) see displacement circle below
+    if (y < - 1)
+        return Math.sin(10*x) + Math.sin(10*y) + Math.sin(10*z);
+    else
+        return 0;
+}
+
+var dis = displacement(x, y, z);
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(2*y);
+    var s = Math.sin(2*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+
+new_coor = twist(x, y, z);
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2];
+
+function circle_left(x, y, z) {
+    var x = x - 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function circle_right(x, y, z) {
+    var x = x + 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+function circle_y_left(x, y, z) {
+    var y = y - 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function circle_y_right(x, y, z) {
+    var y = y + 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+function circle_z_left(x, y, z) {
+    var z = z - 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function circle_z_right(x, y, z) {
+    var z = z + 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function union(val_0, val_1) {
+  return Math.max(val_0, val_1);
+}
+
+res = union(circle_left(x, y, z), circle_right(x, y, z));
+res = union(circle_y_left(x, y, z), res);
+res = union(circle_y_right(x, y, z), res);
+
+res = union(circle_z_left(x, y, z), res);
+res = union(circle_z_right(x, y, z), res);
+
+return res + dis;
+//////////////////////////////
+
+
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+
+var min = Math.min;
+var max = Math.max;
+var sqrt = Math.sqrt;
+var abs = Math.abs;
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(2*y);
+    var s = Math.sin(2*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+
+new_coor = twist(x, y, z);
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2];
+
+function base_cube(x, y, z, base_radius) {
+
+  var cube_x = base_radius;
+  var cube_y = base_radius;
+  var cube_z = base_radius;
+
+  var d_x = abs(x) - cube_x;
+  var d_y = abs(y) - cube_y;
+  var d_z = abs(z) - cube_z;
+
+  return  0.5 - (min(max(d_x,max(d_y,d_z)),0.0) + length(max(d_x,0.0),
+                                                  max(d_y,0.0),
+                                                  max(d_z,0.0)));
+}
+
+
+return base_cube(x, y, z, 1);
+
+/////////////////////////////////////////////////
+/// Beyblade
+
+
+var min = Math.min;
+var max = Math.max;
+var sqrt = Math.sqrt;
+var abs = Math.abs;
+
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+// float sdCone( vec3 p, vec2 c )
+// {
+//    // c must be normalized
+//    float q = length(p.xy);
+//    return dot(c,vec2(q,p.z));
+// }
+
+function union(val_0, val_1) {
+  return Math.max(val_0, val_1);
+}
+
+
+
+function intersect(val_0, val_1) {
+  return Math.min(val_0, val_1);
+}
+
+function sdCone(x, y, z, c_0, c_1) {
+    var q = length(x, z);
+    return 0.00001 - (c_0 * q + c_1 * -y);
+}
+
+function base_cube(x, y, z, base_radius) {
+  var cube_x = base_radius;
+  var cube_y = base_radius;
+  var cube_z = base_radius;
+
+  var d_x = abs(x) - cube_x;
+  var d_y = abs(y) - cube_y;
+  var d_z = abs(z) - cube_z;
+
+  return  0.001 - (min(max(d_x,max(d_y,d_z)),0.0) + length(max(d_x,0.0),
+                                                  max(d_y,0.0),
+                                                  max(d_z,0.0)));
+}
+
+
+
+var cone = intersect(sdCone(x, y + 2.7, z, 0.5, 0.5),  base_cube(x, y + 2.7, z, 1));
+var cone_down = intersect(sdCone(x, - (y) + 2.7, z, 0.5, 0.5),  base_cube(x, - (y) + 2.7, z, 1));
+
+var cone = union(cone, cone_down);
+
+
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+
+var min = Math.min;
+var max = Math.max;
+var sqrt = Math.sqrt;
+var abs = Math.abs;
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(2*y);
+    var s = Math.sin(2*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+
+new_coor = twist(x, y, z);
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2];
+
+function base_cube(x, y, z, base_radius) {
+  var cube_x = base_radius;
+  var cube_y = base_radius;
+  var cube_z = base_radius;
+
+  var d_x = abs(x) - cube_x;
+  var d_y = abs(y) - cube_y;
+  var d_z = abs(z) - cube_z;
+
+  return  0.5 - (min(max(d_x,max(d_y,d_z)),0.0) + length(max(d_x,0.0),
+                                                  max(d_y,0.0),
+                                                  max(d_z,0.0)));
+}
+
+
+var twisted_cube = base_cube(x, y, z, 1);
+
+var smooth_union = function(val_0, val_1)
+{
+    // console.log("smooth_union...");
+    // console.log(val_0, val_1);
+    var k = 8;
+    var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
+    res = -(-Math.log( res )/k);
+    // console.log(res);
+    return res;
+}
+
+return smooth_union(twisted_cube, cone)
+<!-- return cone; -->
+//////////////////////////////////////////
+// pillar
+
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+// float opRep( vec3 p, vec3 c )
+// {
+//     vec3 q = mod(p,c)-0.5*c;
+//     return primitve( q );
+// }
+
+function repeat(x, y, z, c_x, c_y, c_z) {
+    var q_x = x % c_x - 0.5 * c_x;
+    var q_y = y % c_y - 0.5 * c_y;
+    var q_z = z % c_z - 0.5 * c_z;
+    return [q_x, q_y, q_z];
+}
+
+var new_coor = repeat(x, y, z, 2, 2, 2);
+
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2];
+
+x = x*x;
+y = y*x;
+function sd_torus(x, y, z, para_outer, para_inner) {
+    var q_0 = length(x, z) - para_outer;
+    var q_1 = y;
+    return 0.5 - length(q_0 - para_inner, q_1 - para_inner);
+}
+
+
+function union(val_0, val_1) {
+  return Math.max(val_0, val_1);
+}
+return sd_torus(x, y, z, 0.2, 0.1);
+
+///////////////////////////////
+// space ship
+
+
+var min = Math.min;
+var max = Math.max;
+var sqrt = Math.sqrt;
+var abs = Math.abs;
+
+function union(val_0, val_1) {
+  return Math.max(val_0, val_1);
+}
+
+function length(x, y, z) {
+  if (z === undefined) {
+    return Math.sqrt(x*x + y*y);
+  } else {
+    if (x === undefined | y === undefined) {
+      throw SyntaxError('x or y should not be undefined');
+    }
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+}
+
+var smooth_union = function(val_0, val_1)
+{
+    // console.log("smooth_union...");
+    // console.log(val_0, val_1);
+    var k = 8;
+    var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
+    res = -(-Math.log( res )/k);
+    // console.log(res);
+    return res;
+}
+
+
+function sd_ellipsoid(x, y, z, r_x, r_y, r_z, size, center_x, center_y, center_z) {
+    return size - length(x/r_x + center_x, y/r_y + center_y, z/r_z + center_z) * min(min(r_x, r_y), r_z);
+}
+
+function base_cube(x, y, z, base_radius, center_x, center_y, center_z) {
+
+  var x = x + center_x;
+  var y = y + center_y;
+  var z = z + center_z;
+
+  var cube_x = base_radius;
+  var cube_y = base_radius;
+  var cube_z = base_radius;
+
+  var d_x = abs(x) - cube_x;
+  var d_y = abs(y) - cube_y;
+  var d_z = abs(z) - cube_z;
+
+  return  0.5 - (min(max(d_x,max(d_y,d_z)),0.0) + length(max(d_x,0.0),
+                                                  max(d_y,0.0),
+                                                  max(d_z,0.0)));
+}
+
+fist_l = base_cube(x, y, z, 0.1, 2.7, -2.5, 0);
+fist_r = base_cube(x, y, z, 0.1, -2.7, -2.5, 0);
+
+ellipsoid_head = sd_ellipsoid(x, y, z,
+                              0.7, 0.7, 0.7,
+                              1.5,
+                              0, 3.5, 0);
+
+ellipsoid_body = sd_ellipsoid(x, y, z,
+                              3, 4, 3,
+                              2,
+                              0, 0, 0);
+
+ellipsoid_shoulder = sd_ellipsoid(x, y, z,
+                              3.5, 1, 1,
+                              1,
+                              0, 1, 0);
+
+ellipsoid_hand_l = sd_ellipsoid(x, y, z,
+                              0.5, 2, 0.5,
+                              0.4,
+                              5.5, -0.5, 0);
+
+ellipsoid_hand_r = sd_ellipsoid(x, y, z,
+                              0.5, 2, 0.5,
+                              0.4,
+                              -5.5, -0.5, 0);
+
+ellipsoid_leg_l = sd_ellipsoid(x, y, z,
+                              0.5, 1, 0.5,
+                              1,
+                              5.5, -4.5, 0);
+
+ellipsoid_leg_r = sd_ellipsoid(x, y, z,
+                              0.5, 1, 0.5,
+                              1,
+                              -5.5, -4.5, 0);
+
+res = ellipsoid_head;
+res = smooth_union(res, ellipsoid_body);
+res = smooth_union(res, ellipsoid_shoulder);
+res = smooth_union(res, ellipsoid_hand_l);
+res = smooth_union(res, ellipsoid_hand_r);
+res = smooth_union(res, fist_l);
+res = smooth_union(res, fist_r);
+res = smooth_union(res, ellipsoid_leg_l);
+res = smooth_union(res, ellipsoid_leg_r);
+
+<!-- return cube; -->
+<!-- return res; -->
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(2*y);
+    var s = Math.sin(1*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+
+new_coor = twist(x, y, z);
+twisted_x = new_coor[0];
+twisted_y = new_coor[1];
+twisted_z = new_coor[2];
+
+function sd_torus(x, y, z, para_outer, para_inner) {
+//    vec2 q = vec2(length(p.xz)-t.x,p.y);
+//   return length(q)-t.y;
+    var q_0 = length(x, z) - para_outer;
+    var q_1 = y;
+    return 0.5 - length(q_0 - para_inner, q_1 - para_inner);
+}
+
+res = union(res, sd_torus(twisted_x, twisted_y, twisted_z, 1, 1.5));
+
+
+
+
+function displacement(x, y, z) {
+    // usage displacement(x, y, z) + shape(x, y, z) see displacement circle below
+    if (y < - 1)
+        return Math.sin(10*x) + Math.sin(10*y) + Math.sin(10*z);
+    else
+        return 0;
+}
+
+var dis = displacement(x, -y + 2, z);
+
+function twist(x, y, z) {
+    // changing x, y, z inplace
+    var c = Math.cos(2*y);
+    var s = Math.sin(2*y);
+    return [c*x - s*z, s*x + c*z, y];
+}
+<!-- 
+new_coor = twist(x, y, z);
+x = new_coor[0];
+y = new_coor[1];
+z = new_coor[2]; -->
+
+var r = 0.2;
+function circle_left(x, y, z) {
+    var x = x - 0.5;
+    return r - (x*x + y*y + z*z);
+}
+
+
+function circle_right(x, y, z) {
+    var x = x + 0.5;
+    return r - (x*x + y*y + z*z);
+}
+
+function circle_y_left(x, y, z) {
+    var y = y - 0.5;
+    return r - (x*x + y*y + z*z);
+}
+
+
+function circle_y_right(x, y, z) {
+    var y = y + 0.5;
+    return r - (x*x + y*y + z*z);
+}
+
+function circle_z_left(x, y, z) {
+    var z = z - 0.5;
+    return r - (x*x + y*y + z*z);
+}
+
+
+function circle_z_right(x, y, z) {
+    var z = z + 0.5;
+    return 0.5 - (x*x + y*y + z*z);
+}
+
+
+function union(val_0, val_1) {
+  return Math.max(val_0, val_1);
+}
+
+res = union(circle_left(x, y, z), res);
+res = union(circle_right(x, y, z), res);
+res = union(circle_y_left(x, y, z), res);
+res = union(circle_y_right(x, y, z), res);
+
+res = union(circle_z_left(x, y, z), res);
+res = union(circle_z_right(x, y, z), res);
+
+res =  res + dis;
+
+
+function intersect(val_0, val_1) {
+  return Math.min(val_0, val_1);
+}
+
+function sdCone(x, y, z, c_0, c_1) {
+    var q = length(x, z);
+    return 0.0001 - (c_0 * q + c_1 * -y);
+}
+
+
+var cone = intersect(sdCone(x, y + 4.5, z, 5, 5),  base_cube(x, y + 4.5, z, 0.5, 0, 0, 0));
+
+return smooth_union(res, cone);
 

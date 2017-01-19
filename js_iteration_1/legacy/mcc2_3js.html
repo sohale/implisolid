@@ -553,10 +553,19 @@ function provide_input (subjective_time, update_mode) {
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
         //const BB_SIZE = 9;
+
+        const REPEATS = 0; // has no effect! ()?!)
+
+
         var mc_properties_json = JSON.stringify({
             resolution: 28,
             box: {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE},
             ignore_root_matrix: true,
+            vresampl: {iters: 1, c: 1.0},
+            projection: {enabled: 1},
+            qem: {enabled: 1},
+            subdiv: {enabled: 1},
+            overall_repeats: REPEATS,
         });
 
 

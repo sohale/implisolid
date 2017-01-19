@@ -391,10 +391,10 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
-        // const BB_SIZE = 9;
+        const BB_SIZE = 5;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
-        var REPEATS = 1; // has no effect! ()?!)
+        var REPEATS = 0; // has no effect! ()?!)
         // create new geometry
         // tiger
         var mc_properties_json = {
@@ -432,7 +432,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         //var subjective_time = subjective_time * 5;
 
-        var REPEATS = 3;  // 3-> slow
+        var REPEATS = 0;  // 3-> slow
         // update
         var mc_properties_json__update = {
             resolution: 28,
