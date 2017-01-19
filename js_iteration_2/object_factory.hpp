@@ -310,7 +310,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
-        
+
         Matrix<REAL, 3, 4> transformation_matrix;
         REAL pitch = 0.0;
         std::string profile;
@@ -323,10 +323,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                            end_type, delta_ratio, v,
                            shapeparams_dict);
 
-  
+
         transformation_matrix << 1, 0, 0, 0,
                                  0, 1, 0, 0,
-                                 0, 0, 1, 0;    
+                                 0, 0, 1, 0;
 
         // // the following code is taken from difference
 
@@ -380,7 +380,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         std::cout << "--------------transformation_matrix------------" << std::endl;
         std::cout << matrix << std::endl;
-        
+
         object = new half_plane(matrix,
                                  plane_vector,
                                  plane_point
@@ -455,7 +455,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         std::cout << "--------------transformation_matrix------------" << std::endl;
         std::cout << matrix << std::endl;
-        
+
         object = new top_bottom_lid(matrix);
 
         register_new_object(object);
@@ -615,7 +615,43 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         register_new_object(object);
     } else if(name == "extrusion") {
+
         REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+
+        Matrix<REAL, 3, 4> transformation_matrix;
+        int size;
+
+        implicit_functions::extrusion::getExtrusionParameters(
+                           size, shapeparams_dict);
+
+
+        transformation_matrix << 1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0;
+
+        // // the following code is taken from difference
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+
+        REAL eye[12];
+        copy_eye(eye);
+
+        a = new implicit_functions::extrusion(eye, size);
+
+        b = new top_bottom_lid(transformation_matrix);
+
+        std::vector<implicit_function *> children;
+        children.push_back(a);
+        children.push_back(b);
+
+        object = new implicit_functions::transformed_subtract(children, matrix12);
+
+        register_new_object(object);
 
         /*
         //polygon is a square for now
@@ -624,13 +660,16 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         convex_polygon* square = new convex_polygon(corners_x, corners_y);
         unique_ptr<implicit_function_2d> polygon {square};
         */
+        /* infinite extrusion
+
+        REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
          object = new implicit_functions::extrusion(matrix12, 12);
         // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
-        register_new_object(object);
+        register_new_object(object);*/
     } else {
         std::cerr << "Invalid object " << "you asked for: \"" << name << "\"" << std::endl;
         abort();

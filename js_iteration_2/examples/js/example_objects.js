@@ -90,7 +90,7 @@ var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","
 
 
 //test for extrusion
-var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
+var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"extrusion","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"size": 6,"end_type": "0","index":9185154}]}}';
 
 
  // {

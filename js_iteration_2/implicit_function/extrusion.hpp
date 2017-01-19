@@ -59,20 +59,20 @@ public:
       my_assert(this->integrity_invariant(), "");
     }
 
-    extrusion(REAL matrix12[12], int polygon_size)
+    extrusion(REAL matrix12[12], int size)
     {
 
       this->r = 0.5;
       // this->polygon = std::move(_polygon);
 
-      REAL rotAngle = 2*PI/polygon_size;
+      REAL rotAngle = 2*PI/size;
       std::vector<REAL> corners_x = {0};
       std::vector<REAL> corners_y = {0.5};
 
       std::vector<REAL> corners_theta = {PI/2};
       REAL radius= 0.5;
 
-      for(int i=1; i<polygon_size; i++){
+      for(int i=1; i<size; i++){
           REAL theta = PI/2.0+i*rotAngle;
           REAL x, y;
           polarToCartesian(radius, theta, x, y);
@@ -99,15 +99,14 @@ public:
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
 
         // todo: apply matrix_vector_product()
-        this->polygon->eval_implicit(  x,  f_output);
-/*
         my_assert(assert_implicit_function_io(x, *f_output), "");
         my_assert(this->integrity_invariant(), "");
 
         vectorized_vect x_copy = x;
 
         matrix_vector_product(this->inv_transf_matrix, x_copy);
-        const REAL r2 = squared(this->r);
+        this->polygon->eval_implicit(  x_copy,  f_output);
+/*        const REAL r2 = squared(this->r);
 
         int output_ctr=0;
 
@@ -124,13 +123,13 @@ public:
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
 
         // todo: apply matrix_vector_product()
-        this->polygon->eval_gradient(  x,  output);
+
         // todo: apply inv_transf_matrix
 
-        /*
         vectorized_vect x_copy = x;
         matrix_vector_product(this->inv_transf_matrix, x_copy);
-
+        this->polygon->eval_gradient(  x_copy,  output);
+/*
         //const REAL r = this->r;
 
 
@@ -151,6 +150,14 @@ public:
             (*output)[output_ctr][2] = this->inv_transf_matrix[2]*gx + this->inv_transf_matrix[6]*gy + this->inv_transf_matrix[10]*gz;
         }
         */
+    }
+
+    static void getExtrusionParameters( int size,
+                        const pt::ptree& shapeparams_dict){
+
+            size = shapeparams_dict.get_child("size");
+
+
     }
 /*
     bool integrity_invariant() const {
