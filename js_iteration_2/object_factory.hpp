@@ -615,7 +615,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         register_new_object(object);
     } else if(name == "extrusion") {
-
+        
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
         if(ignore_root_matrix) {
@@ -623,7 +623,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         }
 
         Matrix<REAL, 3, 4> transformation_matrix;
-        int size;
+        int size = 0;
 
         implicit_functions::extrusion::getExtrusionParameters(
                            size, shapeparams_dict);
@@ -660,7 +660,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         convex_polygon* square = new convex_polygon(corners_x, corners_y);
         unique_ptr<implicit_function_2d> polygon {square};
         */
-        /* infinite extrusion
+        /*
+        // infinite extrusion
 
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);

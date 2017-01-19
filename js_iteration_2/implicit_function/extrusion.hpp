@@ -63,6 +63,9 @@ public:
     {
 
       this->r = 0.5;
+      if(size < 3){
+        throw "Invalid size";
+      }
       // this->polygon = std::move(_polygon);
 
       REAL rotAngle = 2*PI/size;
@@ -152,11 +155,11 @@ public:
         */
     }
 
-    static void getExtrusionParameters( int size,
+    static void getExtrusionParameters( int& size,
                         const pt::ptree& shapeparams_dict){
 
-            size = shapeparams_dict.get_child("size");
-
+            std::cout << "big thing: " << shapeparams_dict.get<float>("size") << std::endl;
+            size = shapeparams_dict.get<float>("size");
 
     }
 /*
