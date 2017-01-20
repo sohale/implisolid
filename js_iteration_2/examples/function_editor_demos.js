@@ -487,7 +487,7 @@ var smooth_union = function(val_0, val_1)
     // console.log(val_0, val_1);
     var k = 8;
     var res = Math.exp( k*val_0 ) + Math.exp( k*val_1 );
-    res = -(-Math.log( res )/k);
+    res = Math.log( res )/k;
     // console.log(res);
     return res;
 }
@@ -893,8 +893,6 @@ res = smooth_union(res, fist_r);
 res = smooth_union(res, ellipsoid_leg_l);
 res = smooth_union(res, ellipsoid_leg_r);
 
-<!-- return cube; -->
-<!-- return res; -->
 
 function twist(x, y, z) {
     // changing x, y, z inplace
@@ -937,11 +935,6 @@ function twist(x, y, z) {
     var s = Math.sin(2*y);
     return [c*x - s*z, s*x + c*z, y];
 }
-<!-- 
-new_coor = twist(x, y, z);
-x = new_coor[0];
-y = new_coor[1];
-z = new_coor[2]; -->
 
 var r = 0.2;
 function circle_left(x, y, z) {
