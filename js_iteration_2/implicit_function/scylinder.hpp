@@ -107,19 +107,22 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-          REAL i0 = (*i)[0];
-          REAL i1 = (*i)[1];
-          REAL i2 = (*i)[2];
+          REAL x = (*i)[0];
+          REAL y = (*i)[1];
+          REAL z = (*i)[2];
           REAL w0 = w[0];
           REAL w1 = w[1];
           REAL w2 = w[2];
 
-          REAL t0 = (i0-this->x)*w0 + (i1-this->y)*w1 + (i2-this->z)*w2;
+          REAL t0 = (x-this->x)*w0 + (y-this->y)*w1 + (z-this->z)*w2;
           REAL t1 = c_len - t0;
-          REAL r_ = radius_u - sqrt((i0 - w0*t0 - this->x)*(i0 - w0*t0 - this->x)
-            + (i1 - w1*t0- this->y)*(i1 - w1*t0 - this->y) +(i2 - w2*t0 - this->z)*(i2 - w2*t0 - this->z));
+          REAL r_ = radius_u - sqrt((x - w0*t0 - this->x)*(x - w0*t0 - this->x)
+            + (y - w1*t0- this->y)*(y - w1*t0 - this->y) +(z - w2*t0 - this->z)*(z - w2*t0 - this->z));
 
-          (*f_output)[output_ctr] = min(t0,min(t1,r_));
+
+          //(*f_output)[output_ctr] = min(t0,min(t1,r_));
+          //SDF
+          (*f_output)[output_ctr] = -std::max(euclidean_norm(x,y)-radius_u, std::abs(z) - c_len/2);
 
         }
     }

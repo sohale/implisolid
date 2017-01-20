@@ -18,6 +18,13 @@ inline REAL squared(REAL x) {
 inline REAL norm_squared(REAL x, REAL y, REAL z) {
     return x*x + y*y + z*z;
 }
+inline REAL euclidean_norm(REAL x, REAL y) {
+    return sqrt(x*x+y*y);
+}
+
+inline REAL euclidean_norm(REAL x, REAL y, REAL z) {
+    return sqrt(x*x+y*y+z*z);
+}
 
 inline REAL sign(REAL v, REAL ROOT_TOLERANCE) {
    return

@@ -89,8 +89,10 @@ public:
 
             /* the equation is: 1 - (r - ((x / rx)**2 + (y / ry)**2)**0.5)**2 - (z / rz)**2 */
 
-            REAL f = (1 - std::pow( r - std::pow((std::pow(x / rx, 2) + std::pow(y / ry,2)),0.5),2) - std::pow(z / rz, 2));
-            (*f_output)[output_ctr] = f;
+            //REAL f = (1 - std::pow( r - std::pow((std::pow(x / rx, 2) + std::pow(y / ry,2)),0.5),2) - std::pow(z / rz, 2));
+            //SDF
+            REAL t = 0.1;
+            (*f_output)[output_ctr] = ry - euclidean_norm((euclidean_norm(x,z) -rx)*(euclidean_norm(x,z)-rx), y);
         }
     }
 

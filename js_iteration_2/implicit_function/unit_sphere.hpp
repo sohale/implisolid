@@ -67,7 +67,9 @@ public:
         auto i = x_copy.begin();
         auto e = x_copy.end();
         for(; i<e; i++, output_ctr++){
-            (*f_output)[output_ctr] = r2 - norm_squared((*i)[0]-this->x, (*i)[1]-this->y, (*i)[2]-this->z );
+            //(*f_output)[output_ctr] = r2 - norm_squared((*i)[0]-this->x, (*i)[1]-this->y, (*i)[2]-this->z );
+            //SDF
+            (*f_output)[output_ctr] = r - euclidean_norm( (*i)[0]-this->x, (*i)[1]-this->y, (*i)[2]-this->z );
         }
     }
 

@@ -556,10 +556,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                 ab.push_back(a);
                 ab.push_back(b);
                 //shane hardocoded k
-                o_matrix = new implicit_functions::transformed_smooth_union(ab, matrix12, 1);
+                o_matrix = new implicit_functions::transformed_smooth_union(ab, matrix12, 8);
                 register_new_object(o_matrix);
                 REAL eye_matrix12[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0};
-                o_plain =  new implicit_functions::transformed_smooth_union(ab, eye_matrix12, 1);
+                o_plain =  new implicit_functions::transformed_smooth_union(ab, eye_matrix12, 8);
                 a = o_plain;
                 register_new_object(o_plain);
             }
