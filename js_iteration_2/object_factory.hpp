@@ -483,7 +483,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     }
 
 
-    else if (name == "Union") {
+    else if (name == "smooth_union") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
@@ -527,7 +527,52 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         object = a;
         // register_new_object
-    }else if (name == "Intersection") {
+    } else if (name == "Union") {
+        //todo: Use SimpleUnion if (matrix12 == eye(4))
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+
+        implicit_function * a = NULL;
+
+        implicit_function * o_matrix;
+        implicit_function * o_plain;
+
+        for (pt::ptree::value_type &element : shapeparams_dict.get_child("children")) {
+            if (a == NULL){
+                a = object_factory(element.second, false);
+            } else {
+                implicit_function * b = object_factory(element.second, false);
+
+                //The following always prints an empty line:
+                //std::clog << "element.second.get_value<string>(\"type\")" << element.second.get_value<string>("type") << std::endl ;
+
+                //a = new implicit_functions::CrispUnion(*a, *b);
+                // register_new_object(a);
+                //std::vector<const implicit_function*> versus std::vector<implicit_function*>
+                std::vector<implicit_function*> ab = std::vector<implicit_function*>();
+                ab.push_back(a);
+                ab.push_back(b);
+                //shane hardocoded k
+                o_matrix = new implicit_functions::transformed_smooth_union(ab, matrix12, 1);
+                register_new_object(o_matrix);
+                REAL eye_matrix12[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0};
+                o_plain =  new implicit_functions::transformed_smooth_union(ab, eye_matrix12, 1);
+                a = o_plain;
+                register_new_object(o_plain);
+            }
+
+            //std::clog << "##### " << element.second.get_child("type") << std::endl;
+            //i++;
+        }
+        a = o_matrix;
+        //std::clog  << "#####" << shapeparams_dict.get<string>("children") << std::endl;
+
+        object = a;
+    }else if (name == "Intersection"){
+        // register_new_objectelse if (name == "Intersection") {
         //todo: Use SimpleUnion if (matrix12 == eye(4))
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);

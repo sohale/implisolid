@@ -85,6 +85,7 @@ class TwistedObject::ImplicitObject(){
 #include "transformed_union.hpp"
 #include "transformed_intersection.hpp"
 #include "transformed_subtract.hpp"
+#include "transformed_smooth_union.hpp"
 #include "torus.hpp"
 #include "tetrahedron.hpp"
 #include "screw.hpp"
