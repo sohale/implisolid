@@ -91,8 +91,8 @@ var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","
 
 //test for extrusion
 //shane
-//extrusion changed to cylinder to visualize SDF
-var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"itorus","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"size": 6,"end_type": "0","index":9185154}]}}';
+//extrusion changed to cone to visualize SDF
+var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"icone","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1],"size": 6,"end_type": "0","index":9185154}]}}';
 
 var SIMPLE_SMOOTH_UNION = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"smooth_union","protected":false,"children":[{"type":"Union","protected":false,"children":[{"type":"icube","displayColor":[0.9890529333317486,0.8692565762518645,0.5833950392946017],"matrix":[10,0,0,-4.077171979496917,0,10,0,0.9077955889487157,0,0,10,0,0,0,0,1],"index":9825520},{"type":"iellipsoid","displayColor":[0.005798184165187736,0.7660847647199172,0.02514520193564107],"matrix":[10,0,0,4.077171470349015,0,10,0,-0.9077954904953458,0,0,10,0,0,0,0,1],"index":721220}],"displayColor":[0.6745098039215687,0.47843137254901963,0.6509803921568628],"matrix":[1,0,0,1.1920928955078125e-7,0,1,0,-3.539827808737755,0,0,1,0,0,0,0,1],"index":7098227},{"type":"icone","displayColor":[1,0,0],"matrix":[10,0,0,-3.904477892554908,0,10,0,4.447623119049272,0,0,10,0,0,0,0,1],"index":3279116}],"displayColor":[0.8705882352941177,0.4196078431372549,0.8705882352941177],"matrix":[1,0,0,-1.60235,0,1,0,-1,0,0,1,5,0,0,0,1],"index":8959131}]},"createdAt":"2017-01-20T11:44:07.587Z","title":"Unnamed (2017-01-20T11-46-18)","contributors":[],"unique_id":"30d4a484-6793-4a8f-b1c7-b8ea65efa5dd","licence":{}}';
 
