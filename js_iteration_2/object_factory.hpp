@@ -468,7 +468,8 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         std::cout << "gate 0 \n";
         REAL param1 = 0.01;
-        int id = 2463577;
+
+
         REAL matrix12[12];
         getMatrix12(matrix12, shapeparams_dict);
 
@@ -476,6 +477,12 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
         std::cout << "gate 1 \n";
+
+        int id = 0;
+        implicit_functions::javascript_implicit_function::getJSParameters(id, shapeparams_dict);
+        assert(id != 0);
+        std::cout << "rawjscode id " << id <<"\n";
+        
         object = new implicit_functions::javascript_implicit_function(id, matrix12, param1);
         register_new_object(object);
         std::cout << "gate 2 \n";

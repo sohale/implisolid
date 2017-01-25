@@ -12,15 +12,21 @@ namespace implicit_functions {
 */
 class javascript_implicit_function : public transformable_implicit_function {
 
+public:
+    static void getJSParameters(int& index, const pt::ptree& shapeparams_dict)
+    {
+        index = shapeparams_dict.get<int>("index");
+    }
 protected:
     REAL param1;
     int id;  // callback id
 
 public:
 
-    javascript_implicit_function(int id, REAL matrix[12], REAL param1) {
+    javascript_implicit_function(int index, REAL matrix[12], REAL param1) {
         // matrix[12]: How to make sure 12 elements are provided? (how to assert)
-        this->id = id;
+        std::cout << "id" << id << "\n";
+        this->id = index;
         this->param1 = param1;
 
         // The "delete" is added to ~destructor
@@ -59,12 +65,12 @@ public:
         }
         */
 
-
+        std::cout << "id" << id << "\n";
         // emscripten_run_script("console.log('hi')");
         // emscripten_run_script("console.log(window)");
         int result = EM_ASM_INT({
             // console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
-            js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
+            ImplicitRawjscode.js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, (void*)(&((*(x_copy.begin()))[0])), x_copy.shape()[0], (void*)(f_output->data()), this->param1);
@@ -78,7 +84,7 @@ public:
 
         int result = EM_ASM_INT({
             // console.log('Calling gradient function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3);
-            js_gradient_callback($0,$1,$2,$3); /* id, ptr, count, output_f_ptr*/
+            ImplicitRawjscode.js_gradient_callback($0,$1,$2,$3); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, &((*(x_copy.begin()))[0]), x_copy.shape()[0], (void*)(output->data()));
