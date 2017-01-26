@@ -110,7 +110,7 @@ public:
           REAL x = (*i)[0];
           REAL y = (*i)[1];
           REAL z = (*i)[2];
-          REAL w0 = w[0];
+          /*REAL w0 = w[0];
           REAL w1 = w[1];
           REAL w2 = w[2];
 
@@ -120,9 +120,10 @@ public:
             + (y - w1*t0- this->y)*(y - w1*t0 - this->y) +(z - w2*t0 - this->z)*(z - w2*t0 - this->z));
 
 
-          //(*f_output)[output_ctr] = min(t0,min(t1,r_));
+          (*f_output)[output_ctr] = min(t0,min(t1,r_));*/
           //SDF
-          (*f_output)[output_ctr] = -std::max(euclidean_norm(x,y)-radius_u, std::abs(z) - c_len/2);
+          //(*f_output)[output_ctr] = -std::max(euclidean_norm(x,y)-radius_u, std::abs(z) - c_len/2);
+          (*f_output)[output_ctr] = radius_u-euclidean_norm(x,y);
 
         }
     }
@@ -137,6 +138,7 @@ public:
         auto e = x_copy.end();
 
         for(; i!=e; i++, output_ctr++){
+          /*
           REAL i0 = (*i)[0];
           REAL i1 = (*i)[1];
           REAL i2 = (*i)[2];
@@ -167,13 +169,21 @@ public:
           (*output)[output_ctr][1] = c_t0*w1 + c_t1*(-w1) + c_r*(w1*t0 + this->y - i1);
           (*output)[output_ctr][2] = c_t0*w2 + c_t1*(-w2) + c_r*(w2*t0 + this->z - i2);
 
-          REAL g0 = (*output)[output_ctr][0];
-          REAL g1 = (*output)[output_ctr][1];
-          REAL g2 = (*output)[output_ctr][2];
+          REAL gx = (*output)[output_ctr][0];
+          REAL gy = (*output)[output_ctr][1];
+          REAL gz = (*output)[output_ctr][2];*/
 
-          (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
-          (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
-          (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
+          //shane SDF
+          REAL x = (*i)[0];
+          REAL y = (*i)[1];
+          REAL z = (*i)[2];
+          REAL gx = -x/euclidean_norm(x,y);
+          REAL gy = -y/euclidean_norm(x,y);
+          REAL gz = 0.;
+
+          (*output)[output_ctr][0] = this->inv_transf_matrix[0]*gx + this->inv_transf_matrix[4]*gy + this->inv_transf_matrix[8]*gz;
+          (*output)[output_ctr][1] = this->inv_transf_matrix[1]*gx + this->inv_transf_matrix[5]*gy + this->inv_transf_matrix[9]*gz;
+          (*output)[output_ctr][2] = this->inv_transf_matrix[2]*gx + this->inv_transf_matrix[6]*gy + this->inv_transf_matrix[10]*gz;
 
         }
     }

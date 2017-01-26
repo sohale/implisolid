@@ -95,3 +95,6 @@ class TwistedObject::ImplicitObject(){
 #include "half_plane.hpp"
 #include "top_bottom_lid.hpp"
 #include "inf_top_bot_bound.hpp"
+#include "half_plane_x_SDF.hpp"
+#include "half_plane_y_SDF.hpp"
+#include "half_plane_z_SDF.hpp"

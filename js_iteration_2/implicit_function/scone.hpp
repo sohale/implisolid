@@ -113,9 +113,9 @@ public:
             //REAL e2 = std::min(-(z-z0)+this->h, z-z0);
             //REAL e2 = std::max((z-z0)+this->h,-(z-z0));
             REAL c = 0.9;
-            REAL a = -(c*euclidean_norm(x-x0,y-y0)+sqrt(1-c*c)*(z-z0));
-            REAL b = z+0.5;
-            (*f_output)[output_ctr] = std::min(a, b);
+            /*REAL a = -(c*euclidean_norm(x-x0,y-y0)+sqrt(1-c*c)*(z-z0));
+            REAL b = z+0.5;*/
+            (*f_output)[output_ctr] = -(c*euclidean_norm(x-x0,y-y0)+sqrt(1-c*c)*(z-z0));
 
         }
     }
@@ -178,22 +178,10 @@ public:
             //REAL c1 = 1/sqrt(1+a2);
             //REAL c2 = sqrt(1-a2);
             REAL c = 0.9;
-            REAL a = -(c*euclidean_norm(x-x0,y-y0)+sqrt(1-c*c)*(z-z0));
-            REAL b = z+0.5;
-            REAL minimum = std::min(a, b);
 
-            if (a <=b){
-              gx = -((x-x0)*c)/euclidean_norm(x-x0,y-y0);
-              gy = -((y-y0)*c)/euclidean_norm(x-x0,y-y0);
-              gz = -sqrt(1-c*c);
-            }else {
-              gx = 0.;
-              gy = 0.;
-              gz = 1.;
-            /*}else {
-              std::cout << "there is a problem with the gradient of the cone" << std::endl;
-              break;*/
-            }
+            gx = -((x-x0)*c)/euclidean_norm(x-x0,y-y0);
+            gy = -((y-y0)*c)/euclidean_norm(x-x0,y-y0);
+            gz = -sqrt(1-c*c);
 
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*gx + this->inv_transf_matrix[4]*gy + this->inv_transf_matrix[8]*gz;

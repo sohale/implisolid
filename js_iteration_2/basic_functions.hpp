@@ -42,6 +42,12 @@ inline void polarToCartesian(REAL r, REAL theta, REAL& x, REAL& y){
     y = r*sin(theta);
 }
 
+template <typename T>
+T clip(const T& n, const T& lower, const T& upper) {
+  return std::max(lower, std::min(n, upper));
+}
+
+
 /*
 ================================================================
 =                       Useful Functions                       =

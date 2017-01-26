@@ -107,6 +107,7 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
     }
     else*/
     if (name == "icube" || name == "cube" ){
+
         REAL matrix12[12];
         getMatrix12(matrix12,shapeparams_dict);
         if(ignore_root_matrix) {
@@ -115,6 +116,41 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         object = new implicit_functions::cube(matrix12);
        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
         register_new_object(object);
+        //here follows the implementation of the cube as the intersection of 6 planes but TOO SLOW
+        /*
+        implicit_function* a1 = new implicit_functions::half_plane_x_SDF(matrix12,-0.5f,1);
+        implicit_function* a2 = new implicit_functions::half_plane_x_SDF(matrix12,0.5f, 0);
+        implicit_function* b1 = new implicit_functions::half_plane_y_SDF(matrix12,-0.5f, 1);
+        implicit_function* b2 = new implicit_functions::half_plane_y_SDF(matrix12,0.5f, 0);
+        implicit_function* c1 = new implicit_functions::half_plane_z_SDF(matrix12,-0.5f, 1);
+        implicit_function* c2 = new implicit_functions::half_plane_z_SDF(matrix12,0.5f, 0);
+
+        std::vector<implicit_function *> childrena;
+        childrena.push_back(a1);
+        childrena.push_back(a2);
+        std::vector<implicit_function *> childrenb;
+        childrenb.push_back(b1);
+        childrenb.push_back(b2);
+        std::vector<implicit_function *> childrenc;
+        childrenc.push_back(c1);
+        childrenc.push_back(c2);
+
+        implicit_function* objecta = new implicit_functions::transformed_intersection(childrena, matrix12);
+        implicit_function* objectb = new implicit_functions::transformed_intersection(childrenb, matrix12);
+        implicit_function* objectc = new implicit_functions::transformed_intersection(childrenc, matrix12);
+
+        std::vector<implicit_function *> childrenab;
+        childrenab.push_back(objecta);
+        childrenab.push_back(objectb);
+
+        implicit_function* objectab = new implicit_functions::transformed_intersection(childrenab, matrix12);
+
+        std::vector<implicit_function *> childrenabc;
+        childrenabc.push_back(objectab);
+        childrenabc.push_back(objectc);
+
+        object = new implicit_functions::transformed_intersection(childrenabc, matrix12);*/
+
     }
     else
     if (name == "icylinder" || name == "cylinder" ){
@@ -123,8 +159,30 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
+        Matrix<REAL, 3, 4> transformation_matrix;
 
-        object = new implicit_functions::scylinder(matrix12);
+        transformation_matrix << 1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0;
+
+        // // the following code is taken from difference
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+
+        REAL eye[12];
+        copy_eye(eye);
+
+        a = new implicit_functions::scylinder(eye);
+
+        b = new top_bottom_lid(transformation_matrix);
+
+        std::vector<implicit_function *> children;
+        children.push_back(a);
+        children.push_back(b);
+
+        object = new implicit_functions::transformed_subtract(children, matrix12);
+        //object = new implicit_functions::scylinder(matrix12);
         register_new_object(object);
        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
         //register_new_object(object);
@@ -146,8 +204,31 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
+        Matrix<REAL, 3, 4> transformation_matrix;
 
-        object = new implicit_functions::scone(matrix12);
+        transformation_matrix << 1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0;
+
+        // // the following code is taken from difference
+
+        implicit_function * a = NULL;
+        implicit_function * b = NULL;
+
+        REAL eye[12];
+        copy_eye(eye);
+
+        a = new implicit_functions::scone(eye);
+
+        b = new top_bottom_lid(transformation_matrix);
+
+        std::vector<implicit_function *> children;
+        children.push_back(a);
+        children.push_back(b);
+
+        object = new implicit_functions::transformed_subtract(children, matrix12);
+
+        //object = new implicit_functions::scone(matrix12);
         register_new_object(object);
     }else if(name == "iheart" ){
         REAL matrix12[12];
@@ -556,10 +637,10 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
                 ab.push_back(a);
                 ab.push_back(b);
                 //shane hardocoded k
-                o_matrix = new implicit_functions::transformed_smooth_union(ab, matrix12, 8);
+                o_matrix = new implicit_functions::transformed_smooth_union(ab, matrix12, 9);
                 register_new_object(o_matrix);
                 REAL eye_matrix12[12] = {1,0,0,0,  0,1,0,0,  0,0,1,0};
-                o_plain =  new implicit_functions::transformed_smooth_union(ab, eye_matrix12, 8);
+                o_plain =  new implicit_functions::transformed_smooth_union(ab, eye_matrix12, 9);
                 a = o_plain;
                 register_new_object(o_plain);
             }
@@ -665,6 +746,48 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         object = new implicit_functions::meta_ball_Rydgård(matrix12, num_blobs, time, scale);
 
         register_new_object(object);
+    }else if(name == "half_plane_x"){
+
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        REAL x0;
+        implicit_functions::half_plane_x_SDF::getHalfXParameters(
+                           x0, shapeparams_dict);
+         object = new implicit_functions::half_plane_x_SDF(matrix12, x0,1);
+        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
+
+    }else if(name == "half_plane_y"){
+
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        REAL y0;
+        implicit_functions::half_plane_y_SDF::getHalfYParameters(
+                           y0, shapeparams_dict);
+         object = new implicit_functions::half_plane_y_SDF(matrix12, y0,1);
+        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
+
+    }else if(name == "half_plane_z"){
+
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        REAL z0;
+        implicit_functions::half_plane_z_SDF::getHalfZParameters(
+                           z0, shapeparams_dict);
+         object = new implicit_functions::half_plane_z_SDF(matrix12, z0,1);
+        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
+
     } else if(name == "extrusion") {
         
         REAL matrix12[12];
