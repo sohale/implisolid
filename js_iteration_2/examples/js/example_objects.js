@@ -467,7 +467,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
     if (DONT_CHANGE || is_update_mode == 0) {
 
         var x0=0, y0=0, z0=0;
-        //var BB_SIZE = 18;
+        var BB_SIZE = 3;
         //const BB_SIZE = 5;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
@@ -475,7 +475,7 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // create new geometry
         // tiger
         var mc_properties_json = {
-            resolution: Math.floor(80),
+            resolution: Math.floor(24),
             box: bbox,
             ignore_root_matrix: false,
 

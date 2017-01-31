@@ -150,7 +150,7 @@ public:
             (i1 - cx - p[0+5*3])*p[0+5*3]*(-2.) + (i2 - cy - p[1+5*3])*p[1+5*3]*(-2.) + (i3 - cz - p[2+5*3])*p[2+5*3]*(-2.)
           )))));*/
 
-          //SDF
+
           REAL x = (*i)[0];
           REAL y = (*i)[1];
           REAL z = (*i)[2];
@@ -165,14 +165,14 @@ public:
           REAL ayPos = std::max(ay,0.f);
           REAL azPos = std::max(az,0.f);*/
 
-
+          //SDF
           (*f_output)[output_ctr] = -std::min(std::max(std::max(ax,ay), az),0.f) - euclidean_norm(std::max(ax,0.f), std::max(ay,0.f), std::max(az,0.f));
           //(*f_output)[output_ctr] = -std::min(maxA, euclidean_norm(axPos, ayPos, azPos));
-          //this below gives a cool SDF
-          //(*f_output)[output_ctr] = -euclidean_norm(x-clip(x,-size_x, size_x), y-clip(y,-size_x, size_x), z-clip(z,-size_x, size_x));
+
         }
     }
     virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
+
 
 
       vectorized_vect x_copy = vectorized_vect(x);
@@ -187,11 +187,10 @@ public:
       REAL i1;
       REAL i2;
       REAL i3;
-      REAL size = p[0];
       auto i = x_copy.begin();
       auto e = x_copy.end();
       for(; i<e; i++, output_ctr++){
-        /*i1 = (*i)[0];
+        i1 = (*i)[0];
         i2 = (*i)[1];
         i3 = (*i)[2];
         int index = 0;
@@ -207,87 +206,75 @@ public:
         (*output)[output_ctr][1] = -p[index*3+1];
         (*output)[output_ctr][2] = -p[index*3+2];
 
-        REAL gx = (*output)[output_ctr][0];
-        REAL gy = (*output)[output_ctr][1];
-        REAL gz = (*output)[output_ctr][2];*/
-        REAL gx;
-        REAL gy;
-        REAL gz;
-        REAL x = (*i)[0];
-        REAL y = (*i)[1];
-        REAL z = (*i)[2];
+        REAL g0 = (*output)[output_ctr][0];
+        REAL g1 = (*output)[output_ctr][1];
+        REAL g2 = (*output)[output_ctr][2];
 
-        REAL epsilon = 0.000001;
+        (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
+        (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
+        (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
+      }
 
-        /*REAL ax = std::abs(x) - size;
-        REAL ay = std::abs(y) - size;
-        REAL az = std::abs(z) - size;
+      /*vectorized_vect x_copy = vectorized_vect(x);
 
-        REAL axE = std::abs(x+epsilon) - size;
-        REAL ayE = std::abs(y+epsilon) - size;
-        REAL azE = std::abs(z+epsilon) - size;
+      //matrix_vector_product(this->inv_transf_matrix, x_copy);
 
+      int output_ctr=0;
 
-        REAL fxyz = -std::min(std::max(std::max(ay,az), ax),0.f) - euclidean_norm(std::max(ax,0.f), std::max(ay,0.f), std::max(az,0.f));
+      REAL cx = this->x;
+      REAL cy = this->y;
+      REAL cz = this->z;
+
+      REAL i1;
+      REAL i2;
+      REAL i3;
+      REAL size = p[0];
+      auto i = x_copy.begin();
+      auto e = x_copy.end();
+
+      REAL epsilon = 0.001;
+
+      vectorized_vect xEpsilon = vectorized_vect(x);
+      vectorized_vect yEpsilon = vectorized_vect(x);
+      vectorized_vect zEpsilon = vectorized_vect(x);
+      
+      int output_ctr2 = 0;
+      
+      for(; i<e; i++, output_ctr2++){
+          xEpsilon[output_ctr2][0] = x[output_ctr2][0] + epsilon;
+          yEpsilon[output_ctr2][1] = x[output_ctr2][1] + epsilon;
+          zEpsilon[output_ctr2][2] = x[output_ctr2][2] + epsilon;
+      }
+
+      REAL gx;
+      REAL gy;
+      REAL gz;
+      const int nb_points = x.shape()[0];
+
+      vectorized_scalar fxEpsilon(std::vector<size_t>(1,nb_points));
+      vectorized_scalar fyEpsilon(std::vector<size_t>(1,nb_points));
+      vectorized_scalar fzEpsilon(std::vector<size_t>(1,nb_points));
+      vectorized_scalar f(std::vector<size_t>(1,nb_points));
+      std::cout<<"size de 0: "<<fxEpsilon.shape()[0]<<std::endl;
+      eval_implicit(xEpsilon, &fxEpsilon);
+      eval_implicit(yEpsilon, &fyEpsilon);
+      eval_implicit(zEpsilon, &fzEpsilon);
+      eval_implicit(x_copy,&f);
+      
+      auto k = x_copy.begin();
+      auto l = x_copy.end();
+      
+      for(; k<l; k++, output_ctr++){
+
+        gx = (fxEpsilon[output_ctr]-f[output_ctr])/epsilon;
+        gy = (fyEpsilon[output_ctr]-f[output_ctr])/epsilon;
+        gz = (fzEpsilon[output_ctr]-f[output_ctr])/epsilon;
         
-        REAL fxE = -std::min(std::max(std::max(az,ay), axE),0.f) - euclidean_norm(std::max(axE,0.f), std::max(ay,0.f), std::max(az,0.f));
-        REAL fyE = -std::min(std::max(std::max(az,ayE), ax),0.f) - euclidean_norm(std::max(ax,0.f), std::max(ayE,0.f), std::max(az,0.f));
-        REAL fzE = -std::min(std::max(std::max(azE,ay), ax),0.f) - euclidean_norm(std::max(ax,0.f), std::max(ay,0.f), std::max(azE,0.f));
-        */
-        /*REAL fxEpsyz = -euclidean_norm(x+epsilon-clip(x+epsilon,-size_x, size_x), y-clip(y,-size_x, size_x), z-clip(z,-size_x, size_x));
-        REAL fxyEpsz = -euclidean_norm(x-clip(x,-size_x, size_x), y+epsilon-clip(y+epsilon,-size_x, size_x), z-clip(z,-size_x, size_x));
-        REAL fxyzEps = -euclidean_norm(x-clip(x,-size_x, size_x), y-clip(y,-size_x, size_x), z+epsilon-clip(z+epsilon,-size_x, size_x));
-        REAL fxyz = -euclidean_norm(x-clip(x,-size_x, size_x), y-clip(y,-size_x, size_x), z-clip(z,-size_x, size_x));*/
-        /*gx = (fxE-fxyz)/epsilon;
-        gy = (fyE-fxyz)/epsilon;
-        gz = (fzE-fxyz)/epsilon;*/
-
-        
-        REAL a = p[0] - std::abs(x - cx);
-        REAL b = p[7] - std::abs(y - cy);
-        REAL c = p[14] - std::abs(z - cz);
-        REAL minimum = std::min(a, std::min(b,c));
-
-
-        if(minimum == a){
-          if(x<cx){
-            gx = 1.;
-            gy = 0.;
-            gz = 0.;            
-          }else if(x>cx){
-            gx = -1.;
-            gy = 0.;
-            gz = 0.;                
-          }else{
-
-          }
-        }else if(minimum == b){
-          if(y<cy){
-            gx = 0.;
-            gy = 1.;
-            gz = 0.;
-          }else if(y > cy){
-            gx = 0.;
-            gy = -1.;
-            gz = 0.;          
-          }
-        }else if(minimum == c){
-          if(z < cz){
-            gx = 0.;
-            gy = 0.;
-            gz = 1.;
-          }else if(z > cz){
-            gx = 0.;
-            gy = 0.;
-            gz = -1.;
-          }         
-        }
-
         (*output)[output_ctr][0] = this->inv_transf_matrix[0]*gx + this->inv_transf_matrix[4]*gy + this->inv_transf_matrix[8]*gz;
         (*output)[output_ctr][1] = this->inv_transf_matrix[1]*gx + this->inv_transf_matrix[5]*gy + this->inv_transf_matrix[9]*gz;
         (*output)[output_ctr][2] = this->inv_transf_matrix[2]*gx + this->inv_transf_matrix[6]*gy + this->inv_transf_matrix[10]*gz;
-
-      }
+      
+      }*/
 
     }
     bool integrity_invariant() const {
