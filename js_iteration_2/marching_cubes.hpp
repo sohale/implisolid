@@ -458,6 +458,7 @@ inline void MarchingCubes<enableUvs,enableColors>:: VIntY (index_t q, array1d& p
 
     if(MarchingCubes::ENABLE_NORMALS){
         index_t q2 = q + this->localgrid.ystride * 3;
+        // q2 is ???
         nout[ offset ]     = lerp( normal_cache[ q ],     normal_cache[ q2 ],     mu );
         nout[ offset + 1 ] = lerp( normal_cache[ q + 1 ], normal_cache[ q2 + 1 ], mu );
         nout[ offset + 2 ] = lerp( normal_cache[ q + 2 ], normal_cache[ q2 + 2 ], mu );
