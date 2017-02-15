@@ -354,8 +354,40 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         if(ignore_root_matrix) {
             copy_eye(matrix12);
         }
-        object = new implicit_functions::sdf_3d(matrix12);
-       // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+
+        int size_x;
+        int size_y;
+        int size_z;
+        float grid_size;
+        float origin_x;
+        float origin_y;
+        float origin_z;
+        std::vector<float> sdf;
+
+        std::cout << "gate 0" << std::endl;
+
+        implicit_functions::sdf_3d::getSdf_3dParameters(
+                                        size_x,
+                                        size_y,
+                                        size_z,
+                                        grid_size,
+                                        origin_x,
+                                        origin_y,
+                                        origin_z,
+                                        sdf,
+                                       shapeparams_dict);
+        std::cout << "gate 1" << std::endl;
+
+        object = new implicit_functions::sdf_3d(matrix12,
+                                                size_x,
+                                                size_y,
+                                                size_z,
+                                                grid_size,
+                                                origin_x,
+                                                origin_y,
+                                                origin_z,
+                                                sdf);
+        std::cout << "gate 2" << std::endl;
         register_new_object(object);
     } else if (name == "half_plane") {
 
