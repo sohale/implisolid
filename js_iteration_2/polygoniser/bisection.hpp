@@ -455,7 +455,6 @@ void bisection(
         assert(ok);
     #endif
     */
-    assert(check_all_are_root(object, res_x_arr, res_x_arr.shape()[0], ROOT_TOLERANCE));
 
 }
 

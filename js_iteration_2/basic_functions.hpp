@@ -359,7 +359,7 @@ bool test_svd(const vectorized_vect& A, const vectorized_vect& u, const vectoriz
 
 
 vectorized_vect prepare_inner_vectors(REAL* inv_transf_matrix, const vectorized_vect& x) {
-    //my_assert(assert_implicit_function_io(x, *f_output), "");
+    //
     //my_assert(this->integrity_invariant(), ""); // fixme: has problems
 
 

@@ -86,7 +86,7 @@ var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"ro
 // cone top_bottom_lid
 // var SIMPLE_SCREW = '{"printerSettings":{},"mp5-version":"0.3","root":{"type":"root","children":[{"type":"top_bottom_lid","matrix":[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],"v": [0,2,0],"pitch": 0.5,"profile":"sin","delta_ratio":1.5,"end_type": "0","index":9185154}]}}';
 
-var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"asmjscb","displayColor":[0.114,0.075,0.63],"param1":0.5,"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":2463577,"implicit":"_f =  (+param1)*(+param1) - ((_x/0.7) *(_x/0.7) + _y * _y + _z * _z);","gradient":"_gx = (-2) * _x /(0.7); _gy = -2 * _y; _gz = -2 * _z;"}]},"createdAt":"2016-12-27","title":"asmjs example 2","description":"Multiple colours","contributors":["sohail"],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}';
+var asmjs = '{"printerSettings":{"PRINTER":"Ultimaker Origin","FILAMENT":"PLA","DEFAULT":0},"mp5-version":"0.4","root":{"type":"root","children":[{"type":"cube","displayColor":[0.114,0.075,0.63],"param1":0.5,"matrix":[10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1],"index":2463577,"implicit":"_f =  (+param1)*(+param1) - ((_x/0.7) *(_x/0.7) + _y * _y + _z * _z);","gradient":"_gx = (-2) * _x /(0.7); _gy = -2 * _y; _gz = -2 * _z;"}]},"createdAt":"2016-12-27","title":"asmjs example 2","description":"Multiple colours","contributors":["sohail"],"unique_id":"3ef4a9f2-6175-4a9d-b421-720eac674d89","licence":{}}';
 
 
 //test for extrusion
@@ -391,14 +391,14 @@ function provide_input (subjective_time, is_update_mode, globals) {
 
         var x0=0, y0=0, z0=0;
         //var BB_SIZE = 18;
-        const BB_SIZE = 5;
+        const BB_SIZE = 100;
         var bbox = {xmin: x0-BB_SIZE, xmax: x0+BB_SIZE, ymin: y0-BB_SIZE , ymax: y0+BB_SIZE, zmin: z0-BB_SIZE, zmax: z0+BB_SIZE};
 
         var REPEATS = 0; // has no effect! ()?!)
         // create new geometry
         // tiger
         var mc_properties_json = {
-            resolution: Math.floor(80),
+            resolution: Math.floor(10),
             box: bbox,
             ignore_root_matrix: false,
 

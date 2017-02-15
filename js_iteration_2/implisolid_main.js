@@ -440,7 +440,7 @@ function init3(service3, service2) {
     service3.use_II_qem = true;
     service3.use_III = false;
     service3.use_noise = false;
-    service3.repeats = 1;
+    service3.repeats = 0;
     service3.custom_mc_settings = null;  // can be manually set in browser's console
 
 

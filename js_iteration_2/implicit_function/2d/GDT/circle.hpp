@@ -24,7 +24,7 @@ public:
 
     virtual void eval_implicit(const vectorized_vect_2d& x, vectorized_scalar* f_output) const {
 
-        my_assert(assert_implicit_function_io_2d(x, f_output), "");
+        
         my_assert(this->integrity_invariant(), "");
 
         int output_ctr=0;

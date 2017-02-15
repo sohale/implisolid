@@ -45,7 +45,7 @@ public:
 
     void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
         // checks that the size of input is the same as that of output
-        my_assert(assert_implicit_function_io(x, *f_output), "");
+        
         my_assert(this->integrity_invariant(), "");
 
         const vectorized_scalar::index nsize = x.shape()[0];

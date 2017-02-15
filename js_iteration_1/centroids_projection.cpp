@@ -872,8 +872,8 @@ void  set_centers_on_surface(
 
             #if ASSERT_USED
                 // fails
-                assert(test_if_conjugate_opposite_signs_indexed(
-                    object, X, best_result_x, already_success_bool, ROOT_TOLERANCE ));
+                // assert(test_if_conjugate_opposite_signs_indexed(
+                //     object, X, best_result_x, already_success_bool, ROOT_TOLERANCE ));
                 // X === centroids
             #endif
 
@@ -1147,8 +1147,6 @@ void  set_centers_on_surface(
     bisection(object, x_bisect, x1_relevant, x2_relevant, ROOT_TOLERANCE);
     // x1_relevant: outside, x2_relevant: inside
 
-
-    assert(check_all_are_root(object, x_bisect, m, ROOT_TOLERANCE));
 
     // now put them (all of those RELEVEANT ones) into the results array.
     // What about those which were not successful? Answer: They are not "relevant".

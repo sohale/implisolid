@@ -145,7 +145,7 @@ public:
     }
 
     virtual void eval_implicit(const vectorized_vect & x, vectorized_scalar * f_output) const {
-        my_assert(assert_implicit_function_io(x, *f_output), "");
+        
         my_assert(this->integrity_invariant(), "");
 
         vectorized_vect planes = getPlanes();

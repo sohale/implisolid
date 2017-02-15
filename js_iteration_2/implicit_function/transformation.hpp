@@ -110,7 +110,7 @@ protected:
     /* Makes a copy and applied the matrix. To be called inside the eval_implicit() and eval_gradient() */
     /*
     vectorized_vect prepare_inner_vectors(const vectorized_vect& x) const {
-        //my_assert(assert_implicit_function_io(x, *f_output), "");
+        //
         //my_assert(this->integrity_invariant(), ""); // fixme: has problems
         vectorized_vect x_copy = x;
 
