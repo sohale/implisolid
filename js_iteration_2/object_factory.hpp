@@ -348,7 +348,15 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         object = new implicit_functions::transformed_subtract(children, matrix12);
 
         register_new_object(object);
-
+    } else if (name == "sdf_3d"){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new implicit_functions::sdf_3d(matrix12);
+       // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
     } else if (name == "half_plane") {
 
         Eigen::Matrix<REAL, 3, 4> matrix;
