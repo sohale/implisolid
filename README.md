@@ -1,10 +1,18 @@
 ImpliSolid
 =========
 **ImpliSolid** is a Solid Modelling library/engine based on *Implicit Surfaces* modelling (aka *F-REP*).
+The main usecase for ImpliSolid is 3D printing.
+
+ImpliSolid uses very efficient (vectorised) calculations to provide instant polygonisation of Implicit Surfaces on your browser.
+ImpliSolid use is not limited to browsers. It is available in C++, native Python and JavaScript.
+
+| |
+|:-------------:|
+|  Website: [link](https://sohale.github.io/implisolid/) |
+| An interactive editor: [link](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) |
+
 
 ImpliSolid uses academic research such as the polygonization algorithm published by Ohtake & Belyaev.
-
-ImpliSolid uses very efficient vectorised calculations to provide instant polygonisation of Implicit Surfaces on your browser.
 
 Currently two open-source projects that use this library:
 
@@ -141,4 +149,3 @@ You can use a pre installed docker container to compile implisolid:
 ```docker run -v /Users/Tiger/Documents/mp5-private/implisolid:/src -t mp51/solidmodel /bin/bash /src/js_iteration_1/build_mcc2_docker.sh -o```
 
 ----------
-
