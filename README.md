@@ -1,5 +1,8 @@
 ImpliSolid
 =========
+
+[![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 **ImpliSolid** is a Solid Modelling library/engine based on *Implicit Surfaces* modelling (aka *F-REP*).
 The main usecase for ImpliSolid is 3D printing.
 
