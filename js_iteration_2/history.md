@@ -1,6 +1,14 @@
 
 ## 9 March 2021
+
 * produce_object_old2() is no longer used. IT was exported but the function wass already dremoved from mcc2.cpp
+
+* removing `memoryInitializerPrefixURL` due to the following error:
+`Assertion failed: Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead`
+
+* mcc2.compiled.js:215903 'cwrap' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)
+
+
 ### intents:
 * todo: mcc2.cpp should be moved to iteration2
 * Remaining hpp in js_iteration1 are: ...
@@ -16,3 +24,6 @@
 * What was the point about `MORE_ABOUT_INFO`?
     * It is shown on console
 * A different way of pulling the libraries `/lib`
+
+### rminder:
+* `cwrap` is used for calling a function inside?

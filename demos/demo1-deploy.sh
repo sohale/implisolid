@@ -1,7 +1,9 @@
 
 #!/bin/bash
 
+# deploy: to put it "there"
 # run:  bash deploy-demo-1.sh
+# todo: put there in any given (parametrised) location
 set -e
 
 # target:
@@ -13,8 +15,16 @@ export IMPLISOLID=/Users/a9858770/cs/mp5/implisolid
 export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID/js_iteration_2
 export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
-export BUILT=$IMPLISOLID/docs/implisolid-build
 
+# haldbuild: as built on github
+#   $BUILT/opt/mcc2.compiled.js
+#export BUILT=$IMPLISOLID/docs/implisolid-build
+# $BUILT/opt/mcc2.compiled.js
+#export compiled_file=$BUILT/opt/mcc2.compiled.js
+# softbuild: loocally just built
+export BUILD_LOCATION=/Users/$USER/cs/mp5/implisolid/demos/build
+# $BUILD_LOCATION/mcc2.compiled.js
+export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
 # prepare
 
@@ -73,8 +83,8 @@ ln -s $JS_EX1/example_materials.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/performance_graphs.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/misc_props.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/boundingbox_utils.js $DEMO_LOCATION/js/
-ln -s $BUILT/opt/mcc2.compiled.js $DEMO_LOCATION/js/
-ln -s $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
+ln -s $compiled_file $DEMO_LOCATION/js/
+# ln -s $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
 ln -s $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
 
 # implisolid/js_iteration_2/examples/js/simple_assert.js
@@ -91,12 +101,15 @@ popd
 pwd
 echo 'fine'
 
-#python3 -m http.server 8000 &
+python3 -m http.server 8000 &
 export server_pid=$!
+echo $server_pid >server_pid-$server_pid.pid
+
 # warning: MacOS-specific code
 #open http://localhost:8000/
 open -a "Google Chrome" http://localhost:8000/
 
+echo "The current server PID is:"
 #ps aux|grep -ie python
 ps aux|grep -ie python|grep http
 sleep 1

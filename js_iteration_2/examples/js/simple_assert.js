@@ -18,8 +18,12 @@ function _expect(cond, message) {
 }
 var my_assert = assert;
 
-module.exports = {
-    assert,
-    _expect,
-    my_assert,
-};
+try {
+    module.exports = {
+        assert,
+        _expect,
+        my_assert,
+    };
+} catch(err) {
+    // not in require() mode.
+}

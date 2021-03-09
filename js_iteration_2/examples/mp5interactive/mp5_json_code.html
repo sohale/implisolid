@@ -272,14 +272,14 @@
 
         var f_source_code = prefix_f + expression_r + suffix_f;
         var g_source_code = prefix_g + grad_expression_r + suffix_g;
-        console.error(f_source_code);
+        console.debug(f_source_code);
         //console.error(prefix_f);
         //var func = new Function("_x", "_y", "_z", "_f", "param1","points", f_source_code);
         //var gfunc = new Function("_x", "_y", "_z", "_gx", "_gy", "_gz", "param1","points", prefix_g + grad_expression_r + suffix_g);
         var func = new Function("x", "f", "points", "param1",  f_source_code);
         var gfunc = new Function("x", "g", "points", "param1", g_source_code);
-        console.error(func);
-        console.error(gfunc);
+        console.debug(func);
+        console.debug(gfunc);
         //asmjscb__func_table[95] = func;
         //asmjscb__grad_table[95] = gfunc;
         return {eval_implicit: func, eval_gradient: gfunc};
@@ -898,8 +898,9 @@ function animate() {
         {
             preRun:[ ],
             onRuntimeInitialized: startup_sequence,
-            //memoryInitializerPrefixURL: "../../../build/",
-            memoryInitializerPrefixURL: "../js/",
+            // //memoryInitializerPrefixURL: "../../../build/",
+            // memoryInitializerPrefixURL: "../js/",
+            locateFile: (path, scriptDirectory) => "../js/",
         };
 </script>
 <script type="text/javascript" src="./js/mcc2.compiled.js"></script>
