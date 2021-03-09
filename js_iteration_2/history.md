@@ -3,11 +3,16 @@
 
 * produce_object_old2() is no longer used. IT was exported but the function wass already dremoved from mcc2.cpp
 
-* removing `memoryInitializerPrefixURL` due to the following error:
-`Assertion failed: Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead`
+* Updated to latest Emscripten, Eigen,m and Boost:
+   * removing `memoryInitializerPrefixURL` due to the following error:
+      `Assertion failed: Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead`
 
-* mcc2.compiled.js:215903 'cwrap' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)
+   * 'cwrap' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)
 
+* moved to branch: revival-sohale from commit
+* reviving some code destoryed by others.
+* will have to check commits; master, my last change ( 69ce747c7bbf4959d79a16298187c0af2ecf8c5e ) and Tiger's  (proobably) last change (  99dc78cf6242556383db31c54a9a576836849c56 ):
+  `git diff 69ce747c7bbf4959d79a16298187c0af2ecf8c5e..99dc78cf6242556383db31c54a9a576836849c56`
 
 ### intents:
 * todo: mcc2.cpp should be moved to iteration2
@@ -30,6 +35,15 @@
 * RAND_MAX, make it long, or double, float, etc. cast inline.
 * refactor long elseif of object_factory in (separation and conglumeration of concerns).
 
+* Check who added `_build_geometry_u`
+* Some good links:
+    * My good version: https://github.com/sohale/implisolid/blob/69ce747c7bbf4959d79a16298187c0af2ecf8c5e/js_iteration_2/implicit_function/javascript_implicit_function.hpp
+* Possible plan:
+  1. Compare all changes and revert all, except for ftures added.
+        * until all changes  (diff) from that old version of mine are minimal? yes.
+
+  2. Or alternatively, continue all from an old commit? NO.
+    * starting from there (my old chabges), then I can apply all of these later changes that I made today, as a separate diff.
 ### Questions
 * What was the point about `MORE_ABOUT_INFO`?
     * It is shown on console
