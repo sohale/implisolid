@@ -13,6 +13,23 @@ export IMPLISOLID=/Users/a9858770/cs/mp5/implisolid
 export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID/js_iteration_2
 export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
+export BUILT=$IMPLISOLID/docs/implisolid-build
+
+
+# prepare
+
+# first time: (`clone`s sub-modules)
+# git submodule update --init --recursive
+# ?
+# git submodule update --recursive --remote
+
+# not first time:
+# git pull --recurse-submodules
+
+# Look at the branches !
+# * [new branch]      assert_fixing     -> origin/assert_fixing
+# * [new branch]      optimization_task -> origin/optimization_task
+# * [new branch]      researchOnSDF     -> origin/researchOnSDF
 
 # fail fast
 #set -x; mkdir demo1
@@ -26,6 +43,9 @@ set -x; pwd | grep -qE "/demo1$"
 rm -rv ../demo1/*
 cd ..
 rmdir ./demo1
+
+# Somehow assert empty ?
+
 # fail-fast
 mkdir demo1
 mkdir demo1/js
@@ -53,16 +73,25 @@ ln -s $JS_EX1/example_materials.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/performance_graphs.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/misc_props.js $DEMO_LOCATION/js/
 ln -s $JS_EX1/boundingbox_utils.js $DEMO_LOCATION/js/
+ln -s $BUILT/opt/mcc2.compiled.js $DEMO_LOCATION/js/
+ln -s $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
+ln -s $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
+
+# implisolid/js_iteration_2/examples/js/simple_assert.js
 
 
 # ls -l $DEMO_LOCATION
 # examine and produce all errors (the "ln -s" file links that the file is non-existant )
 #ls -1 $DEMO_LOCATION | xargs cat 1>/dev/null
+echo "Checking errors *******"
+pushd $DEMO_LOCATION/js
+ls -1 . | xargs cat 1>/dev/null
+popd
 
 pwd
 echo 'fine'
 
-python3 -m http.server 8000 &
+#python3 -m http.server 8000 &
 export server_pid=$!
 # warning: MacOS-specific code
 #open http://localhost:8000/
