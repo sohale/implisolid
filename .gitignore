@@ -10,6 +10,11 @@ implisolid/dist/
 lib/eigen/
 pymplicit.egg-info/
 
+
+# demo clean eploy locations
+/demos/demo1
+
+
 #compiled files.
 build/
 build/**/*
