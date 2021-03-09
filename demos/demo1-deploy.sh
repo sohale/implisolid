@@ -63,29 +63,35 @@ mkdir demo1/js
 cd demo1
 pwd | grep -qE "/demo1$"
 
+#CP() {
+#  ln -s $1 $2
+#}
+CP() {
+  cp   $1 $2
+}
 
 # /Users/a9858770/cs/mp5/mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js
 
-#ln -s $MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/OrbitControls_r79-copy.js $DEMO_LOCATION/js/OrbitControls_r79.js
+#CP $MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEMO_LOCATION/js/
+CP $JS_EX1/OrbitControls_r79-copy.js $DEMO_LOCATION/js/OrbitControls_r79.js
 
-ln -s $DEMO0/mp5_json_code.html $DEMO_LOCATION/
-# ln -s $DEMO0/2222.html $DEMO_LOCATION/
+CP $DEMO0/mp5_json_code.html $DEMO_LOCATION/
+# CP $DEMO0/2222.html $DEMO_LOCATION/
 #ls $JSI2/js
 #ls -l $JSI2
-ln -s $JSI2/geometry79.js $DEMO_LOCATION/js/
-ln -s $JSI2/implisolid_main.js $DEMO_LOCATION/js/
-ln -s $JSI2/js/js_utils.js $DEMO_LOCATION/js/
-ln -s $JSI2/js/pointset_utils.js $DEMO_LOCATION/js/
-ln -s $JSI2/js/arrow_utils.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/example_objects.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/example_materials.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/performance_graphs.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/misc_props.js $DEMO_LOCATION/js/
-ln -s $JS_EX1/boundingbox_utils.js $DEMO_LOCATION/js/
-ln -s $compiled_file $DEMO_LOCATION/js/
-# ln -s $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
-ln -s $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
+CP $JSI2/geometry79.js $DEMO_LOCATION/js/
+CP $JSI2/implisolid_main.js $DEMO_LOCATION/js/
+CP $JSI2/js/js_utils.js $DEMO_LOCATION/js/
+CP $JSI2/js/pointset_utils.js $DEMO_LOCATION/js/
+CP $JSI2/js/arrow_utils.js $DEMO_LOCATION/js/
+CP $JS_EX1/example_objects.js $DEMO_LOCATION/js/
+CP $JS_EX1/example_materials.js $DEMO_LOCATION/js/
+CP $JS_EX1/performance_graphs.js $DEMO_LOCATION/js/
+CP $JS_EX1/misc_props.js $DEMO_LOCATION/js/
+CP $JS_EX1/boundingbox_utils.js $DEMO_LOCATION/js/
+CP $compiled_file $DEMO_LOCATION/js/
+# CP $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
+CP $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
 
 # implisolid/js_iteration_2/examples/js/simple_assert.js
 
@@ -100,6 +106,8 @@ popd
 
 pwd
 echo 'fine'
+
+echo "python3 -m http.server 8000" >$DEMO_LOCATION/run.sh
 
 python3 -m http.server 8000 &
 export server_pid=$!
