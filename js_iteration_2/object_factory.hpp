@@ -13,6 +13,8 @@
 #include "implicit_function/2d/GDT/convex_polygon.hpp"
 //using namespace mp5_implicit;
 
+// todo: movee each loogic (in each "else if" case below), to their classes. OR use separate files. factory methods. Each can have multiple. They may not be 1:1. 
+
 using mp5_implicit::implicit_function;
 
 
@@ -49,6 +51,8 @@ void copy_eye(REAL matrix12[12]){
     for(int j=0;j<12;j++)
         matrix12[j] = eye[j];
 }
+
+
 
 namespace mp5_implicit {
 
@@ -500,7 +504,25 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
 
         register_new_object(object);
 
+    } else if (name == "asmjscb") {
+
+        REAL param1 = shapeparams_dict.get<REAL>("param1", 0.01);
+        //int id = shapeparams_dict.get<int>("id", 94);
+        int id = shapeparams_dict.get<int>("index", 94);
+
+        REAL matrix12[12];
+        getMatrix12(matrix12, shapeparams_dict);
+
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+        object = new implicit_functions::javascript_implicit_function(id, matrix12, param1);
+
+        // Tiger: implicit_functions::javascript_implicit_function::getJSParameters(id, shapeparams_dict);
+        register_new_object(object);
+
     } else if (name == "rawjscode") {
+        // Tiger's version
 
         // REAL param1 = shapeparams_dict.get<REAL>("param1", 0.01);
         //int id = shapeparams_dict.get<int>("id", 94);

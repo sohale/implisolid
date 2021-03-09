@@ -14,6 +14,7 @@ pymplicit.egg-info/
 # demo clean eploy locations
 /demos/demo1
 
+.DS_Store
 
 #compiled files.
 build/

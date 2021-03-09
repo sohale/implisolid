@@ -314,6 +314,7 @@ void build_geometry(const char* shape_parameters_json, const char* mc_parameters
     grand_algorithm(shape_parameters_json_str, mc_settings_from_json, worker_call_sepcs);
 }
 
+
 /**
 *************************************************
 *        The grand algorithm                    *
@@ -353,6 +354,8 @@ inline void grand_algorithm(
     // polygonizer::polygonize_step_0(_state, *object, mc_settings_from_json, use_metaball, algorithm.steps_report, timr);
     algorithm.polygonize_step_0(/*use_metaball*/);
 
+
+    // todo: why an "algorithm" should send? Doesn't sound right.
     algorithm.send_mesh_back_to_client();
 
     const bool DISABLE_POSTPROCESSING = false;    // DISABLE ALL MESH POST-PROCESSING (mesh optimisation)

@@ -69,11 +69,14 @@ public:
         // emscripten_run_script("console.log('hi')");
         // emscripten_run_script("console.log(window)");
         int result = EM_ASM_INT({
+            console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
             // console.log('Calling implicit function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3, " param1=", $4);
-            ImplicitRawjscode.js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
+            //ImplicitRawjscode.js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
+            js_implcit_callback($0,$1,$2,$3,$4); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, (void*)(&((*(x_copy.begin()))[0])), x_copy.shape()[0], (void*)(f_output->data()), this->param1);
+        //todo: check why only param1
 
     }
 
@@ -83,8 +86,9 @@ public:
         matrix_vector_product(this->inv_transf_matrix, x_copy);
 
         int result = EM_ASM_INT({
-            // console.log('Calling gradient function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3);
-            ImplicitRawjscode.js_gradient_callback($0,$1,$2,$3); /* id, ptr, count, output_f_ptr*/
+            console.log('Calling gradient function callback: id=', $0, "x_ptr=", $1, " count=", $2, "output_pt =", $3);
+            js_gradient_callback($0,$1,$2,$3); /* id, ptr, count, output_f_ptr*/
+            //ImplicitRawjscode.js_gradient_callback($0,$1,$2,$3); /* id, ptr, count, output_f_ptr*/
             // $0, Module.HEAPF.subarray($1 >> 2, ($1+$2*3)>>2), Module.HEAPF.subarray($3 >> 2, ($3+$2*3)>>2)
             return 1;
         }, this->id, &((*(x_copy.begin()))[0]), x_copy.shape()[0], (void*)(output->data()));
@@ -111,6 +115,7 @@ public:
             REAL g1 = (*output)[output_ctr][1];
             REAL g2 = (*output)[output_ctr][2];
 
+            // todo: DRY
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
             (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
