@@ -51,7 +51,9 @@ Todo:
 // #include <math.h>
 
 extern "C" {
+    /* no longer used:
     void produce_object_old2(float* verts, int *nv, int* faces, int *nf, float param);
+    */
     int main(int argc, char **argv);
 }
 
