@@ -11,7 +11,15 @@ function assert(cond, message) {
 }
 function _expect(cond, message) {
     if (!cond) {
+        message = message || "Assertion failed for unspecified reason";
         console.error(message);
+        console.error(message.stack);
     }
 }
-var my_assert = assert
+var my_assert = assert;
+
+module.exports = {
+    assert,
+    _expect,
+    my_assert,
+};
