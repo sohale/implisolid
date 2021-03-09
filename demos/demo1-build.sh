@@ -98,6 +98,8 @@ then
     #exit 0
 fi
 
+# Custom flags:
+#    BUILD_AS_WORKER is defined by me.
 
 if [ $MODE -eq $DEV ]
 then

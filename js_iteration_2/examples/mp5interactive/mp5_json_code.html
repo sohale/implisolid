@@ -568,8 +568,10 @@ function build_code(editor_text) {
                 var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor);
             };
         } catch(e) {
-            if (shape_json)
-            console.error(shape_json);
+            console.log(e.stack)
+            if (shape_json) {
+                console.debug('shape_json that caused error:', shape_json);
+            }
             console.error("Exception:", e);
         }
 

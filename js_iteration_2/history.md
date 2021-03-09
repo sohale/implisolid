@@ -18,7 +18,9 @@
   * We need to have the C++ parts standalone, if there is no js / Emscriptedn involved.
   * The interface parts need to be in a separate cpp file. mcc2.cpp, which will contain that, shoul dbe strcitly minimal.
 
+* Make it use progressive/non-progressive/web-worker
 * Use CMake
+
 
 ### Questions
 * What was the point about `MORE_ABOUT_INFO`?

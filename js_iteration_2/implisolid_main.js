@@ -224,6 +224,8 @@ function init2(impli2, impli1) {
         //var mp5_str = JSON.stringify(shape_params);
         //var mp5_str = JSON.stringify(shape_params);
         assert(typeof polygonization_params_str === "string");
+        console.log('mp5_str', mp5_str);
+        console.log('polygonization_params_str', polygonization_params_str);
         impli1.build_geometry(mp5_str, polygonization_params_str);
         impli1.needs_deallocation = true;
 
