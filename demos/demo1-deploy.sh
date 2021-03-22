@@ -63,9 +63,12 @@ mkdir demo1/js
 cd demo1
 pwd | grep -qE "/demo1$"
 
+# local run:
 #CP() {
 #  ln -s $1 $2
 #}
+
+# server deploy (then push to the "implicit_build" repo)
 CP() {
   cp   $1 $2
 }
@@ -107,6 +110,7 @@ popd
 pwd
 echo 'fine'
 
+# for local run:
 echo "python3 -m http.server 8000" >$DEMO_LOCATION/run.sh
 
 python3 -m http.server 8000 &
