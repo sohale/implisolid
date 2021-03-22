@@ -23,6 +23,7 @@ try {
         assert,
         _expect,
         my_assert,
+        // assert3,
     };
 } catch(err) {
     // not in require() mode.

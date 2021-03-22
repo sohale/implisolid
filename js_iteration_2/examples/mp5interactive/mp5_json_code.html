@@ -221,7 +221,7 @@
         const prefix_f = `
             'use asm';  //  "reports validation errors in developer consoles only where relevant."
             param1 = +param1;
-            
+
             //var R = +0.5;
             var R = +param1;
             var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
@@ -234,7 +234,7 @@
             'use asm';
             param1 = +param1;
             var R = +param1;
-            
+
             var i = 0|0, i3 = 0|0;
             for(i = 0|0; i < points|0; ++i) {
                 i3 = (i|0)*3;
@@ -292,7 +292,7 @@
     function make_fg94 () {
         const obj94_eval_implicit = function (x, f, points, param1) {
             param1 = +param1;
-            
+
             var R = +0.5;
             var x0 = +0.5*0, y0 = +0.5*0, z0 = +0.5*0;
             var i = 0|0, i3 = 0|0;
@@ -317,7 +317,7 @@
                 g[(i3|0) + 1] = -2 * +x[(i3|0) + 1];
                 g[(i3|0) + 2] = -2 * +x[(i3|0) + 2];
             }
-            //console.log("x, g: ", x, g);        
+            //console.log("x, g: ", x, g);
         }
         return {eval_implicit: obj94_eval_implicit, eval_gradient: obj94_eval_gradient};
     }
@@ -350,7 +350,7 @@
         } else*/ {
 
             var fg = asmjscb__func_table[id|0];
-            
+
             fg.eval_implicit(x, f, x_len, param1);
 
             //throw "unknown ASMJS eval_implicit callback id";
@@ -374,9 +374,9 @@
             throw "no longer";
 
         } else*/ {
-            
+
             var fg = asmjscb__func_table[id|0];
-            
+
             fg.eval_gradient(x, g, x_len, param1);
 
             //throw "unknown ASMJS Gradient callback id";
@@ -427,6 +427,7 @@
 <script type="text/javascript" src="./js/OrbitControls_r79.js"></script>
 <!-- ************************** IMPLISOLID CODE **************************-->
 
+<!--script type="module" src="./js/simple_assert.js"></script-->
 <script type="text/javascript" src="./js/simple_assert.js"></script>
 <script type="text/javascript" src="./js/geometry79.js"></script>
 <script type="text/javascript" src="./js/implisolid_main.js"></script>
@@ -531,6 +532,7 @@ function init_ace(build_code_callback) {
     var beautify = ace.require("ace/ext/beautify");
     //var editor = ace.edit("editor");
     //beautify.beautify(editor.session);
+
     setTimeout(function(){
         editor.setValue(startup_text);
         my_beautify();
@@ -593,7 +595,7 @@ function build_code(editor_text) {
 </script>
 
 <!--  ********************************************************************  -->
-<script>
+<script  nottype="module">
 'use strict';
 
 /** main state of demo */
@@ -883,6 +885,7 @@ function startup_sequence() {
         try{
         assert = require('./js/simple_assert.js').assert;
         } catch(err) {
+            console.log('require does not work in browser.')
             function assert3(cond, message) {
                 if (!cond) {
                     message = message || "Assertion failed for unspecified reason";
@@ -894,8 +897,14 @@ function startup_sequence() {
             assert = assert3;
         }
 
+        /*
+        //import {assert3} from './js/simple_assert.js';
+        */
+
+
+
         IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
-        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT); 
+        PS_UTILS = new PS_UTILS_CLASS(IMPLICIT);
 
         /*
         //if(delta_t === undefined)
