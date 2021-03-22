@@ -9,7 +9,10 @@
 set -e
 
 # target:
+# local deploy
 export DEMO_LOCATION=/Users/a9858770/cs/mp5/implisolid/demos/demo1
+# public deploy (to github-pages)
+export DEMO_LOCATION=/Users/a9858770/cs/mp5/implisolid/docs/implisolid-build/demo1
 
 #sources:
 export MP5_PRIVATE=/Users/a9858770/cs/mp5/mp5-private
@@ -18,12 +21,29 @@ export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID/js_iteration_2
 export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 
+# Folders and their purposes: (relative to `$IMPLISOLID/` )
+# demos/demo1-*.sh
+# demos/demo1       Target for local deployment
+# docs/implisolid-build/demo1 - Target for github-pages deployment
+#
+
+# Steps:
+# 1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
+# 2. Change DEMO_LOCATION to $IMPLISOLID/ `docs/implisolid-build/demo1` (On this script)
+# 3. Change directory: cd $IMPLISOLID/ `demos`
+# 4. Run `bash demo1-deploy.sh`
+# 5. git commit and push `implisolid-build` into repo
+# 6. Revert changes to this file (`CP` and `DEMO_LOCATION`).
+# 7. git commit and push the mail github.io page (i.e. sohale.github.com ) to pick up the changes from `implisolid-build`
+# 8. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
+
+
 # haldbuild: as built on github
 #   $BUILT/opt/mcc2.compiled.js
 #export BUILT=$IMPLISOLID/docs/implisolid-build
 # $BUILT/opt/mcc2.compiled.js
 #export compiled_file=$BUILT/opt/mcc2.compiled.js
-# softbuild: loocally just built
+# softbuild: locally just built
 export BUILD_LOCATION=/Users/$USER/cs/mp5/implisolid/demos/build
 # $BUILD_LOCATION/mcc2.compiled.js
 export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
@@ -66,12 +86,12 @@ cd demo1
 pwd | grep -qE "/demo1$"
 
 # local run:
-CP() {
+CP_not() {
   ln -s $1 $2
 }
 
 # server deploy (then push to the "implicit_build" repo)
-CP_not() {
+CP() {
   cp   $1 $2
 }
 
@@ -118,7 +138,9 @@ pwd
 echo 'fine'
 
 # for local run:
-echo "python3 -m http.server 8000" >$DEMO_LOCATION/run.sh
+echo "" >$DEMO_LOCATION/run.sh
+echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEMO_LOCATION/run.sh
+echo "python3 -m http.server 8000" >>$DEMO_LOCATION/run.sh
 
 python3 -m http.server 8000 &
 export server_pid=$!
