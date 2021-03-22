@@ -98,8 +98,13 @@ CP $compiled_file $DEMO_LOCATION/js/
 # CP $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
 CP $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
 
+# self-refelection of deploy (version inspect endpoint!)
 # implisolid/js_iteration_2/examples/js/simple_assert.js
-
+git rev-parse HEAD >$DEMO_LOCATION/latest-commit.txt
+git log  -n 1 >$DEMO_LOCATION/latest-commit-log.txt
+echo "\n\ngit diff\n" >>latest-commit-log.txt
+git diff >>latest-commit-log.txt
+echo "for latest commit info click: try http://localhost:8000/latest-commit-log.txt"
 
 # ls -l $DEMO_LOCATION
 # examine and produce all errors (the "ln -s" file links that the file is non-existant )
