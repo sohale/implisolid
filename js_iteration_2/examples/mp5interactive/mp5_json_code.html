@@ -470,7 +470,9 @@ https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/a
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.6.4/beautify.min.js" type="text/javascript" charset="utf-8"></script>
 
 <script>
-    'use strict';
+'use strict';
+function init_ace(build_code_callback) {
+
     // see https://ace.c9.io/#nav=howto
 
     var eglobals = {reactive: false};
@@ -551,6 +553,10 @@ function my_beautify() {
     //Change current text to formatted text
     editor.getSession().setValue(val);
 }
+}
+</script>
+<script>
+    'use strict';
 
 function build_code(editor_text) {
         try {
@@ -576,6 +582,8 @@ function build_code(editor_text) {
         }
 
 }
+    ;
+    init_ace(build_code);
 </script>
 
 <!--  ********************************************************************  -->

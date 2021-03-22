@@ -1,4 +1,4 @@
-Demos:
+# Demos
 There is currently one demo:
 
 ## Demo 1: `mp5interactive`

@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+# runs demo1 locally for MacOS
+
 # deploy: to put it "there"
 # run:  bash deploy-demo-1.sh
 # todo: put there in any given (parametrised) location
@@ -64,12 +66,12 @@ cd demo1
 pwd | grep -qE "/demo1$"
 
 # local run:
-#CP() {
-#  ln -s $1 $2
-#}
+CP() {
+  ln -s $1 $2
+}
 
 # server deploy (then push to the "implicit_build" repo)
-CP() {
+CP_not() {
   cp   $1 $2
 }
 
@@ -105,7 +107,7 @@ CP $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
 echo "Checking errors *******"
 pushd $DEMO_LOCATION/js
 ls -1 . | xargs cat 1>/dev/null
-popd
+cd ..
 
 pwd
 echo 'fine'
@@ -117,9 +119,14 @@ python3 -m http.server 8000 &
 export server_pid=$!
 echo $server_pid >server_pid-$server_pid.pid
 
+popd
+pwd
+
 # warning: MacOS-specific code
-#open http://localhost:8000/
-open -a "Google Chrome" http://localhost:8000/
+echo "click on mp5_json_code.html @"
+# open -a "Google Chrome" http://localhost:8000/
+open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
+
 
 echo "The current server PID is:"
 #ps aux|grep -ie python
@@ -127,3 +134,5 @@ ps aux|grep -ie python|grep http
 sleep 1
 echo "kill $server_pid"
 echo "\n\n\n\n ****************"
+
+echo "python processes to kill $(ps aux|grep -ie python|grep http|cut -c 17-25 | xargs echo)"
