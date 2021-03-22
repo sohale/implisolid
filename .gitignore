@@ -11,7 +11,7 @@ lib/eigen/
 pymplicit.egg-info/
 
 
-# demo clean eploy locations
+# demo clean deploy locations
 /demos/demo1
 
 .DS_Store

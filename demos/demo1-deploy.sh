@@ -34,16 +34,25 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 #   js_iteration_2/examples/mp5interactive - (i.e. $DEMO0 above) the demo1
 #       For other source locations, see $JSI2 and $JS_EX1 above.
 #
+#   build/ --- ?
+#
+#
 # Folders in sohale.github.io
 #   demos/implisolid-build Also used for publishing (from here to github.com)
 #   demos/implisolid-build/demo1 - Target for github-pages deployment of sohale.github.io (not for implisolid's own page, https://sohale.github.io/implisolid/)
 #   demos/implisolid-build/demo1/mp5_json_code.html - todo: Note that this is not yet activated. If this is activated, there won't be need for updating sohale.github.io each time.
+#               Your site is published at https://sohale.github.io/implisolid/
+#                        https://sohale.github.io/implisolid/implisolid-build
+#                                      mmaps to:      ./docs/implisolid-build
 #
 # The implisolid-build repo:
 #      Folder structure of the implisolid-build repo (as submoodule):
 #       ./demo1
 #       ./opt    -- old usage for wedesign.live, the location for optimised build (CDN) using C++/Emmscripten
 
+# Useful abssolute folders:
+#   ~/cs/sohale.github.io/demos/implisolid-build/demo1
+#   ~/cs/mp5/implisolid/demos/
 
 # Steps for actual publish: (not local)
 # 1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
@@ -69,8 +78,8 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 # Test on browser:
 #    Visit: http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html
 #    visit http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html
-#    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit.txt ?
-#    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit-log.txt ?
+#    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit.txt
+#    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit-log.txt
 #
 # 9. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
 # 10. Implisolid has its own github pages. Update that too (instructions to be added here)
@@ -173,9 +182,9 @@ CP $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
 # implisolid/js_iteration_2/examples/js/simple_assert.js
 git rev-parse HEAD >$DEMO_LOCATION/latest-commit.txt
 git log  -n 1 >$DEMO_LOCATION/latest-commit-log.txt
-echo "\n\ngit diff\n" >>latest-commit-log.txt
-git diff >>latest-commit-log.txt
-date >>latest-commit-log.txt
+echo "\n\ngit diff\n" >>$DEMO_LOCATION/latest-commit-log.txt
+git diff >>$DEMO_LOCATION/latest-commit-log.txt
+date >>$DEMO_LOCATION/latest-commit-log.txt
 echo "for latest commit info click: try http://localhost:8000/latest-commit-log.txt"
 
 # ls -l $DEMO_LOCATION
