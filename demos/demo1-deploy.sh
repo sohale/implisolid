@@ -34,8 +34,13 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 # 4. Run `bash demo1-deploy.sh`
 # 5. git commit and push `implisolid-build` into repo
 # 6. Revert changes to this file (`CP` and `DEMO_LOCATION`).
-# 7. git commit and push the mail github.io page (i.e. sohale.github.com ) to pick up the changes from `implisolid-build`
-# 8. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
+# 7. cd sohale.github.io/demos/implisolid-build
+# 8. pull changes from github to there
+# 9. cd .. to sohale.github.io itself
+# 8. git commit and push the main github.io page (i.e. sohale.github.com ) for github.com to pick up the changes from `implisolid-build`
+#    Check: https://github.com/sohale/sohale.github.io/actions for build pipeline (uit may publish despite errors here)
+#    Check https://github.com/sohale/sohale.github.io/settings for errors that fail the actual publishing.
+# 9. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
 
 
 # haldbuild: as built on github
