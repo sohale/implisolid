@@ -742,7 +742,7 @@ function meat() {
 */
 }
 
-function init_scene(IMPLICIT) {
+function init_3js_scene(IMPLICIT, globals) {
     'use strict';
     var scene = new THREE.Scene();
     globals.scene = scene;
@@ -826,7 +826,8 @@ function init_scene(IMPLICIT) {
     globals.cameraControls = cameraControls;
 
 }
-function animate() {
+
+function per_frame_logic() {
     'use strict';
     /*
     for (var i = 0; i < globals.mesh_solid.length; ++i) {
@@ -843,16 +844,25 @@ function animate() {
         globals.main_mesh.rotation.x += 0.02*CONFIG.SPEED;
         globals.main_mesh.rotation.y += 0.3*CONFIG.SPEED;
     }
+}
+
+/** Renders aframe, also triggers (drives) the next frame as a chain (of infitnite callbacks). */
+function animate_a_frame() {
+    'use strict';
+
+    per_frame_logic();
+
     globals.renderer.render( globals.scene, globals.camera );
     // console.log(globals.camera, globals.mesh_solid);
-    requestAnimationFrame( animate );
+    requestAnimationFrame( animate_a_frame );
 }
+
+/** Global variables */
     var IMPLICIT;
     var PS_UTILS;
-
-
     var assert;
-    function startup_sequence() {
+
+function startup_sequence() {
     'use strict';
         console.log("ready.");
 
@@ -892,11 +902,11 @@ function animate() {
         //IMPLICIT.use_III = 0;
         //IMPLICIT.use_II_qem = 0;
 
-        init_scene(IMPLICIT);
-        animate();
-        
+        init_3js_scene(IMPLICIT, globals);
+        animate_a_frame();
+
         meat();
-    };
+};
 </script>
 
 <script>
