@@ -8,21 +8,30 @@
 # todo: put there in any given (parametrised) location
 set -e
 
+# export USER=a9858770
+
+# repo bases
+# names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
+export IMPLISOLID_REPO=/Users/$USER/cs/mp5/implisolid
+# export BASE_MP5_PRIVATE=/Users/$USER/cs/mp5/mp5-private
+export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
+
 # target:
 # local deploy
-export DEMO_LOCATION=/Users/a9858770/cs/mp5/implisolid/demos/demo1
-# public deploy (to github-pages)
-export DEMO_LOCATION=/Users/a9858770/cs/mp5/implisolid/docs/implisolid-build/demo1
+export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
+# remote/public deploy (to github-pages)
+export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
 #sources:
-export MP5_PRIVATE=/Users/a9858770/cs/mp5/mp5-private
-export IMPLISOLID=/Users/a9858770/cs/mp5/implisolid
-export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
-export JSI2=$IMPLISOLID/js_iteration_2
-export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
+#export IMPLISOLID=
+export DEMO0=$IMPLISOLID_REPO/js_iteration_2/examples/mp5interactive
+export JSI2=$IMPLISOLID_REPO/js_iteration_2
+export JS_EX1=$IMPLISOLID_REPO/js_iteration_2/examples/js
+
+export START_DEMOS=$IMPLISOLID_REPO/demos
 
 # Folders and their purposes:
-# ImpliSolid folders: (relative to `$IMPLISOLID/` )
+# ImpliSolid folders: (relative to `$IMPLISOLID_REPO/` )
 #   demos/demo1-*.sh
 #   demos/demo1       Target for local deployment
 #   demos/demo1/build ?
@@ -44,24 +53,25 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 #               Your site is published at https://sohale.github.io/implisolid/
 #                        https://sohale.github.io/implisolid/implisolid-build
 #                                      mmaps to:      ./docs/implisolid-build
+#                        https://sohale.github.io/implisolid/implisolid-build/demo1/latest-commit-log.txt
 #
 # The implisolid-build repo:
 #      Folder structure of the implisolid-build repo (as submoodule):
 #       ./demo1
 #       ./opt    -- old usage for wedesign.live, the location for optimised build (CDN) using C++/Emmscripten
 
-# Useful abssolute folders:
+# Useful absolute folders:
 #   ~/cs/sohale.github.io/demos/implisolid-build/demo1
 #   ~/cs/mp5/implisolid/demos/
 
 # Steps for actual publish: (not local)
 # 1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
-# 2. Change DEMO_LOCATION to $IMPLISOLID/ `docs/implisolid-build/demo1` (On this script)
-# 3. Change directory: `cd` $IMPLISOLID/ `demos`
+# 2. Change DEMO_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
+# 3. Change directory: `cd` $IMPLISOLID_REPO/ `demos`
 # 4. Run `bash demo1-deploy.sh`
 #
 # Go to the implisolid-build repo (as a submodule)
-# `cd` to  $IMPLISOLID/  `docs/implisolid-build`
+# `cd` to  $IMPLISOLID_REPO/  `docs/implisolid-build`
 # 5. git commit and push `implisolid-build` into repo (Make sure you add files if thery are not added)
 #    5.1 You may want to squash or remove content from history to save space, and do a `git push -f`, to avoiud bloadting of files.
 #
@@ -80,6 +90,10 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 #    visit http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html
 #    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit.txt
 #    Check http://sohale.github.io/demos/implisolid-build/demo1/latest-commit-log.txt
+# compare: https://sohale.github.io/implisolid/implisolid-build/demo1/mp5_json_code.html
+#     and: https://sohale.github.io/implisolid/implisolid-build/demo1/latest-commit-log.txt
+#     and: https://sohale.github.io/implisolid/
+#
 #
 # 9. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
 # 10. Implisolid has its own github pages. Update that too (instructions to be added here)
@@ -89,8 +103,8 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 
 # Steps for local publish for test: (on MacOS)
 # 1. Change ln to ln (See `CP()` vs `CP_not()` )  (On this script)
-# 2. Change DEMO_LOCATION to $IMPLISOLID/ `docs/implisolid-build/demo1` (On this script)
-# 3. Change directory: cd $IMPLISOLID/ `demos`
+# 2. Change DEMO_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
+# 3. Change directory: cd $IMPLISOLID_REPO/ `demos`
 # 4. Run `bash demo1-deploy.sh`
 # 5. if python http server shows erro, you maay want to kill the previous instance (it may be not required).
 # 6. ...
@@ -98,13 +112,16 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 #    ...  Check http://localhost:8000/latest-commit.txt
 
 
+
+
+
 # haldbuild: as built on github
 #   $BUILT/opt/mcc2.compiled.js
-#export BUILT=$IMPLISOLID/docs/implisolid-build
+#export BUILT=$IMPLISOLID_BUILD_REPO
 # $BUILT/opt/mcc2.compiled.js
 #export compiled_file=$BUILT/opt/mcc2.compiled.js
 # softbuild: locally just built
-export BUILD_LOCATION=/Users/$USER/cs/mp5/implisolid/demos/build
+export BUILD_LOCATION=$IMPLISOLID_REPO/demos/build
 # $BUILD_LOCATION/mcc2.compiled.js
 export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
@@ -125,6 +142,10 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
 # fail fast
 #set -x; mkdir demo1
+
+# all paths need to be absolute
+cd $START_DEMOS
+
 mkdir -p demo1
 cd demo1
 pwd | grep -qE "/demo1$"
@@ -155,9 +176,9 @@ CP() {
   cp   $1 $2
 }
 
-# /Users/a9858770/cs/mp5/mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js
+# /Users/$USER/cs/mp5/mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js
 
-#CP $MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEMO_LOCATION/js/
+#CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEMO_LOCATION/js/
 CP $JS_EX1/OrbitControls_r79-copy.js $DEMO_LOCATION/js/OrbitControls_r79.js
 
 CP $DEMO0/mp5_json_code.html $DEMO_LOCATION/
@@ -203,24 +224,4 @@ echo "" >$DEMO_LOCATION/run.sh
 echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEMO_LOCATION/run.sh
 echo "python3 -m http.server 8000" >>$DEMO_LOCATION/run.sh
 
-python3 -m http.server 8000 &
-export server_pid=$!
-echo $server_pid >server_pid-$server_pid.pid
-
-popd
-pwd
-
-# warning: MacOS-specific code
-echo "click on mp5_json_code.html @"
-# open -a "Google Chrome" http://localhost:8000/
-open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
-
-
-echo "The current server PID is:"
-#ps aux|grep -ie python
-ps aux|grep -ie python|grep http
-sleep 1
-echo "kill $server_pid"
-echo "\n\n\n\n ****************"
-
-echo "python processes to kill $(ps aux|grep -ie python|grep http|cut -c 17-25 | xargs echo)"
+bash demo1-run-local.sh
