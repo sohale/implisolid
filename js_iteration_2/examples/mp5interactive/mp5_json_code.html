@@ -577,7 +577,7 @@ function build_code(editor_text) {
                 var shape_json = JSON.stringify(shape_dict);
                 //console.error("shape_json11",shape_json);    // ****
                 console.log(JSON.parse(shape_json));
-                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor);
+                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor, simple_MC_only_polygonization_json);
             };
         } catch(e) {
             console.log(e.stack)
@@ -622,7 +622,7 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     },
 });};
 
-function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
+function put_up_there(string_json, bb_arg, i, matrix, color_rgb, polygonization_json_provider) {
     // var ignore_root_matrix = false;
     //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
 
@@ -635,7 +635,7 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         var polygonization_json = JSON.stringify(
              {"resolution":40,"box":{"xmin":-0.55,"xmax":0.55,"ymin":-0.55,"ymax":0.55,"zmin":-0.55,"zmax":0.55},"ignore_root_matrix":false,"vresampl":{"iters":3,"c":1},"projection":{"enabled":1},"qem":{"enabled":1},"subdiv":{"enabled":1},"overall_repeats":1,"debug":{"enabled_pointsets":0,"post_subdiv_noise":0}}
         );
-        polygonization_json = simple_MC_only_polygonization_json(0.5);
+        polygonization_json = polygonization_json_provider(0.5);
         //var polygonization_json = JSON.stringify(d.polygonization_json);
         //var shape_json = string_json;
         //console.error(shape_json);
@@ -746,7 +746,7 @@ function meat() {
 */
 }
 
-function init_3js_scene(IMPLICIT, globals) {
+function init_3js_scene(IMPLICIT, globals, THREE) {
     'use strict';
     var scene = new THREE.Scene();
     globals.scene = scene;
@@ -831,7 +831,11 @@ function init_3js_scene(IMPLICIT, globals) {
 
 }
 
-function per_frame_logic() {
+/** updates the globals state `globals`.
+ * globals is a prograam staate, i.e.e contains references, to meshes, scene objects, etc) not just parameters.
+ * Whatever changes during the animation.
+ */
+function per_frame_logic(globals) {
     'use strict';
     /*
     for (var i = 0; i < globals.mesh_solid.length; ++i) {
@@ -850,11 +854,11 @@ function per_frame_logic() {
     }
 }
 
-/** Renders aframe, also triggers (drives) the next frame as a chain (of infitnite callbacks). */
+/** Renders a frame, also triggers (drives) the next frame as a chain (of infitnite callbacks). */
 function animate_a_frame() {
     'use strict';
 
-    per_frame_logic();
+    per_frame_logic(globals);
 
     globals.renderer.render( globals.scene, globals.camera );
     // console.log(globals.camera, globals.mesh_solid);
@@ -906,7 +910,7 @@ function startup_sequence() {
         //IMPLICIT.use_III = 0;
         //IMPLICIT.use_II_qem = 0;
 
-        init_3js_scene(IMPLICIT, globals);
+        init_3js_scene(IMPLICIT, globals, THREE);
         animate_a_frame();
 
         meat();
