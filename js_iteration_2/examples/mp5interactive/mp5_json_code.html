@@ -558,6 +558,12 @@ function my_beautify() {
 <script>
     'use strict';
 
+
+function reset() {
+    // reset tables
+    asmjscb__func_table = {};
+}
+
 function build_code(editor_text) {
         try {
             reset();
@@ -590,7 +596,10 @@ function build_code(editor_text) {
 <script>
 'use strict';
 
+/** main state of demo */
 var globals = {mesh_solid: [], main_mesh: null, /*mesh_wireframe: null, normals: null, arrows: null,*/ chosen_matrial:null, geometry: null, scene:null };
+
+/** Demo's config */
 var CONFIG = {CHOSEN_MATERIAL_INDEX: 2, PERSPECTIVE: true, SHOW_WIREFRAME: false, SHOW_SOLID: true, SPEED: 3. / 100, MESH_SCALE: 1.0};
 
 const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify({
@@ -612,11 +621,6 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
         post_subdiv_noise: 0.0,
     },
 });};
-
-function reset() {
-    // reset tables
-    asmjscb__func_table = {};
-}
 
 function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
     // var ignore_root_matrix = false;
@@ -645,7 +649,7 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         var bbox = bb_arg;
 
     }
-    
+
     // "asmjscb" objects
     var shapedict = JSON.parse(shape_json);
     if (shapedict.type === "asmjscb") {
@@ -663,7 +667,7 @@ function put_up_there(string_json, bb_arg, i, matrix, color_rgb) {
         }
         asmjscb__func_table[idx] = fg;
     }
-    
+
     CONFIG.implisolid = {default_mc_resolution: 20};
     globals.geometry = IMPLICIT.getLiveGeometry(shape_json, bbox, true);
     //globals.geometry = THREE.BoxGeometry();
