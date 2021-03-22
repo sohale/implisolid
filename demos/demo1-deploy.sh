@@ -9,18 +9,27 @@
 set -e
 
 # export USER=a9858770
+export USER_HOME=/Users/$USER
 
 # repo bases
 # names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
-export IMPLISOLID_REPO=/Users/$USER/cs/mp5/implisolid
-# export BASE_MP5_PRIVATE=/Users/$USER/cs/mp5/mp5-private
+export IMPLISOLID_REPO=$USER_HOME/cs/mp5/implisolid
+# export BASE_MP5_PRIVATE=$USER_HOME/cs/mp5/mp5-private
 export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
+export SOHALE_IO_REPO=$USER_HOME/cs/sohale.github.io/
 
 # target:
 # local deploy
-export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
+#export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
 # remote/public deploy (to github-pages)
-export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+#export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+
+export LOCAL_DEPLOY_LOCATION==$IMPLISOLID_REPO/demos/demo1
+export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+
+export DEPLOY_LOCATION==$LOCAL_DEPLOY_LOCATION
+export DEPLOY_LOCATION==$REMOTE_DEPLOY_LOCATION
+
 
 #sources:
 #export IMPLISOLID=
@@ -66,7 +75,7 @@ export START_DEMOS=$IMPLISOLID_REPO/demos
 
 # Steps for actual publish: (not local)
 # 1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
-# 2. Change DEMO_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
+# 2. Change DEPLOY_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
 # 3. Change directory: `cd` $IMPLISOLID_REPO/ `demos`
 # 4. Run `bash demo1-deploy.sh`
 #
@@ -76,7 +85,7 @@ export START_DEMOS=$IMPLISOLID_REPO/demos
 #    5.1 You may want to squash or remove content from history to save space, and do a `git push -f`, to avoiud bloadting of files.
 #
 # Back to this repo:
-# 6. Revert changes to this file (`CP` and `DEMO_LOCATION`).
+# 6. Revert changes to this file (`CP` and `DEPLOY_LOCATION`).
 #
 # Go to repo sohale.github.io:
 # 7. cd sohale.github.io/demos/implisolid-build
@@ -103,7 +112,7 @@ export START_DEMOS=$IMPLISOLID_REPO/demos
 
 # Steps for local publish for test: (on MacOS)
 # 1. Change ln to ln (See `CP()` vs `CP_not()` )  (On this script)
-# 2. Change DEMO_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
+# 2. Change DEPLOY_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
 # 3. Change directory: cd $IMPLISOLID_REPO/ `demos`
 # 4. Run `bash demo1-deploy.sh`
 # 5. if python http server shows erro, you maay want to kill the previous instance (it may be not required).
@@ -176,43 +185,43 @@ CP() {
   cp   $1 $2
 }
 
-# /Users/$USER/cs/mp5/mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js
+# $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js
 
-#CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEMO_LOCATION/js/
-CP $JS_EX1/OrbitControls_r79-copy.js $DEMO_LOCATION/js/OrbitControls_r79.js
+#CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js/OrbitControls_r79.js
 
-CP $DEMO0/mp5_json_code.html $DEMO_LOCATION/
-# CP $DEMO0/2222.html $DEMO_LOCATION/
+CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
+# CP $DEMO0/2222.html $DEPLOY_LOCATION/
 #ls $JSI2/js
 #ls -l $JSI2
-CP $JSI2/geometry79.js $DEMO_LOCATION/js/
-CP $JSI2/implisolid_main.js $DEMO_LOCATION/js/
-CP $JSI2/js/js_utils.js $DEMO_LOCATION/js/
-CP $JSI2/js/pointset_utils.js $DEMO_LOCATION/js/
-CP $JSI2/js/arrow_utils.js $DEMO_LOCATION/js/
-CP $JS_EX1/example_objects.js $DEMO_LOCATION/js/
-CP $JS_EX1/example_materials.js $DEMO_LOCATION/js/
-CP $JS_EX1/performance_graphs.js $DEMO_LOCATION/js/
-CP $JS_EX1/misc_props.js $DEMO_LOCATION/js/
-CP $JS_EX1/boundingbox_utils.js $DEMO_LOCATION/js/
-CP $compiled_file $DEMO_LOCATION/js/
-# CP $BUILT/opt/mcc2.compiled.js.mem $DEMO_LOCATION/js/
-CP $JS_EX1/simple_assert.js $DEMO_LOCATION/js/
+CP $JSI2/geometry79.js $DEPLOY_LOCATION/js/
+CP $JSI2/implisolid_main.js $DEPLOY_LOCATION/js/
+CP $JSI2/js/js_utils.js $DEPLOY_LOCATION/js/
+CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js/
+CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js/
+CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js/
+CP $compiled_file $DEPLOY_LOCATION/js/
+# CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js/
+CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
 
 # self-refelection of deploy (version inspect endpoint!)
 # implisolid/js_iteration_2/examples/js/simple_assert.js
-git rev-parse HEAD >$DEMO_LOCATION/latest-commit.txt
-git log  -n 1 >$DEMO_LOCATION/latest-commit-log.txt
-echo "\n\ngit diff\n" >>$DEMO_LOCATION/latest-commit-log.txt
-git diff >>$DEMO_LOCATION/latest-commit-log.txt
-date >>$DEMO_LOCATION/latest-commit-log.txt
+git rev-parse HEAD >$DEPLOY_LOCATION/latest-commit.txt
+git log  -n 1 >$DEPLOY_LOCATION/latest-commit-log.txt
+echo "\n\ngit diff\n" >>$DEPLOY_LOCATION/latest-commit-log.txt
+git diff >>$DEPLOY_LOCATION/latest-commit-log.txt
+date >>$DEPLOY_LOCATION/latest-commit-log.txt
 echo "for latest commit info click: try http://localhost:8000/latest-commit-log.txt"
 
-# ls -l $DEMO_LOCATION
+# ls -l $DEPLOY_LOCATION
 # examine and produce all errors (the "ln -s" file links that the file is non-existant )
-#ls -1 $DEMO_LOCATION | xargs cat 1>/dev/null
+#ls -1 $DEPLOY_LOCATION | xargs cat 1>/dev/null
 echo "Checking errors *******"
-pushd $DEMO_LOCATION/js
+pushd $DEPLOY_LOCATION/js
 ls -1 . | xargs cat 1>/dev/null
 cd ..
 
@@ -220,8 +229,8 @@ pwd
 echo 'fine'
 
 # for local run:
-echo "" >$DEMO_LOCATION/run.sh
-echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEMO_LOCATION/run.sh
-echo "python3 -m http.server 8000" >>$DEMO_LOCATION/run.sh
+echo "" >$DEPLOY_LOCATION/run.sh
+echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEPLOY_LOCATION/run.sh
+echo "python3 -m http.server 8000" >>$DEPLOY_LOCATION/run.sh
 
-bash demo1-run-local.sh
+bash ./demo1-run-local.sh
