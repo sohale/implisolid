@@ -22,12 +22,19 @@ export JSI2=$IMPLISOLID/js_iteration_2
 export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 
 # Folders and their purposes: (relative to `$IMPLISOLID/` )
-# demos/demo1-*.sh
-# demos/demo1       Target for local deployment
-# docs/implisolid-build/demo1 - Target for github-pages deployment
-#
+#   demos/demo1-*.sh
+#   demos/demo1       Target for local deployment
+#   demos/demo1/build ?
+#   /docs The github-paages for implisolid itself. (has its own implisolid-build)
+#   docs/implisolid-build
+#   docs/implisolid-build/demo1 - Target for github-pages deployment of implisolid (not for sohale.github.io)
+# Folders in sohale.github.io
+#   demos/implisolid-build Also used for publishing (from here to github.com)
+#   demos/implisolid-build/demo1 - Target for github-pages deployment of sohale.github.io (not for implisolid's own page, https://sohale.github.io/implisolid/)
+#   demos/implisolid-build/demo1/mp5_json_code.html - todo: Note that this is not yet activated. If this is activated, there won't be need for updating sohale.github.io each time.
 
-# Steps:
+
+# Steps for actual publish:
 # 1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
 # 2. Change DEMO_LOCATION to $IMPLISOLID/ `docs/implisolid-build/demo1` (On this script)
 # 3. Change directory: cd $IMPLISOLID/ `demos`
@@ -41,7 +48,15 @@ export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
 #    Check: https://github.com/sohale/sohale.github.io/actions for build pipeline (uit may publish despite errors here)
 #    Check https://github.com/sohale/sohale.github.io/settings for errors that fail the actual publishing.
 # 9. (Not part of deployment:) Don't forget to git commit and push current (implisolid) repo for your other changes.
+# 10. Implisolid has its own github pages. Update that too (instructions to be added here)
 
+# Steps for local publish for test:
+# 1. Change ln to ln (See `CP()` vs `CP_not()` )  (On this script)
+# 2. Change DEMO_LOCATION to $IMPLISOLID/ `docs/implisolid-build/demo1` (On this script)
+# 3. Change directory: cd $IMPLISOLID/ `demos`
+# 4. Run `bash demo1-deploy.sh`
+# 5. if python http server shows erro, you maay want to kill the previous instance (it may be not required).
+# 6. ...
 
 # haldbuild: as built on github
 #   $BUILT/opt/mcc2.compiled.js
