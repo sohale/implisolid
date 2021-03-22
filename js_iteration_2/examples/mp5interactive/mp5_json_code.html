@@ -457,7 +457,7 @@
 <script type="text/javascript" src="../../../js_iteration_2/examples/js/boundingbox_utils.js"></script>
 -->
 
-<!-- ************************** ACE CODE **************************-->
+<!-- ************************** ACE **************************-->
 <!-- 
 http://www.jsoneditoronline.org/
 src="/ace-builds/src-noconflict/ace.js" 
@@ -471,6 +471,7 @@ https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/a
 
 <script>
 'use strict';
+/* Why is `build_code_callback` called in two places? */
 function init_ace(build_code_callback) {
 
     // see https://ace.c9.io/#nav=howto
@@ -487,28 +488,29 @@ function init_ace(build_code_callback) {
     editor.getSession().on('change', function(e) {
         if (!eglobals.reactive) return;
             var text = editor.getValue(); // or session.getValue
-            build_code(text);
+            build_code_callback(text);
 
         return;
         // e.type, etc
-	/*
-	action: "insert"
-	start: {column:..., row:...},
-	end: {column:..., row:...},
-	lines: [","]
-	*/
-	console.log("change", e);
+        /*
+        action: "insert"
+        start: {column:..., row:...},
+        end: {column:..., row:...},
+        lines: [","]
+        */
+        console.log("change detected", e);
         var val = editor.getValue(); // or session.getValue
-	//console.log("editor.getValue()", val);
-        //var val = session.getValue;
-	//console.log("session.getValue", val);
+        //console.log("editor.getValue()", val);
+        //console.log("session.getValue", val);
         try {
-        var mp5_str = editor.getValue(); // or session.getValue
-        var mp5 = JSON.parse(mp5_str);
-        console.log(mp5);
-        console.log(JSON.stringify(mp5));
-        //beautify.beautify(editor.session);  // loops forever until your OS crashes!
-        }catch(e){}
+          var mp5_str = editor.getValue(); // or session.getValue
+          var mp5 = JSON.parse(mp5_str);
+          console.log(mp5);
+          console.log(JSON.stringify(mp5));
+          //beautify.beautify(editor.session);  // loops forever until your OS crashes!
+        } catch(e) {
+            console.log('invalid json in editor');
+        }
     });
     editor.commands.addCommand({
         name: 'myCommand',
@@ -520,11 +522,7 @@ function init_ace(build_code_callback) {
     });
     editor.$blockScrolling = Infinity;
 
-    editor.setValue(`  
-
-"Please Wait ..."
-
-`);
+    editor.setValue(`\n\n"Please Wait ..."\n\n`);
 
     //editor.setValue(startup_text);
     //editor.setValue({});
@@ -537,26 +535,28 @@ function init_ace(build_code_callback) {
         editor.setValue(startup_text);
         my_beautify();
         eglobals.reactive = true;
-        build_code( editor.getValue() );
+        build_code_callback( editor.getValue() );
     }, 1500);
 
-function my_beautify() {
-    // beautify.beautify(editor.getSession());
+    function my_beautify() {
+        // beautify.beautify(editor.getSession());
 
-    var val = editor.getSession().getValue();
-    //Remove leading spaces
-    var array = val.split(/\n/);
-    array[0] = array[0].trim();
-    val = array.join("\n");
-    //Actual beautify (prettify) 
-    val = js_beautify(val);  // external
-    //Change current text to formatted text
-    editor.getSession().setValue(val);
+        var val = editor.getSession().getValue();
+        //Remove leading spaces
+        var array = val.split(/\n/);
+        array[0] = array[0].trim();
+        val = array.join("\n");
+        //Actual beautify (prettify)
+        val = js_beautify(val);  // external
+        //Change current text to formatted text
+        editor.getSession().setValue(val);
+    }
 }
-}
+
 </script>
+
 <script>
-    'use strict';
+'use strict';
 
 
 function reset() {
@@ -602,6 +602,9 @@ var globals = {mesh_solid: [], main_mesh: null, /*mesh_wireframe: null, normals:
 /** Demo's config */
 var CONFIG = {CHOSEN_MATERIAL_INDEX: 2, PERSPECTIVE: true, SHOW_WIREFRAME: false, SHOW_SOLID: true, SPEED: 3. / 100, MESH_SCALE: 1.0};
 
+
+/** setting up the polygonisation task: provides a json for polygoniser as a task description. */
+
 const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify({
     resolution: Math.floor( 30 ),
     box: //bbox,
@@ -622,6 +625,8 @@ const simple_MC_only_polygonization_json = function(BSH) { return JSON.stringify
     },
 });};
 
+/**
+*/
 function put_up_there(string_json, bb_arg, i, matrix, color_rgb, polygonization_json_provider) {
     // var ignore_root_matrix = false;
     //globals.geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, function(){}, ignore_root_matrix);
@@ -916,6 +921,7 @@ function startup_sequence() {
         meat();
 };
 </script>
+
 
 <script>
     'use strict';
