@@ -44,7 +44,7 @@ export START_DEMOS=$IMPLISOLID_REPO/demos
 #   demos/demo1-*.sh
 #   demos/demo1       Target for local deployment
 #   demos/demo1/build ?
-#   /docs The github-paages for implisolid itself. (has its own implisolid-build)
+#   /docs The github-pages for implisolid itself. (has its own implisolid-build)
 #   docs/implisolid-build
 #   docs/implisolid-build/demo1 - Target for github-pages deployment of implisolid (not for sohale.github.io)
 #
