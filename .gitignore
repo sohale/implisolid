@@ -13,6 +13,7 @@ pymplicit.egg-info/
 
 # demo clean deploy locations
 /demos/demo1
+temp-files/
 
 .DS_Store
 
