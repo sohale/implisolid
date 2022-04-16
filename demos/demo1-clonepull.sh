@@ -87,7 +87,8 @@ get_boost() {
     # two alternatives
 
     #wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
+    echo rem || wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
+    cp /Users/9858770/cs/implisolid/demos/build/boost.tar.gz ./boost.tar.gz
 
     # boost_1_75_0.tar.gz
     echo Unzipping boost\'s .tar.gz
