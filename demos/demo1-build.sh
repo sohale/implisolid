@@ -31,14 +31,9 @@ ls -alt $LIB_FOLDER
 #exit
 
 #sources:
-#export MP5_PRIVATE=$BASELOC2/mp5-private
-#export IMPLISOLID=$BASELOC1/implisolid
-#export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
-#export JSI2=$IMPLISOLID/js_iteration_2
-#export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
-#export BUILT=$IMPLISOLID/docs/implisolid-build
 
-# mycomputer-specific
+#export IMPLISOLID=$BASELOC1/implisolid
+
 # MacOS-specific
 #export IMPLISOLID=$BASELOC1/implisolid
 #IMPLISOLID=/home/$USER/mp5-private/implisolid
