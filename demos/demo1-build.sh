@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # old names:
@@ -66,6 +65,9 @@ EIGEN_LIB_FOLDER="/src-lib/eigen"
 
 
 cd $IMPLISOLID/js_iteration_1
+
+
+[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS"
 
 export OPTIM=1
 export DEV=2
@@ -153,6 +155,8 @@ set -e
 #  emsdk list --old
 #  #emsdk list
 
+# tested on emscripten/emsdk:2.0.22
+# tested on emscripten/emsdk:3.1.8  # detected a flaw
 
 docker run \
   --rm \
@@ -173,3 +177,4 @@ ls $BUILD_LOCATION/mcc2.compiled.js
 
   #emcc helloworld.cpp -o helloworld.js
 
+# emcc: warning: EXTRA_EXPORTED_RUNTIME_METHODS is deprecated, please use EXPORTED_RUNTIME_METHODS instead [-Wdeprecated]

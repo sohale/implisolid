@@ -450,7 +450,7 @@ class meta_ball_Rydgård : public transformable_implicit_function {
     }
 };
 
-
+int meta_ball_Rydgård::global_counter = 0;
 
 
 /*
