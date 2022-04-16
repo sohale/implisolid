@@ -22,3 +22,8 @@ export BUILD_LOCATION=$IMPLISOLID/demos/build
 export LIB_FOLDER=$BUILD_LOCATION/lib
 
 # configuration-specific
+
+# Other old files:
+# $IMPLISOLID_REPO/docs/implisolid-build/demo1/js
+# $BUILT/opt/mcc2.compiled.js
+# $BUILT/opt/mcc2.compiled.js.mem
