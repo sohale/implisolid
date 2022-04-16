@@ -33,10 +33,17 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 #cd $REPO_ROOT; mkdir e2e-sandbox-temp
 E2E=$REPO_ROOT/e2e-sandbox-temp
 rm -rf $E2E
+# #### hard reset done #####
+
 mkdir $E2E
 cd $E2E
 # only updated after actually pushing => requires branch name! active branch name: hot branch: one neing processed. stil hot
 git clone git@github.com:sohale/implisolid.git
 cd implisolid
-
+pwd
 find $E2E -depth 2
+
+pwd
+./demos/demo1-clonepull.sh
+pwd
+./demos/demo1-deploy.sh

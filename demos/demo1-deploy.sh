@@ -256,9 +256,11 @@ cd ..
 pwd
 echo 'fine'
 
-# for local run:
+echo "for local run: (also see `./demo1-run-local.sh`)"
 echo "" >$DEPLOY_LOCATION/run.sh
 echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEPLOY_LOCATION/run.sh
 echo "python3 -m http.server 8000" >>$DEPLOY_LOCATION/run.sh
 
+echo "going to actually run"
+pwd
 bash ./demo1-run-local.sh

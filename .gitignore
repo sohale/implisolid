@@ -14,6 +14,7 @@ pymplicit.egg-info/
 # demo clean deploy locations
 /demos/demo1
 temp-files/
+e2e-sandbox-temp
 
 .DS_Store
 .vscode
