@@ -16,6 +16,7 @@ pymplicit.egg-info/
 temp-files/
 
 .DS_Store
+.vscode
 
 #compiled files.
 build/
@@ -27,6 +28,7 @@ build/*
 
 **/*.*~
 **/*.log
+code-bin
 
 **/*.compiled.js
 **/*.compiled.js.mem
