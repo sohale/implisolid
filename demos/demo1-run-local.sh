@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -ex
 function assert_env_nonempty() {
   if [ ".$1" = "." ]; then
@@ -13,23 +14,9 @@ function assert_env_nonempty() {
 
 #args:
 assert_env_nonempty $DEPLOY_LOCATION "env-argument DEPLOY_LOCATION= missing"
-# $1  is it actually used?! no more.
-# pwd:  where python is executed from
-# not used: BASELOC2, BASELOC3
-#$IMPLISOLID_BUILD_REPO/demo1
-
-
-echo "*****incomplete"
-
-#SCRIPTS_DIR=
-#source $SCRIPTS_DIR/utils.sh
-
-# echo "CURRENT_SCRIPT_DIR: $( __current_script_dir_func )"
 
 cd $DEPLOY_LOCATION
-#DEPLOY_LOCATION=$1
-#cd $DEPLOY_LOCATION
-# that is, $REPO/demos
+# Template
 
 echo "Running python server from: $(pwd)"
 python3 -m http.server 8000 &
@@ -37,20 +24,15 @@ export server_pid=$!
 echo $server_pid >server_pid-$server_pid.pid
 
 
-#popd
-#pwd
-# why?!
 cd $DEPLOY_LOCATION/js
 
-[[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
 
 echo "click on mp5_json_code.html @"
-# open -a "Google Chrome" http://localhost:8000/
+[[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
 open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
 
 
 echo "The current server PID is:"
-#ps aux|grep -ie python
 ps aux|grep -ie python|grep http
 sleep 1
 echo "kill $server_pid" | tee -a processes-to_kill.log
