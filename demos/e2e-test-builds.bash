@@ -75,7 +75,7 @@ pwd
 IMPLISOLID="$BASELOC1/implisolid" ./demos/demo1-clonepull.sh
 
 pwd
-IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
+IMPLISOLID="$BASELOC1/implisolid" SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
 
 
 pwd
