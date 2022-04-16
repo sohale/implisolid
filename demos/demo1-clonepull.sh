@@ -11,7 +11,7 @@ function assert_env_nonempty() {
 
 # This script downloads the prequisites
 
-echo 11>IMPLISOLID=$IMPLISOLID
+echo "11IMPLISOLID=$IMPLISOLID"
 # args:
 assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
 #assert_env_nonempty $BASELOC1
