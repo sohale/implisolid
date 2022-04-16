@@ -162,89 +162,89 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
 
 function tricks () {
-# create a clean folder called 'demo1' and goes inside it in a safe way
-# demo1 is created inside $START_DEMOS
-# equivalent to "cd ./demo1"
+    # create a clean folder called 'demo1' and goes inside it in a safe way
+    # demo1 is created inside $START_DEMOS
+    # equivalent to "cd ./demo1"
 
-# all paths need to be absolute
-cd $START_DEMOS
+    # all paths need to be absolute
+    cd $START_DEMOS
 
-mkdir -p demo1
-# assert; make sure we are inside 'demo1', and it exists
-cd demo1
-pwd | grep -qE "/demo1$"
-touch deleteme.js
-# pwd | grep -qE "/demo1$"; echo $?
-set -x; pwd | grep -qE "/demo1$"
-# never `rm` unless you are there for sure:
-rm -rv ../demo1/*
-cd ..
-# safe delete of folder
-rmdir ./demo1
+    mkdir -p demo1
+    # assert; make sure we are inside 'demo1', and it exists
+    cd demo1
+    pwd | grep -qE "/demo1$"
+    touch deleteme.js
+    # pwd | grep -qE "/demo1$"; echo $?
+    set -x; pwd | grep -qE "/demo1$"
+    # never `rm` unless you are there for sure:
+    rm -rv ../demo1/*
+    cd ..
+    # safe delete of folder
+    rmdir ./demo1
 
-# Somehow assert empty ?
+    # Somehow assert empty ?
 
-# fail-fast
-mkdir demo1
-mkdir demo1/js
+    # fail-fast
+    mkdir demo1
+    mkdir demo1/js
 
-cd demo1
-# assert; make sure we are inside 'demo1', and it exists
-pwd | grep -qE "/demo1$"
+    cd demo1
+    # assert; make sure we are inside 'demo1', and it exists
+    pwd | grep -qE "/demo1$"
 }
 
 tricks
 
 function gather_files_for_deploy() {
-# Gathers various files and prepares them for deploying.
-# Why not move them permanently on the (git) repo?
-# sources: JS_EX1,JSI2,DEMO0, compiled_file, destination: DEPLOY_LOCATION
+    # Gathers various files and prepares them for deploying.
+    # Why not move them permanently on the (git) repo?
+    # sources: JS_EX1,JSI2,DEMO0, compiled_file, destination: DEPLOY_LOCATION
 
-#compiled_file should be ready ( in $BUILD_LOCATION )
+    #compiled_file should be ready ( in $BUILD_LOCATION )
 
-mkdir -p $DEPLOY_LOCATION/js
+    mkdir -p $DEPLOY_LOCATION/js
 
-# local run:
-CP_not() {
-  ln -s $1 $2
-}
+    # local run:
+    CP_not() {
+      ln -s $1 $2
+    }
 
-# server deploy (then push to the "implicit_build" repo)
-CP() {
-  cp   $1 $2
-}
+    # server deploy (then push to the "implicit_build" repo)
+    CP() {
+      cp   $1 $2
+    }
 
-echo "JS_EX1: $JS_EX1"
-echo "DEPLOY_LOCATION: $DEPLOY_LOCATION"
+    echo "JS_EX1: $JS_EX1"
+    echo "DEPLOY_LOCATION: $DEPLOY_LOCATION"
 
-# $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js
+    # $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js
 
-echo JS_EX1
-ls -alt $JS_EX1
-echo c1
-#CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js/OrbitControls_r79.js
-echo c2
+    echo JS_EX1
+    ls -alt $JS_EX1
+    echo c1
+    #CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js/OrbitControls_r79.js
+    echo c2
 
-CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
-#ls $JSI2/js
-#ls -l $JSI2
-CP $JSI2/geometry79.js $DEPLOY_LOCATION/js/
-CP $JSI2/implisolid_main.js $DEPLOY_LOCATION/js/
-CP $JSI2/js/js_utils.js $DEPLOY_LOCATION/js/
-CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js/
-CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js/
-CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js/
-CP $compiled_file $DEPLOY_LOCATION/js/
-# CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js/
-CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
+    CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
+    #ls $JSI2/js
+    #ls -l $JSI2
+    CP $JSI2/geometry79.js $DEPLOY_LOCATION/js/
+    CP $JSI2/implisolid_main.js $DEPLOY_LOCATION/js/
+    CP $JSI2/js/js_utils.js $DEPLOY_LOCATION/js/
+    CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js/
+    CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js/
+    CP $compiled_file $DEPLOY_LOCATION/js/
+    # CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js/
+    CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
 
-# self-refelection of deploy (version inspect endpoint!)
-# implisolid/js_iteration_2/examples/js/simple_assert.js
+    # self-refelection of deploy (version inspect endpoint!)
+    # implisolid/js_iteration_2/examples/js/simple_assert.js
 }
 
 ################

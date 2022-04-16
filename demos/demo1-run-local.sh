@@ -13,6 +13,7 @@ python3 -m http.server 8000 &
 export server_pid=$!
 echo $server_pid >server_pid-$server_pid.pid
 
+
 #popd
 #pwd
 cd $DEPLOY_LOCATION/js
@@ -28,7 +29,21 @@ echo "The current server PID is:"
 #ps aux|grep -ie python
 ps aux|grep -ie python|grep http
 sleep 1
-echo "kill $server_pid"
+echo "kill $server_pid" | tee -a processes-to_kill.log
 printf "\n\n\n\n ****************"
 
 echo "python processes to kill $(ps aux|grep -ie python|grep http|cut -c 17-25 | xargs echo)"
+cat processes-to_kill.log || :
+
+echo ok1
+
+
+<< ////
+  Three ways to log the pid  of the process to kill
+     ./processes-to_kill.log,
+     server_pid-*.pid
+     ps|cut, and
+     direct console out "kill ..."
+////
+
+echo ok3
