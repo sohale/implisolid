@@ -1,9 +1,23 @@
 #!/bin/bash
+
+
+# Runs the deployed one
+# Currennt folder (pwd) should be where the served files are (ie the app) (root of url resources)
 # alt name: demo1-localrun.sh
 
-source utils.sh
+#args:
+# $1  is it actually used?!
+# pwd:  where python is executed from
+# not used: BASELOC2, BASELOC3
+#$IMPLISOLID_BUILD_REPO/demo1
 
-echo "SCRIPT_DIR: $( script_dir_func )"
+
+echo "*****incomplete"
+exit
+SCRIPTS_DIR=
+source $SCRIPTS_DIR/utils.sh
+
+# echo "CURRENT_SCRIPT_DIR: $( __current_script_dir_func )"
 
 DEPLOY_LOCATION=$1
 #cd $DEPLOY_LOCATION
@@ -17,6 +31,7 @@ echo $server_pid >server_pid-$server_pid.pid
 
 #popd
 #pwd
+# why?!
 cd $DEPLOY_LOCATION/js
 
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"

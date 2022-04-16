@@ -4,12 +4,17 @@
 
 # This script downloads the prequisites
 
+# args:
+assert_env_nonempty $BASELOC1
+# arg: pwd (unused)
+
+# not used?!: BASELOC2, BASELOC3
 
 # 1. Clone the repo itself (including this script)
 # 2. Run this to load libraries from github, etc
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-source $REPO_ROOT/demos/base-locations.sh
+#REPO_ROOT=$(git rev-parse --show-toplevel)
+#source $REPO_ROOT/demos/base-locations.sh
 
 # # Parameters
 # #export BASELOC1=/Users/$USER/cs/mp5
@@ -20,7 +25,7 @@ source $REPO_ROOT/demos/base-locations.sh
 
 export IMPLISOLID=$BASELOC1/implisolid
 # BASE_MP5_PRIVATE
-export MP5_PRIVATE=$BASELOC2/mp5-private
+#export MP5_PRIVATE=$BASELOC2/mp5-private
 
 # manually:
 # reset

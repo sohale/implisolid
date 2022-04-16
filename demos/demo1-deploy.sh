@@ -2,8 +2,14 @@
 
 # runs demo1 locally for MacOS
 
+# args:
+assert_env_nonempty $BASELOC1
+# arg: pwd (used implicitly via REPO_ROOT)
+
+# not used: BASELOC2, BASELOC3
+
 # deploy: to put it "there"
-# run:  bash deploy-demo-1.sh
+# run:  BASELOC1=$(pwd) bash deploy-demo-1.sh
 # todo: put there in any given (parametrised) location
 
 # Prerequisite:
@@ -12,19 +18,28 @@
 
 set -e
 
+# implicitly, the arg is pwd
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
 # only for this?
 export SCRIPTS_DIR=$REPO_ROOT/demos
-source $SCRIPTS_DIR/base-locations.sh
+# Incorrect: It is hard coded.
+#source $SCRIPTS_DIR/base-locations.sh
+
+# rename: scripts
+source $SCRIPTS_DIR/utils.sh
+
 
 # Altenative names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
 # repo bases
 export IMPLISOLID_REPO=$BASELOC1/implisolid
-export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
+# same as $REPO_ROOT
+
+#export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 # relative location of repos
 export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
-
+# based on configuration
 
 
 # target:
@@ -293,7 +308,7 @@ cat $DEPLOY_LOCATION/run.sh
 echo "going to actually run"
 pwd
 
-# $IMPLISOLID_BUILD_REPO/demo1/..
+# $IMPLISOLID_BUILD_REPO/demo1/.. # wrong?
 cd $DEPLOY_LOCATION
 pwd
 bash $SCRIPTS_DIR/demo1-run-local.sh cd $DEPLOY_LOCATION
