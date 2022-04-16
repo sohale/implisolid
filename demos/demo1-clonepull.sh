@@ -56,7 +56,7 @@ prime_docker() {
   echo "docker pull emscripten/emsdk"
   docker pull emscripten/emsdk
 }
-echo "\n\n\n"
+printf "\n\n\n"
 
 cd $BUILD_LOCATION
 pwd

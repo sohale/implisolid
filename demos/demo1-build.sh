@@ -67,8 +67,8 @@ EIGEN_LIB_FOLDER="/src-lib/eigen"
 
 cd $IMPLISOLID/js_iteration_1
 
-
-[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS"
+[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS. MacOS-specific code"
+# because of the `if` `then` `fi` conditions beflow
 
 export OPTIM=1
 export DEV=2
