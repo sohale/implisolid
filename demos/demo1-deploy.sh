@@ -6,17 +6,23 @@
 # deploy: to put it "there"
 # run:  bash deploy-demo-1.sh
 # todo: put there in any given (parametrised) location
+
+# Prerequisite:
+# * compiles files to be ready here: $IMPLISOLID_REPO/demos/build. Use demos/demo1-build.sh
+# * three repos are cloned
+
 set -e
 
-# export USER=a9858770
-export USER_HOME=/Users/$USER
+REPO_ROOT=$(git rev-parse --show-toplevel)
+source $REPO_ROOT/demos/base-locations.sh
 
+# Altenative names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
 # repo bases
-# names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
-export IMPLISOLID_REPO=$USER_HOME/cs/mp5/implisolid
-# export BASE_MP5_PRIVATE=$USER_HOME/cs/mp5/mp5-private
+export IMPLISOLID_REPO=$BASELOC1/implisolid
+export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
+# export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
+# relative location of repos
 export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
-export SOHALE_IO_REPO=$USER_HOME/cs/sohale.github.io/
 
 # target:
 # local deploy
@@ -24,18 +30,23 @@ export SOHALE_IO_REPO=$USER_HOME/cs/sohale.github.io/
 # remote/public deploy (to github-pages)
 #export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
-export LOCAL_DEPLOY_LOCATION==$IMPLISOLID_REPO/demos/demo1
+#export LOCAL_DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
 export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+# Two alternatives:
+# why two options?
+#export DEPLOY_LOCATION=$LOCAL_DEPLOY_LOCATION
+export DEPLOY_LOCATION=$REMOTE_DEPLOY_LOCATION
+# simplified:
+export DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
-export DEPLOY_LOCATION==$LOCAL_DEPLOY_LOCATION
-export DEPLOY_LOCATION==$REMOTE_DEPLOY_LOCATION
 
-
-#sources:
-#export IMPLISOLID=
+#sources deployed files:
 export DEMO0=$IMPLISOLID_REPO/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID_REPO/js_iteration_2
 export JS_EX1=$IMPLISOLID_REPO/js_iteration_2/examples/js
+ls  $IMPLISOLID_REPO/js_iteration_2/examples/js/OrbitControls_r79-copy.js
+ls  $JS_EX1/OrbitControls_r79-copy.js
+
 
 export START_DEMOS=$IMPLISOLID_REPO/demos
 
@@ -136,21 +147,15 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
 # prepare
 
-# first time: (`clone`s sub-modules)
-# git submodule update --init --recursive
-# ?
-# git submodule update --recursive --remote
+# submodules
 
-# not first time:
-# git pull --recurse-submodules
-
-# Look at the branches !
-# * [new branch]      assert_fixing     -> origin/assert_fixing
-# * [new branch]      optimization_task -> origin/optimization_task
-# * [new branch]      researchOnSDF     -> origin/researchOnSDF
 
 # fail fast
 #set -x; mkdir demo1
+
+# First time:
+#mkdir -p $START_DEMOS
+#mkdir -p $IMPLISOLID_REPO/docs/implisolid-build/demo1/js
 
 # all paths need to be absolute
 cd $START_DEMOS
@@ -175,6 +180,15 @@ mkdir demo1/js
 cd demo1
 pwd | grep -qE "/demo1$"
 
+function gather_files_for_deploy() {
+# Gathers various files and prepares them for deploying.
+# Why not move them permanently on the (git) repo?
+# sources: JS_EX1,JSI2,DEMO0, compiled_file, destination: DEPLOY_LOCATION
+
+#compiled_file should be ready ( in $BUILD_LOCATION )
+
+mkdir -p $DEPLOY_LOCATION/js
+
 # local run:
 CP_not() {
   ln -s $1 $2
@@ -185,13 +199,19 @@ CP() {
   cp   $1 $2
 }
 
+echo "JS_EX1: $JS_EX1"
+echo "DEPLOY_LOCATION: $DEPLOY_LOCATION"
+
 # $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js
 
+echo JS_EX1
+ls -alt $JS_EX1
+echo c1
 #CP $BASE_MP5_PRIVATE/implisolid/js_iteration_1/controls/OrbitControls_r79.js $DEPLOY_LOCATION/js/
 CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js/OrbitControls_r79.js
+echo c2
 
 CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
-# CP $DEMO0/2222.html $DEPLOY_LOCATION/
 #ls $JSI2/js
 #ls -l $JSI2
 CP $JSI2/geometry79.js $DEPLOY_LOCATION/js/
@@ -210,6 +230,14 @@ CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
 
 # self-refelection of deploy (version inspect endpoint!)
 # implisolid/js_iteration_2/examples/js/simple_assert.js
+}
+
+################
+#bash copy_files_for_deploy.sh
+gather_files_for_deploy
+################
+
+# Info about latest commit to be available on browser
 git rev-parse HEAD >$DEPLOY_LOCATION/latest-commit.txt
 git log  -n 1 >$DEPLOY_LOCATION/latest-commit-log.txt
 echo "\n\ngit diff\n" >>$DEPLOY_LOCATION/latest-commit-log.txt

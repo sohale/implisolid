@@ -3,16 +3,23 @@
 # run:  bash deploy-demo-1.sh
 
 # This script downloads the prequisites
-#
-#
 
-# Parameters
-#export BASELOC1=/Users/$USER/cs/mp5
-#export BASELOC2=/Users/$USER/cs/mp5
-export BASELOC1=/Users/$USER/cs
-export BASELOC2=/Users/$USER/cs
+
+# 1. Clone the repo itself (including this script)
+# 2. Run this to load libraries from github, etc
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+source $REPO_ROOT/demos/base-locations.sh
+
+# # Parameters
+# #export BASELOC1=/Users/$USER/cs/mp5
+# #export BASELOC2=/Users/$USER/cs/mp5
+# export BASELOC1=/Users/$USER/cs
+# export BASELOC2=/Users/$USER/cs
+
 
 export IMPLISOLID=$BASELOC1/implisolid
+# BASE_MP5_PRIVATE
 export MP5_PRIVATE=$BASELOC2/mp5-private
 
 # manually:
@@ -54,7 +61,7 @@ echo "\n\n\n"
 cd $BUILD_LOCATION
 pwd
 mkdir -p $BUILD_LOCATION/lib
-export LIBDIR=$IMPLISOLID/demos/build/lib
+export LIB_FOLDER=$IMPLISOLID/demos/build/lib
 
 get_boost() {
     echo "downloading library: Boost (1.75.0)"
@@ -81,7 +88,7 @@ get_boost() {
 
 }
 #get_boost
-export BOOST=$LIBDIR/boost_1_75_0
+export BOOST=$LIB_FOLDER/boost_1_75_0
 echo "Boost downloaded in: $BOOST"
 
 
@@ -102,12 +109,15 @@ get_eigen() {
 }
 
 #get_eigen
-export EIGEN=$LIBDIR/eigen
+export EIGEN=$LIB_FOLDER/eigen
 echo "Eigen downloaded in: $EIGEN"
 
 prime_docker
 
 # prepare
+
+# todo:
+#  submodules
 
 # first time: (`clone`s sub-modules)
 # git submodule update --init --recursive

@@ -5,20 +5,29 @@
 # recompile-for-demo1.sh
 # demo1-build.sh
 
+REPO_ROOT=$(git rev-parse --show-toplevel)
+source $REPO_ROOT/demos/base-locations.sh
+
+export IMPLISOLID=$BASELOC1/implisolid
 set -e
 
 # target:
-export DEMO_LOCATION=/Users/$USER/cs/mp5/implisolid/demos/demo1
-export BUILD_LOCATION=/Users/$USER/cs/mp5/implisolid/demos/build
-export LIB_FOLDER=$BUILD_LOCATION/lib
+export DEMO_LOCATION=$IMPLISOLID/demos/demo1
+export BUILD_LOCATION=$IMPLISOLID/demos/build
+export          LIB_FOLDER=$BUILD_LOCATION/lib
+#export LIB_FOLDER=$IMPLISOLID/demos/build/lib
+#LIB_DIR
+echo "LIB_FOLDER: $LIB_FOLDER"
+ls -alt $LIB_FOLDER
+
 
 #echo $LIB_FOLDER
 #ls $LIB_FOLDER
 #exit
 
 #sources:
-export MP5_PRIVATE=/Users/$USER/cs/mp5/mp5-private
-export IMPLISOLID=/Users/$USER/cs/mp5/implisolid
+#export MP5_PRIVATE=$BASELOC2/mp5-private
+#export IMPLISOLID=$BASELOC1/implisolid
 #export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
 #export JSI2=$IMPLISOLID/js_iteration_2
 #export JS_EX1=$IMPLISOLID/js_iteration_2/examples/js
@@ -26,7 +35,7 @@ export IMPLISOLID=/Users/$USER/cs/mp5/implisolid
 
 # mycomputer-specific
 # MacOS-specific
-export IMPLISOLID=/Users/$USER/cs/mp5/implisolid
+#export IMPLISOLID=$BASELOC1/implisolid
 #IMPLISOLID=/home/$USER/mp5-private/implisolid
 
 #export SOURCE_FOLDER=$IMPLISOLID/../js_iteration_1/mcc2.cpp
