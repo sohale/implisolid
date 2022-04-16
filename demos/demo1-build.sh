@@ -55,7 +55,7 @@ export MAIN_SOURCE_FOLDER=$IMPLISOLID
 #BOOST_FOLDER="boost_1_75_0/boost"
 #EIGEN_LIB_FOLDER="/eigen/Eigen"
 BOOST_FOLDER="boost_1_75_0"
-EIGEN_LIB_FOLDER="/eigen"
+EIGEN_LIB_FOLDER="eigen"
 # todo: rename EIGEN_LIB_FOLDER -> EIGEN_LIB_SUBFOLDER
 
 # does pwd matter?
