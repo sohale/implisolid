@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function assert_env_nonempty() {
+  if [ ".$1" = "." ]; then
+    echo "shell env is empty"; echo $2
+    return 1
+  fi
+}
 
 # args:
 # pwd: used for $REPO_ROOT
