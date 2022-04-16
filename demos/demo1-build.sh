@@ -36,33 +36,26 @@ set -e
 IMPLISOLID=$IMPLISOLID source $SCRIPTS_DIR/build_configuration.sh
 # output: DEMO_LOCATION, BUILD_LOCATION,LIB_FOLDER
 
-assert_env_nonempty $DEMO_LOCATION "env-argument DEMO_LOCATION ..."
+#assert_env_nonempty $DEMO_LOCATION "env-argument DEMO_LOCATION ..."
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
+
+# Does not give you the folder, it tells you the name, that it wuol dbe in: found in, put in, etc.
+mkdir -p $BUILD_LOCATION
 
 # Parameters, from the specific configuration (relative locaation of build, lib, etc):
 # target:
 # DEMO_LOCATION, BUILD_LOCATION, LIB_FOLDER
 
-printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
+printf "BUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
 
-#export LIB_FOLDER=$IMPLISOLID/demos/build/lib
-#LIB_DIR
-echo "LIB_FOLDER: $LIB_FOLDER"
-ls -alt $LIB_FOLDER
+# expects in $LIB_FOLDER the following only : eigen, boost_1_75_0
 
-
-#echo $LIB_FOLDER
-#ls $LIB_FOLDER
-#exit
 
 #sources:
-
-#export IMPLISOLID=$BASELOC1/implisolid
-
-# MacOS-specific
-#export IMPLISOLID=$BASELOC1/implisolid
-#IMPLISOLID=/home/$USER/mp5-private/implisolid
+# LIB_FOLDER, IMPLISOLID
+# targets:
+# BUILD_LOCATION
 
 #export SOURCE_FOLDER=$IMPLISOLID/../js_iteration_1/mcc2.cpp
 
@@ -70,7 +63,7 @@ ls -alt $LIB_FOLDER
 #export MAIN_SOURCE_FOLDER=$IMPLISOLID/js_iteration_1
 #unfortunately it has to be one folder higher, becaausee both js_iteration_1 & ../js_iteration_2 are used.
 export MAIN_SOURCE_FOLDER=$IMPLISOLID
-
+# $MAIN_SOURCE_FOLDER/js_iteration_1/mcc2.cpp
 
 # errors if doesnt exist
 ls $MAIN_SOURCE_FILE >/dev/null
@@ -80,14 +73,11 @@ echo $BUILD_LOCATION
 ls $BUILD_LOCATION >/dev/null
 
 
-# BOOST_FOLDER="/lib/boost_1_61_0"
-# EIGEN_LIB_FOLDER="/lib/eigen"
-
-
-#BOOST_FOLDER="/src-lib/boost_1_75_0/boost"
-#EIGEN_LIB_FOLDER="/src-lib/eigen/Eigen"
-BOOST_FOLDER="/src-lib/boost_1_75_0"
-EIGEN_LIB_FOLDER="/src-lib/eigen"
+# old: boost_1_61_0
+#BOOST_FOLDER="boost_1_75_0/boost"
+#EIGEN_LIB_FOLDER="/eigen/Eigen"
+BOOST_FOLDER="boost_1_75_0"
+EIGEN_LIB_FOLDER="/eigen"
 
 
 
@@ -111,8 +101,8 @@ then
     echo "** optimised mode **"
 
     export CLI_ARGS=" \
-        -I $BOOST_FOLDER \
-        -I $EIGEN_LIB_FOLDER \
+        -I /src-lib/$BOOST_FOLDER \
+        -I /src-lib/$EIGEN_LIB_FOLDER \
         -O3   \
         -Oz \
         -s OUTLINING_LIMIT=100000 \
@@ -145,8 +135,8 @@ then
     echo "** dev compiling mode **"
 
     export CLI_ARGS=" \
-        -I $BOOST_FOLDER  \
-        -I $EIGEN_LIB_FOLDER \
+        -I /src-lib/$BOOST_FOLDER  \
+        -I /src-lib/$EIGEN_LIB_FOLDER \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \

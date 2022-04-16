@@ -21,6 +21,9 @@ export DEMO_LOCATION=$IMPLISOLID/demos/demo1
 export BUILD_LOCATION=$IMPLISOLID/demos/build
 export LIB_FOLDER=$BUILD_LOCATION/lib
 
+printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
+
+
 # configuration-specific
 
 # Other old files:
@@ -33,3 +36,7 @@ export LIB_FOLDER=$BUILD_LOCATION/lib
 #export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
 # remote/public deploy (to github-pages)
 #export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+
+
+# probably incorrect
+#IMPLISOLID=/home/$USER/mp5-private/implisolid
