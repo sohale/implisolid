@@ -1,3 +1,4 @@
+# use with `source` only
 
 # export USER=a9858770
 export USER_HOME=/Users/$USER

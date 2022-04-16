@@ -7,13 +7,19 @@
 REPO_ROOT=$(git rev-parse --show-toplevel)
 source $REPO_ROOT/demos/base-locations.sh
 
+# Seed for parameter values:
 export IMPLISOLID=$BASELOC1/implisolid
 set -e
 
+REPO_ROOT=$(git rev-parse --show-toplevel)
+source $REPO_ROOT/demos/build_configuration.sh
+
+# Parameters, from the specific configuration (relative locaation of build, lib, etc):
 # target:
-export DEMO_LOCATION=$IMPLISOLID/demos/demo1
-export BUILD_LOCATION=$IMPLISOLID/demos/build
-export          LIB_FOLDER=$BUILD_LOCATION/lib
+# DEMO_LOCATION, BUILD_LOCATION, LIB_FOLDER
+
+printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
+
 #export LIB_FOLDER=$IMPLISOLID/demos/build/lib
 #LIB_DIR
 echo "LIB_FOLDER: $LIB_FOLDER"
