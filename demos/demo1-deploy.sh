@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # runs demo1 locally for MacOS
@@ -14,7 +13,9 @@
 set -e
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-source $REPO_ROOT/demos/base-locations.sh
+# only for this?
+export SCRIPTS_DIR=$REPO_ROOT/demos
+source $SCRIPTS_DIR/base-locations.sh
 
 # Altenative names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
 # repo bases
@@ -23,6 +24,8 @@ export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 # relative location of repos
 export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
+
+
 
 # target:
 # local deploy
@@ -157,10 +160,17 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 #mkdir -p $START_DEMOS
 #mkdir -p $IMPLISOLID_REPO/docs/implisolid-build/demo1/js
 
+
+function tricks () {
+# create a clean folder called 'demo1' and goes inside it in a safe way
+# demo1 is created inside $START_DEMOS
+# equivalent to "cd ./demo1"
+
 # all paths need to be absolute
 cd $START_DEMOS
 
 mkdir -p demo1
+# assert; make sure we are inside 'demo1', and it exists
 cd demo1
 pwd | grep -qE "/demo1$"
 touch deleteme.js
@@ -169,6 +179,7 @@ set -x; pwd | grep -qE "/demo1$"
 # never `rm` unless you are there for sure:
 rm -rv ../demo1/*
 cd ..
+# safe delete of folder
 rmdir ./demo1
 
 # Somehow assert empty ?
@@ -178,7 +189,11 @@ mkdir demo1
 mkdir demo1/js
 
 cd demo1
+# assert; make sure we are inside 'demo1', and it exists
 pwd | grep -qE "/demo1$"
+}
+
+tricks
 
 function gather_files_for_deploy() {
 # Gathers various files and prepares them for deploying.
@@ -237,6 +252,13 @@ CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
 gather_files_for_deploy
 ################
 
+function find_noprefix() {
+  FOLDER=$1
+  find $FOLDER |awk -v prefix="$FOLDER/" '{ match($0, prefix); printf substr($0, RSTART+RLENGTH); printf "\n"}'
+}
+
+find_noprefix $DEPLOY_LOCATION
+
 # Info about latest commit to be available on browser
 git rev-parse HEAD >$DEPLOY_LOCATION/latest-commit.txt
 git log  -n 1 >$DEPLOY_LOCATION/latest-commit-log.txt
@@ -248,21 +270,30 @@ echo "for latest commit info click: try http://localhost:8000/latest-commit-log.
 # ls -l $DEPLOY_LOCATION
 # examine and produce all errors (the "ln -s" file links that the file is non-existant )
 #ls -1 $DEPLOY_LOCATION | xargs cat 1>/dev/null
-echo "Checking errors *******"
-pushd $DEPLOY_LOCATION/js
+echo "Checking missing symbolic links *******"
+# pushd $DEPLOY_LOCATION/js
+cd $DEPLOY_LOCATION/js
 ls -1 . | xargs cat 1>/dev/null
 cd ..
+
+cd $DEPLOY_LOCATION
 
 pwd
 echo 'fine'
 
-#echo 'for local run: (also see ./demo1-run-local.sh)'
+
 echo 'for local run: (Also see ./demo1-run-local.sh)'
 
 echo "" >$DEPLOY_LOCATION/run.sh
 echo "echo visit http://localhost:8000/mp5_json_code.html" >>$DEPLOY_LOCATION/run.sh
 echo "python3 -m http.server 8000" >>$DEPLOY_LOCATION/run.sh
 
+cat $DEPLOY_LOCATION/run.sh
+
 echo "going to actually run"
 pwd
-bash ./demo1-run-local.sh
+
+# $IMPLISOLID_BUILD_REPO/demo1/..
+cd $DEPLOY_LOCATION
+pwd
+bash $SCRIPTS_DIR/demo1-run-local.sh cd $DEPLOY_LOCATION

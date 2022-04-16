@@ -1,11 +1,21 @@
-# demo1-localrun.sh
+#!/bin/bash
+# alt name: demo1-localrun.sh
+
+source utils.sh
+
+echo "SCRIPT_DIR: $( script_dir_func )"
+
+DEPLOY_LOCATION=$1
+#cd $DEPLOY_LOCATION
+# that is, $REPO/demos
 
 python3 -m http.server 8000 &
 export server_pid=$!
 echo $server_pid >server_pid-$server_pid.pid
 
-popd
-pwd
+#popd
+#pwd
+cd $DEPLOY_LOCATION/js
 
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
 
