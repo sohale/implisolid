@@ -9,7 +9,7 @@ function assert_env_nonempty() {
 }
 
 # args:
-# pwd: used for $REPO_ROOT
+
 assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain \$SCRIPTS_DIR/build_configuration.sh"
 # build script folder, different to deploy etc
 
@@ -19,19 +19,9 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
 
 # usage: IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
 
-# old names:
-# recompile-for-demo1.sh
-# demo1-build.sh
-
-#REPO_ROOT=$(git rev-parse --show-toplevel)
-#source $REPO_ROOT/demos/base-locations.sh
-
-# Seed for parameter values:
-#export IMPLISOLID=$BASELOC1/implisolid
 set -e
 
-#REPO_ROOT=$(git rev-parse --show-toplevel)
-#source $REPO_ROOT/demos/build_configuration.sh
+
 #SCRIPTS_DIR=$REPO_ROOT/demos
 IMPLISOLID=$IMPLISOLID source $SCRIPTS_DIR/build_configuration.sh
 # output: DEMO_LOCATION, BUILD_LOCATION,LIB_FOLDER
@@ -41,36 +31,24 @@ assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
 
 # Does not give you the folder, it tells you the name, that it wuol dbe in: found in, put in, etc.
-mkdir -p $BUILD_LOCATION
+mkdir -p $BUILD_LOCATION; ls $BUILD_LOCATION >/dev/null
 
 # Parameters, from the specific configuration (relative locaation of build, lib, etc):
 # target:
-# DEMO_LOCATION, BUILD_LOCATION, LIB_FOLDER
+# BUILD_LOCATION, LIB_FOLDER
 
 printf "BUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
 
 # expects in $LIB_FOLDER the following only : eigen, boost_1_75_0
-
 
 #sources:
 # LIB_FOLDER, IMPLISOLID
 # targets:
 # BUILD_LOCATION
 
-#export SOURCE_FOLDER=$IMPLISOLID/../js_iteration_1/mcc2.cpp
-
-#export MAIN_SOURCE_FILE=$IMPLISOLID/js_iteration_1/mcc2.cpp
-#export MAIN_SOURCE_FOLDER=$IMPLISOLID/js_iteration_1
 #unfortunately it has to be one folder higher, becaausee both js_iteration_1 & ../js_iteration_2 are used.
 export MAIN_SOURCE_FOLDER=$IMPLISOLID
-# $MAIN_SOURCE_FOLDER/js_iteration_1/mcc2.cpp
-
-# errors if doesnt exist
-ls $MAIN_SOURCE_FILE >/dev/null
-
-mkdir -p $BUILD_LOCATION
-echo $BUILD_LOCATION
-ls $BUILD_LOCATION >/dev/null
+# Main file is: at $MAIN_SOURCE_FOLDER/js_iteration_1/mcc2.cpp
 
 
 # old: boost_1_61_0
@@ -78,13 +56,11 @@ ls $BUILD_LOCATION >/dev/null
 #EIGEN_LIB_FOLDER="/eigen/Eigen"
 BOOST_FOLDER="boost_1_75_0"
 EIGEN_LIB_FOLDER="/eigen"
+# todo: rename EIGEN_LIB_FOLDER -> EIGEN_LIB_SUBFOLDER
 
-
-
+# does pwd matter?
 cd $IMPLISOLID/js_iteration_1
 
-[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS. MacOS-specific code"
-# because of the `if` `then` `fi` conditions beflow
 
 export OPTIM=1
 export DEV=2
@@ -94,6 +70,9 @@ export DEV=2
 MODE=$DEV
 
 export WASM=0
+
+[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS. MacOS-specific code"
+# because of the `if` `then` `fi` conditions
 
 if [ $MODE -eq $OPTIM ]
 then
@@ -118,12 +97,6 @@ then
         -pedantic -std=c++14
         -s WASM=0 \
         "
-
-    #mcc2.cpp  \
-    #    -o  ../build/mcc2.compiled.js \
-
-    #em++ $CLI_ARGS
-    #exit 0
 fi
 
 # Custom flags:
@@ -147,30 +120,9 @@ then
         -pedantic -std=c++14 \
         -s WASM=0 \
         "
-
-    #mcc2.cpp \
-    #    -o ../build/mcc2.compiled.js "
-
-    #   --profiling \
-
-    #em++ $CLI_ARGS
-    #exit 0
 fi
 
-pwd
-echo \$CLI_ARGS:
-echo $CLI_ARGS
-
 set -e
-
-#docker run \
-#  --rm \
-#  -v $MAIN_SOURCE_FOLDER:/src \
-#  -v $BUILD_LOCATION:/build \
-#  -u $(id -u):$(id -g) \
-#  emscripten/emsdk \
-#  emsdk list --old
-#  #emsdk list
 
 # tested on emscripten/emsdk:2.0.22
 # tested on emscripten/emsdk:3.1.8  # detected a flaw
@@ -189,9 +141,27 @@ docker run \
       /src/js_iteration_1/mcc2.cpp \
       -o /build/mcc2.compiled.js
 
-# It can be found here:
+# The compiled file can be found here:
 ls $BUILD_LOCATION/mcc2.compiled.js
 
-  #emcc helloworld.cpp -o helloworld.js
-
+# todo:
 # emcc: warning: EXTRA_EXPORTED_RUNTIME_METHODS is deprecated, please use EXPORTED_RUNTIME_METHODS instead [-Wdeprecated]
+
+#
+# More notes on usage of compiler
+#
+# docker run \
+#  --rm \
+#  -v $MAIN_SOURCE_FOLDER:/src \
+#  -v $BUILD_LOCATION:/build \
+#  -u $(id -u):$(id -g) \
+#  emscripten/emsdk \
+#
+# emcc helloworld.cpp -o helloworld.js
+# emcc mcc2.cpp  -o  ../build/mcc2.compiled.js
+
+# emcc?
+# em++?
+#emsdk list
+#emsdk list --old
+#   --profiling
