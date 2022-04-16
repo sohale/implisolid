@@ -1,18 +1,37 @@
 #!/bin/bash
 
+
+# args:
+# pwd: used for $REPO_ROOT
+assert_env_nonempty SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain \$SCRIPTS_DIR/build_configuration.sh"
+# build script folder, different to deploy etc
+
+assert_env_nonempty IMPLISOLID "env-argument IMPLISOLID ..."
+#export IMPLISOLID=$BASELOC1/implisolid
+
+
+# usage: IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
+
 # old names:
 # recompile-for-demo1.sh
 # demo1-build.sh
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-source $REPO_ROOT/demos/base-locations.sh
+#REPO_ROOT=$(git rev-parse --show-toplevel)
+#source $REPO_ROOT/demos/base-locations.sh
 
 # Seed for parameter values:
-export IMPLISOLID=$BASELOC1/implisolid
+#export IMPLISOLID=$BASELOC1/implisolid
 set -e
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-source $REPO_ROOT/demos/build_configuration.sh
+#REPO_ROOT=$(git rev-parse --show-toplevel)
+#source $REPO_ROOT/demos/build_configuration.sh
+#SCRIPTS_DIR=$REPO_ROOT/demos
+IMPLISOLID=$IMPLISOLID source $SCRIPTS_DIR/build_configuration.sh
+# output: DEMO_LOCATION, BUILD_LOCATION,LIB_FOLDER
+
+assert_env_nonempty DEMO_LOCATION "env-argument DEMO_LOCATION ..."
+assert_env_nonempty BUILD_LOCATION "env-argument BUILD_LOCATION ..."
+assert_env_nonempty LIB_FOLDER "env-argument LIB_FOLDER ..."
 
 # Parameters, from the specific configuration (relative locaation of build, lib, etc):
 # target:

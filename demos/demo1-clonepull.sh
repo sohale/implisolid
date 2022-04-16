@@ -5,7 +5,9 @@
 # This script downloads the prequisites
 
 # args:
-assert_env_nonempty $BASELOC1
+assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
+#assert_env_nonempty $BASELOC1
+#export IMPLISOLID=$BASELOC1/implisolid
 # arg: pwd (unused)
 
 # not used?!: BASELOC2, BASELOC3
@@ -23,7 +25,7 @@ assert_env_nonempty $BASELOC1
 # export BASELOC2=/Users/$USER/cs
 
 
-export IMPLISOLID=$BASELOC1/implisolid
+#export IMPLISOLID=$BASELOC1/implisolid
 # BASE_MP5_PRIVATE
 #export MP5_PRIVATE=$BASELOC2/mp5-private
 

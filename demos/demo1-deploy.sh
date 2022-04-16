@@ -3,8 +3,12 @@
 # runs demo1 locally for MacOS
 
 # args:
-assert_env_nonempty $BASELOC1
-# arg: pwd (used implicitly via REPO_ROOT)
+assert_env_nonempty $BASELOC1 "env-argument BASELOC1= not specified"
+assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
+#export SCRIPTS_DIR=$REPO_ROOT/demos
+#assert_env_nonempty $REPO_ROOT
+# nothing more
+# arg: pwd (used implicitly via REPO_ROOT) # no longer!
 
 # not used: BASELOC2, BASELOC3
 
@@ -20,9 +24,9 @@ set -e
 
 # implicitly, the arg is pwd
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
+# REPO_ROOT=$(git rev-parse --show-toplevel)
 # only for this?
-export SCRIPTS_DIR=$REPO_ROOT/demos
+#export SCRIPTS_DIR=$REPO_ROOT/demos
 # Incorrect: It is hard coded.
 #source $SCRIPTS_DIR/base-locations.sh
 
@@ -39,6 +43,9 @@ export IMPLISOLID_REPO=$BASELOC1/implisolid
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 # relative location of repos
 export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
+# todo: specify a separate independent folder  => you wil know the structure BEFORE this.
+    # qt the tie oof e2e sscript
+
 # based on configuration
 
 
@@ -254,6 +261,7 @@ function gather_files_for_deploy() {
     CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js/
     CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js/
     CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js/
+    echo "compiled_file $compiled_file"
     CP $compiled_file $DEPLOY_LOCATION/js/
     # CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js/
     CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/

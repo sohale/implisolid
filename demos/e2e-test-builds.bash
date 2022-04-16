@@ -5,6 +5,8 @@
 
 # args:
 # * pwd (via $REPO_ROOT)
+# mmust be executed fromo within a folder in the main implisolid repo
+# todo : another version for install-dev
 
 #docker pull frolvlad/alpine-gxx
 #docker pull groovy
@@ -32,8 +34,17 @@
 # tested on emscripten/emsdk:2.0.22
 # tested on emscripten/emsdk:3.1.8  # detected a flaw
 
+
+function __current_script_dir_func0 () {
+  cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd
+}
+source $(__current_script_dir_func0)/utils.sh
+
 set -ex
-REPO_ROOT=$(git rev-parse --show-toplevel)
+export REPO_ROOT=$(git rev-parse --show-toplevel)
+echo "REPO_ROOT :::: $REPO_ROOT"
+assert_env_nonempty $REPO_ROOT "REPO_ROOT=$REPO_ROOT   implisolid repo not found in current directory $(pwd)"
+
 #cd $REPO_ROOT; mkdir e2e-sandbox-temp
 E2E=$REPO_ROOT/e2e-sandbox-temp
 rm -rf $E2E
@@ -61,9 +72,14 @@ export BASELOC3=$NEWREPO_BASE
 
 pwd
 # must run the internal one!
-BASELOC1=$BASELOC1 ./demos/demo1-clonepull.sh
+IMPLISOLID="$BASELOC1/implisolid" ./demos/demo1-clonepull.sh
+
 pwd
-BASELOC1=$BASELOC1 ./demos/demo1-deploy.sh
+IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
+
+
+pwd
+BASELOC1="$BASELOC1" SCRIPTS_DIR="$NEWREPO_ROOT/demos" ./demos/demo1-deploy.sh
 
 << ////
 
@@ -71,9 +87,13 @@ Scripts:
         # based on how they can move: 1. e2e/overall  2.
 
     e2e-test-builds.bash
+    //    * is not for demo => not in ./demo
+    // also do: install-dev
+    // also a script foor docker? for test under linux
     demo1-clonepull.sh
 
     #use the configuration:
+        * is not for demo => not in ./demo
         * demo1-build.sh // no! does not use the configuration of demo
 
         * demo1-deploy.sh
@@ -99,6 +119,8 @@ conceptual places (folders):
     mainrepo
     other repos?
 
+    how about examples?
+
     build-binary-publish?
     two others
 
@@ -106,6 +128,7 @@ conceptual places (folders):
     npm
     ...
 
+export BUILD_LOCATION=$IMPLISOLID_REPO/demos/build
 
 ideal names:
     $SCRIPTS_DIR/utils.sh

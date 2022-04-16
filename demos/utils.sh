@@ -13,7 +13,10 @@ function assert_env_nonempty() {
   if [ ".$1" = "." ]; then
     # $STRING is empty
     echo "shell env is empty"
-    exit 1 # return 1
+    echo $2 # The error message
+    #exit 1 # return 1
+    return 1 # can be called using `source` too
   fi
-  exit 0 # return 0
+  #exit 0 # return 0
+  return 0 # can be called using `source` too
 }

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# todo:
 cd $(git rev-parse --show-toplevel)
 cd ./js_iteration_1/
 mkdir -p ../build
