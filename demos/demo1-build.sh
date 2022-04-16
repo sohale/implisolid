@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 function assert_env_nonempty() {
   if [ ".$1" = "." ]; then

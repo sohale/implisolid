@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # runs demo1 locally for MacOS
+set -ex
 
 # args:
 assert_env_nonempty $BASELOC1 "env-argument BASELOC1= not specified"

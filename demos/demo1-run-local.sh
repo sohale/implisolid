@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -ex
 
 # Runs the deployed one
 # Currennt folder (pwd) should be where the served files are (ie the app) (root of url resources)

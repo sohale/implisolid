@@ -1,7 +1,7 @@
 #!/bin/bash
 # test all builds
 # Fresh test
-
+set -ex
 
 # args:
 # * pwd (via $REPO_ROOT)

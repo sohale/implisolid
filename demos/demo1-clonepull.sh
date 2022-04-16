@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # run:  bash deploy-demo-1.sh
 
