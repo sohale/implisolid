@@ -27,3 +27,9 @@ export LIB_FOLDER=$BUILD_LOCATION/lib
 # $IMPLISOLID_REPO/docs/implisolid-build/demo1/js
 # $BUILT/opt/mcc2.compiled.js
 # $BUILT/opt/mcc2.compiled.js.mem
+
+# target:
+# local deploy
+#export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
+# remote/public deploy (to github-pages)
+#export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1

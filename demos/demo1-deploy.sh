@@ -12,12 +12,7 @@ function assert_env_nonempty() {
 # args:
 assert_env_nonempty $BASELOC1 "env-argument BASELOC1= not specified"
 assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
-#export SCRIPTS_DIR=$REPO_ROOT/demos
-#assert_env_nonempty $REPO_ROOT
-# nothing more
-# arg: pwd (used implicitly via REPO_ROOT) # no longer!
 
-# not used: BASELOC2, BASELOC3
 
 # deploy: to put it "there"
 # run:  BASELOC1=$(pwd) bash deploy-demo-1.sh
@@ -28,17 +23,6 @@ assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
 # * three repos are cloned
 
 set -e
-
-# implicitly, the arg is pwd
-
-# REPO_ROOT=$(git rev-parse --show-toplevel)
-# only for this?
-#export SCRIPTS_DIR=$REPO_ROOT/demos
-# Incorrect: It is hard coded.
-#source $SCRIPTS_DIR/base-locations.sh
-
-# rename: scripts
-source $SCRIPTS_DIR/utils.sh
 
 
 # Altenative names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
@@ -56,14 +40,11 @@ export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
 # based on configuration
 
 
-# target:
-# local deploy
-#export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
-# remote/public deploy (to github-pages)
-#export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+
 
 #export LOCAL_DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
 export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+
 # Two alternatives:
 # why two options?
 #export DEPLOY_LOCATION=$LOCAL_DEPLOY_LOCATION
@@ -174,12 +155,6 @@ cd ..
 
 cd $DEPLOY_LOCATION
 
-pwd
-echo 'fine'
-
-
-echo 'for local run: (Also see ./demo1-run-local.sh)'
-
 cat >$DEPLOY_LOCATION/run.sh << LAUNCH_SCRIPT
 
 echo visit http://localhost:8000/mp5_json_code.html
@@ -189,7 +164,6 @@ LAUNCH_SCRIPT
 cat $DEPLOY_LOCATION/run.sh
 
 echo "going to actually run"
-pwd
 
 # $IMPLISOLID_BUILD_REPO/demo1/.. # wrong?
 cd $DEPLOY_LOCATION
