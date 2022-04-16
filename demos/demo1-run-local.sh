@@ -1,25 +1,33 @@
 #!/bin/bash
 set -ex
+function assert_env_nonempty() {
+  if [ ".$1" = "." ]; then
+    echo "shell env is empty"; echo $2
+    return 1
+  fi
+}
 
 # Runs the deployed one
 # Currennt folder (pwd) should be where the served files are (ie the app) (root of url resources)
 # alt name: demo1-localrun.sh
 
 #args:
-# $1  is it actually used?!
+assert_env_nonempty $DEPLOY_LOCATION "env-argument DEPLOY_LOCATION= missing"
+# $1  is it actually used?! no more.
 # pwd:  where python is executed from
 # not used: BASELOC2, BASELOC3
 #$IMPLISOLID_BUILD_REPO/demo1
 
 
 echo "*****incomplete"
-exit
-SCRIPTS_DIR=
-source $SCRIPTS_DIR/utils.sh
+
+#SCRIPTS_DIR=
+#source $SCRIPTS_DIR/utils.sh
 
 # echo "CURRENT_SCRIPT_DIR: $( __current_script_dir_func )"
 
-DEPLOY_LOCATION=$1
+cd $DEPLOY_LOCATION
+#DEPLOY_LOCATION=$1
 #cd $DEPLOY_LOCATION
 # that is, $REPO/demos
 

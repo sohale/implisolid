@@ -80,6 +80,7 @@ IMPLISOLID="$BASELOC1/implisolid" SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-bu
 
 pwd
 BASELOC1="$BASELOC1" SCRIPTS_DIR="$NEWREPO_ROOT/demos" ./demos/demo1-deploy.sh
+# also runs demos/demo1-run-local.sh
 
 << ////
 

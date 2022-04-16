@@ -326,4 +326,4 @@ pwd
 # $IMPLISOLID_BUILD_REPO/demo1/.. # wrong?
 cd $DEPLOY_LOCATION
 pwd
-bash $SCRIPTS_DIR/demo1-run-local.sh cd $DEPLOY_LOCATION
+DEPLOY_LOCATION="$DEPLOY_LOCATION" bash $SCRIPTS_DIR/demo1-run-local.sh
