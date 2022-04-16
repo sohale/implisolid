@@ -9,6 +9,7 @@ DEPLOY_LOCATION=$1
 #cd $DEPLOY_LOCATION
 # that is, $REPO/demos
 
+echo "Running python server from: $(pwd)"
 python3 -m http.server 8000 &
 export server_pid=$!
 echo $server_pid >server_pid-$server_pid.pid
@@ -35,8 +36,6 @@ printf "\n\n\n\n ****************"
 echo "python processes to kill $(ps aux|grep -ie python|grep http|cut -c 17-25 | xargs echo)"
 cat processes-to_kill.log || :
 
-echo ok1
-
 
 << ////
   Three ways to log the pid  of the process to kill
@@ -46,4 +45,4 @@ echo ok1
      direct console out "kill ..."
 ////
 
-echo ok3
+pwd

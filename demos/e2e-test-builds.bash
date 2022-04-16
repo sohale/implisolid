@@ -44,6 +44,7 @@ pwd
 find $E2E -depth 2
 
 pwd
+# must run the internal one!
 ./demos/demo1-clonepull.sh
 pwd
 ./demos/demo1-deploy.sh
