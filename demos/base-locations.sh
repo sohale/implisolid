@@ -1,5 +1,11 @@
 # use with `source` only
 
+echo "invalid"
+export BASELOC1=
+export BASELOC2=
+export BASELOC3=
+return
+
 # export USER=a9858770
 export USER_HOME=/Users/$USER
 
