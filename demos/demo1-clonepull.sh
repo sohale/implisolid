@@ -102,7 +102,7 @@ get_boost() {
     # wget --server-response -q -O - "https://very.long/url/here" 2>&1 |   grep "Content-Disposition:" | tail -1 |   awk 'match($0, /filename=(.+)/, f){ print f[1] }' )
 
 }
-#get_boost
+get_boost
 export BOOST=$LIB_FOLDER/boost_1_75_0
 echo "Boost downloaded in: $BOOST"
 
@@ -123,7 +123,7 @@ get_eigen() {
   mv -vn ./eigen ./lib/
 }
 
-#get_eigen
+get_eigen
 export EIGEN=$LIB_FOLDER/eigen
 echo "Eigen downloaded in: $EIGEN"
 
