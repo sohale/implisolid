@@ -1,6 +1,13 @@
 # use with `source` only
 # todo: use groovy
 
+function assert_env_nonempty() {
+  if [ ".$1" = "." ]; then
+    echo "shell env is empty"; echo $2
+    return 1
+  fi
+}
+
 # args:
 assert_env_nonempty $IMPLISOLID "mising IMPLISOLID="
 # Seed for parameter values:

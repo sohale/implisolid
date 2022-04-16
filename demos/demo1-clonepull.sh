@@ -1,10 +1,17 @@
 #!/bin/bash
 set -ex
+function assert_env_nonempty() {
+  if [ ".$1" = "." ]; then
+    echo "shell env is empty"; echo $2
+    return 1
+  fi
+}
 
 # run:  bash deploy-demo-1.sh
 
 # This script downloads the prequisites
 
+echo 11>IMPLISOLID=$IMPLISOLID
 # args:
 assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
 #assert_env_nonempty $BASELOC1
