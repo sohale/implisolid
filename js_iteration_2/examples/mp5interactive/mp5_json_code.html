@@ -484,20 +484,18 @@ function init_ace(build_code_callback, startup_text1, wait_before_first_call_to_
 
     /*
         a global state to enable and disable change events,
-        almost like a mutex.
-        avoiods looping forever until OS crashes (as a result of beaautify)
+        (almost like a mutex, but used one-off).
+        Enabled after initial_wait_time.
      */
     var eglobals = {reactive: false};
 
     var editor = ace.edit("editor");
 
+    /* Themes: "ace/theme/monokai", "ace/theme/ace_theme_1", "ace/theme/clouds", "ace/theme/pastel_on_dark", "ace/theme/twilight", */
     editor.setTheme("ace/theme/monokai");
-    //editor.setTheme("ace/theme/ace_theme_1");
-    //editor.setTheme("ace/theme/clouds");
-    //editor.setTheme("ace/theme/pastel_on_dark");
-    //editor.setTheme("ace/theme/twilight");
-    //editor.getSession().setMode("ace/mode/javascript");
+    /* Modes: "ace/mode/javascript", "ace/mode/javascript" */
     editor.getSession().setMode("ace/mode/json");
+
     editor.getSession().on('change', function(e) {
         if (!eglobals.reactive) return;
         var text = editor.getValue(); // or session.getValue
@@ -527,7 +525,23 @@ function init_ace(build_code_callback, startup_text1, wait_before_first_call_to_
     /* startup text */
     editor.setValue(`\n\n"Please Wait ..."\n\n`);
 
-    setTimeout(function(){
+    setTimeout(function() {
+        var beautify = ace.require("ace/ext/beautify");
+
+        function my_beautify() {
+            // beautify.beautify(editor.getSession());
+
+            var val = editor.getSession().getValue();
+            //Remove leading spaces
+            var array = val.split(/\n/);
+            array[0] = array[0].trim();
+            val = array.join("\n");
+            //Actual beautify (prettify)
+            val = js_beautify(val);  // external
+            //Change current text to formatted text
+            editor.getSession().setValue(val);
+        }
+
         editor.setValue(startup_text1);
         my_beautify();
         eglobals.reactive = true;
@@ -535,20 +549,6 @@ function init_ace(build_code_callback, startup_text1, wait_before_first_call_to_
         build_code_callback( editor.getValue() );
     }, wait_before_first_call_to_callback);
 
-    var beautify = ace.require("ace/ext/beautify");
-    function my_beautify() {
-        // beautify.beautify(editor.getSession());
-
-        var val = editor.getSession().getValue();
-        //Remove leading spaces
-        var array = val.split(/\n/);
-        array[0] = array[0].trim();
-        val = array.join("\n");
-        //Actual beautify (prettify)
-        val = js_beautify(val);  // external
-        //Change current text to formatted text
-        editor.getSession().setValue(val);
-    }
 }
 
 </script>
@@ -563,39 +563,38 @@ function reset() {
 }
 
 function build_code(editor_text) {
-        try {
-            reset(); //?
-            var mp5_json = editor_text;
-            var mp5 = JSON.parse(mp5_json);
-            //beautify.beautify(editor.session);  // loops forever until your OS crashes!
+    try {
+        reset(); //?
+        var mp5_json = editor_text;
+        var mp5 = JSON.parse(mp5_json);
+        //beautify.beautify(editor.session);  // loops forever until your OS crashes!
 
-            var sons = mp5.root.children;
-            for( var i = 0; i < sons.length; ++i) {
-                var shape_dict = sons[i];
-                var bb = getBoundingBoxForDict(shape_dict, true);
-                //console.error("bbox", bb);  // ****
-                var shape_json = JSON.stringify(shape_dict);
-                //console.error("shape_json11",shape_json);    // ****
-                console.log(JSON.parse(shape_json));
-                var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor, simple_MC_only_polygonization_json);
+        var sons = mp5.root.children;
+        for( var i = 0; i < sons.length; ++i) {
+            var shape_dict = sons[i];
+            var bb = getBoundingBoxForDict(shape_dict, true);
+            //console.error("bbox", bb);  // ****
+            var shape_json = JSON.stringify(shape_dict);
+            //console.error("shape_json11",shape_json);    // ****
+            console.log(JSON.parse(shape_json));
+            var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor, simple_MC_only_polygonization_json);
 
-            };
-        } catch(e) {
-            // console.log('invalid json in editor');
-            console.log(e.stack)
-            if (shape_json) {
-                console.debug('shape_json that caused error:', shape_json);
-            }
-            console.error("Exception:", e);
+        };
+    } catch(e) {
+        // console.log('invalid json in editor');
+        console.log(e.stack)
+        if (shape_json) {
+            console.debug('shape_json that caused error:', shape_json);
         }
-
+        console.error("Exception:", e);
+    }
 }
     ;
     /*
         init_ace() is executed here before startup_sequence(),
         but it delays the first call to build_code().
     */
-    init_ace(build_code, startup_text, 1500*3);
+    init_ace(build_code, startup_text, 1500);
 </script>
 
 <!--  ********************************************************************  -->
@@ -905,8 +904,6 @@ function startup_sequence() {
         //import {assert3} from './js/simple_assert.js';
         */
 
-
-
         IMPLICIT = _on_cpp_loaded();  // from implisolid_main.js
         PS_UTILS = new PS_UTILS_CLASS(IMPLICIT);
 
@@ -957,4 +954,3 @@ function startup_sequence() {
 
 <!--script type="text/javascript" src="https://beta.wedesign.live/mcc2.compiled.js"></script-->
 </html>
-
