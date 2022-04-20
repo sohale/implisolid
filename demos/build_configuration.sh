@@ -8,16 +8,16 @@ function assert_env_nonempty() {
   fi
 }
 
+# Parameters,
+# Parameter values from the specific configuration (relative location of build, lib, etc):
+
 # args:
 assert_env_nonempty $IMPLISOLID "mising IMPLISOLID="
 
-
-# Parameters,
-# Parameter values from the specific configuration (relative location of build, lib, etc):
-export LIB_FOLDER=$BUILD_LOCATION/lib
 # target:
 export BUILD_LOCATION=$IMPLISOLID/demos/build
 export DEMO_LOCATION=$IMPLISOLID/demos/demo1
+export LIB_FOLDER=$BUILD_LOCATION/lib
 
 printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
 
