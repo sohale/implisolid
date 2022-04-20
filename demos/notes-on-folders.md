@@ -1,3 +1,56 @@
+## C++ demos, tests
+
+* `js_iteration_1/mcc2_3js_r79.html`
+* worker+incremental demo: ? (threejs)
+* `js_iteration_2/examples/mp5interactive/mp5_json_code.html` -- demo1: interactive demo (ace + python3 http.server + threejs)
+
+* reusable module: IMPLICIT_WORKER,
+
+* npm: (not implemented)
+
+* main files:
+* `js_iteration_1/build_mcc2.sh`
+* python binding (C++)
+
+### Multiple fine-tunings:
+*
+### build scripts:
+* `demo1-*.sh`: e2e (fresh clone), build, run mp5 interactive demo on python
+* js_iteration_1/build_g++.sh
+* js_iteration_1/build_mcc2.sh
+* js_iteration_1/build_mcc2_docker.sh
+
+Tiger:
+* `js_iteration_2/examples/function_editor_demos.js`
+
+## Branches:
+*  `revival-sohale` -- main one: worker+incremental demo,...
+*  `tiger-master` --
+*  `assert_fixing` --
+*  `optimization_task` --
+*  `researchOnSDF` --
+
+## Python
+### Main executables
+* clean_code/ohtake_belyaev_demo_subdivision_projection_qem.py: demo_combination_plus_qem()
+* implicit/vtk_mc.py
+* ...
+* experiementation/...
+
+* implicit/ohtake_belyaev_2.py
+* implicit/ohtake_belyaev_3.py
+* implicit/ohtake_belyaev_4.py
+* implicit/ohtake_belyaev_5.py
+
+* implicit/ohtake_surface_projection.py
+* implicit/ohtake_surface_projection_2.py
+* implicit/ohtake_surface_projection_v2_5.py
+Small ones:
+* implicit/cylinder_example.py
+
+* implicit/*.py
+
+# Older notes:
 ## Folders and their purposes:
  ImpliSolid folders: (relative to `$IMPLISOLID_REPO/` )
    demos/demo1-*.sh
