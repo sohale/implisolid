@@ -472,13 +472,25 @@ https://raw.githubusercontent.com/ajaxorg/ace-builds/master/src-min-noconflict/a
 
 <script>
 'use strict';
-/* Why is `build_code_callback` called in two places? */
-function init_ace(build_code_callback) {
+/*
+   sets up interface between ace editor and pure logic.
+   No dependency to ace editor outside `init_ace()`
+   wait_before_first_call_to_callback is initial_wait_time
+*/
+/* Why is `build_code_callback` called in two places? Becauseit is caalled once in the startup, nd then in each change. */
+function init_ace(build_code_callback, startup_text1, wait_before_first_call_to_callback=1500) {
 
     // see https://ace.c9.io/#nav=howto
 
+    /*
+        a global state to enable and disable change events,
+        almost like a mutex.
+        avoiods looping forever until OS crashes (as a result of beaautify)
+     */
     var eglobals = {reactive: false};
+
     var editor = ace.edit("editor");
+
     editor.setTheme("ace/theme/monokai");
     //editor.setTheme("ace/theme/ace_theme_1");
     //editor.setTheme("ace/theme/clouds");
@@ -488,30 +500,19 @@ function init_ace(build_code_callback) {
     editor.getSession().setMode("ace/mode/json");
     editor.getSession().on('change', function(e) {
         if (!eglobals.reactive) return;
-            var text = editor.getValue(); // or session.getValue
-            build_code_callback(text);
+        var text = editor.getValue(); // or session.getValue
+        build_code_callback(text);
 
         return;
-        // e.type, etc
         /*
+        console.log("change detected", e);
+        // e.type, etc
+
         action: "insert"
         start: {column:..., row:...},
         end: {column:..., row:...},
         lines: [","]
         */
-        console.log("change detected", e);
-        var val = editor.getValue(); // or session.getValue
-        //console.log("editor.getValue()", val);
-        //console.log("session.getValue", val);
-        try {
-          var mp5_str = editor.getValue(); // or session.getValue
-          var mp5 = JSON.parse(mp5_str);
-          console.log(mp5);
-          console.log(JSON.stringify(mp5));
-          //beautify.beautify(editor.session);  // loops forever until your OS crashes!
-        } catch(e) {
-            console.log('invalid json in editor');
-        }
     });
     editor.commands.addCommand({
         name: 'myCommand',
@@ -523,23 +524,18 @@ function init_ace(build_code_callback) {
     });
     editor.$blockScrolling = Infinity;
 
+    /* startup text */
     editor.setValue(`\n\n"Please Wait ..."\n\n`);
 
-    //editor.setValue(startup_text);
-    //editor.setValue({});
-
-
-    var beautify = ace.require("ace/ext/beautify");
-    //var editor = ace.edit("editor");
-    //beautify.beautify(editor.session);
-
     setTimeout(function(){
-        editor.setValue(startup_text);
+        editor.setValue(startup_text1);
         my_beautify();
         eglobals.reactive = true;
+        // First call to the build_code_callback()
         build_code_callback( editor.getValue() );
-    }, 1500);
+    }, wait_before_first_call_to_callback);
 
+    var beautify = ace.require("ace/ext/beautify");
     function my_beautify() {
         // beautify.beautify(editor.getSession());
 
@@ -568,9 +564,11 @@ function reset() {
 
 function build_code(editor_text) {
         try {
-            reset();
+            reset(); //?
             var mp5_json = editor_text;
             var mp5 = JSON.parse(mp5_json);
+            //beautify.beautify(editor.session);  // loops forever until your OS crashes!
+
             var sons = mp5.root.children;
             for( var i = 0; i < sons.length; ++i) {
                 var shape_dict = sons[i];
@@ -580,8 +578,10 @@ function build_code(editor_text) {
                 //console.error("shape_json11",shape_json);    // ****
                 console.log(JSON.parse(shape_json));
                 var submesh = put_up_there(shape_json, bb, i, shape_dict.matrix, shape_dict.displayColor, simple_MC_only_polygonization_json);
+
             };
         } catch(e) {
+            // console.log('invalid json in editor');
             console.log(e.stack)
             if (shape_json) {
                 console.debug('shape_json that caused error:', shape_json);
@@ -591,7 +591,11 @@ function build_code(editor_text) {
 
 }
     ;
-    init_ace(build_code);
+    /*
+        init_ace() is executed here before startup_sequence(),
+        but it delays the first call to build_code().
+    */
+    init_ace(build_code, startup_text, 1500*3);
 </script>
 
 <!--  ********************************************************************  -->
@@ -928,6 +932,8 @@ function startup_sequence() {
         animate_a_frame();
 
         meat();
+
+        /* Now it waits until the initial_wait_time of `build_code` in `init_ace()` */
 };
 </script>
 
