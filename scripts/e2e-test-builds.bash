@@ -38,7 +38,7 @@ set -ex
 function __current_script_dir_func0 () {
   cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd
 }
-source $(__current_script_dir_func0)/utils.sh
+source $(__current_script_dir_func0)/bash-utils.sh
 
 set -ex
 export REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -104,7 +104,7 @@ Scripts:
         * demo1-run-local.sh
         * build_configuration.sh
 
-    * utils.sh
+    * bash-utils.sh
 
     # deprecated
        * base-locations.sh
@@ -135,7 +135,7 @@ conceptual places (folders):
 export BUILD_LOCATION=$IMPLISOLID_REPO/demos/build
 
 ideal names:
-    $SCRIPTS_DIR/utils.sh
+    $SCRIPTS_DIR/bash-utils.sh
 
 ////
 
