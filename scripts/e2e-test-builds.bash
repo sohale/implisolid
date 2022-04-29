@@ -93,7 +93,7 @@ export DEPLOY_LOCATION=$IMPLISOLID_REPO/docs/implisolid-build
 
 #cd $DEPLOY_LOCATION
 pwd
-DEPLOY_LOCATION="$DEPLOY_LOCATION" bash $SCRIPTS_DIR/demos/demo1/demo1-run-local.sh
+DEPLOY_LOCATION="$DEPLOY_LOCATION" bash ./scripts/demos/demo1/demo1-run-local.sh
 
 echo "All successful."
 return 0
