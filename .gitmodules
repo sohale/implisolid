@@ -2,3 +2,8 @@
 	path = docs/implisolid-build
 	url = https://github.com/sohale/implisolid-build.git
 
+[submodule "js_iteration_1/ace-builds"]
+	path = js_iteration_1/ace-builds
+	url = git@github.com:ajaxorg/ace-builds.git
+  branch = 2268d21c5893320330c9daf10b70b1973ca45eba
+#	branch = tags/v1.2.6
