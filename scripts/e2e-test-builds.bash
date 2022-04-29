@@ -4,7 +4,7 @@
 set -ex
 
 # args:
-# * pwd (via $REPO_ROOT)
+# * pwd (via $ORIG_REPO_ROOT)
 # mmust be executed fromo within a folder in the main implisolid repo
 # todo : another version for install-dev
 
@@ -41,12 +41,12 @@ function __current_script_dir_func0 () {
 source $(__current_script_dir_func0)/bash-utils.sh
 
 set -ex
-export REPO_ROOT=$(git rev-parse --show-toplevel)
-echo "REPO_ROOT :::: $REPO_ROOT"
-assert_env_nonempty $REPO_ROOT "REPO_ROOT=$REPO_ROOT   implisolid repo not found in current directory $(pwd)"
+export ORIG_REPO_ROOT=$(git rev-parse --show-toplevel)
+echo "ORIG_REPO_ROOT :::: $ORIG_REPO_ROOT"
+assert_env_nonempty $ORIG_REPO_ROOT "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisolid repo not found in current directory $(pwd)"
 
-#cd $REPO_ROOT; mkdir e2e-sandbox-temp
-E2E=$REPO_ROOT/e2e-sandbox-temp
+#cd $ORIG_REPO_ROOT; mkdir e2e-sandbox-temp
+E2E=$ORIG_REPO_ROOT/e2e-sandbox-temp
 rm -rf $E2E
 # #### hard reset done #####
 
@@ -55,7 +55,7 @@ cd $E2E
 # only updated after actually pushing => requires branch name! active branch name: hot branch: one neing processed. stil hot
 git clone git@github.com:sohale/implisolid.git
 # todo: from local:
-#rsync -r $REPO_ROOT $E2E
+#rsync -r $ORIG_REPO_ROOT $E2E
 # recursive
 
 cd implisolid
@@ -71,7 +71,7 @@ export BASELOC2=$NEWREPO_BASE
 export BASELOC3=$NEWREPO_BASE
 
 # CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
-CACHE_TEMP="$BASELOC1/temp"
+CACHE_TEMP="$ORIG_REPO_ROOT/temp"
 mkdir -p "$CACHE_TEMP"
 
 pwd

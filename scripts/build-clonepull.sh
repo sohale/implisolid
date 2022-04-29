@@ -128,9 +128,13 @@ get_eigen() {
 
   # two alternatives
   #git clone https://gitlab.com/libeigen/eigen.git  --depth 1
+  #git clone https://github.com/libigl/eigen  --depth 1
+  ls -1 $CACHE_TEMP/eigen >/dev/null || \
   git clone https://github.com/libigl/eigen  --depth 1
+
   popd
 
+  mkdir -p ./eigen
   cp -R $CACHE_TEMP/eigen .
 
   #mv -vn ./eigen/Eigen ./lib/eigen
