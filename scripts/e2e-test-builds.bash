@@ -53,7 +53,7 @@ rm -rf $E2E
 mkdir $E2E
 cd $E2E
 # only updated after actually pushing => requires branch name! active branch name: hot branch: one neing processed. stil hot
-git clone git@github.com:sohale/implisolid.git
+git clone --recurse-submodules git@github.com:sohale/implisolid.git
 # todo: from local:
 #rsync -r $ORIG_REPO_ROOT $E2E
 # recursive
