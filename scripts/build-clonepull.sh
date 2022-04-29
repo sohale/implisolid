@@ -90,11 +90,12 @@ get_boost() {
     #CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
 
     mkdir -p $CACHE_TEMP
+    ls -1 $CACHE_TEMP/boost.tar.gz >/dev/null || \
     wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O $CACHE_TEMP/boost.tar.gz
 
     #wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
     #echo rem || wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
-    cp $CACHE_TEMP ./boost.tar.gz
+    cp $CACHE_TEMP/boost.tar.gz ./boost.tar.gz
 
     # boost_1_75_0.tar.gz
     echo Unzipping boost\'s .tar.gz
