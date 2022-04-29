@@ -60,7 +60,7 @@ git clone git@github.com:sohale/implisolid.git
 
 cd implisolid
 pwd
-find $E2E -depth 2
+find $E2E -maxdepth 2
 
 NEWREPO_ROOT=$E2E/implisolid
 NEWREPO_BASE=$E2E
