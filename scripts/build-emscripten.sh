@@ -16,6 +16,7 @@ assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain
 assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
 #export IMPLISOLID=$BASELOC1/implisolid
 
+# SCRIPTS_DIR is not really used
 
 # usage: IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/demos ./demos/demo1-build.sh
 
@@ -23,7 +24,7 @@ set -e
 
 
 #SCRIPTS_DIR=$REPO_ROOT/demos
-IMPLISOLID=$IMPLISOLID source $SCRIPTS_DIR/build_configuration.sh
+IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
 # output: DEMO_LOCATION, BUILD_LOCATION,LIB_FOLDER
 
 #assert_env_nonempty $DEMO_LOCATION "env-argument DEMO_LOCATION ..."

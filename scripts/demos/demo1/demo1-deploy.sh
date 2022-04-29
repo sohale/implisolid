@@ -13,6 +13,7 @@ function assert_env_nonempty() {
 assert_env_nonempty $BASELOC1 "env-argument BASELOC1= not specified"
 assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
 
+echo SCRIPTS_DIR is not really used
 
 # deploy: to put it "there"
 # run:  BASELOC1=$(pwd) bash deploy-demo-1.sh
@@ -41,7 +42,7 @@ export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
 
 
 
-
+# Wait, what?
 #export LOCAL_DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
 export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
@@ -155,17 +156,14 @@ cd ..
 
 cd $DEPLOY_LOCATION
 
-cat >$DEPLOY_LOCATION/run.sh << LAUNCH_SCRIPT
+cat >$DEPLOY_LOCATION/launch-local.sh << LAUNCH_SCRIPT
 
 echo visit http://localhost:8000/mp5_json_code.html
 python3 -m http.server 8000
 LAUNCH_SCRIPT
 
-cat $DEPLOY_LOCATION/run.sh
+cat $DEPLOY_LOCATION/launch-local.sh
+# But this file is not actually executed.
+# Instead this will be executed: $SCRIPTS_DIR/demos/demo1/demo1-run-local.sh
 
-echo "going to actually run"
-
-# $IMPLISOLID_BUILD_REPO/demo1/.. # wrong?
-cd $DEPLOY_LOCATION
-pwd
-DEPLOY_LOCATION="$DEPLOY_LOCATION" bash $SCRIPTS_DIR/demo1-run-local.sh
+echo "DEPLOY_LOCATION is $DEPLOY_LOCATION"
