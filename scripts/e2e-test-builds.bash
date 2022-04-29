@@ -70,9 +70,13 @@ export BASELOC1=$NEWREPO_BASE
 export BASELOC2=$NEWREPO_BASE
 export BASELOC3=$NEWREPO_BASE
 
+# CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
+CACHE_TEMP="$BASELOC1/temp"
+mkdir -p "$CACHE_TEMP"
+
 pwd
 # must run the internal one!
-IMPLISOLID="$BASELOC1/implisolid" ./scripts/build-clonepull.sh
+IMPLISOLID="$BASELOC1/implisolid" CACHE_TEMP="$CACHE_TEMP" ./scripts/build-clonepull.sh
 
 pwd
 IMPLISOLID="$BASELOC1/implisolid" SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/build-emscripten.sh

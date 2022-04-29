@@ -17,6 +17,7 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
 #assert_env_nonempty $BASELOC1
 #export IMPLISOLID=$BASELOC1/implisolid
 # arg: pwd (unused)
+assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 
 # not used?!: BASELOC2, BASELOC3
 
@@ -85,13 +86,15 @@ get_boost() {
     # old: boost_1_61_0
 
     # two alternatives
+    #ORIG_IMPLISOLID=$IMPLISOLID/..
+    #CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
 
-    mkdir -p demos/build
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O demos/build/boost.tar.gz
+    mkdir -p $CACHE_TEMP
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O $CACHE_TEMP/boost.tar.gz
 
     #wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
     #echo rem || wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
-    cp /Users/9858770/cs/implisolid/demos/build/boost.tar.gz ./boost.tar.gz
+    cp $CACHE_TEMP ./boost.tar.gz
 
     # boost_1_75_0.tar.gz
     echo Unzipping boost\'s .tar.gz
@@ -119,9 +122,15 @@ get_eigen() {
   # todo: 831133cc =  3.4.0-rc1
   # master latest was: 853a5c4b843a3f1de5de2a25429eefd62dbd153a
 
+  pushd .
+  mkdir -p $CACHE_TEMP; cd $CACHE_TEMP
+
   # two alternatives
   #git clone https://gitlab.com/libeigen/eigen.git  --depth 1
   git clone https://github.com/libigl/eigen  --depth 1
+  popd
+
+  cp -R $CACHE_TEMP/eigen .
 
   #mv -vn ./eigen/Eigen ./lib/eigen
   mv -vn ./eigen ./lib/
