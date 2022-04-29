@@ -10,7 +10,7 @@ function assert_env_nonempty() {
 }
 
 # args:
-assert_env_nonempty $BASELOC1 "env-argument BASELOC1= not specified"
+assert_env_nonempty $IMPLISOLID_REPO "env-argument IMPLISOLID_REPO= not specified"
 assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
 
 echo SCRIPTS_DIR is not really used
@@ -28,7 +28,7 @@ set -e
 
 # Altenative names: BASE_IMPLISOLID, REPOBASE_IMPLISOLID, IMPLISOLID, REPO_IMPLISOLID, IMPLISOLID_REPO
 # repo bases
-export IMPLISOLID_REPO=$BASELOC1/implisolid
+#export IMPLISOLID_REPO=$BASELOC1/implisolid
 # same as $REPO_ROOT
 
 #export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
