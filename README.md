@@ -8,10 +8,13 @@ The main usecase for ImpliSolid is 3D printing.
 
 ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
 
-The main strength is its ability to work efficiently with sharp edges.
-It also uses adaptive subdivition for smooth and perfect curved surfaces.
+The main strength is its ability to work efficiently with **sharp edges**.
+It also uses **adaptive subdivition** for smooth and perfect curved surfaces.
+These are achieved using relatively lower resolution meshes.
 
 It uses "vectorised" numerical calulations to achieve higher speed by utilising Instruction Pipelining in modern CPUs.
+This enables it to be useful on consumer and home computers.
+<!-- This enables it to be useful on consumer and home computers on browser without GPU.-->
 
 ImpliSolid use is not limited to browsers. It has implementations in C++, Python (native) and JavaScript.
 
@@ -90,9 +93,9 @@ List of platforms with scripts (to install and compile):
 - JavaScript on `npm` (comming soon)
 - JavaScript (browser) using Docker (comming soon)
 - Python binding (recommended)
-- Python native (installs dependencies such as VTK)
-- Clang/LLVM
-- Native C++: g++
+- Python native (requires dependencies such as [VTK](https://vtk.org/doc/nightly/html/md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html) or [Mayavi](https://docs.enthought.com/mayavi/mayavi/))
+- Clang / LLVM
+- Native C++: `g++` (see [script](js_iteration_1/build_g++.sh))
 
 ## Tutorials:
 
