@@ -22,8 +22,18 @@ Currently two open-source projects that use this library:
 * [mp5-private](http://github.com/sohale/mp5-private), i.e. the [WeDesign.Live](http://beta.wedesign.live) (incubated open-source)
 * [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated open-source)
 
-#### Architecture
-The Library has three levels, each with a separate API. The final version will have 5 levels.
+## E2E demo
+For single-click execution, run (Tested on Ubuntu and MacOS):
+```bash
+git clone git@github.com:sohale/implisolid.git
+cd implisolid/
+./scripts/e2e-test-builds.bash
+```
+This will run and end-to-end demo: Pulls the code, compiles the code for Emscripten. Then launches a web server and runs a demo on browser [like this](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html). The interactive live demo instantly polygonises the objects and visualises them as the `mp5` file is edited.
+
+
+### Architecture
+The `IMPLICIT` javascript library (for browser: js + threejs) has three levels, each with a separate API. The final version will have 5 levels.
 Levels 1 and 2 are independent of ThreeJS, hence can be used in NodeJS or as a WebWorker.
 Only the Highest level API (level 3) uses Three.JS (For example see: mcc2_3js_r79.js ).
 

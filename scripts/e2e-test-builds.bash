@@ -94,7 +94,7 @@ pwd
 CACHE_TEMP="$CACHE_TEMP" \
     IMPLISOLID="$NEW_REPO"  \
     LIB_FOLDER="$IMPLISOLID/demos/build/lib"  BUILD_LOCATION="$IMPLISOLID/demos/build" \
-    ./scripts/build-clonepull.sh
+    bash ./scripts/build-clonepull.sh
 
 pwd
 
