@@ -74,12 +74,14 @@ NEWREPO_BASE=$E2E
 CACHE_TEMP="$ORIG_REPO_ROOT/temp"
 mkdir -p "$CACHE_TEMP"
 
-pwd
-# must run the internal one!
-IMPLISOLID="$NEWREPO_BASE/implisolid" CACHE_TEMP="$CACHE_TEMP" ./scripts/build-clonepull.sh
+NEW_REPO="$NEWREPO_BASE/implisolid"
 
 pwd
-IMPLISOLID="$NEWREPO_BASE/implisolid" SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/build-emscripten.sh
+# must run the internal one!
+IMPLISOLID="$NEW_REPO" CACHE_TEMP="$CACHE_TEMP" ./scripts/build-clonepull.sh
+
+pwd
+IMPLISOLID="$NEW_REPO" SCRIPTS_DIR=$NEW_REPO/scripts ./scripts/build-emscripten.sh
 
 
 
@@ -94,14 +96,14 @@ IMPLISOLID="$NEWREPO_BASE/implisolid" SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/
 
 # Two alternatives: pre-buillt, and the new-built:
 # simplified:
-export DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
-export DEPLOY_LOCATION=$IMPLISOLID_REPO/docs/implisolid-build/demo1
-# was: export DEPLOY_LOCATION=$IMPLISOLID_REPO/docs/implisolid-build
+export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
+export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
+# was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
 
 
 # SCRIPTS_DIR="$NEWREPO_ROOT/scripts"
 pwd
-IMPLISOLID_REPO="$NEWREPO_BASE/implisolid"  DEPLOY_LOCATION=$"DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
+IMPLISOLID_REPO="$NEW_REPO"  DEPLOY_LOCATION="$DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
 pwd
