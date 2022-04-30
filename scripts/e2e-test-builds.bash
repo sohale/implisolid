@@ -81,7 +81,7 @@ pwd
 IMPLISOLID="$NEW_REPO" CACHE_TEMP="$CACHE_TEMP" ./scripts/build-clonepull.sh
 
 pwd
-IMPLISOLID="$NEW_REPO" SCRIPTS_DIR=$NEW_REPO/scripts ./scripts/build-emscripten.sh
+IMPLISOLID="$NEW_REPO" ./scripts/build-emscripten.sh
 
 
 

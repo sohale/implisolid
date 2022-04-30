@@ -10,7 +10,7 @@ function assert_env_nonempty() {
 
 # args:
 
-assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain \$SCRIPTS_DIR/build_configuration.sh"
+#assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain \$SCRIPTS_DIR/build_configuration.sh"
 # build script folder, different to deploy etc
 
 assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
