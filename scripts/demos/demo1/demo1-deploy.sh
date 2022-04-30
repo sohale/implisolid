@@ -85,7 +85,8 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 
 cd $START_DEMOS
 
-rm -rv demo1; mkdir demo1; cd demo1
+mkdir -p $START_DEMOS/demo1
+rm -rfv $START_DEMOS/demo1; mkdir $START_DEMOS/demo1; cd $START_DEMOS/demo1
 
 function gather_files_for_deploy() {
     # Gathers various files and prepares them for deploying.

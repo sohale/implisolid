@@ -79,7 +79,10 @@ prime_docker() {
 }
 printf "\n\n\n"
 
+export QQ="$BUILD_LOCATION"
 cd $BUILD_LOCATION
+cd $QQ # BUILD_LOCATION
+
 pwd
 #mkdir -p $BUILD_LOCATION/lib
 #export LIB_FOLDER=$IMPLISOLID/demos/build/lib
@@ -102,16 +105,20 @@ get_boost() {
 
     #wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
     #echo rem || wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
-    cp $CACHE_TEMP/boost.tar.gz ./boost.tar.gz
+    cp $CACHE_TEMP/boost.tar.gz  $QQ/boost.tar.gz
 
     # boost_1_75_0.tar.gz
-    echo Unzipping boost\'s .tar.gz
+    echo "Unzipping boost\'s .tar.gz"
     ## gunzip -c boost_1_75_0.tar.gz | tar xopf -
     ## gunzip -c boost.tar.gz | tar xopf -
-    gunzip -c boost.tar.gz | tar xopf -
+    #gunzip -c boost.tar.gz | tar xopf -
+    pushd .
+    cd $QQ
+    gunzip -c $QQ/boost.tar.gz | tar xopf -
+    popd
     # # boost_1_75_0
-    mv -vn ./boost_1_75_0 $LIB_FOLDER/
-    #mv -vn ./boost_1_75_0/boost $LIB_FOLDER/boost
+    mv -vn $QQ/boost_1_75_0 $LIB_FOLDER/
+    #mv -vn $QQ/boost_1_75_0/boost $LIB_FOLDER/boost
 
     # todo: wget filename
     # wget --server-response -q -O - "https://very.long/url/here" 2>&1 |   grep "Content-Disposition:" | tail -1 |   awk 'match($0, /filename=(.+)/, f){ print f[1] }' )
@@ -137,15 +144,15 @@ get_eigen() {
   #git clone https://gitlab.com/libeigen/eigen.git  --depth 1
   #git clone https://github.com/libigl/eigen  --depth 1
   ls -1 $CACHE_TEMP/eigen >/dev/null || \
-  git clone https://github.com/libigl/eigen  --depth 1
+  git clone https://github.com/libigl/eigen  --depth 1  $CACHE_TEMP
 
   popd
 
-  mkdir -p ./eigen
-  cp -R $CACHE_TEMP/eigen .
+  mkdir -p $QQ/eigen
+  cp -R $CACHE_TEMP/eigen $QQ
 
-  #mv -vn ./eigen/Eigen $LIB_FOLDER/eigen
-  mv -vn ./eigen $LIB_FOLDER/
+  #mv -vn $QQ/eigen/Eigen $LIB_FOLDER/eigen
+  mv -vn $QQ/eigen $LIB_FOLDER/
 }
 
 get_eigen
