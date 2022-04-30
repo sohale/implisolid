@@ -6,8 +6,14 @@ ImpliSolid
 **ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *Implicit Surfaces* modelling (aka *F-REP*).
 The main usecase for ImpliSolid is 3D printing.
 
-ImpliSolid uses very efficient (vectorised) calculations to provide instant polygonisation of Implicit Surfaces on your browser.
-ImpliSolid use is not limited to browsers. It is available in C++, native Python and JavaScript.
+ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
+
+The main strength is its ability to work efficiently with sharp edges.
+It also uses adaptive subdivition for smooth and perfect curved surfaces.
+
+It uses "vectorised" numerical calulations to achieve higher speed by utilising Instruction Pipelining in modern CPUs.
+
+ImpliSolid use is not limited to browsers. It has implementations in C++, Python (native) and JavaScript.
 
 | | |
 |------:|:-------|
@@ -27,7 +33,7 @@ Currently two open-source projects that use this library:
 * [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated)
 
 ## E2E demo
-For single-click execution, run (Tested on Ubuntu and MacOS):
+For single-click execution in your computer (tested on Ubuntu and MacOS), run:
 ```bash
 git clone git@github.com:sohale/implisolid.git
 cd implisolid/
@@ -44,7 +50,7 @@ ImpliSolid is implemented for JavaSCript, C++, Python.
 ### JavaScript
 Implicit can be compiled into JavaScript using *Emscripten*.
 
-The JAvascript compile target part can run on **Browser**, or NodeJS, or as a Web Worker.
+The Javascript compile target part can run on **Browser**, or NodeJS, or as a Web Worker.
 
 Implisolid was originally intended for use in Browsers without need to any serverside.
 
@@ -66,60 +72,49 @@ Only the Highest level API (level 3) uses Three.JS (For example see: [mp5_json_c
 * A web-assembly version will be available soon.
 
 ### C++
-ImpliSolid is written in C++.
+ImpliSolid is written in modern C++.
 
-The C++ implementation can be used standalone for modern C++ compilers such as g++. It is compiled into JavaScript using *Emscripten*.
+The C++ implementation can be used standalone for modern C++ compilers such as `g++` and `clang`. The main target is compiled into JavaScript using *Emscripten*.
 ### Python
 Two Python implementations are already available:
 1. As a native Python implementation
-2. As a Python binding.
-
+2. As a Python binding that connects to a binary compilation of the C++ version.
 
 
 ## Available targets
 List of platforms with scripts (to install and compile):
 
-- JavaScript (asm.js, on browser)
-- JavaScript npm.
+- JavaScript (browser, formerly called `asm.js`)
 - JavaScript, WebWorker version
 - WebAssembly (comming soon)
-- JavaScript (browser) using Docker
+- JavaScript on `npm` (comming soon)
+- JavaScript (browser) using Docker (comming soon)
 - Python binding (recommended)
 - Python native (installs dependencies such as VTK)
 - Clang/LLVM
 - Native C++: g++
 
-# Tutorials:
-> - [Prerequisites](#prerequisites)
-- [File organisation](#file-organisation)
-- [Python](#python)
-- [C++ to javascript](#c-to-javascript)
-    - [Boost](#boost)
-    - [Emscripten](#emscripten)
-    - [How to compile](#how-to-compile)
+## Tutorials:
 
-### Deployment on web server:
+### E2E demo
+For single-click execution in your computer (tested on Ubuntu and MacOS), run:
+```bash
+git clone git@github.com:sohale/implisolid.git
+cd implisolid/
+bash ./scripts/e2e-test-builds.bash
+```
+This will run and end-to-end demo: Pulls the code, compiles the code for Emscripten. Then launches a web server and runs a demo on browser [like this](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html). The interactive live demo instantly polygonises the objects and visualises them as the `mp5` file is edited.
+
+### Deployment on web server
 
 This document describes how to set up your installation so that you can work on the solid modeler projects.
 
 Specifically, instructions for installing MP5/WeDesign Solid Modeler on web server:
 
-**Table of Contents**
 
-> - [Prerequisites](#prerequisites)
-- [File organisation](#file-organisation)
-- [Python](#python)
-- [C++ to javascript](#c-to-javascript)
-    - [Boost](#boost)
-    - [Emscripten](#emscripten)
-    - [How to compile](#how-to-compile)
-
-
-----------
-
-Prerequisites
+#### Prerequisites
 -------------
-Basic requirements:
+##### Basic requirements:
 
  - A Linux distribution of your choice (everything can work on an other os but these tutorials will focus on linux)
  - Git
@@ -129,14 +124,12 @@ Basic requirements:
  - C++ compiler (g++ is a good choice and is often preinstalled)
 
 
-Installation and proper configuration of those software is out of the scope of this document. Please refer to their documentation.
+Installation and proper configuration of above software is out of the scope of this document. Please refer to their documentation.
 
-----------
-
-File organisation
+## File organisation
 -------------------
 
-As of today there are three main folders to this project :
+As of 2016 there are three main folders to this project :
 
 - <b>Clean_code</b> contains a for now frozen implementation of the Dual/Primal Mesh Optimization algorithme for Polygonized Implicit Surfaces. You can learn more about this algorithme here : http://www.hyperfun.org/SM02ob.pdf. It is the main output of the solid modeler project.
 - <b>implicit</b> contains still worked on python scripts related to the project. A big part of this file has been transfered to clean_code.
@@ -144,7 +137,7 @@ As of today there are three main folders to this project :
 
 -------------------
 
-Python
+### Python
 -------------------
 
 In order to work on and execute the python scripts you may need to install the following libraries :
@@ -158,22 +151,37 @@ For most of those libraries, a simple `sudo apt-get install python-LibraryName` 
 
 -------------------
 
-C++ to javascript
+### C++ to javascript
 -------------------
+See [scripts/e2e-test-builds.bash](scripts/e2e-test-builds.bash).
+Simply run `bash ./scripts/e2e-test-builds.bash`
+
+
+#### Older notes are below:
+
+
 In this part of the project, Emscripten is used to convert c++ code into javascript code that is later used in html.
-#### <b>Boost</b>
+##### Boost
 For the c++ code, we use the Boost library. It does not need to be built but still need to be installed. You can follow this tutorial to do so : http://www.boost.org/doc/libs/1_57_0/more/getting_started/unix-variants.html.
 
-#### <b>Emscripten</b>
+##### Emscripten
+Emscripten can be used simply using Docker `emscripten/emsdk`. See abovementioned script.
+
+Old note:
 The installation of Emscripten often proves a little trickier than the other installations. Here are two tutorials you should follow <b>in the order proposed</b> : https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#platform-notes-installation-instructions-portable-sdk  http://kripken.github.io/emscripten-site/docs/building_from_source/building_fastcomp_manually_from_source.html#building-fastcomp-from-source.
 
-#### How to compile
+##### How to compile
 The combined use of the Boost library and Emscripten makes compiling a little bit different. For this, we have created the `mc_name.sh` files. For exemple, I use the `mc_marc.sh` file to compile a c++ file into a js file (that is later called in the html file you will simply need to launch in your browser). In this `mc_name.sh` file you'll only find on uncommented line : it is used to compile your c++ file and goes like this :
 `~/FolderComtainingYourEmsdk_PortableFolder/emsdk_portable/emscripten/master/em++ -I /LocationOfYourBoostInstalation/boost_1_57_0/ -s EXPORTED_FUNCTIONS="['_make_object', '_main']" -s NO_EXIT_RUNTIME=1 -s ASSERTIONS=1 -pedantic -std=c++14 mc2_sol.cpp -o mc2_sol.cpp.js`. In this exemple you'll compile the file mc2_sol.cpp into mc2_sol.cpp.js exporting its important functions (make_object and main).
 
 -----------
 
 ##### Compiling C++ to javascript using Docker
+
+Simply see [build-emscripten.sh](scripts/build-emscripten.sh).
+
+Old note:
+
 You can use a pre installed docker container to compile implisolid:
 ```docker run -v /Users/Tiger/Documents/mp5-private/implisolid:/src -t mp51/solidmodel /bin/bash /src/js_iteration_1/build_mcc2_docker.sh -o```
 
