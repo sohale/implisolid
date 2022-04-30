@@ -72,7 +72,7 @@ MODE=$DEV
 
 export WASM=0
 
-[[ $OSTYPE == 'darwin'* ]] || echo "Error: This bash script only tested on MacOS. MacOS-specific code"
+[[ $OSTYPE == 'darwin'* ]] || echo "Warning: This bash script only tested on MacOS. MacOS-specific code"
 # because of the `if` `then` `fi` conditions
 
 if [ $MODE -eq $OPTIM ]
