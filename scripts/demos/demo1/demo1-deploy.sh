@@ -16,6 +16,7 @@ assert_env_nonempty $IMPLISOLID_REPO "env-argument IMPLISOLID_REPO= not specifie
 # target/destination: to-deploy:
 assert_env_nonempty $DEPLOY_LOCATION "env-argument DEPLOY_LOCATION= not specified"
 
+assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
 
 
 #echo SCRIPTS_DIR is not really used
@@ -77,7 +78,7 @@ export START_DEMOS=$IMPLISOLID_REPO/demos
 #export BUILT=$IMPLISOLID_BUILD_REPO
 
 # soft-built: locally just built
-export BUILD_LOCATION=$IMPLISOLID_REPO/demos/build
+#export BUILD_LOCATION=$IMPLISOLID_REPO/demos/build
 export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 # Pre-built from submodule on github:
 #export compiled_file=$BUILT/opt/mcc2.compiled.js

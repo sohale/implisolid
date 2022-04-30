@@ -95,10 +95,10 @@ IMPLISOLID="$NEW_REPO" ./scripts/build-emscripten.sh
 export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
 export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
 # was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
-
+export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 
 pwd
-IMPLISOLID_REPO="$NEW_REPO"  DEPLOY_LOCATION="$DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
+IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" DEPLOY_LOCATION="$DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
 pwd
