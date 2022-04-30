@@ -19,6 +19,12 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
 # arg: pwd (unused)
 assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 
+# target:
+#export BUILD_LOCATION=$IMPLISOLID/demos/build
+assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
+assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER= not specified"
+
+
 # not used?!: BASELOC2, BASELOC3
 
 # 1. Clone the repo itself (including this script)
@@ -52,8 +58,8 @@ assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 set -e
 
 # target:
-export BUILD_LOCATION=$IMPLISOLID/demos/build
-mkdir -p $IMPLISOLID/demos/demo1  # why?  .DEMO_LOCATION
+#export BUILD_LOCATION=$IMPLISOLID/demos/build
+#mkdir -p $IMPLISOLID/demos/demo1  # why?  .DEMO_LOCATION
 mkdir -p $BUILD_LOCATION
 
 #sources:
@@ -75,8 +81,10 @@ printf "\n\n\n"
 
 cd $BUILD_LOCATION
 pwd
-mkdir -p $BUILD_LOCATION/lib
-export LIB_FOLDER=$IMPLISOLID/demos/build/lib
+#mkdir -p $BUILD_LOCATION/lib
+#export LIB_FOLDER=$IMPLISOLID/demos/build/lib
+#export LIB_FOLDER=$BUILD_LOCATION/lib
+mkdir -p $LIB_FOLDER
 
 get_boost() {
     echo "downloading library: Boost (1.75.0)"
@@ -102,8 +110,8 @@ get_boost() {
     ## gunzip -c boost.tar.gz | tar xopf -
     gunzip -c boost.tar.gz | tar xopf -
     # # boost_1_75_0
-    mv -vn ./boost_1_75_0 ./lib/
-    #mv -vn ./boost_1_75_0/boost ./lib/boost
+    mv -vn ./boost_1_75_0 $LIB_FOLDER/
+    #mv -vn ./boost_1_75_0/boost $LIB_FOLDER/boost
 
     # todo: wget filename
     # wget --server-response -q -O - "https://very.long/url/here" 2>&1 |   grep "Content-Disposition:" | tail -1 |   awk 'match($0, /filename=(.+)/, f){ print f[1] }' )
@@ -136,8 +144,8 @@ get_eigen() {
   mkdir -p ./eigen
   cp -R $CACHE_TEMP/eigen .
 
-  #mv -vn ./eigen/Eigen ./lib/eigen
-  mv -vn ./eigen ./lib/
+  #mv -vn ./eigen/Eigen $LIB_FOLDER/eigen
+  mv -vn ./eigen $LIB_FOLDER/
 }
 
 get_eigen

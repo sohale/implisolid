@@ -72,19 +72,6 @@ mkdir -p "$CACHE_TEMP"
 
 
 
-pwd
-# must run the internal one!
-IMPLISOLID="$NEW_REPO" CACHE_TEMP="$CACHE_TEMP" \
-    ./scripts/build-clonepull.sh
-
-pwd
-
-IMPLISOLID="$NEW_REPO"  LIB_FOLDER=$IMPLISOLID/demos/build/lib \
-    BUILD_LOCATION=$IMPLISOLID/demos/build   \
-    bash ./scripts/build-emscripten.sh
-
-
-
 # export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 
@@ -100,6 +87,21 @@ export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
 export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
 # was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
 export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
+
+
+pwd
+# must run the internal one!
+CACHE_TEMP="$CACHE_TEMP" \
+
+    IMPLISOLID="$NEW_REPO"  \
+    LIB_FOLDER="$IMPLISOLID/demos/build/lib"  BUILD_LOCATION="$IMPLISOLID/demos/build" \
+    ./scripts/build-clonepull.sh
+
+pwd
+
+IMPLISOLID="$NEW_REPO"  LIB_FOLDER="$IMPLISOLID/demos/build/lib" \
+    BUILD_LOCATION="$IMPLISOLID/demos/build"   \
+    bash ./scripts/build-emscripten.sh
 
 pwd
 IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
