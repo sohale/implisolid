@@ -3,24 +3,28 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a Solid Modelling library/engine based on *Implicit Surfaces* modelling (aka *F-REP*).
+**ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *Implicit Surfaces* modelling (aka *F-REP*).
 The main usecase for ImpliSolid is 3D printing.
 
 ImpliSolid uses very efficient (vectorised) calculations to provide instant polygonisation of Implicit Surfaces on your browser.
 ImpliSolid use is not limited to browsers. It is available in C++, native Python and JavaScript.
 
-| |
-|:-------------:|
-|  Website: [link](https://sohale.github.io/implisolid/) |
-| An interactive editor: [link](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) |
+| | |
+|------:|:-------|
+|  Implisolid homepage: | [homepage](https://sohale.github.io/implisolid/) |
+|  Github:  | [sohale/implisolid](https://github.com/sohale/implisolid) |
+| An interactive live demo:| [mp5 editor](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html) |
+<!-- |  An interactive editor: | [link defunct](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) | -->
 
 
-ImpliSolid uses academic research such as the polygonization algorithm published by Ohtake & Belyaev.
+**`ImpliSolid`** uses academic research on the polygonization algorithm such as the algorithm by [Ohtake](https://www.u-tokyo.ac.jp/focus/en/people/people000639.html) & [Belyaev](https://scholar.google.co.uk/citations?user=UgOo39sAAAAJ&hl=en).
+
+<!-- https://dl.acm.org/doi/10.1145/882262.882293 -->
 
 Currently two open-source projects that use this library:
 
-* [mp5-private](http://github.com/sohale/mp5-private), i.e. the [WeDesign.Live](http://beta.wedesign.live) (incubated open-source)
-* [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated open-source)
+* [mp5-private](http://github.com/sohale/mp5-private), i.e. the [WeDesign.Live](http://beta.wedesign.live) (incubated)
+* [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated)
 
 ## E2E demo
 For single-click execution, run (Tested on Ubuntu and MacOS):
@@ -32,22 +36,34 @@ bash ./scripts/e2e-test-builds.bash
 This will run and end-to-end demo: Pulls the code, compiles the code for Emscripten. Then launches a web server and runs a demo on browser [like this](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html). The interactive live demo instantly polygonises the objects and visualises them as the `mp5` file is edited.
 
 
-### Architecture
-The `IMPLICIT` javascript library (for browser: js + threejs) has three levels, each with a separate API. The final version will have 5 levels.
-Levels 1 and 2 are independent of ThreeJS, hence can be used in NodeJS or as a WebWorker.
-Only the Highest level API (level 3) uses Three.JS (For example see: mcc2_3js_r79.js ).
+
 
 ## Implemenation
 
 ImpliSolid is implemented for JavaSCript, C++, Python.
 ### JavaScript
-The JS part can run on **Browser**, or NodeJS, or as a Web Worker.
+Implicit can be compiled into JavaScript using *Emscripten*.
+
+The JAvascript compile target part can run on **Browser**, or NodeJS, or as a Web Worker.
 
 Implisolid was originally intended for use in Browsers without need to any serverside.
 
 ImpliSolid will soon be available in **WebAssembly** (tutorial comming soon).
 
 The **npm** is available from [here](www.npmjs.com/package/@sohale/implisolid) (will be moved).
+
+#### Architecture
+The `IMPLICIT` javascript library is a wrapper for the library for browser: js + [threejs](https://threejs.org).
+It has three levels, each with a separate API. The final version will have 5 levels.
+Levels 1 and 2 are independent of ThreeJS, hence can be used in NodeJS or as a WebWorker.
+Only the Highest level API (level 3) uses Three.JS (For example see: [mp5_json_code.html](js_iteration_2/examples/mp5interactive/mp5_json_code.html) and [demo1-deploy.sh](scripts/demos/demo1/demo1-deploy.sh), [mcc2_3js_r79.js](js_iteration_1/mcc2_3js_r79.html) or [this code fragment](docs/readme.md)).
+
+
+* A variant version builds objects incrementally.
+* A variant builds objects incrementally in Web Worker of browser (see [implisolid_worker.js](js_iteration_2/js/implisolid_worker.js)).
+
+* The main target can be compiled using `scripts/build-emscripten.sh`
+* A web-assembly version will be available soon.
 
 ### C++
 ImpliSolid is written in C++.
@@ -60,7 +76,7 @@ Two Python implementations are already available:
 
 
 
-##Available targets
+## Available targets
 List of platforms with scripts (to install and compile):
 
 - JavaScript (asm.js, on browser)
@@ -73,7 +89,7 @@ List of platforms with scripts (to install and compile):
 - Clang/LLVM
 - Native C++: g++
 
-#Tutorials:
+# Tutorials:
 > - [Prerequisites](#prerequisites)
 - [File organisation](#file-organisation)
 - [Python](#python)
