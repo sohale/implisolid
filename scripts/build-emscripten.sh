@@ -23,14 +23,16 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
 set -e
 
 # BUILD_LOCATION = where compiled file wil be stored
-
+function old_pattern() {
 #SCRIPTS_DIR=$REPO_ROOT/demos
 IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
 # output: BUILD_LOCATION,LIB_FOLDER
-
-
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
+}
+
+export BUILD_LOCATION=$IMPLISOLID/demos/build
+export LIB_FOLDER=$BUILD_LOCATION/lib
 
 # Does not give you the folder, it tells you the name, that it wuol dbe in: found in, put in, etc.
 mkdir -p $BUILD_LOCATION; ls $BUILD_LOCATION >/dev/null
