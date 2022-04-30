@@ -76,10 +76,12 @@ mkdir -p "$CACHE_TEMP"
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 
 # Targets:
-#1. for sohale.github.io (uses own repo, aka "remote" or static) -> ./docs/implisolid-build/demo1
+# 1. for sohale.github.io (uses own repo, aka "remote" or static) -> ./docs/implisolid-build/demo1
 #       remote/public deploy (to github-pages)
-#2. for separate (liquid) (runtime-created) folder (aka local! deploy) -> ./demos/demo1/
-#3. for mp5_private  --> /home/$USER/mp5-private/implisolid
+#       builds (bakes) into https://github.com/sohale/implisolid-build
+#       which is a submodule here
+# 2. for separate (liquid) (runtime-created) folder (aka local! deploy) -> ./demos/demo1/
+# 3. for mp5_private  --> /home/$USER/mp5-private/implisolid
 
 # Three alternatives: pre-buillt, and the new-built:
 # simplified:
