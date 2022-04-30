@@ -106,11 +106,11 @@ pwd
 IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
     DEPLOY_LOCATION="$DEPLOY_LOCATION" \
     bash ./scripts/demos/demo1/demo1-deploy.sh
-# also runs demos/demo1-run-local.sh
+# also runs demos/launch-demo1-local.bash
 
 pwd
 APP_RUN_LOCATION="$DEPLOY_LOCATION" \
-    bash ./scripts/demos/demo1/demo1-run-local.sh
+    bash ./scripts/demos/demo1/launch-demo1-local.bash
 
 echo "All successful."
 return 0
@@ -131,7 +131,7 @@ Scripts:
         * demo1-build.sh // no! does not use the configuration of demo
 
         * demo1-deploy.sh
-        * demo1-run-local.sh
+        * launch-demo1-local.bash ( demo1-run-local.sh )
         * build_configuration.sh
 
     * bash-utils.sh

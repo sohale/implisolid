@@ -27,7 +27,7 @@ For single-click execution, run (Tested on Ubuntu and MacOS):
 ```bash
 git clone git@github.com:sohale/implisolid.git
 cd implisolid/
-./scripts/e2e-test-builds.bash
+bash ./scripts/e2e-test-builds.bash
 ```
 This will run and end-to-end demo: Pulls the code, compiles the code for Emscripten. Then launches a web server and runs a demo on browser [like this](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html). The interactive live demo instantly polygonises the objects and visualises them as the `mp5` file is edited.
 
