@@ -74,10 +74,14 @@ mkdir -p "$CACHE_TEMP"
 
 pwd
 # must run the internal one!
-IMPLISOLID="$NEW_REPO" CACHE_TEMP="$CACHE_TEMP" ./scripts/build-clonepull.sh
+IMPLISOLID="$NEW_REPO" CACHE_TEMP="$CACHE_TEMP" \
+    ./scripts/build-clonepull.sh
 
 pwd
-IMPLISOLID="$NEW_REPO" ./scripts/build-emscripten.sh
+
+IMPLISOLID="$NEW_REPO"  LIB_FOLDER=$IMPLISOLID/demos/build/lib \
+    BUILD_LOCATION=$IMPLISOLID/demos/build   \
+    bash ./scripts/build-emscripten.sh
 
 
 
@@ -98,11 +102,14 @@ export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
 export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 
 pwd
-IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" DEPLOY_LOCATION="$DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
+IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
+    DEPLOY_LOCATION="$DEPLOY_LOCATION" \
+    bash ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
 pwd
-APP_RUN_LOCATION="$DEPLOY_LOCATION" bash ./scripts/demos/demo1/demo1-run-local.sh
+APP_RUN_LOCATION="$DEPLOY_LOCATION" \
+    bash ./scripts/demos/demo1/demo1-run-local.sh
 
 echo "All successful."
 return 0
