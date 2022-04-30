@@ -82,8 +82,9 @@ pwd
 IMPLISOLID="$NEWREPO_BASE/implisolid" SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/build-emscripten.sh
 
 
+# SCRIPTS_DIR="$NEWREPO_ROOT/scripts"
 pwd
-IMPLISOLID_REPO="$NEWREPO_BASE/implisolid" SCRIPTS_DIR="$NEWREPO_ROOT/scripts" ./scripts/demos/demo1/demo1-deploy.sh
+IMPLISOLID_REPO="$NEWREPO_BASE/implisolid"  ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
 pwd

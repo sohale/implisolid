@@ -11,9 +11,9 @@ function assert_env_nonempty() {
 
 # args:
 assert_env_nonempty $IMPLISOLID_REPO "env-argument IMPLISOLID_REPO= not specified"
-assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
+#assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
 
-echo SCRIPTS_DIR is not really used
+#echo SCRIPTS_DIR is not really used
 
 # deploy: to put it "there"
 # run:  BASELOC1=$(pwd) bash deploy-demo-1.sh

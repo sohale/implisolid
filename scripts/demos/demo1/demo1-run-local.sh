@@ -26,6 +26,9 @@ echo $server_pid >server_pid-$server_pid.pid
 
 cd $DEPLOY_LOCATION/js
 
+public_ip="$(curl https://ipinfo.io/ip)"
+echo "http://${public_ip}:8000/mp5_json_code.html"
+echo "public ip: $public_ip"
 
 echo "click on mp5_json_code.html @"
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
