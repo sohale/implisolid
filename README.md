@@ -135,7 +135,7 @@ Installation and proper configuration of above software is out of the scope of t
 As of 2016 there are three main folders to this project :
 
 - <b>Clean_code</b> contains a for now frozen implementation of the Dual/Primal Mesh Optimization algorithme for Polygonized Implicit Surfaces. You can learn more about this algorithme here : http://www.hyperfun.org/SM02ob.pdf. It is the main output of the solid modeler project.
-- <b>implicit</b> contains still worked on python scripts related to the project. A big part of this file has been transfered to clean_code.
+- <b>implicit</b> contains still worked on python scripts related to the project. A big part of this file has been transfered to `python_clean_code`.
 - <b>js_iteration_1</b> contains the c++ implementation of the projet, as well as its transcription to javascript and html.
 
 -------------------

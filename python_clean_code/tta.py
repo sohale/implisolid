@@ -6,9 +6,9 @@
 import numpy as np
 # import re
 
-python_data = open("/home/solene/Desktop/mp5-private/implisolid/clean_code/data_algo.txt", "r")
-cpp_data = open("/home/solene/Desktop/mp5-private/implisolid/clean_code/data_algo_cpp.txt", "r")
-file_test = open("/home/solene/Desktop/mp5-private/implisolid/clean_code/data_analysis_summary.txt", "w")
+python_data = open("/home/solene/Desktop/mp5-private/implisolid/python_clean_code/data_algo.txt", "r")
+cpp_data = open("/home/solene/Desktop/mp5-private/implisolid/python_clean_code/data_algo_cpp.txt", "r")
+file_test = open("/home/solene/Desktop/mp5-private/implisolid/python_clean_code/data_analysis_summary.txt", "w")
 
 # ************************
 # ******** Python ********

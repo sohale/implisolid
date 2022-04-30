@@ -32,7 +32,7 @@ Tiger:
 
 ## Python
 ### Main executables
-* clean_code/ohtake_belyaev_demo_subdivision_projection_qem.py: demo_combination_plus_qem()
+* python_clean_code/ohtake_belyaev_demo_subdivision_projection_qem.py: demo_combination_plus_qem()
 * implicit/vtk_mc.py
 * ...
 * experiementation/...

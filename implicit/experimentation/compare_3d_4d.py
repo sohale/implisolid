@@ -28,7 +28,7 @@ def test1():
 
 @profile
 def test2():
-    sys.path.insert(0, '../clean_code')
+    sys.path.insert(0, '../python_clean_code')
     import profile_support
     from vtk_mc import vtk_mc as v2
     from basic_functions import check_vector3_vectorized, normalize_vector3_vectorized

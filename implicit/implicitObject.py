@@ -4,7 +4,7 @@ from sympy import symbols, Function, sympify, diff
 import numexpr as ne
 import types
 from vtk_mc import vtk_mc
-from clean_code.mc_utils import _prepare_grid, make_grid
+from python_clean_code.mc_utils import _prepare_grid, make_grid
 from mayavi import mlab
 
 """
