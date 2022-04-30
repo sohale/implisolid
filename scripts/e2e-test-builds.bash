@@ -84,8 +84,8 @@ mkdir -p "$CACHE_TEMP"
 # Three alternatives: pre-buillt, and the new-built:
 # simplified:
 export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
-export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
-export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
+#export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
+#export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 
 # was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
 
