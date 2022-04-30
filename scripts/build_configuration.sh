@@ -16,10 +16,8 @@ assert_env_nonempty $IMPLISOLID "mising IMPLISOLID="
 
 # target:
 export BUILD_LOCATION=$IMPLISOLID/demos/build
-export DEMO_LOCATION=$IMPLISOLID/demos/demo1
 export LIB_FOLDER=$BUILD_LOCATION/lib
-
-printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
+printf "BUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
 
 
 # BUILD_LOCATION is not just the TARGE, but alsoo conotains the two libraries (eigen, boost)
@@ -31,12 +29,4 @@ printf "DEMO_LOCATION:$DEMO_LOCATION, \nBUILD_LOCATION:$BUILD_LOCATION, \nLIB_FO
 # $BUILT/opt/mcc2.compiled.js
 # $BUILT/opt/mcc2.compiled.js.mem
 
-# target:
-# local deploy
-#export DEMO_LOCATION=$IMPLISOLID_REPO/demos/demo1
-# remote/public deploy (to github-pages)
-#export DEMO_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
-
-# probably incorrect
-#IMPLISOLID=/home/$USER/mp5-private/implisolid

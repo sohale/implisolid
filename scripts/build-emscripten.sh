@@ -22,12 +22,13 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
 
 set -e
 
+# BUILD_LOCATION = where compiled file wil be stored
 
 #SCRIPTS_DIR=$REPO_ROOT/demos
 IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
-# output: DEMO_LOCATION, BUILD_LOCATION,LIB_FOLDER
+# output: BUILD_LOCATION,LIB_FOLDER
 
-#assert_env_nonempty $DEMO_LOCATION "env-argument DEMO_LOCATION ..."
+
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
 

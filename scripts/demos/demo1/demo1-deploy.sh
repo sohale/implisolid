@@ -10,8 +10,13 @@ function assert_env_nonempty() {
 }
 
 # args:
+# source:
 assert_env_nonempty $IMPLISOLID_REPO "env-argument IMPLISOLID_REPO= not specified"
 #assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
+# target/destination: to-deploy:
+assert_env_nonempty $DEPLOY_LOCATION "env-argument DEPLOY_LOCATION= not specified"
+
+
 
 #echo SCRIPTS_DIR is not really used
 
@@ -34,7 +39,7 @@ set -e
 #export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
 # export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
 # relative location of repos
-export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
+#export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
 # todo: specify a separate independent folder  => you wil know the structure BEFORE this.
     # qt the tie oof e2e sscript
 
@@ -44,14 +49,14 @@ export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
 
 # Wait, what?
 #export LOCAL_DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
-export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+#export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
 # Two alternatives:
 # why two options?
 #export DEPLOY_LOCATION=$LOCAL_DEPLOY_LOCATION
-export DEPLOY_LOCATION=$REMOTE_DEPLOY_LOCATION
+#export DEPLOY_LOCATION=$REMOTE_DEPLOY_LOCATION
 # simplified:
-export DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
+#export DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
 
 #sources deployed files:

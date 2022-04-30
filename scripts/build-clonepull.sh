@@ -52,9 +52,8 @@ assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 set -e
 
 # target:
-export DEMO_LOCATION=$IMPLISOLID/demos/demo1
 export BUILD_LOCATION=$IMPLISOLID/demos/build
-mkdir -p $DEMO_LOCATION
+mkdir -p $IMPLISOLID/demos/demo1  # why?  .DEMO_LOCATION
 mkdir -p $BUILD_LOCATION
 
 #sources:

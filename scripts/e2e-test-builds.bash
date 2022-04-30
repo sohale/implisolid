@@ -82,19 +82,30 @@ pwd
 IMPLISOLID="$NEWREPO_BASE/implisolid" SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/build-emscripten.sh
 
 
+
+# export SOHALE_IO_REPO=$BASELOC3/sohale.github.io/
+# export BASE_MP5_PRIVATE=$BASELOC2/mp5/mp5-private
+
+# Targets:
+#1. for sohale.github.io (uses own repo, aka "remote" or static) -> ./docs/implisolid-build/demo1
+#       remote/public deploy (to github-pages)
+#2. for separate (liquid) (runtime-created) folder (aka local! deploy) -> ./demos/demo1/
+#3. for mp5_private  --> /home/$USER/mp5-private/implisolid
+
+# Two alternatives: pre-buillt, and the new-built:
+# simplified:
+export DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
+export DEPLOY_LOCATION=$IMPLISOLID_REPO/docs/implisolid-build/demo1
+# was: export DEPLOY_LOCATION=$IMPLISOLID_REPO/docs/implisolid-build
+
+
 # SCRIPTS_DIR="$NEWREPO_ROOT/scripts"
 pwd
-IMPLISOLID_REPO="$NEWREPO_BASE/implisolid"  ./scripts/demos/demo1/demo1-deploy.sh
+IMPLISOLID_REPO="$NEWREPO_BASE/implisolid"  DEPLOY_LOCATION=$"DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
 pwd
-#export IMPLISOLID_BUILD_REPO=$IMPLISOLID_REPO/docs/implisolid-build
-#export LOCAL_DEPLOY_LOCATION=$IMPLISOLID_REPO/demos/demo1
-#export REMOTE_DEPLOY_LOCATION=$IMPLISOLID_BUILD_REPO/demo1
 
-# Two alternatives: pre-buillt, and the new-built:
-#export DEPLOY_LOCATION=$NEWREPO_BASE/implisolid/demos/demo1
-export DEPLOY_LOCATION=$NEWREPO_BASE/implisolid/docs/implisolid-build
 
 #cd $DEPLOY_LOCATION
 pwd
