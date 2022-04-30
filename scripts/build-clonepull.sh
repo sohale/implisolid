@@ -112,10 +112,10 @@ get_boost() {
     ## gunzip -c boost_1_75_0.tar.gz | tar xopf -
     ## gunzip -c boost.tar.gz | tar xopf -
     #gunzip -c boost.tar.gz | tar xopf -
-    pushd .
-    cd $QQ
-    gunzip -c $QQ/boost.tar.gz | tar xopf -
-    popd
+    #pushd .
+    #cd $QQ
+    gunzip -c $QQ/boost.tar.gz | tar xopf - -C $QQ
+    #popd
     # # boost_1_75_0
     mv -vn $QQ/boost_1_75_0 $LIB_FOLDER/
     #mv -vn $QQ/boost_1_75_0/boost $LIB_FOLDER/boost
@@ -137,8 +137,8 @@ get_eigen() {
   # todo: 831133cc =  3.4.0-rc1
   # master latest was: 853a5c4b843a3f1de5de2a25429eefd62dbd153a
 
-  pushd .
-  mkdir -p $CACHE_TEMP; cd $CACHE_TEMP
+  #pushd .
+  mkdir -p $CACHE_TEMP #; cd $CACHE_TEMP
 
   # two alternatives
   #git clone https://gitlab.com/libeigen/eigen.git  --depth 1
@@ -146,7 +146,7 @@ get_eigen() {
   ls -1 $CACHE_TEMP/eigen >/dev/null || \
   git clone https://github.com/libigl/eigen  --depth 1  $CACHE_TEMP
 
-  popd
+  #popd
 
   mkdir -p $QQ/eigen
   cp -R $CACHE_TEMP/eigen $QQ
