@@ -92,7 +92,6 @@ export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 pwd
 # must run the internal one!
 CACHE_TEMP="$CACHE_TEMP" \
-
     IMPLISOLID="$NEW_REPO"  \
     LIB_FOLDER="$IMPLISOLID/demos/build/lib"  BUILD_LOCATION="$IMPLISOLID/demos/build" \
     ./scripts/build-clonepull.sh
