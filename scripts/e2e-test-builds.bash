@@ -81,13 +81,13 @@ mkdir -p "$CACHE_TEMP"
 #2. for separate (liquid) (runtime-created) folder (aka local! deploy) -> ./demos/demo1/
 #3. for mp5_private  --> /home/$USER/mp5-private/implisolid
 
-# Two alternatives: pre-buillt, and the new-built:
+# Three alternatives: pre-buillt, and the new-built:
 # simplified:
-export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
 export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
-# was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
+export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
 export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 
+# was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
 
 pwd
 # must run the internal one!

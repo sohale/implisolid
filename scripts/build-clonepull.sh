@@ -144,7 +144,7 @@ get_eigen() {
   #git clone https://gitlab.com/libeigen/eigen.git  --depth 1
   #git clone https://github.com/libigl/eigen  --depth 1
   ls -1 $CACHE_TEMP/eigen >/dev/null || \
-  git clone https://github.com/libigl/eigen  --depth 1  $CACHE_TEMP
+  git clone https://github.com/libigl/eigen  --depth 1  $CACHE_TEMP/eigen
 
   #popd
 
