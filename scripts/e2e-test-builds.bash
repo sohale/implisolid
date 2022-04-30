@@ -62,19 +62,15 @@ cd implisolid
 pwd
 find $E2E -maxdepth 2
 
-NEWREPO_ROOT=$E2E/implisolid
-NEWREPO_BASE=$E2E
-
-# todo: remove, to make it explicit.
-#export BASELOC1=$NEWREPO_BASE
-#export BASELOC2=$NEWREPO_BASE
-#export BASELOC3=$NEWREPO_BASE
+NEWREPO_BASE="$E2E"
+NEW_REPO="$E2E/implisolid"
+# NEW_REPO=NEWREPO_ROOT
 
 # CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
 CACHE_TEMP="$ORIG_REPO_ROOT/temp"
 mkdir -p "$CACHE_TEMP"
 
-NEW_REPO="$NEWREPO_BASE/implisolid"
+
 
 pwd
 # must run the internal one!
@@ -101,15 +97,10 @@ export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
 # was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
 
 
-# SCRIPTS_DIR="$NEWREPO_ROOT/scripts"
 pwd
 IMPLISOLID_REPO="$NEW_REPO"  DEPLOY_LOCATION="$DEPLOY_LOCATION" ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/demo1-run-local.sh
 
-pwd
-
-
-#cd $DEPLOY_LOCATION
 pwd
 APP_RUN_LOCATION="$DEPLOY_LOCATION" bash ./scripts/demos/demo1/demo1-run-local.sh
 

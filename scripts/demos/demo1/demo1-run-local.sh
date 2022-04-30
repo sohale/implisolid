@@ -27,12 +27,12 @@ echo $server_pid >$APP_RUN_LOCATION/server_pid-$server_pid.pid
 # cd $APP_RUN_LOCATION/js
 
 public_ip="$(curl https://ipinfo.io/ip)"
-echo "http://${public_ip}:8000/demo1/mp5_json_code.html"
+echo "http://${public_ip}:8000/mp5_json_code.html"
 echo "public ip: $public_ip"
 
 echo "click on mp5_json_code.html @"
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
-open -a "Google Chrome" http://localhost:8000/demo1/s mp5_json_code.html
+open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
 
 
 echo "The current server PID is:"
