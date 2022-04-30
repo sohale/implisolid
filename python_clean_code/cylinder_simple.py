@@ -1,5 +1,5 @@
 import numpy as np
-from implicit import ImplicitFunction
+from python_implicit import ImplicitFunction
 from basic_functions import check_vector3_vectorized, check_vector4, check_vector2
 from implicit_config import config
 

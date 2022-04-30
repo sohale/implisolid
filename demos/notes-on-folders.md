@@ -33,22 +33,22 @@ Tiger:
 ## Python
 ### Main executables
 * python_clean_code/ohtake_belyaev_demo_subdivision_projection_qem.py: demo_combination_plus_qem()
-* implicit/vtk_mc.py
+* python_implicit/vtk_mc.py
 * ...
 * experiementation/...
 
-* implicit/ohtake_belyaev_2.py
-* implicit/ohtake_belyaev_3.py
-* implicit/ohtake_belyaev_4.py
-* implicit/ohtake_belyaev_5.py
+* python_implicit/ohtake_belyaev_2.py
+* python_implicit/ohtake_belyaev_3.py
+* python_implicit/ohtake_belyaev_4.py
+* python_implicit/ohtake_belyaev_5.py
 
-* implicit/ohtake_surface_projection.py
-* implicit/ohtake_surface_projection_2.py
-* implicit/ohtake_surface_projection_v2_5.py
+* python_implicit/ohtake_surface_projection.py
+* python_implicit/ohtake_surface_projection_2.py
+* python_implicit/ohtake_surface_projection_v2_5.py
 Small ones:
-* implicit/cylinder_example.py
+* python_implicit/cylinder_example.py
 
-* implicit/*.py
+* python_implicit/*.py
 
 # Older notes:
 ## Folders and their purposes:

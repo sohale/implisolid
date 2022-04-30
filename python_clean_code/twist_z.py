@@ -1,4 +1,4 @@
-from implicit import ImplicitFunction
+from python_implicit import ImplicitFunction
 import numpy as np
 from basic_functions import check_scalar_vectorized, check_vector3_vectorized, make_inverse
 

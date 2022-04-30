@@ -2,7 +2,7 @@ import numpy as np
 from basic_functions import check_scalar_vectorized
 from basic_functions import check_vector3_vectorized
 
-from implicit import ImplicitFunction
+from python_implicit import ImplicitFunction
 
 
 class CrispSubtract(ImplicitFunction):

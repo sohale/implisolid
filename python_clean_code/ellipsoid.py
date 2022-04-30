@@ -1,11 +1,11 @@
 import numpy as np
 
 from basic_functions import make_inverse, is_python3
-import implicit
+import python_implicit
 from basic_functions import check_matrix4
 from basic_functions import check_scalar_vectorized
 from basic_functions import check_vector3_vectorized
-from implicit import ImplicitFunction
+from python_implicit import ImplicitFunction
 from transformed import Transformable
 
 
@@ -17,8 +17,8 @@ class Ellipsoid(ImplicitFunction):
 
         self.matrix = m.copy()
         self.invmatrix = make_inverse(m)
-        self.sphere = implicit.UnitSphere()
-        assert isinstance(self.sphere, implicit.ImplicitFunction)
+        self.sphere = python_implicit.UnitSphere()
+        assert isinstance(self.sphere, python_implicit.ImplicitFunction)
 
     def implicitFunction(self, pa):
         check_vector3_vectorized(pa)

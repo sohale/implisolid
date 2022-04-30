@@ -1,8 +1,8 @@
 __all__ = []
 
-import implicit
-from implicit import *
-__all__.extend(implicit.__all__)
+import python_implicit
+from python_implicit import *
+__all__.extend(python_implicit.__all__)
 
 
 from crisp_csg import *
