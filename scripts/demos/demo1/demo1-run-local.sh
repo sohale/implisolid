@@ -17,6 +17,9 @@ assert_env_nonempty $APP_RUN_LOCATION "env-argument APP_RUN_LOCATION= missing"
 # APP_RUN_LOCATION was DEPLOY_LOCATION
 # Template
 
+# Kill the previous server process
+ps aux|grep python|grep http.server |cut -c10-17 | xargs kill || :
+
 cd $APP_RUN_LOCATION
 echo "Running python server from: $(pwd)"
 python3 -m http.server 8000 &
