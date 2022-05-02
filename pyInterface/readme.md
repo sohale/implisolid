@@ -1,1 +1,1 @@
-It seems to be moved to: https://github.com/sohale/mp5slicer/tree/6e21e352eeb641484b206226009c2050228005bb
+It seems to be moved to the slicer repo: [pyimplicit@mp5slicer](https://github.com/sohale/mp5slicer/tree/6e21e352eeb641484b206226009c2050228005bb/pyimplicit) and [setupPyInterface.py](https://github.com/sohale/mp5slicer/blob/6e21e352eeb641484b206226009c2050228005bb/pyimplicit/setupPyInterface.py)
