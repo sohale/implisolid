@@ -1,3 +1,39 @@
+Newer notes are above, followed by older notes.
+
+## Technical debt: Due refactor
+
+Todo:
+
+Tiger's contributions are in his branch `tiger-master`.
+Those need to be moved to the main branch `revival-sohale`.
+However, the main branch is moving away.
+Hence, the contributions will not be automtically mergable.
+It is ineavitable since keeping the old structure is doing more harm and slowing down ("delaying") the progress.
+I made this decision on "Mon 2 May 2022 16:54 BST".
+Hence, those are of less priority.
+Let those be taken care of at a later time.
+
+Soon `revival-sohale` branch will be heavily refactored and overhauled.
+
+Tiger had some contributions which are left behind (burried for now). I leave this note to keep the potential of dreviving them, and mark this as a technical debt,
+But Tiger's contributions disabled some important features such as incremental and web Workers (service), and some refinement to the main algorithm (and the `asmjscb` primitive).
+
+So, in some future time,
+to revive some of Tiger's contributions, use `diff` between relevant commits.
+Then manually add them.
+
+Todo:
+1. extract the relevants commits' sha-numbers.
+2. git diff sha1 sha2
+3. Compare to sha3 (beginning of divergence)
+4. Identify and list those functions. Document them.
+5. Add each that is considered useful and of priority, one at a time.
+
+### Unrelated note
+Note: Also Tiger has done some work on strictly SDF objects. See branch `researchOnSDF`.
+
+I am not sure about two other branches `assert_fixing` and `optimization_task`.
+
 ## C++ demos, tests
 
 * `js_iteration_1/mcc2_3js_r79.html`
