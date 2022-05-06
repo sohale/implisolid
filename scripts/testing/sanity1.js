@@ -1,8 +1,11 @@
 
 // NodeJS code
 
-console.log(process.argv);
 const [, , compiled_js_filename] = process.argv;
+if (!compiled_js_filename) {
+  throw new Error('Usage: node sanity1.js "./compiled-escripten-filename.js"');
+}
+
 /*
 const mcc = require(compiled_js_filename);
 console.log(mcc);
@@ -79,15 +82,19 @@ async function run1() {
 }
 
 async function run2() {
-  const {Service1, wait_for_full_reload} = require('./service_l1');
-  const mcc2 = await wait_for_full_reload(compiled_js_filename);
+  const wait_for_full_reload = require('./service_l1');
+  const Service1 = await wait_for_full_reload(compiled_js_filename);
   console.log('loaded');
-  const s1 = new Service1(mcc2);
+  const s1 = new Service1();
   console.log('about:');
   s1.about();
   console.log('ok');
+
+  // "type":"sdf_3d"
+  const example_objects = require('../../js_iteration_2/examples/js/example_objects.js');
+  console.log(example_objects.provide_input(0.0, 0, {}, {}))
+
 }
 
 run2();
 
-const example_objects = require('../../js_iteration_2/examples/js/example_objects.js');
