@@ -13,9 +13,9 @@ importScripts('../../demos/build/mcc2.compiled.js');
 
 'use strict';
 
+/* Message received from main script (front/client) to WebWorker */
 onmessage = function(event) {
     var api = wwapi;
-    // console.log('Message received from main script. event.data=',event.data);
     var data = event.data;
     var _call_id = data.call_id;  // call_identification
     var _callback_id = event.data.callbackId;
@@ -119,7 +119,7 @@ onmessage = function(event) {
 
 var assert__ = function(x, m){if(!x) {console.error(m,x);throw m;}}
 
-// contains those functions in "Module" that have string arguments.
+/* contains those functions in "Module" that have string arguments. Otherwise, caan be directly called. */
 var Module_cwrapped = {
     //Based on API Version 1:
     // only functions that receive 'string' arguments need to be cwrap()ed.
@@ -397,23 +397,25 @@ wwapi.needs_deallocation = false;  // state
         }
     }
 
-/** called by the Emscripten */
-wwapi.send_progress_update = function (verts, faces, progres_update_callback_id, shape_id, call_id) {
+/** Send back from WebWorker-side to frontend-side.
+ * Is clled by the Emscripten */
+wwapi.send_progress_update = function (verts, faces, progress_update_callback_id, shape_id, call_id) {
     var endTime = new Date();
     //var timeDiff = endTime - startTime;
-    //var result = {verts:verts, faces:faces};
-    
-    //console.error("COPY CONSTR");
-    var verts_a = new Float32Array(verts);  // suggested by Brion Vibber
-    var faces_a = new Uint32Array(faces);  // suggested by Brion Vibber
-    var result = {verts:verts_a, faces:faces_a};
 
-    //wwapi = 0;
-
-    postMessage(
-        {return_callback_id:progres_update_callback_id, returned_data: result, call_id: call_id, shape_id:shape_id, is_progress_update: true}
-        //, [verts_a, faces_a]   // transfer list
-        //, [result]
+    /* Brion Vibber: Make sure you are not accidentally sending the entire emscripten heap buffer!
+    live heap views will be slow since it tries to copy the entire heap buffer.
+    Hence, TypedArray copy constructors are used. */
+    postMessage({
+          return_callback_id: progress_update_callback_id, // id in client lookup table
+          returned_data: {
+            verts: new Float32Array(verts),  // suggested by Brion Vibber
+            faces: new Uint32Array(faces),  // suggested by Brion Vibber,
+          },
+          call_id: call_id,
+          shape_id: shape_id,
+          is_progress_update: true
+        }
     );
 }
 

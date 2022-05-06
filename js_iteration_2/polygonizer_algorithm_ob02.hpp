@@ -180,13 +180,12 @@ void polygonizer::polygonize_terminate(/*state_t & _state, const mp5_implicit::i
 void polygonizer::send_mesh_back_to_client() {
     if (!this->report_back_enabled) return;
     const worker_call_sepcs_t& wcs = this->worker_call_sepcs;
-    // _state.mc_result_verts, _state.mc_result_faces
     int result = EM_ASM_INT(
         {
             /* This Javascript code is executed by browser (js engine) on WebWorker side */
 
             console.log(
-                'Polyg. progress callback: verts (ptr, count):', $0, $1, " faces: ", $2, $3,
+                'progress callback: verts (ptr, count):', $0, $1, " faces: ", $2, $3,
                 " progr callback-id:", $4, "shape_id:", $5, " call_id", $6
             );
 
@@ -207,6 +206,10 @@ void polygonizer::send_mesh_back_to_client() {
             var faces_a = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
             const _progress_update_callback_id = $4; const _shape_id = $5; const _call_id = $6;
             wwapi.send_progress_update(verts_a, faces_a, _progress_update_callback_id, _shape_id, _call_id);
+
+            /* `_progress_update_callback_id` is an id in a table of callbacks.
+            These callbaacks are registered on the main(front) side.
+            See `worker_call_preparation`. */
 
             return 3;
         },

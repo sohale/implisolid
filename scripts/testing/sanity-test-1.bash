@@ -18,7 +18,8 @@ function expect_file() {
 export BASEPATH="$HOME/cs"
 export IMPLISOLID="$BASEPATH/implisolid"
 
-echo || time \
+echo || \
+time \
    LIB_FOLDER="$IMPLISOLID/demos/build/lib" \
     BUILD_LOCATION="$IMPLISOLID/demos/build"   \
       bash "$IMPLISOLID/scripts/build-emscripten.sh"
@@ -31,4 +32,4 @@ node --version
 
 node $COMPILED
 
-node sanity1.js $COMPILED
+node --trace-uncaught sanity1.js $COMPILED

@@ -131,6 +131,7 @@ then
         -s ASSERTIONS=1 \
         -s BUILD_AS_WORKER=0 -DNOT_BUILD_AS_WORKER  \
         -DMORE_ABOUT_INFO='\"DEV\"'   \
+        -Wno-dollar-in-identifier-extension \
         -pedantic -std=c++14 \
         -s WASM=0 \
         -s NO_DISABLE_EXCEPTION_CATCHING \

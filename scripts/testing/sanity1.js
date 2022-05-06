@@ -92,8 +92,26 @@ async function run2() {
 
   // "type":"sdf_3d"
   const example_objects = require('../../js_iteration_2/examples/js/example_objects.js');
-  console.log(example_objects.provide_input(0.0, 0, {}, {}))
+  const {shape_json, polygonization_json} = example_objects.provide_input(0.0, 0, {}, {});
+  console.log('xx11')
+  console.log({shape_json, polygonization_json})
+  console.log('222')
 
+  global.Module = Service1.emscriptenModule;
+  const {
+    _on_cpp_loaded,
+  } = require('../../js_iteration_2/implisolid_main.js');
+
+  console.log('1')
+  IMPLICIT = _on_cpp_loaded(); // implicit argument: global.Module
+  console.log(IMPLICIT);
+  console.log(IMPLICIT.about());
+  console.log(IMPLICIT.service2);
+  // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
+  const q = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
+  console.log(q);
+
+  //console.log(IMPLICIT);
 }
 
 run2();

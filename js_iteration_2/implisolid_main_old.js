@@ -430,6 +430,10 @@ var ImplicitService = function(){
 };
 
 var IMPLICIT = null;
+/*
+    implicit argument: global.Module
+    todo: explicit argument
+*/
 function _on_cpp_loaded() {
     console.log("C++ ready.");
     //IMPLISOLID.

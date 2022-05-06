@@ -190,8 +190,7 @@ function init2(impli2, impli1) {
 
 
     // mid-level API
-    //
-    
+
     /** Note that nomals are NOT queried & applied in this function.
     The inputs should be jsonified already. Although for bavkward compatibilty it is automatically converted.
     Note that in the similar "update" method, the polygonization_params must be non-JSONified. 
@@ -199,6 +198,7 @@ function init2(impli2, impli1) {
     // todo: remove allocate_buffer, because it will be set in the callback
     */
     impli2.make_geometry = function (mp5_str, polygonization_params_str, geometry_callback, allocate_buffer) {
+
         assert(typeof geometry_callback !== 'undefined');
         assert(geometry_callback);
 
@@ -215,7 +215,7 @@ function init2(impli2, impli1) {
             impli1.finish_geometry();
             impli1.needs_deallocation = false;
         }
-        
+
         // todo: surround build_geometry() by try{}catch{}
 
         //console.log("polygonization_params_str.resolution " + polygonization_params_str.resolution);
@@ -234,7 +234,6 @@ function init2(impli2, impli1) {
 
         var verts_address = impli1.get_v_ptr();
         var faces_address = impli1.get_f_ptr();
-
         var verts = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
         var faces = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
 
@@ -864,6 +863,11 @@ var merge_dicts_nonrecursive = function() {
         }
     }
     return merged_dict;
+};
+
+if (typeof module !== 'undefined')
+module.exports = {
+  _on_cpp_loaded,
 };
 
 /**

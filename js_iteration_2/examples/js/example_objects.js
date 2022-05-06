@@ -1,5 +1,13 @@
 'use strict';
 
+/*
+This file provides a set of demo objects, including dynimc (time varying) objects for developmenr purposes.
+Can be adpted for demo or test too.
+
+Both {shape_json, polygonization_json} are required to create a mesh.
+This file provides both objects.
+*/
+
 /** modifies shpe's matrix according to @param sz */
 function setShapeMatrix2Eye(shape_matrix, sz) {
     if (typeof sz == "undefined")
