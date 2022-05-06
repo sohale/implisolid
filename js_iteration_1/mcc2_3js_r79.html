@@ -808,7 +808,7 @@ function update_mc(implisolid_, delta_t){
     console.log("delta_t", delta_t);
     global_time += delta_t;
 
-    var tuple = provide_input(global_time, 1, globals);
+    var tuple = provide_input(global_time, 1, {}, globals);
     var shape_json = tuple.shape_json;
     var polygonization_json = tuple.polygonization_json;
     assert(typeof polygonization_json !== "string");
@@ -1062,7 +1062,7 @@ else{
 
         global_time  = 0.2 * 5;
 
-        var d = provide_input(global_time, 0, globals);
+        var d = provide_input(global_time, 0, {}, globals);
         var shape_json = d.shape_json;
         var polygonization_json = JSON.stringify(d.polygonization_json);
 
@@ -1375,7 +1375,7 @@ else{
     function demo1() {   // request()
         console.log("demo1");
 
-        var dct = provide_input(global_time, 0, globals);
+        var dct = provide_input(global_time, 0, {}, globals);
         var shape_json = dct.shape_json; // aleady stringified
         // var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
@@ -1406,7 +1406,7 @@ else{
         // var bbox = {min: {x:-10, y:-10, z:-10}, max:{x:10, y:10, z:10}};
 
 
-        var dct = provide_input(global_time, 0, globals);
+        var dct = provide_input(global_time, 0, {}, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
@@ -1434,7 +1434,7 @@ else{
         // global_time += 2;
         //global_time = 4 * 5;
         global_time = 15 + Math.random()*5;
-        var dct = provide_input(global_time, 1, globals);
+        var dct = provide_input(global_time, 1, {}, globals);
         var shape_json = dct.shape_json; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json);
 
@@ -1458,7 +1458,7 @@ else{
 
     function demo4() {
         console.info("demo4: Query implicit values for collision detection. Tests query_implicit_values_old()");
-        var demoshape = provide_input(global_time += 0.5*5, 1, globals);
+        var demoshape = provide_input(global_time += 0.5*5, 1, {}, globals);
         var shapejson = JSON.stringify(demoshape.shape_json);
         console.log(shapejson);
         var points = new Float32Array([3.141592651234567890123456780,1,2,3,4,5,6,7,8,9,0.5,1.5,2.5, -1,-1])
@@ -1476,7 +1476,7 @@ else{
 
     function demo5() {
         console.info("demo5: Query a normal. Tests query_a_normal()");
-        var demoshape = provide_input(global_time, 1, globals);
+        var demoshape = provide_input(global_time, 1, {}, globals);
         var shapejson = JSON.stringify(demoshape.shape_json);
         var points = new Float32Array([3.141592651234567890123456780,1,2])
         console.log(points);
@@ -1492,7 +1492,7 @@ else{
     function demo6() {
         console.info("demo6: PROGRESSIV UPDATING.  ");
         global_time = 10 + Math.random()*10;
-        var dct = provide_input(global_time, 1, globals) ;
+        var dct = provide_input(global_time, 1, {}, globals) ;
         var shape_json = dct.shape_json ; // aleady stringified
         var polygonization_settings_json = JSON.stringify(dct.polygonization_json) ;
         var stt = new Date() ;

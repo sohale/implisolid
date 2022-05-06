@@ -1,5 +1,6 @@
 'use strict';
 
+/** modifies shpe's matrix according to @param sz */
 function setShapeMatrix2Eye(shape_matrix, sz) {
     if (typeof sz == "undefined")
         sz = 1.0;
@@ -117,16 +118,21 @@ var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type"
  //        ]
 
 
+const DEFAULT_OBJ_SELECTOR = "cone";
 /**
+ * provide_input() Creates a dynamimcally changing/moving object
+ * @param obj_selector: "screw"  "cone"  "metaballs"  "extrusion" "asmjs"
+ * @param is_update_mode:
+ *      is_update_mode: 0 => init
+ *      is_update_mode: 1 => update
+ *      is_update_mode: 2 => deprecated (used in make_geometry_old1() )
+ *
     @return {
        shape_json: ,  // JSONified (sting)
        polygonization_json:  // not JSONified (dict)
    }
 */
-function provide_input (subjective_time, is_update_mode, globals) {
-    // is_update_mode: 0 => init
-    // is_update_mode: 1 => update
-    // is_update_mode: 2 => deprecated (used in make_geometry_old1() )
+function provide_input (subjective_time, is_update_mode, {obj_selector=DEFAULT_OBJ_SELECTOR}, globals={}) {
 
     // asked for:
     var shape_json, polygonization_json;
@@ -208,13 +214,15 @@ function provide_input (subjective_time, is_update_mode, globals) {
         // var shape_dict = JSON.parse(mp5_json).root.children[0];
         var mp5_json = null;
 
+
+
+
         // var obj_selector = "screw";
-        //var obj_selector = "cone";
+        // var obj_selector = "cone";
         // var obj_selector = "metaballs";
-        //var obj_selector = "extrusion";
-        var obj_selector = "asmjs";
-        //var obj_selector = "metaballs";
-        //var obj_selector = "extrusion";
+        // var obj_selector = "extrusion";
+        // var obj_selector = "asmjs";
+
 
         var resize_mp5 = function(){console.error("dont know how to resize.");}
 
@@ -480,4 +488,19 @@ function provide_input (subjective_time, is_update_mode, globals) {
         return {shape_json: shape_json, polygonization_json: mc_properties_json__update};
     }
 
+}
+
+if (typeof module !== 'undefined') {
+module.exports = {
+  MP5_GENERIC_EXAMPLE_MOON,
+  HEART,
+  MOON,
+  SIMPLE_CONE,
+  //SIMPLE_SCREW,
+  //SIMPLE_EXTRUSION,
+  provide_input,
+};
+/*
+ TETRAHEDRON, SPHERE, SCREW
+*/
 }
