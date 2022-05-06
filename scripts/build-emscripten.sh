@@ -131,7 +131,9 @@ then
         -DMORE_ABOUT_INFO='\"DEV\"'   \
         -pedantic -std=c++14 \
         -s WASM=0 \
+        -s NO_DISABLE_EXCEPTION_CATCHING \
         "
+        # -fexceptions \
 fi
 
 set -e

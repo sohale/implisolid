@@ -1,4 +1,32 @@
 
+Also see [demos/notes-on-folders.md](demos/notes-on-folders.md)
+## 6 May 2022
+
+  TyH's changes identified:
+    * exploded produce_mesh into its usage. Why?
+    * extrusion.hpp (by Blobixx) is removed by TyH.
+        but some dependencies are not removed
+    * Why did he rename convex_polygon to concave_polygon?
+    * Made changes to implicit_function/screw.hpp , but why those arn't there? implicit_function/screw.hpp
+    * Why removed `isFinal` from implisolid_wroker.js ? (default: true)
+    * Why removed `is_progress_update` also. (Default: false. Code killed)
+    * Why removed `wwapi.send_progress_update` ???
+    * Why so much code removed from above `class MarchingCubes {`?
+
+  I am going through this
+    `git diff 69ce747c7bbf4959d79a16298187c0af2ecf8c5e..99dc78cf6242556383db31c54a9a576836849c56`
+    Reached page 5 (reached 16) (out of 41 pages)
+    TBC
+
+  Random questions:
+      what was js_iteration_2/examples/js/example_objects.js ?
+      What is the make_fg() ? Why some  asm.js for random object is there?
+      What is `_build_geometry_u`?
+
+  I found out:
+      * -Wno-dollar-in-identifier-extension  Seems too be explained here https://github.com/emscripten-core/emscripten/issues/7113
+  Currently, the only error that remains today is:
+      `Uncaught (in promise)`
 ## 9 March 2021
 
 * produce_object_old2() is no longer used. IT was exported but the function wass already dremoved from mcc2.cpp

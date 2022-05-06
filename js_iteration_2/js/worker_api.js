@@ -1,13 +1,15 @@
 'use strict';
-// importScripts('../build/mcc2.compiled.js');
+// importScripts('../demos/build/mcc2.compiled.js');
 // GET ... .js.mem 404 (File not found)
 // mcc2.compiled.js:96101 Uncaught could not load memory initializer mcc2.compiled.js.mem
 // Module.filePackagePrefixURL  (prefix only)
 // Module.locateFile  (fiull filename path; callback)
 var Module={};
 //Module.filePackagePrefixURL = ... // this is ignored
-Module.locateFile = function(){return '../../build/mcc2.compiled.js.mem';};
-importScripts('../../build/mcc2.compiled.js');
+/* decrecated: */
+Module.locateFile = function(){return '../../demos/build/mcc2.compiled.js.mem';};
+
+importScripts('../../demos/build/mcc2.compiled.js');
 
 'use strict';
 

@@ -1,5 +1,77 @@
 Newer notes are above, followed by older notes.
+Also see [js_iteration_2/history.md](js_iteration_2/history.md)
 
+## More technical debt
+
+void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubes<false,false>::e3map_t &e3map, int& next_unique_vect_counter)
+void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubes<false,false>::e3map_t &e3map, int& next_unique_vect_counter)
+.
+
+  this.update_normals__()  deprecated in  js_iteration_2/geometry79.js
+      remove the function.
+  simply kill file
+    src/cpp/implisolid_js_service/old_experimental.hpp
+
+  js_iteration_2/implisolid_main_old.js
+    versus ?
+
+  .update_geometry_()
+  versus
+  .update_geometry1()
+
+  What is `_build_geometry_u`? Should I include it?
+
+  Just to know:
+    * __set_range_of_used_faces()
+    * __set_needsUpdate_flag()
+
+
+    comparing _MS to their counterparts:
+      by checkout to history at the time of their latest commits
+
+        ./js_iteration_1/debug_methods_MS.hpp
+        ./js_iteration_1/legacy/build_mcc2_MS.sh
+        ./js_iteration_1/legacy/geometry77_MS.js
+        ./js_iteration_1/legacy/mcc2_MS_3js.html
+        ./js_iteration_1/legacy/mcc2_MS.cpp
+        ./js_iteration_1/legacy/mcc2_marching_cubes_MS.hpp
+
+    gemomemetry.js:
+      Keep greometry77.js though
+      Keep greometry73.js though
+      threejs_r71 is already included in geometry79.js
+      geometry79.js: the main one.
+
+      Full list:
+          ./js_iteration_1/legacy/geometry77_MS.js
+          ./js_iteration_1/legacy/geometry77.js
+          ./docs/implisolid-build/demo1/js/geometry79.js
+          ./js_iteration_2/geometry79.js
+          ./js_iteration_2/js/geometry73.js
+
+
+  Technicala debt/understanding:
+  This note:
+       /* deprecaed. Use ImpliSolid.update_geometry() instead.
+       i.e. swap geometry & implicit_service:
+       geom.update_geometry(IMPLISOLID, true)  ->  IMPLISOLID.update_geometry(geom, true)
+       */
+      this.update_geometry_ = function(implicit_service, ignoreDefaultNormals) {
+
+  Move all scripts like js_iteration_1/build_mcc2.sh to one folder at least. (older ones to its ./legacy?)
+Technical debt:
+        ```
+        bool check_state() {
+            return true;  // fixme. NOT WHEN UPDATING
+        ```
+Hierarchies/levels:
+      *   .update_geometry_()   versus  .update_geometry1()
+      * IMPLICIT: layers
+      * OIMPLICIT_WORKER: layers
+      * ...
+Aspirations:
+      * globalbox multiple boxes
+      * multiplle strides
 ## Technical debt: Due refactor
 
 Todo:
