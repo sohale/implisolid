@@ -3,6 +3,7 @@ Also see [js_iteration_2/history.md](js_iteration_2/history.md)
 
 ## More technical debt
 
+
 void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubes<false,false>::e3map_t &e3map, int& next_unique_vect_counter)
 void flush_geometry_queue(std::ostream& cout, int& normals_start, std::vector<REAL> &normals,  std::vector<REAL> &verts3, std::vector<vertexindex_type> &faces3, MarchingCubes<false,false>::e3map_t &e3map, int& next_unique_vect_counter)
 .
@@ -72,6 +73,53 @@ Hierarchies/levels:
 Aspirations:
       * globalbox multiple boxes
       * multiplle strides
+
+
+#### Automated tests:
+    Write some unit tests. for js-compiled code. Tesds are in Javasfcript.
+      (separate from C++ tests)
+    Using nodejs! yes!
+    Call those baasic functions first.
+    The (implicit) objects are built on top of the basic operations.
+
+    Write automated tests for the *compiled* file.
+        Compiled versions:
+          1. non-error, positive only: module of cpp: without .. objects
+          2. objects
+          3. queries: set notrmal, etc (also mesh operations?)
+          4. mesh function. (subdivide, setnorm, getnorm, etc)
+
+      Based on the compilation, a subset of them is activted?
+            (unfortunately we dont use linkers)
+            separate tests for each block?
+            on-the-fly compilation (flag! the flag deletes the cache (js file), and re-compiles)
+      Browser-level tests?
+            * (Slenium?)
+            * (How does threejs tests?) -- interestingly, threejs uses node. -- https://github.com/mrdoob/three.js/tree/dev/test/unit
+              (also https://github.com/mrdoob/three.js/commit/1c685e6eb56e54c4609b7b3af764e2e5110abfbf )
+
+      test multiple combinaation of subsets: using #define flags and recompiling.
+
+      Only write tests that are ...
+      Re-run scripts: anoother configuraiton with the same build script. (but without lengthy cloning and downloding)
+        how to have different options?
+        do the clone-... once, nd then repeat other e2e tests:using another e2e script. It first checks the clone & library download is done probperly. Then rune build. Then runs multiple test sets. (a test script?)
+
+
+#### Ok I know
+  Disabale worker
+  * check createMyModule
+  * check these exceptions throw FS.genericErrors[44];
+  * it breaks inside the following trace (stack):
+          init_scene
+              geometry = IMPLICIT.getLiveGeometry_from_json(shape_json, polygonization_json, true, geom_callback__1, ignore_root_matrix);
+          return service2.make_geometry(mp5_str, polygonization_setttings_json_str,
+          impli2.make_geometry = function (mp5_str, polygonization_params_str, geometry_callback, allocate_buffer) {
+          impli1.build_geometry(mp5_str, polygonization_params_str);
+          which is in C++
+
+  *
+
 ## Technical debt: Due refactor
 
 Todo:
