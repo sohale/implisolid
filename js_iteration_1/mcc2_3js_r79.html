@@ -13,8 +13,11 @@
     /* z-index:1000; */
 }
 .mycanvas {
-    /* width: 100%; */ 
-    /*  Will not work ion canvas, because the size is later changed by JS code. Note that "width=" attriute and css width are independent: one is the pixels resolution and the other one is appearance onle, regarless of the actual pixels (resolution). */
+    /* width: 100%; */
+    /*  Will not work ion canvas, because the size is later changed by JS code.
+    Note that "width=" attriute and css width are independent:
+    one is the pixels resolution and the other one is appearance only,
+    regarless of the actual pixels (resolution). */
 }
 </style>
 
@@ -40,8 +43,8 @@
 </script>-->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js">
 </script>
-<script type="text/javascript" src="./three_r79.js">
-</script>
+<!--script type="text/javascript" src="./three_r79.js">
+</script-->
 <!-- <script type="text/javascript" src="./three-r77.js"></script> -->
 <!--script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/69079243426506ed86d0d0ea71b4fdda9dbb2f88/examples/js/controls/OrbitControls.js"></script
 -->
@@ -54,7 +57,7 @@ THREE.OrbitControls = function() {
     this.addEventListener = function(){};
 }
 </script>
-<script type="text/javascript" src="./controls/OrbitControls_r79.js"></script>
+<script type="text/javascript" src="../js_iteration_2/examples/js/OrbitControls_r79-copy.js"></script>
 
 
 
@@ -1090,7 +1093,7 @@ else{
             memoryInitializerPrefixURL: "../build/",
         };
 </script>
-<script type="text/javascript" src="../build/mcc2.compiled.js"></script>
+<script type="text/javascript" src="../demos/build/mcc2.compiled.js"></script>
 - - >
 
 
@@ -1098,7 +1101,7 @@ else{
 <!--script>
     var g1;
     var g2;
-    var worker = new Worker('../build/mcc2.compiled.js');
+    var worker = new Worker('../demos/build/mcc2.compiled.js');
     var worker2 = new Worker('worker_test.js');
 /* Usage:
  * worker.postMessage({funcName: "worker_api__started"});
