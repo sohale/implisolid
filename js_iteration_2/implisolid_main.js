@@ -29,7 +29,7 @@ IMPLISOLID
 var ImplicitService = (function () {
 'use strict';
 
-function init(service) {
+function init(service, Module) {
     'use strict';
 
     // Low level API
@@ -133,7 +133,7 @@ function init(service) {
  * Technical:
  * Wraps all accesses to Module. Suitable for weparating Worker from the main one.
  */
-function init2(impli2, impli1) {
+function init2(impli2, impli1, Module) {
 
     // replaced by query_normals()?
     function prepare_gradients1(implicit_service, shape_json, verts) {
@@ -798,15 +798,15 @@ function init3(service3, service2) {
     service3.service2 = service2;
 }
 
-var ImplicitService = function() {
+var _ImplicitService = function(Module) {
 
     var impli1 = {};
     // adds the low-level API to 'this'
-    init(impli1);
+    init(impli1, Module);
 
     var impli2 = {};
     // adds the mid-level API to 'this'
-    init2(impli2, impli1);
+    init2(impli2, impli1, Module);
 
     var impli3 = this;
     // adds the high-level API to 'this'
@@ -825,14 +825,14 @@ var ImplicitService = function() {
 // return IMPLICIT;  // is null!
 //return _on_cpp_loaded;
 // return null;
-return ImplicitService;
+return _ImplicitService;
 }());
 
 /* most times you need to write the following function */
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
-function _on_cpp_loaded() {
+function _on_cpp_loaded(Module) {
     console.log("C++ ready.");
-    IMPLICIT = new ImplicitService();
+    IMPLICIT = new ImplicitService(Module);
     // IMPLICIT = new ImplicitWorkerService();
 
     // combines the IMPLICIT as a Worker/Node/npm library with the ThreeJS part. Not good! Solution: divide into two classes.

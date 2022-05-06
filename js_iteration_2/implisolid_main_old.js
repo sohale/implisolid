@@ -1,7 +1,7 @@
 'use strict';
 
 
-function init(service) {
+function init(service, ImplicitService) {
     'use strict';
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
@@ -269,8 +269,8 @@ function _query_implicit_values(mp5_str, points, reduce_callback)
     return  result;
 }
 
-var ImplicitService = function(){
-    init(this);
+var ImplicitService = function(Module){
+    init(this, Module);
 
     this.make_geometry = function (shape_params, mc_params) {
         var startTime = new Date();
@@ -434,10 +434,10 @@ var IMPLICIT = null;
     implicit argument: global.Module
     todo: explicit argument
 */
-function _on_cpp_loaded() {
+function _on_cpp_loaded(Module) {
     console.log("C++ ready.");
     //IMPLISOLID.
-    IMPLICIT = new ImplicitService();
+    IMPLICIT = new ImplicitService(Module);
 
     assert = _assert_000;
 };

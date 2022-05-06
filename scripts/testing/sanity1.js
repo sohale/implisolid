@@ -97,13 +97,12 @@ async function run2() {
   console.log({shape_json, polygonization_json})
   console.log('222')
 
-  global.Module = Service1.emscriptenModule;
   const {
     _on_cpp_loaded,
   } = require('../../js_iteration_2/implisolid_main.js');
 
   console.log('1')
-  IMPLICIT = _on_cpp_loaded(); // implicit argument: global.Module
+  IMPLICIT = _on_cpp_loaded(Service1.emscriptenModule);
   console.log(IMPLICIT);
   console.log(IMPLICIT.about());
   console.log(IMPLICIT.service2);
