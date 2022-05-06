@@ -96,7 +96,6 @@ then
         -I /src-lib/$EIGEN_LIB_FOLDER \
         -O3   \
         -Oz \
-        -s OUTLINING_LIMIT=100000 \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
         -s NO_EXIT_RUNTIME=1          \
         -Winline         \
@@ -106,9 +105,12 @@ then
         -s DISABLE_EXCEPTION_CATCHING=0  \
         -s DEMANGLE_SUPPORT=1 \
         -Wno-dollar-in-identifier-extension \
-        -pedantic -std=c++14
+        -pedantic -std=c++14 \
         -s WASM=0 \
         "
+
+        # -s AGGRESSIVE_VARIABLE_ELIMINATION=1
+        # -s OUTLINING_LIMIT=100000 \
 fi
 
 # Custom flags:
