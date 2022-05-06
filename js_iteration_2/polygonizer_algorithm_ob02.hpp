@@ -179,21 +179,24 @@ void polygonizer::polygonize_terminate(/*state_t & _state, const mp5_implicit::i
 
 void polygonizer::send_mesh_back_to_client() {
     if (!this->report_back_enabled) return;
-    int progres_update_callback_id = this->worker_call_sepcs.progress_callback_id; //, shape_id, call_id
-    int shape_id = this->worker_call_sepcs.shape_id;
-    int call_id = this->worker_call_sepcs.call_id;
+    const worker_call_sepcs_t& wcs = this->worker_call_sepcs;
     // _state.mc_result_verts, _state.mc_result_faces
     int result = EM_ASM_INT(
         {
+            /* This Javascript code is executed by browser (js engine) on WebWorker side */
+
             console.log(
-                'Polyg. progress callback: verts: ptr, count:', $0, $1, " faces: ", $2, $3,
+                'Polyg. progress callback: verts (ptr, count):', $0, $1, " faces: ", $2, $3,
                 " progr callback-id:", $4, "shape_id:", $5, " call_id", $6
             );
 
+            /* `wwapi` is an object on WebWorker space */
+            // global
             if (typeof wwapi === "undefined") return;
-            
-            const _FLOAT_SIZE = 4;  // Float32Array.BYTES_PER_ELEMENT;
-            const _INT_SIZE = 4;  // Uint32Array.BYTES_PER_ELEMENT
+
+            // Translate those integer numbers to JS objects (verts_a, faces_a) in the scope of WW js engine.
+            const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT; // 4
+            const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT; // 4
             var nverts = Module. _get_v_size();
             var nfaces = Module. _get_f_size();
             assert(nverts>=0);
@@ -202,9 +205,8 @@ void polygonizer::send_mesh_back_to_client() {
             var faces_address = Module. _get_f_ptr();
             var verts_a = Module.HEAPF32.subarray(verts_address/_FLOAT_SIZE, verts_address/_FLOAT_SIZE + 3*nverts);
             var faces_a = Module.HEAPU32.subarray(faces_address/_INT_SIZE, faces_address/_INT_SIZE + 3*nfaces);
-            //wapi.send_progress_update(verts, faces, progres_update_callback_id, shape_id, call_id);
-            // global
-            wwapi.send_progress_update(verts_a, faces_a, $4, $5, $6);
+            const _progress_update_callback_id = $4; const _shape_id = $5; const _call_id = $6;
+            wwapi.send_progress_update(verts_a, faces_a, _progress_update_callback_id, _shape_id, _call_id);
 
             return 3;
         },
@@ -212,9 +214,9 @@ void polygonizer::send_mesh_back_to_client() {
         _state.mc_result_verts.size()/3,  // $1
         _state.mc_result_faces.data(),  // $2
         _state.mc_result_faces.size()/3,  // $3
-        progres_update_callback_id,  // $4
-        shape_id,  // $5
-        call_id  // $6
+        wcs.progress_callback_id,  // $4
+        wcs.shape_id,  // $5
+        wcs.call_id  // $6
     );
 
 }
