@@ -1,7 +1,7 @@
 'use strict';
 
 
-function init(service, ImplicitService) {
+function init_(service, Module) {
     'use strict';
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
@@ -270,7 +270,7 @@ function _query_implicit_values(mp5_str, points, reduce_callback)
 }
 
 var ImplicitService = function(Module){
-    init(this, Module);
+    init_(this, Module);
 
     this.make_geometry = function (shape_params, mc_params) {
         var startTime = new Date();
@@ -440,6 +440,8 @@ function _on_cpp_loaded(Module) {
     IMPLICIT = new ImplicitService(Module);
 
     assert = _assert_000;
+
+    return IMPLICIT;
 };
 
 function getResolution(bb){

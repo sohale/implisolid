@@ -102,7 +102,7 @@ async function run2() {
   } = require('../../js_iteration_2/implisolid_main.js');
 
   console.log('1')
-  IMPLICIT = _on_cpp_loaded(Service1.emscriptenModule);
+  const IMPLICIT = _on_cpp_loaded(Service1.emscriptenModule);
   console.log(IMPLICIT);
   console.log(IMPLICIT.about());
   console.log(IMPLICIT.service2);
