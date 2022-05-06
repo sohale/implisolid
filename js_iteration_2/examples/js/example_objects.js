@@ -119,6 +119,8 @@ var SIMPLE_EXTRUSION = '{"printerSettings":{},"mp5-version":"0.3","root":{"type"
 
 
 const DEFAULT_OBJ_SELECTOR = "cone";
+//const DEFAULT_OBJ_SELECTOR = "asmjs";
+
 /**
  * provide_input() Creates a dynamimcally changing/moving object
  * @param obj_selector: "screw"  "cone"  "metaballs"  "extrusion" "asmjs"
