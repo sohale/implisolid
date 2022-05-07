@@ -13,11 +13,16 @@
 <script type="text/javascript" src="../js-lib/js_utils.js"></script>
 <script type="text/javascript" src="../simple_viewer1/siviewer1.js"></script>
 
+
 <script>
-  console.log('ok')
+  console.log('ok');
+  // document.body.appendChild( globals.renderer.domElement );
+
+  const a = new SimpleImplicitViewer();
+  a.bindCanvas(document, 'my3dview');
 </script>
 
 <body>
-  hi
+  <canvas id="my3dview"></canvas>
 </body>
 </html>

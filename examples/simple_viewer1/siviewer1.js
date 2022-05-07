@@ -22,11 +22,18 @@ const CONF = {
 };
 freeze(CONF);
 
+function getCanvasDOM(document, id) {
+  return document.getElementById(id);
+}
+
 class SimpleImplicitViewer {
-    constructor(canvasDOM) {
+    constructor() {
         // requirements:
         assert (THREE.REVISION >= 79, 'You need to use threejs r79+');
         CONF.NAV && assert (THREE.OrbitControls, 'You need to use ornbtconfitl');
+    }
+    bindCanvas(canvasDOMId) {
+      this.canvasDOM = getCanvasDOM(canvasDOMId);
     }
     setObject() {
 
