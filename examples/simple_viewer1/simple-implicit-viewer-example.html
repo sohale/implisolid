@@ -33,10 +33,26 @@
   //a.setPolygoniser(...);
   a.setPolygonizingSettings(create_polygonization_json());
   //IMPLICIT.
-  console.log()
+
+  const h1 = document.createElement("h1");
+  const textNode = document.createTextNode("Coming soon ...");
+  h1.appendChild(textNode);
+  // document.body.appendChild(textNode);
+  var cnvs;
+  function on_body_load() {
+
+    setTimeout( () => {
+      cnvs = document.getElementById('my3dview');
+      cnvs.style = 'background: #a5fdcd';
+      setTimeout( () => {
+        document.body.appendChild(h1);
+      },500);
+    },500);
+  }
+
 </script>
 
-<body>
-  <canvas id="my3dview"></canvas>
+<body onload="on_body_load()">
+  <canvas id="my3dview" ></canvas>
 </body>
 </html>
