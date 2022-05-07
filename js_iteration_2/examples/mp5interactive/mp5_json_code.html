@@ -211,10 +211,10 @@
     var startup_text = JSON.stringify(asmjscb_example2);  // actually works well. (apart from bad ellipsoid if hard-coded )
 
 </script>
+<script type="text/javascript" src="../js-copy/asmjscb.js"></script>
 <script>
 
     'use strict';
-    var asmjscb__func_table = {};
 
     // compiler !
     // to be moved to a common library? (also used by demo7())
@@ -425,38 +425,38 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"> </script>
 <!--script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script-->
 
-<script type="text/javascript" src="./js/OrbitControls_r79.js"></script>
+<script type="text/javascript" src="./js-copy/OrbitControls_r79.js"></script>
 <!-- ************************** IMPLISOLID CODE **************************-->
 
-<!--script type="module" src="./js/simple_assert.js"></script-->
-<script type="text/javascript" src="./js/simple_assert.js"></script>
-<script type="text/javascript" src="./js/geometry79.js"></script>
-<script type="text/javascript" src="./js/implisolid_main.js"></script>
-<script type="text/javascript" src="./js/example_objects.js"></script>
-<script type="text/javascript" src="./js/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
-<script type="text/javascript" src="./js/pointset_utils.js"></script>
-<script type="text/javascript" src="./js/arrow_utils.js"></script>
-<script type="text/javascript" src="./js/example_materials.js"></script>
-<script type="text/javascript" src="./js/performance_graphs.js"></script>
-<script type="text/javascript" src="./js/misc_props.js"></script>
-<script type="text/javascript" src="./js/boundingbox_utils.js"></script>
+<!--script type="module" src="./js-copy/simple_assert.js"></script-->
+<script type="text/javascript" src="./js-copy/simple_assert.js"></script>
+<script type="text/javascript" src="./js-copy/geometry79.js"></script>
+<script type="text/javascript" src="./js-copy/implisolid_main.js"></script>
+<script type="text/javascript" src="./js-copy/example_objects.js"></script>
+<script type="text/javascript" src="./js-copy/js_utils.js"></script> <!-- stuff used by pointset_utils.js -->
+<script type="text/javascript" src="./js-copy/pointset_utils.js"></script>
+<script type="text/javascript" src="./js-copy/arrow_utils.js"></script>
+<script type="text/javascript" src="./js-copy/example_materials.js"></script>
+<script type="text/javascript" src="./js-copy/performance_graphs.js"></script>
+<script type="text/javascript" src="./js-copy/misc_props.js"></script>
+<script type="text/javascript" src="./js-copy/boundingbox_utils.js"></script>
 
 
 <!-- ************************** OLD ********************************  - -
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"> </script>
 < ! - -script type="text/javascript" src="../../../js_iteration_1/three_r79.js"> </script - - >
 <script type="text/javascript" src="../../../js_iteration_1/controls/OrbitControls_r79.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/assert.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-copy/assert.js"></script>
 <script type="text/javascript" src="../../../js_iteration_2/geometry79.js"></script>
 <script type="text/javascript" src="../../../js_iteration_2/implisolid_main.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_objects.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/js/js_utils.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/js/pointset_utils.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/js/arrow_utils.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/example_materials.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/performance_graphs.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/misc_props.js"></script>
-<script type="text/javascript" src="../../../js_iteration_2/examples/js/boundingbox_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-lib/example_objects.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js-lib/js_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js-lib/pointset_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/js-lib/arrow_utils.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-lib/example_materials.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-lib/performance_graphs.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-lib/misc_props.js"></script>
+<script type="text/javascript" src="../../../js_iteration_2/examples/js-lib/boundingbox_utils.js"></script>
 -->
 
 <!-- ************************** ACE **************************-->
@@ -887,7 +887,7 @@ function startup_sequence() {
 
         assert = my_assert;
         try{
-        assert = require('./js/simple_assert.js').assert;
+        assert = require('./js-copy/simple_assert.js').assert;
         } catch(err) {
             console.log('require does not work in browser.')
             function assert3(cond, message) {
@@ -902,7 +902,7 @@ function startup_sequence() {
         }
 
         /*
-        //import {assert3} from './js/simple_assert.js';
+        //import {assert3} from './js-copy/simple_assert.js';
         */
 
         IMPLICIT = _on_cpp_loaded(Module);  // from implisolid_main.js
@@ -946,11 +946,12 @@ function startup_sequence() {
             preRun:[ ],
             onRuntimeInitialized: startup_sequence,
             // //memoryInitializerPrefixURL: "../../../build/",
-            // memoryInitializerPrefixURL: "../js/",
-            locateFile: (path, scriptDirectory) => "../js/",
+            // memoryInitializerPrefixURL: "../js-copy/",
+            //locateFile: (path, scriptDirectory) => "../js/",
+            locateFile: (path, scriptDirectory) => "./js-copy/",
         };
 </script>
-<script type="text/javascript" src="./js/mcc2.compiled.js"></script>
+<script type="text/javascript" src="./js-copy/mcc2.compiled.js"></script>
 <!-- script type="text/javascript" src="../../../demos/build/mcc2.compiled.js"></script -->
 
 <!--script type="text/javascript" src="https://beta.wedesign.live/mcc2.compiled.js"></script-->

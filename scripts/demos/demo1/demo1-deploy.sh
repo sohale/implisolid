@@ -63,8 +63,8 @@ set -e
 #sources deployed files:
 export DEMO0=$IMPLISOLID_REPO/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID_REPO/js_iteration_2
-export JS_EX1=$IMPLISOLID_REPO/js_iteration_2/examples/js
-ls  $IMPLISOLID_REPO/js_iteration_2/examples/js/OrbitControls_r79-copy.js
+export JS_EX1=$IMPLISOLID_REPO/js_iteration_2/examples/js-lib
+ls  $IMPLISOLID_REPO/js_iteration_2/examples/js-lib/OrbitControls_r79-copy.js
 ls  $JS_EX1/OrbitControls_r79-copy.js
 
 
@@ -97,7 +97,7 @@ function gather_files_for_deploy() {
 
     #compiled_file should be ready ( in $BUILD_LOCATION )
 
-    mkdir -p $DEPLOY_LOCATION/js
+    mkdir -p $DEPLOY_LOCATION/js-copy
 
     # local run:
     CP_not() {
@@ -110,25 +110,26 @@ function gather_files_for_deploy() {
     }
 
     # OrbitControls_r79.js was also in `mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js`
-    CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js/OrbitControls_r79.js
+    CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js-copy/OrbitControls_r79.js
 
+    mkdir -p $DEPLOY_LOCATION/js-copy
     CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
-    CP $JSI2/geometry79.js $DEPLOY_LOCATION/js/
-    CP $JSI2/implisolid_main.js $DEPLOY_LOCATION/js/
-    CP $JSI2/js/js_utils.js $DEPLOY_LOCATION/js/
-    CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js/
-    CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js/
+    CP $JSI2/geometry79.js $DEPLOY_LOCATION/js-copy/
+    CP $JSI2/implisolid_main.js $DEPLOY_LOCATION/js-copy/
+    CP $JSI2/js/js_utils.js $DEPLOY_LOCATION/js-copy/
+    CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js-copy/
+    CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js-copy/
 
-    CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js/
-    CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js/
-    CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js/
-    CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js/
-    CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js/
-    CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js/
+    CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js-copy/
+    CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js-copy/
+    CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js-copy/
+    CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js-copy/
+    CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js-copy/
+    CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js-copy/
 
     echo "compiled_file $compiled_file"
-    CP $compiled_file $DEPLOY_LOCATION/js/
-    # CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js/
+    CP $compiled_file $DEPLOY_LOCATION/js-copy/
+    # CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js-copy/
 
     # self-refelection of deploy (version inspect endpoint!)
 }
@@ -156,8 +157,8 @@ echo "for latest commit info click: try http://localhost:8000/latest-commit-log.
 # examine and produce all errors (the "ln -s" file links that the file is non-existant )
 #ls -1 $DEPLOY_LOCATION | xargs cat 1>/dev/null
 echo "Checking missing symbolic links *******"
-# pushd $DEPLOY_LOCATION/js
-cd $DEPLOY_LOCATION/js
+# pushd $DEPLOY_LOCATION/js-copy
+cd $DEPLOY_LOCATION/js-copy
 ls -1 . | xargs cat 1>/dev/null
 cd ..
 
