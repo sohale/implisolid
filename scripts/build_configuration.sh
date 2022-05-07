@@ -15,7 +15,8 @@ function assert_env_nonempty() {
 assert_env_nonempty $IMPLISOLID "mising IMPLISOLID="
 
 # target:
-export BUILD_LOCATION=$IMPLISOLID/demos/build
+#export BUILD_LOCATION=$IMPLISOLID/demos/build
+export BUILD_LOCATION=$IMPLISOLID/build
 export LIB_FOLDER=$BUILD_LOCATION/lib
 printf "BUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
 

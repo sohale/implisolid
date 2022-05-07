@@ -24,13 +24,13 @@ export IMPLISOLID="$REPO_ROOT"
 
 echo || \
 time \
-   LIB_FOLDER="$IMPLISOLID/demos/build/lib" \
-    BUILD_LOCATION="$IMPLISOLID/demos/build"   \
+   LIB_FOLDER="$IMPLISOLID/build/lib" \
+    BUILD_LOCATION="$IMPLISOLID/build"   \
       bash "$IMPLISOLID/scripts/build-emscripten.sh"
 
-expect_file  $HOME/cs/implisolid/demos/build/mcc2.compiled.js
+expect_file  $HOME/cs/implisolid/build/mcc2.compiled.js
 
-export COMPILED=$HOME/cs/implisolid/demos/build/mcc2.compiled.js
+export COMPILED=$HOME/cs/implisolid/build/mcc2.compiled.js
 node --version
 # tested on v12.22.12
 

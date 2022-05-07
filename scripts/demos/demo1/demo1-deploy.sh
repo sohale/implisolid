@@ -26,7 +26,7 @@ assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
 # todo: put there in any given (parametrised) location
 
 # Prerequisite:
-# * compiles files to be ready here: $IMPLISOLID_REPO/demos/build. Use demos/demo1-build.sh
+# * compiles files to be ready here: $IMPLISOLID_REPO/build. Use scripts/demo1-build.sh
 # * three repos are cloned
 
 set -e
@@ -87,7 +87,8 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 #mkdir -p $START_DEMOS/demo1
 #rm -rfv $START_DEMOS/demo1; mkdir $START_DEMOS/demo1; cd $START_DEMOS/demo1
 # removed references to $IMPLISOLID_REPO/demos/demo1
-cd $IMPLISOLID_REPO/demos
+mkdir -p $IMPLISOLID_REPO/build/unrelated
+cd $IMPLISOLID_REPO/build/unrelated
 
 function gather_files_for_deploy() {
     # Gathers various files and prepares them for deploying.

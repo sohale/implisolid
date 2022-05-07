@@ -20,7 +20,7 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
 assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 
 # target:
-#export BUILD_LOCATION=$IMPLISOLID/demos/build
+#export BUILD_LOCATION=$IMPLISOLID/build
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER= not specified"
 
@@ -58,7 +58,7 @@ assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER= not specified"
 set -e
 
 # target:
-#export BUILD_LOCATION=$IMPLISOLID/demos/build
+#export BUILD_LOCATION=$IMPLISOLID/build
 #mkdir -p $IMPLISOLID/demos/demo1  # why?  .DEMO_LOCATION
 mkdir -p $BUILD_LOCATION
 
@@ -85,7 +85,7 @@ cd $QQ # BUILD_LOCATION
 
 pwd
 #mkdir -p $BUILD_LOCATION/lib
-#export LIB_FOLDER=$IMPLISOLID/demos/build/lib
+#export LIB_FOLDER=$IMPLISOLID/build/lib
 #export LIB_FOLDER=$BUILD_LOCATION/lib
 mkdir -p $LIB_FOLDER
 
@@ -97,7 +97,7 @@ get_boost() {
 
     # two alternatives
     #ORIG_IMPLISOLID=$IMPLISOLID/..
-    #CACHE_TEMP=$ORIG_IMPLISOLID/demos/build
+    #CACHE_TEMP=$ORIG_IMPLISOLID/build
 
     mkdir -p $CACHE_TEMP
     ls -1 $CACHE_TEMP/boost.tar.gz >/dev/null || \
