@@ -34,6 +34,6 @@ export COMPILED=$HOME/cs/implisolid/demos/build/mcc2.compiled.js
 node --version
 # tested on v12.22.12
 
-node $COMPILED
+# node $COMPILED
 
 node --trace-uncaught $REPO_ROOT/scripts/testing/sanity1.js $COMPILED

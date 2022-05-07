@@ -26,6 +26,15 @@ IMPLISOLID
 
 // LiveBufferGeometry71  MyBufferGeometry77 LiveBufferGeometry79
 
+function assert(cond, message) {
+  if (!cond) {
+      message = message || "Assertion failed for unspecified reason";
+      console.error(message);
+      console.error(message.stack);
+      throw new Error("assert ", message);
+  }
+}
+
 var ImplicitService = (function () {
 'use strict';
 
@@ -828,6 +837,7 @@ var _ImplicitService = function(Module) {
 return _ImplicitService;
 }());
 
+
 /* most times you need to write the following function */
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
 function _on_cpp_loaded(Module) {
@@ -839,9 +849,19 @@ function _on_cpp_loaded(Module) {
     // ImpliSolid.js, ...ImpliSolid3js.js (frontend)
     // Alternative: Globally: Module._on_cpp_loaded = ...;
 
+    /*
     // ugly
     if (typeof _assert_000 !== "undefined")
         assert = _assert_000;
+    */
+   Module.assert = function (cond, message) {
+    if (!cond) {
+        message = message || "Assertion failed for unspecified reason";
+        console.error(message);
+        console.error(message.stack);
+        throw new Error("assert ", message);
+    }
+  }
 
     return IMPLICIT;  // another usage
 };

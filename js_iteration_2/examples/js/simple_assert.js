@@ -6,7 +6,7 @@ function assert(cond, message) {
       message = message || "Assertion failed for unspecified reason";
       console.error(message);
       console.error(message.stack);
-      throw new Exception("assert ", message);
+      throw new Error("assert ", message);
   }
 }
 function _expect(cond, message) {

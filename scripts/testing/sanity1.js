@@ -101,14 +101,27 @@ async function run2() {
     _on_cpp_loaded,
   } = require('../../js_iteration_2/implisolid_main.js');
 
+  function assert(cond, message) {
+    if (!cond) {
+        message = message || "Assertion failed for unspecified reason";
+        console.error(message);
+        console.error(message.stack);
+        throw new Error("assert ", message);
+    }
+  }
+
   console.log('1')
   const IMPLICIT = _on_cpp_loaded(Service1.emscriptenModule);
   console.log(IMPLICIT);
   console.log(IMPLICIT.about());
   console.log(IMPLICIT.service2);
   // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
-  const q = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
-  console.log(q);
+  const q1 = IMPLICIT.service2.make_geometry(shape_json, polygonization_json, ()=>{
+    console.log('made');
+  });
+  console.log(q1);
+  const q2 = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
+  console.log(q2);
 
   //console.log(IMPLICIT);
 }
