@@ -66,10 +66,11 @@ BOOST_FOLDER="boost_1_75_0"
 EIGEN_LIB_FOLDER="eigen"
 # todo: rename EIGEN_LIB_FOLDER -> EIGEN_LIB_SUBFOLDER
 
+source $IMPLISOLID/scripts/bash-utils.sh
+
 # does pwd matter?
 cd $IMPLISOLID/js_iteration_1
 
-source $REPO_ROOT/scripts/bash-utils.sh
 
 # ./build/lib/boost_1_75_0/boost/array.hpp
 expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
