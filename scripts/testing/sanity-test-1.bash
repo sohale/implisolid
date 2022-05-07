@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -eux
 
-source ../bash-utils.sh
+export REPO_ROOT=$(git rev-parse --show-toplevel)
+#cd  $REPO_ROOT/scripts/testing
+
+source $REPO_ROOT/scripts/bash-utils.sh
 
 function expect_file() {
     export FILE="$1"
@@ -15,8 +18,9 @@ function expect_file() {
     fi
 }
 
-export BASEPATH="$HOME/cs"
-export IMPLISOLID="$BASEPATH/implisolid"
+#export BASEPATH="$HOME/cs"
+#export IMPLISOLID="$BASEPATH/implisolid"
+export IMPLISOLID="$REPO_ROOT"
 
 echo || \
 time \
@@ -32,4 +36,4 @@ node --version
 
 node $COMPILED
 
-node --trace-uncaught sanity1.js $COMPILED
+node --trace-uncaught $REPO_ROOT/scripts/testing/sanity1.js $COMPILED
