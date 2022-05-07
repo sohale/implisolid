@@ -822,9 +822,9 @@ var _ImplicitService = function(Module) {
     init3(impli3, impli2); // no `Module` arg
 
     // API interface functions:
-    console.log("impli1 -----API Level1.", Objects.keys(impli1));
-    console.log("impli2 -----API Level2.",  Objects.keys(impli2));
-    console.log("impli3 -------IMPLICIT.",  Objects.keys(impli3));
+    console.log("impli1 -----API Level1.",  Object.keys(impli1));
+    console.log("impli2 -----API Level2.",   Object.keys(impli2));
+    console.log("impli3 -------IMPLICIT.",   Object.keys(impli3));
 };
 
 
