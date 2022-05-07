@@ -82,7 +82,7 @@ function init(service, Module) {
     }
     */
 
-    service.init__ = function(){
+    service.init_ = function(){
         service.needs_deallocation = false;
     }
 
@@ -130,7 +130,7 @@ function init(service, Module) {
     }
     */
 
-    service.init__();
+    service.init_();
 
     return service;
 }
@@ -819,15 +819,12 @@ var _ImplicitService = function(Module) {
 
     var impli3 = this;
     // adds the high-level API to 'this'
-    init3(impli3, impli2);
+    init3(impli3, impli2); // no `Module` arg
 
     // API interface functions:
-    console.log("impli1 ---------------");
-    for(var a in impli1) console.log("API Level1.",a);
-    console.log("impli2 ---------------");
-    for(var a in impli2) console.log("API Level2.", a);
-    console.log("impli3 ---------------");
-    for(var a in impli3) console.log("IMPLICIT.",a);
+    console.log("impli1 -----API Level1.", Objects.keys(impli1));
+    console.log("impli2 -----API Level2.",  Objects.keys(impli2));
+    console.log("impli3 -------IMPLICIT.",  Objects.keys(impli3));
 };
 
 
@@ -841,7 +838,6 @@ return _ImplicitService;
 /* most times you need to write the following function */
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
 function _on_cpp_loaded(Module) {
-    console.log("C++ ready.");
     IMPLICIT = new ImplicitService(Module);
     // IMPLICIT = new ImplicitWorkerService();
 

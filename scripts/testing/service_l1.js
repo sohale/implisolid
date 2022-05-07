@@ -83,7 +83,7 @@ const ImplicitService = (function () {
 {
 
   service.init_ = function() {
-    service.needs_deallocation = false; 
+    service.needs_deallocation = false;
   }
 
 service.finish_with = function (){

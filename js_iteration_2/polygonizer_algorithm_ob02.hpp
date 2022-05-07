@@ -25,7 +25,7 @@ private:
 
 // copy (input argument)
     const mp5_implicit::mc_settings mc_settings_from_json;
-    const bool report_back_enabled = false;
+    const bool report_back_enabled;
     const worker_call_sepcs_t worker_call_sepcs;
 
 public:
