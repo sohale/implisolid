@@ -35,6 +35,6 @@ function expect_file() {
 export -f expect_file
 
 function MAKE_HAPPEN() {
-  expect_file()
+  expect_file
 }
 export -f MAKE_HAPPEN
