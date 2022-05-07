@@ -13,10 +13,10 @@ export IMPLISOLID="$REPO_ROOT"
 # echo "Skipping build" || \
 expect_file  $HOME/cs/implisolid/build/mcc2.compiled.js || {
                   # The MAKE_HAPPEN pattern
-time \
-   LIB_FOLDER="$IMPLISOLID/build/lib" \
-    BUILD_LOCATION="$IMPLISOLID/build"   \
-      bash "$IMPLISOLID/scripts/build-emscripten.sh"
+    time \
+       LIB_FOLDER="$IMPLISOLID/build/lib" \
+        BUILD_LOCATION="$IMPLISOLID/build"   \
+          bash "$IMPLISOLID/scripts/build-emscripten.sh"
 }
 
 expect_file  $HOME/cs/implisolid/build/mcc2.compiled.js
