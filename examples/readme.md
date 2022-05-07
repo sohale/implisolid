@@ -6,7 +6,7 @@ A live mp5 file editor with custmoe-formula Implicit solid.
 
 Try the `mp5interactive` demo online: [http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html]
 
-For instructions ro deloy and run theis demo, see [/js_iteration_2/examples/mp5interactive/]
+For instructions ro deloy and run theis demo, see [/examples/mp5interactive/]
 
 ## Features
 Features of this implementation:

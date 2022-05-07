@@ -158,7 +158,7 @@ I am not sure about two other branches `assert_fixing` and `optimization_task`.
 
 * `js_iteration_1/mcc2_3js_r79.html`
 * worker+incremental demo: ? (threejs)
-* `js_iteration_2/examples/mp5interactive/mp5_json_code.html` -- demo1: interactive demo (ace + python3 http.server + threejs)
+* `examples/mp5interactive/mp5_json_code.html` -- demo1: interactive demo (ace + python3 http.server + threejs)
 
 * reusable module: IMPLICIT_WORKER,
 
@@ -177,7 +177,7 @@ I am not sure about two other branches `assert_fixing` and `optimization_task`.
 * js_iteration_1/build_mcc2_docker.sh
 
 Tiger:
-* `js_iteration_2/examples/function_editor_demos.js`
+* `examples/function_editor_demos.js`
 
 ## Branches:
 *  `revival-sohale` -- main one: worker+incremental demo,...
@@ -217,8 +217,8 @@ Small ones:
    docs/implisolid-build
    docs/implisolid-build/demo1 - Target for github-pages deployment of implisolid (not for sohale.github.io)
 
-   js_iteration_2/examples/     -  Location for original source file for demos (demo1 for now, and demo2, etc in future)
-   js_iteration_2/examples/mp5interactive - (i.e. $DEMO0 above) the demo1
+   examples/     -  Location for original source file for demos (demo1 for now, and demo2, etc in future)
+   examples/mp5interactive - (i.e. $DEMO0 above) the demo1
        For other source locations, see $JSI2 and $EX_JSLIB above.
 
    build/ --- ?

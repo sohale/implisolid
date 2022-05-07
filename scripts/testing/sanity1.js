@@ -91,7 +91,7 @@ async function run2() {
   console.log('ok');
 
   // "type":"sdf_3d"
-  const example_objects = require('../../js_iteration_2/examples/js/example_objects.js');
+  const example_objects = require('../../examples/js/example_objects.js');
   const {shape_json, polygonization_json} = example_objects.provide_input(0.0, 0, {}, {});
   console.log('xx11')
   console.log({shape_json, polygonization_json})

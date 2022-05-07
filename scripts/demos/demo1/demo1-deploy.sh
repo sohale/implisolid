@@ -61,10 +61,10 @@ set -e
 
 
 #sources deployed files:
-export DEMO0=$IMPLISOLID_REPO/js_iteration_2/examples/mp5interactive
+export DEMO0=$IMPLISOLID_REPO/examples/mp5interactive
 export JSI2=$IMPLISOLID_REPO/js_iteration_2
-export EX_JSLIB=$IMPLISOLID_REPO/js_iteration_2/examples/js-lib
-ls  $IMPLISOLID_REPO/js_iteration_2/examples/js-lib/OrbitControls_r79-copy.js
+export EX_JSLIB=$IMPLISOLID_REPO/examples/js-lib
+ls  $IMPLISOLID_REPO/examples/js-lib/OrbitControls_r79-copy.js
 ls  $EX_JSLIB/OrbitControls_r79-copy.js
 
 

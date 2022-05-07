@@ -9,6 +9,10 @@
         to js_iteration_2/examples/js-lib
     ✓ (done)
 
+    movnig:
+        js_iteration_2/examples
+        to ./examples
+
     todo: refactor with elements in js_iteration_1/mcc2_3js_r79-sohailver.html
         into common files in `js-lib`
 */

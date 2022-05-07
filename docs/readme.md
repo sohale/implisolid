@@ -14,7 +14,7 @@ ImpliSolid is free software and open source under GPL3 license.
 
 [interactive mp5 editor](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html)
 <!-- old link: https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html -->
-<!-- (../js_iteration_2/examples/mp5interactive/mp5_json_code.html) -->
+<!-- (../examples/mp5interactive/mp5_json_code.html) -->
 
 Usage:
 

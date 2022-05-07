@@ -4,7 +4,7 @@ Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
   * started `siv1` simple implicit viewer example (in progress)
   * started `example_browser` example gallery / browser (in progress)
   * moved ...
-  * renaming `js-lib` and `js-copy` for `js_iteration_2/examples/js` and `<demo1>/js`. Brilliant move.
+  * renaming `js-lib` and `js-copy` for `js_iteration_2/examples/js` (now located aat `/examples/js`) and `<demo1>/js`. Brilliant move.
   * eliminated `./demos` and use ./build instead of `./demos/build`. The `demos` folder was not actually used (except for the build folder as temp) and was causing lots of confusion.
   * (Before that, there was a ... in demos: demos/demo1/build, demos/demo1/build, etc etc).
   * moved `js_iteration_2/examples` to `examples`
@@ -27,7 +27,7 @@ Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
     TBC
 
   Random questions:
-      what was js_iteration_2/examples/js/example_objects.js ?
+      what was examples/js/example_objects.js ?
       What is the make_fg() ? Why some  asm.js for random object is there?
       What is `_build_geometry_u`?
 

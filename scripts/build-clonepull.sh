@@ -63,9 +63,9 @@ set -e
 mkdir -p $BUILD_LOCATION
 
 #sources:
-export DEMO0=$IMPLISOLID/js_iteration_2/examples/mp5interactive
+export DEMO0=$IMPLISOLID/examples/mp5interactive
 export JSI2=$IMPLISOLID/js_iteration_2
-export EX_JSLIB=$IMPLISOLID/js_iteration_2/examples/js-lib
+export EX_JSLIB=$IMPLISOLID/examples/js-lib
 export BUILT=$IMPLISOLID/docs/implisolid-build
 
 # clones the repo and submodules
