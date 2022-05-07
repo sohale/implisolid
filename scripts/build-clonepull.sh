@@ -24,6 +24,7 @@ assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER= not specified"
 
+source $IMPLISOLID/scripts/bash-utils.sh
 
 # not used?!: BASELOC2, BASELOC3
 
@@ -124,8 +125,11 @@ get_boost() {
     # wget --server-response -q -O - "https://very.long/url/here" 2>&1 |   grep "Content-Disposition:" | tail -1 |   awk 'match($0, /filename=(.+)/, f){ print f[1] }' )
 
 }
-get_boost
 export BOOST_FOLDER="boost_1_75_0"
+MAKE_HAPPEN "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp" \
+  || {
+      get_boost
+     }
 export BOOST="$LIB_FOLDER/$BOOST_FOLDER"
 echo "Boost downloaded in: $BOOST"
 
@@ -161,8 +165,11 @@ get_eigen() {
   mv -vn $QQ/eigen $LIB_FOLDER/
 }
 
-get_eigen
 export EIGEN_LIB_FOLDER="eigen"
+MAKE_HAPPEN "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h" \
+  || {
+    get_eigen
+  }
 export EIGEN="$LIB_FOLDER/$EIGEN_LIB_FOLDER"
 echo "Eigen downloaded in: $EIGEN"
 
