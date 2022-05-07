@@ -123,7 +123,7 @@ var assert__ = function(x, m){if(!x) {console.error(m,x);throw m;}}
 var Module_cwrapped = {
     //Based on API Version 1:
     // only functions that receive 'string' arguments need to be cwrap()ed.
-    set_object: Module.cwrap('set_object','number',['string','number']),
+    set_object: Module.cwrap('set_object','number',['string','boolean']),
     build_geometry: Module.cwrap('build_geometry', null, [ 'string', 'string']),
     build_geometry_u: Module.cwrap('build_geometry_u', null, [ 'string', 'string', 'string']),
 

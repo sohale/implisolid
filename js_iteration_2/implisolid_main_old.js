@@ -14,7 +14,7 @@ function init_(service, Module) {
     service.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
     service.finish_geometry = Module.cwrap('finish_geometry', null, []);
 
-    service.set_object = Module.cwrap('set_object', 'number', ['string', 'number']);
+    service.set_object = Module.cwrap('set_object', 'number', ['string', 'boolean']);
     service.unset_object = Module.cwrap('unset_object', 'number', ['number']);
     service.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);  // sends the x points for evaluation of implicit or gradient
     service.unset_x = Module.cwrap('unset_x', null, []);
@@ -461,9 +461,8 @@ function getResolution(bb){
 
 /* Put the following in the HTML
 <script>
-        Module={preRun:[],
-        onRuntimeInitialized: _on_cpp_loaded,
-    };
+        Module.preRun = [];
+        Module.onRuntimeInitialized = () => _on_cpp_loaded(Module);
 </script>
 <script type="text/javascript" src="mcc2.cpp.js"></script>
 */
