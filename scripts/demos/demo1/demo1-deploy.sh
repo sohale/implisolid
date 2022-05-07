@@ -63,9 +63,9 @@ set -e
 #sources deployed files:
 export DEMO0=$IMPLISOLID_REPO/js_iteration_2/examples/mp5interactive
 export JSI2=$IMPLISOLID_REPO/js_iteration_2
-export JS_EX1=$IMPLISOLID_REPO/js_iteration_2/examples/js-lib
+export EX_JSLIB=$IMPLISOLID_REPO/js_iteration_2/examples/js-lib
 ls  $IMPLISOLID_REPO/js_iteration_2/examples/js-lib/OrbitControls_r79-copy.js
-ls  $JS_EX1/OrbitControls_r79-copy.js
+ls  $EX_JSLIB/OrbitControls_r79-copy.js
 
 
 export START_DEMOS=$IMPLISOLID_REPO/demos
@@ -92,7 +92,7 @@ function gather_files_for_deploy() {
     # Gathers various files and prepares them for deploying.
     # Why not move them permanently on the (git) repo?
     # Copies file from 4 sources:
-    #    JS_EX1,JSI2,DEMO0, compiled_file
+    #    EX_JSLIB,JSI2,DEMO0, compiled_file
     # To: destination: DEPLOY_LOCATION
 
     #compiled_file should be ready ( in $BUILD_LOCATION )
@@ -110,7 +110,7 @@ function gather_files_for_deploy() {
     }
 
     # OrbitControls_r79.js was also in `mp5-private/implisolid/js_iteration_1/controls/OrbitControls_r79.js`
-    CP $JS_EX1/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js-copy/OrbitControls_r79.js
+    CP $EX_JSLIB/OrbitControls_r79-copy.js $DEPLOY_LOCATION/js-copy/OrbitControls_r79.js
 
     mkdir -p $DEPLOY_LOCATION/js-copy
     CP $DEMO0/mp5_json_code.html $DEPLOY_LOCATION/
@@ -120,12 +120,15 @@ function gather_files_for_deploy() {
     CP $JSI2/js/pointset_utils.js $DEPLOY_LOCATION/js-copy/
     CP $JSI2/js/arrow_utils.js $DEPLOY_LOCATION/js-copy/
 
-    CP $JS_EX1/example_objects.js $DEPLOY_LOCATION/js-copy/
-    CP $JS_EX1/example_materials.js $DEPLOY_LOCATION/js-copy/
-    CP $JS_EX1/performance_graphs.js $DEPLOY_LOCATION/js-copy/
-    CP $JS_EX1/misc_props.js $DEPLOY_LOCATION/js-copy/
-    CP $JS_EX1/boundingbox_utils.js $DEPLOY_LOCATION/js-copy/
-    CP $JS_EX1/simple_assert.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/example_objects.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/example_materials.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/performance_graphs.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/misc_props.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/boundingbox_utils.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/simple_assert.js $DEPLOY_LOCATION/js-copy/
+
+    # CP $EX_JSLIB/my_assert.js $DEPLOY_LOCATION/js-copy/
+    CP $EX_JSLIB/js_utils.js $DEPLOY_LOCATION/js-copy/
 
     echo "compiled_file $compiled_file"
     CP $compiled_file $DEPLOY_LOCATION/js-copy/

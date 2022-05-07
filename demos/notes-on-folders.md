@@ -218,7 +218,7 @@ Small ones:
 
    js_iteration_2/examples/     -  Location for original source file for demos (demo1 for now, and demo2, etc in future)
    js_iteration_2/examples/mp5interactive - (i.e. $DEMO0 above) the demo1
-       For other source locations, see $JSI2 and $JS_EX1 above.
+       For other source locations, see $JSI2 and $EX_JSLIB above.
 
    build/ --- ?
 
