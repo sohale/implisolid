@@ -20,3 +20,15 @@ function assert_env_nonempty() {
   #exit 0 # return 0
   return 0 # can be called using `source` too
 }
+
+function expect_file() {
+    export FILE="$1"
+    assert_env_nonempty $FILE "specify a filepath/name"
+    if test -f "$FILE"; then
+        # file exists, fine
+        return 0
+    else
+        echo "$FILE does not exist. breaking"
+        return -1
+    fi
+}

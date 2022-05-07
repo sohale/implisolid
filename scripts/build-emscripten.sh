@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -eux
 
 function assert_env_nonempty() {
   if [ ".$1" = "." ]; then
@@ -69,6 +69,12 @@ EIGEN_LIB_FOLDER="eigen"
 # does pwd matter?
 cd $IMPLISOLID/js_iteration_1
 
+source $REPO_ROOT/scripts/bash-utils.sh
+
+# ./build/lib/boost_1_75_0/boost/array.hpp
+expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
+# cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
+expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
 
 export OPTIM=1
 export DEV=2
@@ -156,6 +162,8 @@ docker run \
 
 # The compiled file can be found here:
 ls $BUILD_LOCATION/mcc2.compiled.js
+
+expect_file  "$BUILD_LOCATION/mcc2.compiled.js"
 
 # todo:
 # emcc: warning: EXTRA_EXPORTED_RUNTIME_METHODS is deprecated, please use EXPORTED_RUNTIME_METHODS instead [-Wdeprecated]

@@ -6,23 +6,11 @@ export REPO_ROOT=$(git rev-parse --show-toplevel)
 
 source $REPO_ROOT/scripts/bash-utils.sh
 
-function expect_file() {
-    export FILE="$1"
-    assert_env_nonempty $FILE "specify a filepath/name"
-    if test -f "$FILE"; then
-        # file exists, fine
-        return 0
-    else
-        echo "$FILE does not exist. breaking"
-        return -1
-    fi
-}
-
 #export BASEPATH="$HOME/cs"
 #export IMPLISOLID="$BASEPATH/implisolid"
 export IMPLISOLID="$REPO_ROOT"
 
-echo || \
+#echo "skipping build" || \
 time \
    LIB_FOLDER="$IMPLISOLID/build/lib" \
     BUILD_LOCATION="$IMPLISOLID/build"   \
