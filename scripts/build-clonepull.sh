@@ -126,10 +126,9 @@ get_boost() {
 
 }
 export BOOST_FOLDER="boost_1_75_0"
-MAKE_HAPPEN "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp" \
-  || {
-      get_boost
-     }
+MAKE_HAPPEN "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp" || {
+    get_boost
+}
 export BOOST="$LIB_FOLDER/$BOOST_FOLDER"
 echo "Boost downloaded in: $BOOST"
 
@@ -166,10 +165,9 @@ get_eigen() {
 }
 
 export EIGEN_LIB_FOLDER="eigen"
-MAKE_HAPPEN "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h" \
-  || {
+MAKE_HAPPEN "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h" || {
     get_eigen
-  }
+}
 export EIGEN="$LIB_FOLDER/$EIGEN_LIB_FOLDER"
 echo "Eigen downloaded in: $EIGEN"
 
