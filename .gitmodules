@@ -1,6 +1,7 @@
 [submodule "docs/implisolid-build"]
 	path = docs/implisolid-build
-	url = https://github.com/sohale/implisolid-build.git
+	url = git@github.com:sohale/implisolid-build.git
+#	url = https://github.com/sohale/implisolid-build.git
 
 [submodule "js_iteration_1/ace-builds"]
 	path = js_iteration_1/ace-builds

@@ -129,6 +129,9 @@ function gather_files_for_deploy() {
 
     # CP $EX_JSLIB/my_assert.js $DEPLOY_LOCATION/js-copy/
     CP $EX_JSLIB/js_utils.js $DEPLOY_LOCATION/js-copy/
+    # todo: move to a folder specific to this demo?
+    CP $EX_JSLIB/asmjscb.js $DEPLOY_LOCATION/js-copy/
+
 
     echo "compiled_file $compiled_file"
     CP $compiled_file $DEPLOY_LOCATION/js-copy/
