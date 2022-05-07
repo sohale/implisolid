@@ -137,6 +137,8 @@ get_eigen() {
   # todo: 831133cc =  3.4.0-rc1
   # master latest was: 853a5c4b843a3f1de5de2a25429eefd62dbd153a
 
+  # A benefit of this approach is that the newest docker will be pulled, and the respective updates will be compelled.
+
   #pushd .
   mkdir -p $CACHE_TEMP #; cd $CACHE_TEMP
 

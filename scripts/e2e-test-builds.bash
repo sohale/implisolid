@@ -86,7 +86,7 @@ mkdir -p "$CACHE_TEMP"
 # Three alternatives: pre-buillt, and the new-built:
 # simplified:
 export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build/demo1
-#export DEPLOY_LOCATION=$NEW_REPO/demos/demo1
+export DEPLOY_LOCATION2=$NEW_REPO/demos/demo1
 #export DEPLOY_LOCATION="$ORIG_REPO_ROOT/newapp"
 
 # was: export DEPLOY_LOCATION=$NEW_REPO/docs/implisolid-build
@@ -103,6 +103,11 @@ pwd
 IMPLISOLID="$NEW_REPO"  LIB_FOLDER="$IMPLISOLID/demos/build/lib" \
     BUILD_LOCATION="$IMPLISOLID/demos/build"   \
     bash ./scripts/build-emscripten.sh
+
+pwd
+IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
+    DEPLOY_LOCATION="$DEPLOY_LOCATION2" \
+    bash ./scripts/demos/demo1/demo1-deploy.sh
 
 pwd
 IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
