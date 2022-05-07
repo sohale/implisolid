@@ -15,13 +15,26 @@
 <script type="text/javascript" src="../../examples/js-lib/mp5-utils/mp5builder.js"></script>
 <script type="text/javascript" src="../../examples/js-lib/mp5-utils/mp5_format_utils.js"></script>
 
+<!-- below is all you need to be able to use IMPLICIT: -->
+<!-- from here -->
+<script type="text/javascript" src="../../js_iteration_2/implisolid_main.js"></script>
+<script>
+  'use strict';
+  var IMPLICIT, PS_UTILS, Module = {};
+  Module.onRuntimeInitialized = () => {
+    IMPLICIT = _on_cpp_loaded(Module); // The `_on_cpp_loaded()` is from implisolid_main.js
+    // PS_UTILS = new PS_UTILS_CLASS(IMPLICIT);
+  };
+</script>
+<script type="text/javascript" src="../../build/mcc2.compiled.js"></script>
+<!-- until here -->
 
 <script>
-  console.log('ok');
   // document.body.appendChild( globals.renderer.domElement );
 
   mp5builder;
   create_polygonization_json;
+  IMPLICIT;
 
   const a = new SimpleImplicitViewer();
   a.bindCanvas(document, 'my3dview');
@@ -49,6 +62,8 @@
       },500);
     },500);
   }
+
+  console.log('`IMPLICIT` ready to use:', IMPLICIT);
 
 </script>
 
