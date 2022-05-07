@@ -125,8 +125,12 @@ get_boost() {
 
 }
 get_boost
-export BOOST=$LIB_FOLDER/boost_1_75_0
+export BOOST_FOLDER="boost_1_75_0"
+export BOOST="$LIB_FOLDER/$BOOST_FOLDER"
 echo "Boost downloaded in: $BOOST"
+
+# ./build/lib/boost_1_75_0/boost/array.hpp
+expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
 
 
 get_eigen() {
@@ -158,8 +162,12 @@ get_eigen() {
 }
 
 get_eigen
-export EIGEN=$LIB_FOLDER/eigen
+export EIGEN_LIB_FOLDER="eigen"
+export EIGEN="$LIB_FOLDER/$EIGEN_LIB_FOLDER"
 echo "Eigen downloaded in: $EIGEN"
+
+# cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
+expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
 
 prime_docker
 
