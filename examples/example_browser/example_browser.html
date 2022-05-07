@@ -2,26 +2,104 @@
 <html lang="en">
 <!-- demo browser, threejs-style -->
 <!-- inspired by https://github.com/mrdoob/three.js/blob/dev/examples/index.html -->
+<style type="text/css">
+  /* https://stackoverflow.com/questions/6654958/make-body-have-100-of-the-browser-height */
+  html,
+  body {
+      height: 100%;
 
-<body>
+      /*background: linear-gradient(-328deg, #c4d6c4, transparent);*/
+      background: linear-gradient(328deg, #e4ffe4, white);
+      /*background:  white;*/
+
+  }
+</style>
+<body > <!--wont work: width="%100" height="100%" -->
 <b>Coming soon.</b>
 
-Deveropment in progress.
+Deveropment in progress. <br/>
 <br/>
 
-* demo1 (
-  <!-- I dont waant to have the full repo accessible, so ../.. is not a good idea. deployment 1,2 are to be removed probably. Note: implisolid_build = the doc itself. -->
-  <a href="../../examples/mp5interactive/mp5_json_code.html">deployment 1 (not browsable)</a>
-  <a href="../../docs/implisolid-build/demo1/mp5_json_code.html">deployment 2</a>
-  <a href="http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html">deployment 3 on github.io</a>
+* <b>demo1</b> (
+  <!-- I dont want to have the full repo accessible, so ../.. is not a good idea. deployment 1,2 are to be removed probably. Note: implisolid_build = the doc itself. -->
+  <a
+    href="../../examples/mp5interactive/mp5_json_code.html"
+    target="viewer_iframe"
+  >deployment 1 (not browsable)</a>
+  <a
+    href="../../docs/implisolid-build/demo1/mp5_json_code.html"
+    target="viewer_iframe"
+  >deployment 2</a>
+  <a
+    href="http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html"
+    target="viewer_iframe"
+  >deployment 3 on github.io</a>
 )
 <br/>
-* <a href="../../examples/simple_viewer1/simple-implicit-viewer-example.html">sv1: simple viewer 1</a>
+* <b>sv1</b>: <a
+  href="../../examples/simple_viewer1/simple-implicit-viewer-example.html"
+  target="viewer_iframe"
+  >simple viewer 1</a>
 <br/>
-<iframe id="viewer" name="viewer" allow="fullscreen; xr-spatial-tracking;"></iframe>
+<br/>
+<iframe id="viewer_iframe" name="viewer_iframe" allow="fullscreen; xr-spatial-tracking;"></iframe>
+
+
 </body>
+
+
+<template id="PlaceholderHTML">
+  <!DOCTYPE html>
+    <html lang="en">
+      <!--
+      <head>
+        <meta charset="utf-8">
+        <title>three.js examples</title>
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="../files/main.css">
+        <style>
+        html, body {
+          height: 100%;
+        }
+        body {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          user-select: none;
+        }
+        </style>
+      </head>
+    -->
+      <body>
+        <i>Select an example from the sidebar</i>
+      </body>
+    </html>
+</template>
 <script>
-fetch
+
+//fetch
+
+const vieweriframe = document.getElementById( 'viewer_iframe' );
+
+//vieweriframe.style.width = '%80';
+//vieweriframe.style.height = '%80 ';
+vieweriframe.style = `
+    width: 90%; height: 90%;
+    /*
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    */
+    /* background: linear-gradient(328deg, #d6c4c4, transparent);*/
+    background: linear-gradient(328deg, #eec4c4, white );
+`;
+
+vieweriframe.setAttribute( 'scrolling', 'yes' );
+
+vieweriframe.srcdoc = document.getElementById( 'PlaceholderHTML' ).innerHTML;
+//vieweriframe.style.display = 'unset';
 </script>
 
 </html>
