@@ -1,3 +1,4 @@
+'use strict';
 /*
     todo: move
         from js_iteration_2/examples/simple_viewer1/siviewer1.js
@@ -26,6 +27,7 @@ function getCanvasDOM(document, id) {
   return document.getElementById(id);
 }
 
+
 class SimpleImplicitViewer {
     constructor() {
         // requirements:
@@ -35,7 +37,10 @@ class SimpleImplicitViewer {
     bindCanvas(canvasDOMId) {
       this.canvasDOM = getCanvasDOM(canvasDOMId);
     }
-    setObject() {
-
+    setObject(mp5Obj) {
+      console.log(mp5Obj);
+    }
+    setPolygonizingSettings(tesselSettings) {
+      console.log(tesselSettings);
     }
 }
