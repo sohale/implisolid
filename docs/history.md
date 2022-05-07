@@ -27,7 +27,7 @@ Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
     TBC
 
   Random questions:
-      what was examples/js/example_objects.js ?
+      what was examples/js-lib/example_objects.js ?
       What is the make_fg() ? Why some  asm.js for random object is there?
       What is `_build_geometry_u`?
 
