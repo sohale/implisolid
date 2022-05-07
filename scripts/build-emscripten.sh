@@ -19,7 +19,7 @@ assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
 assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
 assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
 
-#export BUILD_LOCATION=$IMPLISOLID/demos/build
+#export BUILD_LOCATION=$IMPLISOLID/demos/build #eliminated
 #export LIB_FOLDER=$BUILD_LOCATION/lib
 
 

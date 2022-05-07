@@ -65,7 +65,7 @@ The **npm** is available from [here](www.npmjs.com/package/@sohale/implisolid) (
 The `IMPLICIT` javascript library is a wrapper for the library for browser: js + [threejs](https://threejs.org).
 It has three levels, each with a separate API. The final version will have 5 levels.
 Levels 1 and 2 are independent of ThreeJS, hence can be used in NodeJS or as a WebWorker.
-Only the Highest level API (level 3) uses Three.JS (For example see: [mp5_json_code.html](js_iteration_2/examples/mp5interactive/mp5_json_code.html) and [demo1-deploy.sh](scripts/demos/demo1/demo1-deploy.sh), [mcc2_3js_r79.js](js_iteration_1/mcc2_3js_r79.html) or [this code fragment](docs/readme.md)).
+Only the Highest level API (level 3) uses Three.JS (For example see: [mp5_json_code.html](examples/mp5interactive/mp5_json_code.html) and [demo1-deploy.sh](scripts/demos/demo1/demo1-deploy.sh), [mcc2_3js_r79.js](js_iteration_1/mcc2_3js_r79.html) or [this code fragment](docs/readme.md)).
 
 
 * A variant version builds objects incrementally.

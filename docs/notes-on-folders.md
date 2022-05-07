@@ -1,5 +1,5 @@
 Newer notes are above, followed by older notes.
-Also see [js_iteration_2/history.md](js_iteration_2/history.md)
+Also see [docs/history.md](docs/history.md)
 
 ## More technical debt
 
@@ -209,6 +209,7 @@ Small ones:
 # Older notes:
 ## Folders and their purposes:
  ImpliSolid folders: (relative to `$IMPLISOLID_REPO/` )
+ (stale: no longer valid) todo: delete
    demos/demo1-*.sh
    demos/demo1       Target for local deployment
    demos/demo1/build ?
@@ -224,9 +225,10 @@ Small ones:
 
 
 ### Folders in sohale.github.io
-   demos/implisolid-build Also used for publishing (from here to github.com)
-   demos/implisolid-build/demo1 - Target for github-pages deployment of sohale.github.io (not for implisolid's own page, https://sohale.github.io/implisolid/)
-   demos/implisolid-build/demo1/mp5_json_code.html - todo: Note that this is not yet activated. If this is activated, there won't be need for updating sohale.github.io each time.
+   ( Formerly `demos/implisolid-build` ?)
+   `docs/implisolid-build` Also used for publishing (from here to github.com)
+   `docs/implisolid-build/demo1` - Target for github-pages deployment of sohale.github.io (not for implisolid's own page, https://sohale.github.io/implisolid/)
+   docs/implisolid-build/demo1/mp5_json_code.html - todo: Note that this is not yet activated. If this is activated, there won't be need for updating sohale.github.io each time.
                Your site is published at https://sohale.github.io/implisolid/
                         https://sohale.github.io/implisolid/implisolid-build
                                       mmaps to:      ./docs/implisolid-build
@@ -240,12 +242,14 @@ Small ones:
 
 
 ## Useful absolute folders:
-   ~/cs/sohale.github.io/demos/implisolid-build/demo1
-   ~/cs/mp5/implisolid/demos/
+   * ~/cs/sohale.github.io/demos/implisolid-build/demo1
+   * no longer: ~/cs/mp5/implisolid/demos/
+   * ~/cs/implisolid/impisolid_build/docs/demo...
 
 
 
 ## Steps for actual publish: (not local)
+ (below comments are stale. See `e2e-tet-builds.bash`)
  1. Change ln to cp (See `CP()` vs `CP_not()` )  (On this script)
  2. Change DEPLOY_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
  3. Change directory: `cd` $IMPLISOLID_REPO/ `demos`
@@ -283,13 +287,11 @@ Small ones:
 
 
 
-
 ## Steps for local publish for test: (on MacOS)
- 1. Change ln to ln (See `CP()` vs `CP_not()` )  (On this script)
- 2. Change DEPLOY_LOCATION to $IMPLISOLID_REPO/ `docs/implisolid-build/demo1` (On this script)
- 3. Change directory: cd $IMPLISOLID_REPO/ `demos`
- 4. Run `bash demo1-deploy.sh`
- 5. if python http server shows erro, you maay want to kill the previous instance (it may be not required).
- 6. ...
+ 1. Change `cp` to `ln` (See `CP()` vs `CP_not()` ) or vice versa)
+ 2. Set DEPLOY_LOCATION , BUILD_LOCTION, DEMO1_LOCATOIN (deploy location!)
+ 3. See `e2e-test-builds.bash` all steps below are executed there.
+ 4. If python http server shows erro, you may want to kill the previous instance (it may be not required).
+ 5. The following files show latest commit info (for debugging purposes)
     ...  Check http://localhost:8000/latest-commit-log.txt
     ...  Check http://localhost:8000/latest-commit.txt

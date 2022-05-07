@@ -1,5 +1,13 @@
 
-Also see [demos/notes-on-folders.md](demos/notes-on-folders.md)
+Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
+## 7 May 2022
+  * started `siv1` simple implicit viewer example (in progress)
+  * started `example_browser` example gallery / browser (in progress)
+  * moved ...
+  * renaming `js-lib` and `js-copy` for `js_iteration_2/examples/js` and `<demo1>/js`. Brilliant move.
+  * eliminated `./demos` and use ./build instead of `./demos/build`. The `demos` folder was not actually used (except for the build folder as temp) and was causing lots of confusion.
+  * (Before that, there was a ... in demos: demos/demo1/build, demos/demo1/build, etc etc).
+  * moved `js_iteration_2/examples` to `examples`
 ## 6 May 2022
 
   TyH's changes identified:

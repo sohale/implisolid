@@ -12,7 +12,11 @@ pymplicit.egg-info/
 
 
 # demo clean deploy locations
-/demos/demo1
+#/demos/demo1 # no longer there
+# `docs/implisolid-build`
+# `docs/implisolid-build/demo1`
+# is utomatically ignored since it falls in another (submodule) repo
+
 temp-files/
 e2e-sandbox-temp
 
