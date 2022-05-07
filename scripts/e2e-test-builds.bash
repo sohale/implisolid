@@ -105,11 +105,13 @@ IMPLISOLID="$NEW_REPO"  LIB_FOLDER="$IMPLISOLID/demos/build/lib" \
     bash ./scripts/build-emscripten.sh
 
 pwd
+# not the main one
 IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
     DEPLOY_LOCATION="$DEPLOY_LOCATION2" \
     bash ./scripts/demos/demo1/demo1-deploy.sh
 
 pwd
+# the main one
 IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/demos/build" \
     DEPLOY_LOCATION="$DEPLOY_LOCATION" \
     bash ./scripts/demos/demo1/demo1-deploy.sh

@@ -68,7 +68,6 @@ ls  $IMPLISOLID_REPO/js_iteration_2/examples/js-lib/OrbitControls_r79-copy.js
 ls  $EX_JSLIB/OrbitControls_r79-copy.js
 
 
-export START_DEMOS=$IMPLISOLID_REPO/demos
 
 # see notes-on-folders.md
 
@@ -83,10 +82,12 @@ export compiled_file=$BUILD_LOCATION/mcc2.compiled.js
 # Pre-built from submodule on github:
 #export compiled_file=$BUILT/opt/mcc2.compiled.js
 
-cd $START_DEMOS
-
-mkdir -p $START_DEMOS/demo1
-rm -rfv $START_DEMOS/demo1; mkdir $START_DEMOS/demo1; cd $START_DEMOS/demo1
+#export START_DEMOS=$IMPLISOLID_REPO/demos
+#cd $START_DEMOS
+#mkdir -p $START_DEMOS/demo1
+#rm -rfv $START_DEMOS/demo1; mkdir $START_DEMOS/demo1; cd $START_DEMOS/demo1
+# removed references to $IMPLISOLID_REPO/demos/demo1
+cd $IMPLISOLID_REPO/demos
 
 function gather_files_for_deploy() {
     # Gathers various files and prepares them for deploying.
