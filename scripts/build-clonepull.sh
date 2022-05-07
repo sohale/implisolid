@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -eux
 function assert_env_nonempty() {
   if [ ".$1" = "." ]; then
     echo "shell env is empty"; echo $2

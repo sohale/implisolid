@@ -1,4 +1,5 @@
 # usage: SCRIPT_DIR=$( __current_script_dir_func )
+set -u
 
 function __current_script_dir_func () {
   cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd
