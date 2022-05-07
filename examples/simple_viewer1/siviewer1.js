@@ -39,8 +39,10 @@ class SimpleImplicitViewer {
     }
     setObject(mp5Obj) {
       console.log(mp5Obj);
+      this.mp5Obj = mp5Obj;
     }
     setPolygonizingSettings(tesselSettings) {
       console.log(tesselSettings);
+      this.tesselSettings = tesselSettings;
     }
 }

@@ -65,6 +65,12 @@
 
   console.log('`IMPLICIT` ready to use:', IMPLICIT);
 
+  // IMPLICIT.getLiveGeometry_from_json(mp5_str, polygonization_setttings_json_str, ignore_root_matrix);
+  const geom79 = IMPLICIT.getLiveGeometry_from_json(
+    JSON.stringify(a.mp5Obj),
+    JSON.stringify(a.tesselSettings),
+    false
+  );
 </script>
 
 <body onload="on_body_load()">
