@@ -10,6 +10,11 @@ source $REPO_ROOT/scripts/bash-utils.sh
 #export IMPLISOLID="$BASEPATH/implisolid"
 export IMPLISOLID="$REPO_ROOT"
 
+
+[[ $OSTYPE == 'darwin'* ]] || echo "Warning: This bash script only tested on MacOS. MacOS-specific code"
+# because of the `if` `then` `fi` conditions
+
+
 # echo "Skipping build" || \
 MAKE_HAPPEN  $HOME/cs/implisolid/build/mcc2.compiled.js || {
                   # The MAKE_HAPPEN pattern

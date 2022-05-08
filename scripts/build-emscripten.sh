@@ -8,30 +8,20 @@ function assert_env_nonempty() {
   fi
 }
 
-# todo: remove $SCRIPTS_DIR
-# args:
+assert_env_nonempty $IMPLISOLID "repo root"
+assert_env_nonempty $BUILD_LOCATION "BUILD_LOCATION where compiled file wil be stored."
+assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
+# optional args:
+    #  $MAIN_SOURCE_CPP_FILE "source.cpp path/filename"
+    #  $TARGET_FILENAME "filename.compiled.js"
 
-#assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR missing. Must contain \$SCRIPTS_DIR/build_configuration.sh"
-# build script folder, different to deploy etc
+# sources:
+#     LIB_FOLDER, MAIN_SOURCE_FOLDER
+# targets:
+#     BUILD_LOCATION
+echo "source file: $MAIN_SOURCE_CPP_FILE"
+echo "target file: $TARGET_FILENAME"
 
-assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID ..."
-#export IMPLISOLID=$BASELOC1/implisolid
-
-assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
-assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
-
-#export BUILD_LOCATION=$IMPLISOLID/demos/build #eliminated
-#export LIB_FOLDER=$BUILD_LOCATION/lib
-
-
-# SCRIPTS_DIR is not really used
-
-# usage: IMPLISOLID=$IMPLISOLID SCRIPTS_DIR=$IMPLISOLID/scripts ./scripts/demo1-build.sh
-
-set -e
-
-# BUILD_LOCATION = where compiled file wil be stored
-# LIB_FOLDER = where to find libraries
 function old_pattern() {
     IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
     # output: BUILD_LOCATION,LIB_FOLDER
@@ -39,20 +29,10 @@ function old_pattern() {
     assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
 }
 
+source $IMPLISOLID/scripts/bash-utils.sh
+
 # Does not give you the folder, it tells you the name, that it wuol dbe in: found in, put in, etc.
 mkdir -p $BUILD_LOCATION; ls $BUILD_LOCATION >/dev/null
-
-# Parameters, from the specific configuration (relative locaation of build, lib, etc):
-
-printf "BUILD_LOCATION:$BUILD_LOCATION, \nLIB_FOLDER:$LIB_FOLDER\n"
-
-# expects in $LIB_FOLDER the following only : eigen, boost_1_75_0
-
-# todo: tidy up, move up
-#sources:
-# LIB_FOLDER, MAIN_SOURCE_FOLDER
-# targets:
-# BUILD_LOCATION
 
 export DEFAULT_MAIN_SOURCE_CPP_FILE="js_iteration_1/mcc2.cpp"
 export DEFAULT_TARGET_FILENAME="mcc2.compiled.js"
@@ -65,31 +45,27 @@ export TARGET_FILENAME="${TARGET_FILENAME:-$DEFAULT_TARGET_FILENAME}"
 
 expect_file  "$MAIN_SOURCE_FOLDER/$MAIN_SOURCE_CPP_FILE"
 
-echo "source file: $MAIN_SOURCE_CPP_FILE"
-echo "target file: $TARGET_FILENAME"
-
-# old: boost_1_61_0
-#BOOST_FOLDER="boost_1_75_0/boost"
-#EIGEN_LIB_FOLDER="/eigen/Eigen"
+# Expect the following in $LIB_FOLDER
 BOOST_FOLDER="boost_1_75_0"
+# old: boost_1_61_0
 # todo: rename: BOOST_FOLDER -> BOOST_LIB_SUBFOLDER
 EIGEN_LIB_FOLDER="eigen"
 # todo: rename EIGEN_LIB_FOLDER -> EIGEN_LIB_SUBFOLDER
 AUTODIFF_LIB_SUBFOLDER="autodiff"
 # $LIB_FOLDER/autodiff/autodiff/forward/dual.hpp
 
-source $IMPLISOLID/scripts/bash-utils.sh
-
-# does pwd matter?
-cd $IMPLISOLID/js_iteration_1
-
-
-# todo: move up
 # ./build/lib/boost_1_75_0/boost/array.hpp
 expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
 # cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
 expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
 #expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
+
+
+# todo: does pwd matter?
+#cd $IMPLISOLID/js_iteration_1
+# test elimination
+mkdir -p $IMPLISOLID/temp4
+cd $IMPLISOLID/temp4
 
 export OPTIM=1
 export DEV=2
@@ -100,8 +76,6 @@ MODE=$DEV
 
 export WASM=0
 
-[[ $OSTYPE == 'darwin'* ]] || echo "Warning: This bash script only tested on MacOS. MacOS-specific code"
-# because of the `if` `then` `fi` conditions
 
 if [ $MODE -eq $OPTIM ]
 then
@@ -164,6 +138,7 @@ set -e
 
 # tested on emscripten/emsdk:2.0.22
 # tested on emscripten/emsdk:3.1.8  # detected a flaw
+# tested on emscripten/emsdk:3.1.10
 
 EXPORTED_FUNCTIONS="['_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_build_geometry_u', '_about' ]"
 #EXPORTED_FUNCTIONS="['_main', '_about', '_about2'  ]"
@@ -185,7 +160,6 @@ docker run \
 
 # The compiled file can be found here:
 ls "$BUILD_LOCATION/$TARGET_FILENAME"
-
 expect_file  "$BUILD_LOCATION/$TARGET_FILENAME"
 
 # todo:
@@ -209,3 +183,4 @@ expect_file  "$BUILD_LOCATION/$TARGET_FILENAME"
 #emsdk list
 #emsdk list --old
 #   --profiling
+# emar
