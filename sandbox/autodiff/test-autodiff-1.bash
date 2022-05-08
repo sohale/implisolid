@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -eux
 
+# why error?
 export REPO_ROOT=$(git rev-parse --show-toplevel)
 #cd  $REPO_ROOT/scripts/testing
 
 source $REPO_ROOT/scripts/bash-utils.sh
+export REPO_ROOT="$HOME/cs/implisolid"
 
 #export BASEPATH="$HOME/cs"
 #export IMPLISOLID="$BASEPATH/implisolid"
@@ -15,12 +17,28 @@ export IMPLISOLID="$REPO_ROOT"
 
 export BUILD_LOCATION="$IMPLISOLID/build"
 export LIB_FOLDER="$BUILD_LOCATION/lib"
+# LIB_FOLDER= /Users/9858770/cs/implisolid/build/lib
 
+# rm -rf /Users/9858770/cs/implisolid/build/lib/autodiff/
 
-export TARGET_FILENAME="mcc2.compiled.js"
+echo ">>>>>>>>>"
+
+# ls -1  "$LIB_FOLDER/autodiff/autodiff/forward/dual.hpp"
+MAKE_HAPPEN  "$LIB_FOLDER/autodiff/autodiff/forward/dual.hpp" || {
+   echo "CLON"
+    git clone https://github.com/autodiff/autodiff "$LIB_FOLDER/autodiff"
+}
+   echo "NCLON"
+expect_file "$LIB_FOLDER/autodiff/autodiff/forward/dual.hpp"
+
+export TARGET_FILENAME="autodiff.compiled.js"
 
 # COMPILED, COMPILED_FILE, TARGET_FILE
 export COMPILED_FILE="$BUILD_LOCATION/$TARGET_FILENAME"
+
+# rm $COMPILED_FILE
+
+expect_file "$IMPLISOLID/examples/implicit-functions/cpp/autodiff-sample1.cpp.1"
 
 # echo "Skipping build" || \
 MAKE_HAPPEN  "$COMPILED_FILE" || {
@@ -28,6 +46,8 @@ MAKE_HAPPEN  "$COMPILED_FILE" || {
     time \
        LIB_FOLDER="$IMPLISOLID/build/lib" \
         BUILD_LOCATION=$BUILD_LOCATION   \
+        MAIN_SOURCE_CPP_FILE="sandbox/autodiff/implicit-functions/cpp/autodiff-sample1.cpp" \
+        TARGET_FILENAME=$TARGET_FILENAME \
           bash "$IMPLISOLID/scripts/build-emscripten.sh"
 }
 expect_file  "$HOME/cs/implisolid/build/$TARGET_FILENAME"
@@ -39,5 +59,5 @@ node --version
 
 # node $COMPILED_FILE
 
-node --trace-uncaught $REPO_ROOT/scripts/testing/sanity1.js \
+node --trace-uncaught $REPO_ROOT/sandbox/autodiff/autodiff-sanity1.js \
     $COMPILED_FILE

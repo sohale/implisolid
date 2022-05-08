@@ -24,7 +24,7 @@ function assert_env_nonempty() {
 
 function expect_file() {
     export FILE="$1"
-    assert_env_nonempty $FILE "specify a filepath/name"
+    assert_env_nonempty "$FILE" "specify a filepath/name"
     if test -f "$FILE"; then
         # file exists, fine
         return 0
