@@ -108,10 +108,11 @@ then
 
     echo "** optimised mode **"
 
+#         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
+
     export CLI_ARGS=" \
         -I /src-lib/$BOOST_FOLDER \
         -I /src-lib/$EIGEN_LIB_FOLDER \
-        -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
         -O3   \
         -Oz \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -139,10 +140,11 @@ then
 
     echo "** dev compiling mode **"
 
+#         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
+
     export CLI_ARGS=" \
         -I /src-lib/$BOOST_FOLDER  \
         -I /src-lib/$EIGEN_LIB_FOLDER \
-        -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \
