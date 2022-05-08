@@ -89,7 +89,7 @@ cd $IMPLISOLID/js_iteration_1
 expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
 # cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
 expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
-expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
+#expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
 
 export OPTIM=1
 export DEV=2
