@@ -12,7 +12,7 @@ async function run_main_async() {
   const wait_for_full_reload = require('../../scripts/testing/service_l1.js');
   const Service1 = await wait_for_full_reload(compiled_js_filename);
   const s1 = new Service1();
-  s1.about();
+  s1.about2();
 
   function assert(cond, message) {
     if (!cond) {

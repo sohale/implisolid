@@ -36,7 +36,7 @@ export TARGET_FILENAME="autodiff.compiled.js"
 # COMPILED, COMPILED_FILE, TARGET_FILE
 export COMPILED_FILE="$BUILD_LOCATION/$TARGET_FILENAME"
 
-# rm $COMPILED_FILE
+rm -f $COMPILED_FILE
 
 expect_file "$IMPLISOLID/examples/implicit-functions/cpp/autodiff-sample1.cpp.1"
 
