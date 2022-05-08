@@ -2,33 +2,18 @@
 
 // LiveBufferGeometry71  MyBufferGeometry77 LiveBufferGeometry79
 
-
-
-
-
-// function wait_for_full_reload(Module, callback) {
-
-function wait_for_full_reload(moduleOrModuleName) {
+/** @param emscrModuleName The compiled .js file name */
+function wait_for_full_reload(emscrModuleName) {
+  // A possibility is to allow emscrModuleName to be the `Module`
   let Module;
-  if (typeof moduleOrModuleName == 'string') {
-    Module = require(moduleOrModuleName);
+  if (typeof emscrModuleName == 'string') {
+    Module = require(emscrModuleName);
   } else {
-    // not recommended
-    //Module = moduleOrModuleName;
-    throw new Error('specify the emscripten-compiled .js filename: ' + moduleOrModuleName);
+    throw new Error('specify the emscripten-compiled .js filename: ' + emscrModuleName);
   }
   // called after require()
   return new Promise( (acc, rej)=> {
-    /*var result =*/
     Module.onRuntimeInitialized = () => {
-      /*
-      Module.ccall('myFunction', // name of C function 
-          null, // return type
-          null, // argument types
-          null // arguments
-     );*/
-     // callback(Module);
-
      Service1.emscriptenModule = Module;
      acc(Service1);
     }
@@ -39,37 +24,42 @@ function wait_for_full_reload(moduleOrModuleName) {
 // getInterfaceFucntions, assign_functoins
 function assign_emscripten_functions(service, Module) {
 
-    // todo: dict form
-    // Low level API
-    service.build_geometry = Module.cwrap('build_geometry', null, [ 'string', 'string']);
-    service.get_v_size = Module.cwrap('get_v_size', 'number', []);
-    service.get_f_size = Module.cwrap('get_f_size', 'number', []);
-    service.get_v = Module.cwrap('get_v', null, ['number']);
-    service.get_f = Module.cwrap('get_f', null, ['number']);
-    service.get_v_ptr = Module.cwrap('get_v_ptr', 'number', []);
-    service.get_f_ptr = Module.cwrap('get_f_ptr', 'number', []);
-    service.finish_geometry = Module.cwrap('finish_geometry', null, []);
+    // Low level API v1.0.0
+    const low_level_api = {
+        build_geometry: Module.cwrap('build_geometry', null, [ 'string', 'string']),
+        get_v_size: Module.cwrap('get_v_size', 'number', []),
+        get_f_size: Module.cwrap('get_f_size', 'number', []),
+        get_v: Module.cwrap('get_v', null, ['number']),
+        get_f: Module.cwrap('get_f', null, ['number']),
+        get_v_ptr: Module.cwrap('get_v_ptr', 'number', []),
+        get_f_ptr: Module.cwrap('get_f_ptr', 'number', []),
+        finish_geometry: Module.cwrap('finish_geometry', null, []),
 
-    service.set_object = Module.cwrap('set_object', 'number', ['string', 'boolean']);
-    service.unset_object = Module.cwrap('unset_object', 'number', ['number']);
-    service.set_x = Module.cwrap('set_x', 'number', ['number', 'number']);  // sends the x points for evaluation of implicit or gradient
-    service.unset_x = Module.cwrap('unset_x', null, []);
-    service.calculate_implicit_values = Module.cwrap('calculate_implicit_values', null, []);
-    service.get_values_ptr = Module.cwrap('get_values_ptr', 'number', []);
-    service.get_values_size = Module.cwrap('get_values_size', 'number', []);
-    service.calculate_implicit_gradients = Module.cwrap('calculate_implicit_gradients', null, ['number']);  // boolean argument to normalize and reverse the vevtors, suitable for rendering.
-    service.get_gradients_ptr = Module.cwrap('get_gradients_ptr', 'number', []);
-    service.get_gradients_size = Module.cwrap('get_gradients_size', 'number', []);
+        set_object: Module.cwrap('set_object', 'number', ['string', 'boolean']),
+        unset_object: Module.cwrap('unset_object', 'number', ['number']),
+        // sends the x points for evaluation of implicit or gradient:
+        set_x: Module.cwrap('set_x', 'number', ['number', 'number']),
+        unset_x: Module.cwrap('unset_x', null, []),
+        calculate_implicit_values: Module.cwrap('calculate_implicit_values', null, []),
+        get_values_ptr: Module.cwrap('get_values_ptr', 'number', []),
+        get_values_size: Module.cwrap('get_values_size', 'number', []),
+        // boolean argument to normalize and reverse the vevtors, suitable for rendering:
+        calculate_implicit_gradients: Module.cwrap('calculate_implicit_gradients', null, ['number']),
+        get_gradients_ptr: Module.cwrap('get_gradients_ptr', 'number', []),
+        get_gradients_size: Module.cwrap('get_gradients_size', 'number', []),
 
-    service.get_pointset_ptr = Module.cwrap('get_pointset_ptr', 'number', ['string']);
-    service.get_pointset_size = Module.cwrap('get_pointset_size', 'number', ['string']);
-    service.about = Module.cwrap('about', null, []);
+        get_pointset_ptr: Module.cwrap('get_pointset_ptr', 'number', ['string']),
+        get_pointset_size: Module.cwrap('get_pointset_size', 'number', ['string']),
+        about: Module.cwrap('about', null, []),
+    };
+    Object.keys(low_level_api).forEach(funcname => {
+      service[funcname] = low_level_api[funcname];
+    });
 
     if (!Module["_about"]) {
         // Don;t continue, otherwise, it will be very difficult to track the cause of the issue.
         throw new Error('function `about()` is not `extern "c"`, or not specified in EXPORTED_FUNCTIONS compiler options');
     }
-
 
     return service;
 }

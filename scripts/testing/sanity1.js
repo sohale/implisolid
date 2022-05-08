@@ -51,6 +51,7 @@ var result = Module.onRuntimeInitialized = () => {
    );
 }
 */
+// todo: clean up
 // const {Service1, wait_for_full_reload} = require('./service_l1');
 // s1.set_object();
 
@@ -66,18 +67,10 @@ Mixing for multiple subsets of Module functions
   for arrow_utils
 */
 
-async function run1() {
-  /*
-  wait_for_full_reload(mcc)
-  .then(mcc =>{
-    s1 = new Service1(mcc);
-    s1.about();
-  })
-  */
+async function old_pattern_deprecated() {
   const mcc2 = await wait_for_full_reload(mcc);
   console.log('loaded');
-  const s1 = new Service1(mcc);
-  console.log('about:');
+  const s1 = new Service1(mcc2);
   s1.about();
   console.log('ok');
 }
@@ -91,9 +84,7 @@ async function run2() {
   // "type":"sdf_3d"
   const example_objects = require('../../examples/js-lib/example_objects.js');
   const {shape_json, polygonization_json} = example_objects.provide_input(0.0, 0, {}, {});
-  console.log('xx11')
   console.log({shape_json, polygonization_json})
-  console.log('222')
 
   const {
     _on_cpp_loaded,
