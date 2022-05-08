@@ -38,8 +38,8 @@ function wait_for_full_reload(moduleOrModuleName) {
 // see implisolid_main.js
 // getInterfaceFucntions, assign_functoins
 function assign_emscripten_functions(service, Module) {
-    'use strict';
 
+    // todo: dict form
     // Low level API
     service.build_geometry = Module.cwrap('build_geometry', null, [ 'string', 'string']);
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
@@ -63,12 +63,11 @@ function assign_emscripten_functions(service, Module) {
 
     service.get_pointset_ptr = Module.cwrap('get_pointset_ptr', 'number', ['string']);
     service.get_pointset_size = Module.cwrap('get_pointset_size', 'number', ['string']);
+    service.about = Module.cwrap('about', null, []);
 
-    if (Module["_about"]) {
-        service.about = Module.cwrap('about', null, []);
-    } else {
-        service.about = "C++ method problem: no .about()";
-        console.error("C++ method problem: a correct version not found");
+    if (!Module["_about"]) {
+        // Don;t continue, otherwise, it will be very difficult to track the cause of the issue.
+        throw new Error('function `about()` is not `extern "c"`, or not specified in EXPORTED_FUNCTIONS compiler options');
     }
 
 

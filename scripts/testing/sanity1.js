@@ -6,6 +6,7 @@ if (!compiled_js_filename) {
   throw new Error('Usage: node sanity1.js "./compiled-escripten-filename.js"');
 }
 
+// todo: remove comment
 /*
 const mcc = require(compiled_js_filename);
 console.log(mcc);
@@ -84,11 +85,8 @@ async function run1() {
 async function run2() {
   const wait_for_full_reload = require('./service_l1');
   const Service1 = await wait_for_full_reload(compiled_js_filename);
-  console.log('loaded');
   const s1 = new Service1();
-  console.log('about:');
   s1.about();
-  console.log('ok');
 
   // "type":"sdf_3d"
   const example_objects = require('../../examples/js-lib/example_objects.js');
