@@ -14,12 +14,12 @@ assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
 # optional args:
     #  $MAIN_SOURCE_CPP_FILE "source.cpp path/filename"
     #  $TARGET_FILENAME "filename.compiled.js"
+# pwd is not used
 
 # sources:
 #     LIB_FOLDER, MAIN_SOURCE_FOLDER
 # targets:
 #     BUILD_LOCATION
-
 
 function old_pattern() {
     IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
@@ -48,26 +48,18 @@ echo "target file: $TARGET_FILENAME"
 expect_file  "$MAIN_SOURCE_FOLDER/$MAIN_SOURCE_CPP_FILE"
 
 # Expect the following in $LIB_FOLDER
-BOOST_FOLDER="boost_1_75_0"
+BOOST_SUBFOLDER="boost_1_75_0"
 # old: boost_1_61_0
-# todo: rename: BOOST_FOLDER -> BOOST_LIB_SUBFOLDER
-EIGEN_LIB_FOLDER="eigen"
-# todo: rename EIGEN_LIB_FOLDER -> EIGEN_LIB_SUBFOLDER
+EIGEN_SUBFOLDER="eigen"
 AUTODIFF_LIB_SUBFOLDER="autodiff"
 # $LIB_FOLDER/autodiff/autodiff/forward/dual.hpp
+# todo: rename: BOOST_SUBFOLDER -> BOOST_LIB_SUBFOLDER
 
-# ./build/lib/boost_1_75_0/boost/array.hpp
-expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
-# cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
-expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
+expect_file  "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp"
+expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 #expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
 
 
-# todo: does pwd matter?
-#cd $IMPLISOLID/js_iteration_1
-# test elimination
-mkdir -p $IMPLISOLID/temp4
-cd $IMPLISOLID/temp4
 
 export OPTIM=1
 export DEV=2
@@ -87,8 +79,8 @@ then
 #         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
 
     export CLI_ARGS=" \
-        -I /src-lib/$BOOST_FOLDER \
-        -I /src-lib/$EIGEN_LIB_FOLDER \
+        -I /src-lib/$BOOST_SUBFOLDER \
+        -I /src-lib/$EIGEN_SUBFOLDER \
         -O3   \
         -Oz \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -119,8 +111,8 @@ then
 #         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
 
     export CLI_ARGS=" \
-        -I /src-lib/$BOOST_FOLDER  \
-        -I /src-lib/$EIGEN_LIB_FOLDER \
+        -I /src-lib/$BOOST_SUBFOLDER  \
+        -I /src-lib/$EIGEN_SUBFOLDER \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \

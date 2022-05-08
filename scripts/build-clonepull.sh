@@ -125,15 +125,15 @@ get_boost() {
     # wget --server-response -q -O - "https://very.long/url/here" 2>&1 |   grep "Content-Disposition:" | tail -1 |   awk 'match($0, /filename=(.+)/, f){ print f[1] }' )
 
 }
-export BOOST_FOLDER="boost_1_75_0"
-MAKE_HAPPEN "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp" || {
+export BOOST_SUBFOLDER="boost_1_75_0"
+MAKE_HAPPEN "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp" || {
     get_boost
 }
-export BOOST="$LIB_FOLDER/$BOOST_FOLDER"
+export BOOST="$LIB_FOLDER/$BOOST_SUBFOLDER"
 echo "Boost downloaded in: $BOOST"
 
 # ./build/lib/boost_1_75_0/boost/array.hpp
-expect_file  "$LIB_FOLDER/$BOOST_FOLDER/boost/array.hpp"
+expect_file  "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp"
 
 
 get_eigen() {
@@ -164,15 +164,15 @@ get_eigen() {
   mv -vn $QQ/eigen $LIB_FOLDER/
 }
 
-export EIGEN_LIB_FOLDER="eigen"
-MAKE_HAPPEN "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h" || {
+export EIGEN_SUBFOLDER="eigen"
+MAKE_HAPPEN "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h" || {
     get_eigen
 }
-export EIGEN="$LIB_FOLDER/$EIGEN_LIB_FOLDER"
+export EIGEN="$LIB_FOLDER/$EIGEN_SUBFOLDER"
 echo "Eigen downloaded in: $EIGEN"
 
 # cat ./build/lib/eigen/Eigen/src/Core/MatrixBase.h
-expect_file  "$LIB_FOLDER/$EIGEN_LIB_FOLDER/Eigen/src/Core/MatrixBase.h"
+expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 
 prime_docker
 
