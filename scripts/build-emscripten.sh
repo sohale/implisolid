@@ -19,8 +19,7 @@ assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
 #     LIB_FOLDER, MAIN_SOURCE_FOLDER
 # targets:
 #     BUILD_LOCATION
-echo "source file: $MAIN_SOURCE_CPP_FILE"
-echo "target file: $TARGET_FILENAME"
+
 
 function old_pattern() {
     IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
@@ -42,6 +41,9 @@ export MAIN_SOURCE_FOLDER=$IMPLISOLID
 # Main file is: at $MAIN_SOURCE_FOLDER/js_iteration_1/mcc2.cpp
 export MAIN_SOURCE_CPP_FILE="${MAIN_SOURCE_CPP_FILE:-$DEFAULT_MAIN_SOURCE_CPP_FILE}"
 export TARGET_FILENAME="${TARGET_FILENAME:-$DEFAULT_TARGET_FILENAME}"
+
+echo "source file: $MAIN_SOURCE_CPP_FILE"
+echo "target file: $TARGET_FILENAME"
 
 expect_file  "$MAIN_SOURCE_FOLDER/$MAIN_SOURCE_CPP_FILE"
 
