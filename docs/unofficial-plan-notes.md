@@ -31,3 +31,5 @@
   * A demo page (view only)
   * (Maybe) a demo page that serves python?
   * autodiff-basaed and sympy-based ecosystems (See Stash/sandbox above).
+
+* Use `@types/emscripten`
