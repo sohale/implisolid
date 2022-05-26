@@ -33,3 +33,5 @@
   * autodiff-basaed and sympy-based ecosystems (See Stash/sandbox above).
 
 * Use `@types/emscripten`
+
+* A `tfjs` backend !
