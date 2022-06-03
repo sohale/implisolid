@@ -1,7 +1,9 @@
 import numpy as np
 from basic_types import check_vector4, repeat_vect4, make_vector4
-import vectorized
-import nonvec
+
+# only import the ncessary parts as separate files to avoid circular modules
+#   import vectorized
+#   import nonvec
 
 def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorized="unspecified"):
     #0.1 is not enough for delta_t

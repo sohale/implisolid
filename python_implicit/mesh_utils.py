@@ -58,7 +58,7 @@ def make_edge_lookup_old(faces):
     # vertpairs_of_edges : index = edge number, value = eu_paired_int([vertex1, vertex2], here vertex1 < vertex2)
     # eulookup[eu_paired_int] = edge number index
     #raise
-    print "Warning: not tested enough"
+    print("Warning: not tested enough")
 
     nfaces = faces.shape[0]
     assert nfaces % 2 == 0
@@ -75,7 +75,7 @@ def make_edge_lookup_old(faces):
 
     modulo = long(num_edges)    # *2
     lookup_array_size = modulo * num_edges + num_edges
-    print "lookup_array_size",lookup_array_size
+    print("lookup_array_size",lookup_array_size)
     if lookup_array_size > implicit_config.MAX_MATRIX_SIZE:
         raise TooMemoryIntensive()
     eulookup = -np.ones((lookup_array_size,), dtype=int)
@@ -222,7 +222,7 @@ def make_edge_lookup_sparse(faces):
     """
     # An alternatve solution would be using a dictionary for eulookup.
     # Another alternative is to rewrite this using a sparse 2D matrix (e.g. DOK) as adjacency matrix (so that it receives two indices, unlike eulookup, which is 1D). In that case, `modulo` will not be used.
-    print "Sparse verion:"
+    print("Sparse version:")
 
     nfaces = faces.shape[0]
     assert nfaces % 2 == 0
@@ -496,7 +496,7 @@ def make_sparse_neighbour_faces_of_vertex_csr(faces, maxvert=None):
     if maxvert is None:
         maxvert = max(neighbour_faces_of_vertex.keys())
 
-    print "This is not implemented yet"
+    print("This is not implemented yet")
 
     indptr = [0]
     indices = []
@@ -554,7 +554,7 @@ import vectorized
 def optimize_points1_inplace_oldworking(iobj, xa, tolerance=0.00001, lambda_=0.1, inplace=True, maxdist=None):
 
     if maxdist is not None:
-        print "Warning: maxdist is not used in the selected algorithm"
+        print( "Warning: maxdist is not used in the selected algorithm")
 
     assert vectorized.is_implicit_type(iobj)
     print("--------optimize_points1_inplace_oldworking-------")
@@ -832,7 +832,7 @@ def project_single_point1_mk(iobj, start_x, tolerance = 0.00001, lambda_=0.1, ma
                     projection = self.find_bisection_root(Q,R)
                     break
                 except:
-                    print "find_bisection_root failed"
+                    print("find_bisection_root failed")
             elif mult < tolerance:
                 return Q
             else:

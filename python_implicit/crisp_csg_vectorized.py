@@ -5,8 +5,7 @@ from basic_types import check_matrix3_vectorized
 #from primitives import ImplicitFunctionPointwise
 
 #from primitives import UnitSphere
-from implicit_vectorized import ImplicitFunctionVectorized
-
+from implicit_function_vectorized import ImplicitFunctionVectorized
 
 class CrispSubtract(ImplicitFunctionVectorized):
     def __init__(self, a, b):

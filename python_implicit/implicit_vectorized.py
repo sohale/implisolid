@@ -8,6 +8,8 @@ from basic_types import check_vector4_vectorized, check_matrix3_vectorized
 from basic_types import make_vector4, check_vector4  # check_matrix4
 from numerical_utils import numerical_gradient_vectorized_v1
 
+from implicit_function_vectorized import ImplicitFunctionVectorized
+
 # @profile
 # def memoize(f):
 #     memo = {}
@@ -17,8 +19,9 @@ from numerical_utils import numerical_gradient_vectorized_v1
 #         return memo[str(args)]
 #     return inner
 
-
-class ImplicitFunctionVectorized(object):
+if False:
+  # class moved to python_implicit/implicit_function_vectorized.py
+  class ImplicitFunctionVectorized(object):
     """ Functions in this type receive numpy vectors of size Nx4 """
 
     def implicitFunction(self, pv):

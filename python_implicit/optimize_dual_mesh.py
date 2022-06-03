@@ -56,7 +56,7 @@ class MeshOptimizer(object):
             example_name: name of example to build, available names can be
             found in the file example_objects
         """
-        print "[Start] Loading example:  %s" % example_name + ' ...'
+        print("[Start] Loading example:  %s" % example_name + ' ...')
         from example_objects import make_example_vectorized
         from stl_tests import make_mc_mesh_scikit
         exname = example_name
@@ -73,12 +73,12 @@ class MeshOptimizer(object):
         self.build_neighbours()
         self.name = exname
         self.lamda = calc_avg_triangle_length(self.triangles) / 2
-        print "[End] Loading example:  %s" % example_name + ' .'
+        print("[End] Loading example:  %s" % example_name + ' .')
 
 
     @profile
     def plot_mesh(self, primal_mesh=True, axisOn=True, representation="surface"):
-        print "[Start]: Plotting mesh for:  %s" % self.name + ' ...'
+        print("[Start]: Plotting mesh for:  %s" % self.name + ' ...')
 
         axis_dim = 2
         # Axes
@@ -114,7 +114,7 @@ class MeshOptimizer(object):
                 x[i] = self.optimized_vertices[i][0]
                 z[i] = self.optimized_vertices[i][2]
             mlab.triangular_mesh(x, y, z, self.faces, representation=representation)
-        print "[End]: Plotting mesh for: %s" % self.name + ' .'
+        print("[End]: Plotting mesh for: %s" % self.name + ' .')
         # mlab.show()
 
     @profile
@@ -165,7 +165,7 @@ class MeshOptimizer(object):
 
     @profile
     def minimize_tangent_planes(self, ind):
-        print "[Start] minimize_tangent_planes ind: %d" % ind + ' ...'
+        print("[Start] minimize_tangent_planes ind: %d" % ind + ' ...')
         neighbors = self.vertex_neighbours_list[ind]
         assert not np.any(np.isnan(neighbors)), "neighbors should not contain NaN values"
         alpha_current = np.zeros(shape=(3, 3))
@@ -183,14 +183,14 @@ class MeshOptimizer(object):
             b_total += b_current
             res = np.linalg.lstsq(2 * A_total, -b_total)
         # print res
-        print "[End] minimize_tangent_planes ind: %d" % ind + ' .'
+        print("[End] minimize_tangent_planes ind: %d" % ind + ' .')
         return res[0].reshape(3, 1)
 
     def plot_tangent_planes(self, ind):
 
         neighbors = self.vertex_neighbours_list[ind]
 
-        print "These are the neighbors of vertex %d" % ind
+        print("These are the neighbors of vertex %d" % ind)
         # print neighbors
         p_matrix = np.array([self.optimized_dual_mesh[neighbor] for neighbor in neighbors])
         assert not np.any(np.isnan(p_matrix)), "The matrix of points should not contain NaN values"
@@ -213,7 +213,7 @@ class MeshOptimizer(object):
 
     @profile
     def optimize_centroid(self, centroid, ind):
-        print "[Start] optimize_centroid ..."
+        print("[Start] optimize_centroid ...")
         #  set_trace()
         # print centroid
         centroid = centroid.reshape(1, 4)
@@ -238,7 +238,7 @@ class MeshOptimizer(object):
                     projection = self.find_bisection_root(Q, R)
                     break
                 except:
-                    print "find_bisection_root failed"
+                    print("find_bisection_root failed")
             elif condition < self.TOLERANCE:
                 return Q
             else:
@@ -246,7 +246,7 @@ class MeshOptimizer(object):
         # log lambda values for every simulation so we tune it later on .
         # with open('lambda_logs','a') as logfile:
             # print('lambda_val, ' + repr(self.lambda_val) + ', lambda_counter, '+ repr(lambda_counter) + '\n')
-        print "[End] optimize_centroid ."
+        print("[End] optimize_centroid .")
 
         # set_trace()
         # assert not np.any(np.isnan(projection)), "Projections cant be NaN"
@@ -254,7 +254,7 @@ class MeshOptimizer(object):
 
     # @profile
     def run(self, calc_proj=True, calc_opt=True, update_centroids=False):
-        print "[Start] Run simulation for %s" % self.name
+        print( "[Start] Run simulation for %s" % self.name)
         if calc_proj:
             if update_centroids:
                 # set_trace()
@@ -274,7 +274,7 @@ class MeshOptimizer(object):
                 self.optimized_vertices.append(opt_vertex)
                 # print "Stats : "
                 # print "Square error of primal mesh: %f " % sum(self)
-        print "[End] Run simulation for %s" % self.name
+        print( "[End] Run simulation for %s" % self.name )
 # Util functions
 
 

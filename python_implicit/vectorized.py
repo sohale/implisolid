@@ -5,7 +5,7 @@ import implicit_vectorized
 #from implicit_vectorized import *
 # __all__.extend(implicit_vectorized.all_)
 __all__.extend(implicit_vectorized.__all__)
-
+# parts of implicit_vectorized are moved to thei own file and should be imported separately if imported internally from iside the module
 
 # Causes a circular dependency problem
 '''

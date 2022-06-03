@@ -110,6 +110,7 @@ pip install vtk
 '
 
 pip install wheel
+pip install ipdb
 pip install numexpr
 pip install vtk
 pip install mayavi
