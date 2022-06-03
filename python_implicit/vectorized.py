@@ -2,10 +2,12 @@ __all__ = []
 
 # fails in python 3
 import implicit_vectorized
-from implicit_vectorized import *
+#from implicit_vectorized import *
+# __all__.extend(implicit_vectorized.all_)
 __all__.extend(implicit_vectorized.__all__)
 
 
+# Causes a circular dependency problem
 '''
     import implicit_vectorized
     from implicit_vectorized import *
