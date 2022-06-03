@@ -45,8 +45,10 @@ bash ./scripts/e2e-test-builds.bash
 This will run and end-to-end demo: Pulls the code, compiles the code for Emscripten. Then launches a web server and runs a demo on browser [like this](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html). The interactive live demo instantly polygonises the objects and visualises them as the `mp5` file is edited.
 
 ## Architectural Structure
-![svg](https://drive.google.com/file/d/1VKJaGe-Hycb6qcfEx0rTbSrc6FtcT0G-/view?usp=sharing)
-
+"Implisolid current architecture (Some proposed changes shown in purple)
+<!-- Need decouple into independent interoperable parts (low level vectorised stuff/basic structures, the "simplical complexes" layer (includes the mesh). Separate the js parts that use ThreeJS (half-way) from the rest. NodeJS-based unit tests need to be able to test the web-worker functionality.)-->
+![svg]( https://drive.google.com/uc?export=view&id=1VKJaGe-Hycb6qcfEx0rTbSrc6FtcT0G-   "Implisolid current architecture (needs change)" )
+<!-- Thank you "Echan" for solution: https://stackoverflow.com/questions/52063556/add-image-to-github-readme-md-from-google-drive -->
 
 
 ## Implemenation
