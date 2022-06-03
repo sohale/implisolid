@@ -2,7 +2,8 @@ __all__ = []
 
 # fails in python 3
 import implicit_vectorized
-#from implicit_vectorized import *
+from implicit_vectorized import *
+# defines `vectorized.UnitCube1`, etc
 # __all__.extend(implicit_vectorized.all_)
 __all__.extend(implicit_vectorized.__all__)
 # parts of implicit_vectorized are moved to thei own file and should be imported separately if imported internally from iside the module

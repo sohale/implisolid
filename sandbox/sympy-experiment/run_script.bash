@@ -127,7 +127,13 @@ MAKE_HAPPEN "$VENV_PACKAGES/mayavi/__init__.py" || {
   pip install mayavi
 }
 
+MAKE_HAPPEN "$VENV_PACKAGES/numpy_stl*" || {
+  pip install numpy-stl
+}
 
+MAKE_HAPPEN "$VENV_PACKAGES/scikit_image-*" || {
+pip install scikit-image
+}
 
 ######################################################
 # Attempts to run mayavi-based script
