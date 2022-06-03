@@ -1,7 +1,9 @@
-
+from vtk import *
 import numpy as np
 #from ipdb import set_trace
 #see http://nullege.com/codes/show/src@p@y@pyformex-0.9.0@pyformex@plugins@vtk_itf.py/36/vtk.util.numpy_support.vtk_to_numpy
+
+new_mayavi = True
 
 # def cleanVPD(vpd):
 #     """Clean the vtkPolydata
@@ -153,7 +155,6 @@ import numpy as np
 def vtk_mc(gridvals, rrr):
     (RANGE_MIN, RANGE_MAX, STEPSIZE) = rrr
 
-    from vtk import *
 
     data_numpy = gridvals
 
@@ -163,20 +164,61 @@ def vtk_mc(gridvals, rrr):
     spacing = 1
 
     x_dim, y_dim, z_dim = data_numpy.shape
-    # Flatten the array so it can be loaded to VTK
-    data_numpy = data_numpy.ravel(order='C')
-    # convert to vtk
-    from vtk.util.numpy_support import numpy_to_vtk
-    numpy_to_vtk_data = numpy_to_vtk(data_numpy)
 
-    vtk_image_grid = vtkImageData()  # sample , vtk_Data
-    vtk_image_grid.SetExtent(0, x_dim-1, 0, y_dim-1, 0, z_dim-1)
-    vtk_image_grid.SetSpacing(spacing, spacing, spacing)  # check this
-    vtk_image_grid.SetOrigin(0, 0, 0)
-    vtk_image_grid.SetNumberOfScalarComponents(1)
-    vtk_image_grid.Update()
+    # old vtk only. In new vtk 9: SetNumberOfScalarComponents() not needed
+    if not new_mayavi:
 
-    vtk_image_grid.GetPointData().SetScalars(numpy_to_vtk_data)
+        # Flatten the array so it can be loaded to VTK
+        data_numpy = data_numpy.ravel(order='C')
+        # convert to vtk
+        from vtk.util.numpy_support import numpy_to_vtk
+        numpy_to_vtk_data = numpy_to_vtk(data_numpy)
+
+        vtk_image_grid = vtkImageData()  # sample , vtk_Data
+        vtk_image_grid.SetExtent(0, x_dim-1, 0, y_dim-1, 0, z_dim-1)
+        vtk_image_grid.SetSpacing(spacing, spacing, spacing)  # check this
+        vtk_image_grid.SetOrigin(0, 0, 0)
+        vtk_image_grid.SetNumberOfScalarComponents(1)
+        vtk_image_grid.Update()
+
+    if new_mayavi: # new version
+        # Flatten the array so it can be loaded to VTK
+        data_numpy = data_numpy.ravel(order='C')
+        # convert to vtk
+        from vtk.util.numpy_support import numpy_to_vtk
+        from vtk.util.numpy_support import get_vtk_array_type
+        print('data_numpy.shape', data_numpy.shape)
+        numpy_to_vtk_data = numpy_to_vtk(data_numpy)
+
+        vtk_image_grid = vtkImageData()  # sample , vtk_Data
+        vtk_image_grid.SetExtent(0, x_dim-1, 0, y_dim-1, 0, z_dim-1)
+        vtk_image_grid.SetSpacing(spacing, spacing, spacing)  # check this
+        vtk_image_grid.SetOrigin(0, 0, 0)
+        # old vtk only. In new vtk 9: not needed
+        #vtk_image_grid.SetNumberOfScalarComponents(1)
+        #? vtk_image_grid.Update()
+        #print('dir: GetPointData>', dir(vtk_image_grid.GetPointData()))
+
+        # 'SetScalars' 'SetVectors',
+        vtk_image_grid.AllocateScalars(get_vtk_array_type(data_numpy.dtype), 3)
+        #vtk_image_grid.GetPointData().SetArray(numpy_to_vtk_data)
+        vtk_image_grid.GetPointData().SetScalars(numpy_to_vtk_data)
+        print('GetDataDimension() = ', vtk_image_grid.GetDataDimension())
+        print('dir: vtk_image_grid>', dir(vtk_image_grid))
+
+
+    '''
+    From: https://discourse.vtk.org/t/numpy-tensor-to-vtkimagedata/5154
+
+    fwd_disp_vtk = vtk.vtkImageData()
+    fwd_disp_vtk.SetOrigin(0, 0, 0)
+    fwd_disp_vtk.SetSpacing(1, 1, 1)
+    fwd_disp_vtk.SetDimensions(*fwd_disp.shape[:-1])
+    fwd_disp_vtk.SetExtent(extent) # redundant
+
+    fwd_disp_vtk.AllocateScalars(vtk_numpy_support.get_vtk_array_type(fwd_disp.dtype), 3)
+    fwd_disp_vtk.GetPointData().SetArray(vtk_data_array)
+    '''
 
     # Using vtkMarchingCubes class:
     #    #Init marching cubes and set outpout to mapper of class vtkPolyDataMapper()
@@ -190,13 +232,25 @@ def vtk_mc(gridvals, rrr):
     #
     #    #mcubes.Update()  # sample
 
-    # contour
-    contour = vtkContourFilter()
-    contour.SetInput(vtk_image_grid)
-    contour.GenerateValues(1, 0, 1)  # (int numContours, double rangeStart, double rangeEnd)
-    contour.Update()
+    if not new_mayavi:
+        # contour
+        contour = vtkContourFilter()
+        #contour.SetInput(vtk_image_grid)
+        contour.SetInputData(vtk_image_grid)
+        contour.GenerateValues(1, 0, 1)  # (int numContours, double rangeStart, double rangeEnd)
+        contour.Update()
 
-    mesh_data = contour.GetOutput()
+        mesh_data = contour.GetOutput()
+
+    if new_mayavi:
+        # contour
+        contour = vtkContourFilter()
+        #contour.SetInput(vtk_image_grid)
+        contour.SetInputData(vtk_image_grid)
+        contour.GenerateValues(1, 0, 1)  # (int numContours, double rangeStart, double rangeEnd)
+        contour.Update()
+
+        mesh_data = contour.GetOutput()
 
     vcount = mesh_data.GetNumberOfPoints()
     va = np.zeros((vcount, 3))

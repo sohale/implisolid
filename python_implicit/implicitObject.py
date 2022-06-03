@@ -4,7 +4,7 @@ from sympy import symbols, Function, sympify, diff
 import numexpr as ne
 import types
 from vtk_mc import vtk_mc
-from python_clean_code.mc_utils import _prepare_grid, make_grid
+from mc_utils import _prepare_grid, make_grid
 from mayavi import mlab
 
 """
@@ -160,6 +160,7 @@ class Object3D(object):
         # mlab.show()
 
     def build_marching_cubes(self):
+        # slow?
         minn, maxx, step = -3, 3, 0.05
         rng = np.arange(-3, 3, 0.05)
         x, y, z = np.mgrid[minn:maxx:step, minn:maxx:step, minn:maxx:step]

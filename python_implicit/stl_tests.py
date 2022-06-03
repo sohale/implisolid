@@ -21,6 +21,7 @@ def load_stl(stl_fn, save_stl_fn):
 
     # Or creating a new mesh (make sure not to overwrite the `mesh` import by
     # naming it `mesh`):
+    # slow?
     VERTICE_COUNT = 100
     data = numpy.zeros(VERTICE_COUNT, dtype=mesh.Mesh.dtype)
     your_mesh = mesh.Mesh(data, remove_empty_areas=False)
@@ -150,7 +151,7 @@ def test3():
 def m2stl_mesh(verts, faces):
     from stl import mesh
     fv = verts[faces, :]
-    print fv.shape
+    print(fv.shape)
 
     data = np.zeros(fv.shape[0], dtype=mesh.Mesh.dtype)
     for i in range(fv.shape[0]):
@@ -269,12 +270,12 @@ def test7_dice():
     # (RANGE_MIN, RANGE_MAX, STEPSIZE) = (-8, +8., 0.8)  #
     verts, faces = make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE)
     from numerical_utils import average_edge_size
-    print "average_edge_size", average_edge_size(verts, faces)
+    print("average_edge_size", average_edge_size(verts, faces) )
     # When rescale is doubled (=2.), average edge size 0.824 -> 1.647 .
     # Seems the latter is when it works very well.
 
     verts = optimise_mesh(verts, faces, iobj)
-    print "average_edge_size", average_edge_size(verts, faces)  # 0.86 -> 1.72
+    print("average_edge_size", average_edge_size(verts, faces) )  # 0.86 -> 1.72
 
     m = m2stl_mesh(verts, faces)
     if ACTUALLY_SAVE:

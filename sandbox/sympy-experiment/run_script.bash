@@ -5,6 +5,8 @@
 
 set -xu
 
+cd /Users/sohail/cs/implisolid/sandbox/sympy-experiment
+
 mkdir -p temp
 source ./temp/my-bash-utils.sh || curl -k \
     https://raw.githubusercontent.com/sohale/implisolid/revival-sohale/scripts/bash-utils.sh \
@@ -97,7 +99,63 @@ MAKE_HAPPEN "$VENV_PACKAGES/graphviz/__init__.py" || {
   pip install $PIPFLAGS graphviz
 }
 
+######################################################
+# Attempts to run mayavi-based script
+######################################################
 
+echo > /dev/null '
+pip install numexpr
+brew install vtk  # installs vtk@9.1
+pip install vtk
+'
+
+pip install wheel
+pip install numexpr
+pip install vtk
+pip install mayavi
+pip install pyqt6 # ?
+# pip install traitsui  # no need, already installed
+
+
+#problem:
+# -->
+#ImportError: Could not import backend for traitsui.  Make sure you
+#        have a suitable UI toolkit like PyQt/PySide or wxPython
+#        installed.
+#
+
+# with:
+#export ETS_TOOLKIT=pyqt6
+#export QT_API=pyqt6
+#---->
+# problem:
+# RuntimeError: No pyface.toolkits plugin found for toolkit qt6
+
+# PySide2 does not work
+
+# with:
+#   export ETS_TOOLKIT=
+#   export QT_API=pyqt6
+# --->
+#     raise ve_exc
+# ValueError: 65534 is not a valid QEvent.Type
+
+# suggested: online
+#   export ETS_TOOLKIT=qt4
+#   export QT_API=pyqt5
+#
+# suggested to yuse pyqt4: https://stackoverflow.com/questions/44501987/using-mayavi-on-macos-with-pyqt5
+
+
+######################################################
+# End of attempts to run mayavi-based script
+######################################################
+
+
+
+###############################################
+# Attempts to install a different backend for matplotlib (not for implisolid)
+###############################################
 #brew install pkg-config
 #brew link pkg-config
 #brew install pygtk
@@ -137,14 +195,18 @@ For compilers to find llvm you may need to set:
 
 }
 
-MAKE_HAPPEN "$VENV_PACKAGES/mpl_interactions/__init__.py" || {
-  pip install mpl_interactions
-}
+#MAKE_HAPPEN "$VENV_PACKAGES/mpl_interactions/__init__.py" || {
+#  pip install mpl_interactions
+#}
 
 # for llvm (failed attempt)
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+
+######################################################
+# End of attempts for new backends for matplotlib
+######################################################
 
 
 echo "Main script"
@@ -155,10 +217,16 @@ python --version
 
 echo '
 source ./p3-for-me/bin/activate
-python older-versions/simult1_py3.py
-python experim2/simult2_sym.py
+export ETS_TOOLKIT=qt5
+# export ETS_TOOLKIT=pyqt5   ?
+
+cd ../../python_implicit
+python demoImplicitObject.py
 '
 
-python experim2/simult2_sym.py
+cd ../../python_implicit
+python demoImplicitObject.py
 
+
+# failed
 
