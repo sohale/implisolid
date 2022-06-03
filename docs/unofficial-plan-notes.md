@@ -3,6 +3,14 @@
    * The idea is [...]
    * See [examples/simple_viewer1](https://github.com/sohale/implisolid/tree/revival-sohale/examples/simple_viewer1) ([asisnow](https://github.com/sohale/implisolid/blob/d7856f21df8d470a1096fa146a79ba2b410547de/examples/simple_viewer1))
 
+* example browser
+   * Will have a panel summoning all examples (interactive demo, viewer, maybe a nodejs example runner, maybe a textual runner of unit tests)
+   * See [it](https://github.com/sohale/implisolid/tree/revival-sohale/examples/example_browser) in progress.
+
+* How to embed the architectural diagram in the .md files (readme). It does not show:
+```html
+<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vTGPTl24WtyxHqmImwH2CqjKBnzvBe4tvjNdZGD1e1uXCJqTb8QgG8wfAIhzHfpNnxQ38Pt93GGiLAB/embed?start=false&loop=false&delayms=3000" frameborder="0" width="1534" height="759" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+```
 * The node-js -based. Purposes:
    * unit tests
    * Sanity test of implisolid
