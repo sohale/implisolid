@@ -14,6 +14,11 @@ source ./temp/my-bash-utils.sh || curl -k \
 
 source ./temp/my-bash-utils.sh
 
+
+# nobrew
+export IF_BREW=
+# Ignore all brew commands
+
 set -e
 
 # if behind a firewall
@@ -99,24 +104,58 @@ MAKE_HAPPEN "$VENV_PACKAGES/graphviz/__init__.py" || {
   pip install $PIPFLAGS graphviz
 }
 
+MAKE_HAPPEN "$VENV_PACKAGES/numexpr/__init__.py" || {
+  pip install numexpr
+}
+
+# Run manually:
+#     brew install vtk  # installs vtk@9.1
+
+MAKE_HAPPEN "$VENV_PACKAGES/vtk.py" || {
+  pip install vtk
+}
+
+
+
+#MAKE_HAPPEN "$VENV_PACKAGES/???" || {
+#  very slow
+#  pip install pyqt5
+#}
+#qmake
+
+MAKE_HAPPEN "$VENV_PACKAGES/mayavi/__init__.py" || {
+  pip install mayavi
+}
+
+
+
 ######################################################
 # Attempts to run mayavi-based script
 ######################################################
+
+# Steps also documented as an answer here:
+#   https://stackoverflow.com/questions/71695844/how-to-install-mayavi-on-macos/72487758#72487758
 
 echo > /dev/null '
 pip install numexpr
 brew install vtk  # installs vtk@9.1
 pip install vtk
+brew install qt
+brew install pyqt5 ?
+brew install pyside #?
 '
-
+if false; then
 pip install wheel
 pip install ipdb
 pip install numexpr
 pip install vtk
 pip install mayavi
-pip install pyqt6 # ?
+#brew install pyqt5
+#pip install pyqt6 # ? #no
+#pip install pyqt5
 # pip install traitsui  # no need, already installed
 
+fi
 
 #problem:
 # -->
@@ -148,6 +187,48 @@ pip install pyqt6 # ?
 # suggested to yuse pyqt4: https://stackoverflow.com/questions/44501987/using-mayavi-on-macos-with-pyqt5
 
 
+#if false; then
+#  brew uninstall pyside
+#  pip uninstall pyqt6
+#  brew uninstall qt
+#fi
+#pyqt5 does not install
+
+if false; then
+    [[ -n $IF_BREW ]] && brew install vtk
+    [[ -n $IF_BREW ]] && brew install qt5
+    # no such thing? : brew install pyqt5
+
+    # important:
+    brew info qt5
+    # then run those commands
+    #  echo 'export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"' >> ~/.zshrc
+    echo $PATH | grep qt@5  # make sure PATH is set for qt5
+    export LDFLAGS="-L/opt/homebrew/opt/qt@5/lib"
+    export CPPFLAGS="-I/opt/homebrew/opt/qt@5/include"
+    # try qmake
+
+    #export QT_API=pyqt5
+    #export ETS_TOOLKIT=pyqt5
+    # No pyface.toolkits plugin found for toolkit pyqt5
+
+    # test if qt5 command `qmake`` works
+    qmake # test brew qt5
+    pip install pyqt5 # slow: builds using clang
+
+
+    # ?? https://pypi.org/project/pyface/
+
+fi
+#export QT_API=pyqt5a
+#export QT_API=pyqt5
+#export QT_API=
+#export ETS_TOOLKIT=pyqt5b
+#RuntimeError: No pyface.toolkits plugin found for toolkit pyqt5b
+#export ETS_TOOLKIT=pyqt5
+export ETS_TOOLKIT=
+export QT_API=pyqt5
+
 ######################################################
 # End of attempts to run mayavi-based script
 ######################################################
@@ -169,7 +250,8 @@ true || MAKE_HAPPEN "$VENV_PACKAGES/mplcairo/__init__.py" || {
 
     export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
     export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-    export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+    # export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+    echo $PATH | grep llvm  # make sure PATH is includes llvm
 
     # https://github.com/matplotlib/mplcairo#macos
     # pip install mplcairo  # from PyPI
@@ -194,7 +276,7 @@ For compilers to find llvm you may need to set:
   export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 '
 
-}
+######## another solution for another matplotlib backend
 
 #MAKE_HAPPEN "$VENV_PACKAGES/mpl_interactions/__init__.py" || {
 #  pip install mpl_interactions
@@ -203,7 +285,10 @@ For compilers to find llvm you may need to set:
 # for llvm (failed attempt)
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+# export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+echo $PATH | grep llvm
+
+}
 
 ######################################################
 # End of attempts for new backends for matplotlib
