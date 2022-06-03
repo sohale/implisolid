@@ -317,8 +317,11 @@ python demoImplicitObject.py
 '
 
 cd ../../python_implicit
-python demoImplicitObject.py
+# Runs a mayavi-based GUI:
+echo  'skipped' || \
+  python demoImplicitObject.py
 
+python test_optimize_dual_mesh.py
 
 # failed
 

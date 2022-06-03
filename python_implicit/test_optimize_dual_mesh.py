@@ -25,7 +25,7 @@ class BisectionRootTests(unittest.TestCase):
         new_opt.register_function(known_function)
         result = new_opt.find_bisection_root(np.array([0,0,0,1]),np.array([2,0,0,1]))
         result_expected = np.array([1,0,0,1],dtype=np.float32)
-        print result,result_expected
+        print(result,result_expected)
         self.assertEqual(np.linalg.norm(result_expected - result),0,"It should return the point [1,0,0]")
 
         def tearDown(self):
@@ -57,13 +57,14 @@ class MeshOptimizerTests(unittest.TestCase):
         vertices = np.c_[new_opt.vertices,func_evals]
         for i in range(len(new_opt.vertices)):
             func_evals[i] =  new_opt.function(vertices[i][:].reshape(1,4))
-            print func_evals[i]
+            print(func_evals[i])
         self.assertEqual(np.linalg.norm(func_evals),0,"All the initial vertices should be on the implicit")
     def test_normal_has_correct_dimensions(self):
         new_opt = MeshOptimizer()
         new_opt.load_example('bowl_15_holes')
-        point = np.array([1, 1, 1, 1])
-        self.assertEqual(new_opt.getNormalVectorAtPoint(point).shape,(3,3))
+        point = np.array([1, 1, 1, 1], dtype=float)
+        self.assertEqual(new_opt.buildNormalAtPoint(point).shape,(3,1))
+        # self.assertEqual(new_opt.getNormalVectorAtPoint(point).shape,(3,3))
     def tearDown(self):
         pass
 

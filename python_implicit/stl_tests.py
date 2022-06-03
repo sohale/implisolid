@@ -106,7 +106,7 @@ def make_mc_mesh_scikit(iobj, RANGE_MIN, RANGE_MAX, STEPSIZE):
     import mc_utils
     vgrid = mc_utils.make_grid(iobj, rng, old=True)
     from skimage import measure
-    verts, faces = measure.marching_cubes(vgrid, 0)
+    verts, faces, normals_, values_  = measure.marching_cubes(vgrid, 0)
     verts = ((verts) * STEPSIZE + rng[0])
     print("OLD: swapping x,y")
     verts = np.concatenate((verts[:, 1, np.newaxis], verts[:, 0, np.newaxis], verts[:, 2, np.newaxis]), axis=1)

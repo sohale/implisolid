@@ -2,6 +2,7 @@ import numpy as np
 import mesh_utils
 import profile_support
 from mayavi import mlab
+import functools
 from ipdb import set_trace
 """
 
@@ -345,6 +346,7 @@ def calc_avg_triangle_length(triangles):
         return (np.linalg.norm(triangle[0] - triangle[1]) + \
                 np.linalg.norm(triangle[0] - triangle[2]) + \
                 np.linalg.norm(triangle[1] - triangle[2])) / 3.
-    avg_len = map(avg_edge_len, triangles)
-    res = reduce(lambda x, y: x + y, avg_len, 0) / (1. * len(avg_len))
+    avg_len = list(map(avg_edge_len, triangles))
+
+    res = functools.reduce(lambda x, y: x + y, avg_len, 0) / (1. * len(avg_len))
     return res

@@ -15,11 +15,14 @@ python -c 'import mayavi' || echo 'First run `sandbox/sympy-experiment/run_scrip
 python -c 'import mayavi'  # to make sure run_script is executed already, stop if eg mayavi is not there
 
 
-cd $REPO_ROOT/python_implicit
+cd $REPO_ROOT/python_implicit/experimentation
 # cd experimentation
+# Runs a mayavi-based GUI:
 # python demoImplicitObject.py
+# Runs a mayavi-based GUI:
 # python twisted_cube_object.py
 
+cd $REPO_ROOT/python_implicit
 # needs to get fixed
 python implicit_test.py   || printf "$ERROR_MESSAGE_SKIP_ERROR"
 python mesh_examples_for_tests.py
