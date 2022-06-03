@@ -46,8 +46,9 @@ This will run and end-to-end demo: Pulls the code, compiles the code for Emscrip
 
 ## Architectural Structure
 "Implisolid current architecture (Some proposed changes shown in purple)
-<!-- Need decouple into independent interoperable parts (low level vectorised stuff/basic structures, the "simplical complexes" layer (includes the mesh). Separate the js parts that use ThreeJS (half-way) from the rest. NodeJS-based unit tests need to be able to test the web-worker functionality.)-->
 ![svg]( https://drive.google.com/uc?export=view&id=1VKJaGe-Hycb6qcfEx0rTbSrc6FtcT0G-   "Implisolid current architecture (needs change)" )
+
+<!-- Need decouple into independent interoperable parts (low level vectorised stuff/basic structures, the "simplical complexes" layer (includes the mesh). Separate the js parts that use ThreeJS (half-way) from the rest. NodeJS-based unit tests need to be able to test the web-worker functionality.) -->
 <!-- Thank you "Echan" for solution: https://stackoverflow.com/questions/52063556/add-image-to-github-readme-md-from-google-drive -->
 
 
