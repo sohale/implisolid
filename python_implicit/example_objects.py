@@ -845,8 +845,8 @@ def cyl2(scale=1.):
 
         u = make_uv(w, u)
 
-        print np.linalg.norm(np.cross(w[:3], u[:3]))
-        print np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001
+        print(np.linalg.norm(np.cross(w[:3], u[:3])))
+        print(np.linalg.norm(np.cross(w[:3], u[:3])) > 0.000000001)
 
         def set4th1(v):
             assert v.shape == (4,)

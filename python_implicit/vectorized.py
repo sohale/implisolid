@@ -1,8 +1,16 @@
 __all__ = []
 
+# fails in python 3
 import implicit_vectorized
 from implicit_vectorized import *
 __all__.extend(implicit_vectorized.__all__)
+
+
+'''
+    import implicit_vectorized
+    from implicit_vectorized import *
+    __all__.extend(implicit_vectorized.__all__)
+'''
 
 
 from crisp_csg_vectorized import *

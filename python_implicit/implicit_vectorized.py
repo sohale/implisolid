@@ -27,7 +27,7 @@ class ImplicitFunctionVectorized(object):
     def implicitGradient(self, pv):
         """ Returns a vector of size N x 4 where N is the number of points. result[:,3] must be 1.0 for all. """
         #raise VirtualException()
-        print "Warning: Numerical gradient is used"
+        print("Warning: Numerical gradient is used")
         return numerical_gradient_vectorized_v1(self, pv)
 
     def hessianMatrix(self, pv):

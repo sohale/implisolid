@@ -1,3 +1,9 @@
+# python_implicit/example_objects.py
+import os
+import sys
+_csd = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(_csd + '/..')
+
 from example_objects import twisted_cube_example
 from ipdb import set_trace
 import numpy as np

@@ -31,7 +31,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
     pos = np.tile(pos0_4, (3*n, 1))
     assert not issubclass(pos.dtype.type, np.integer)
 
-    if pos.shape[0] in [1, 1718772L]:
+    if pos.shape[0] in [1, long(1718772)]:  # 1718772L
         set_trace()
 
     dx = repeat_vect4(1, make_vector4(1, 0, 0))
@@ -94,7 +94,7 @@ def numerical_gradient(iobj, pos0, delta_t=0.01/10.0/10.0, order=5, is_vectorize
 
     #print(d)
     if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
-        print "warning: nonsmooth ",
+        print("warning: nonsmooth ",end='')
         #print(nonsmooth_ness)  # lots of zeros and one big value
 
     """ Calculating the numerical derivative using finite difference (convolution with weights) """
@@ -482,11 +482,11 @@ def my_process_1(verts, faces, iobj):
     fi = 0
     mean_edge = calculate_perimeter(verts, faces, fi)
     c = m.centroids[fi, :]
-    print mean_edge
+    print(mean_edge)
     from mesh_utils import project_single_point2_ohtake
     p = project_single_point2_ohtake(iobj, start_x=c.reshape(1,4), lambda_val=0.5*mean_edge, max_dist=10)
-    print p
-    print "OK."
+    print(p)
+    print("OK.")
     exit()
 
 
@@ -530,8 +530,8 @@ def cubic_root_x1():
         q = (3*a*c - b**2) / (9 * a**2)
         r = (9*a*b*c - 27*a**2*d - 2*b**3) / (54*a**3)
 
-        print "q = ",q
-        print "r = ",r
+        print("q = ",q)
+        print("r = ",r)
 
         delta = q**3 + r**2
 
@@ -548,7 +548,7 @@ def cubic_root_x1():
         #else: #delta<0
         #    roots = (1,2)  #second one is complex
 
-        print "delta = ", delta
+        print("delta = ", delta)
 
         # here delta is less than zero so we use the second set of equations from the article:
 
@@ -564,8 +564,8 @@ def cubic_root_x1():
         t_real = rho**(1./3.) * math.cos(-theta/3)
 
 
-        print "s [real] = ",s_real
-        print "t [real] = ",t_real
+        print("s [real] = ",s_real)
+        print("t [real] = ",t_real)
 
         x1 = s_real + t_real - b / (3. * a)
         return x1
@@ -577,9 +577,9 @@ def cubic_root_x1():
 
     x1 = c_real_roots1(a, b, c, d)
 
-    print "x1 = ", x1
+    print("x1 = ", x1)
 
-    print "should be zero: ",a*x1**3+b*x1**2+c*x1+d
+    print("should be zero: ",a*x1**3+b*x1**2+c*x1+d)
 
 from utils import flush, optimised_used
 
@@ -589,7 +589,7 @@ import sys
 def numerical_gradient_vectorized_v1(iobj, x):
     check_vector4_vectorized(x)
     if TEST_ON:
-        print "numerical_gradient1",; flush()
+        print("numerical_gradient1",end=''); flush()
         count = x.shape[0]
         g = np.zeros((count, 4))
         for i in range(x.shape[0]):
@@ -598,11 +598,11 @@ def numerical_gradient_vectorized_v1(iobj, x):
             g[i, :] = numerical_gradient(iobj, v, is_vectorized=True)
         assert not np.any(np.isnan(g), axis=None)
 
-    print "numerical_gradient2",; flush()
+    print("numerical_gradient2",end=''); flush()
     g2 = numerical_gradient_vectorized_v2(iobj, x.copy())
     if TEST_ON:
         assert np.allclose(g, g2)
-    print "done"; flush()
+    print("done"); flush()
     return g2
 
 
@@ -678,7 +678,7 @@ def numerical_gradient_vectorized_v2(iobj, pos0, delta_t=0.01/100., order=5):
         #print nonsmooth_ness.shape
         #set_trace()
         if(np.max(np.ravel(nonsmooth_ness))) > 100*10:
-            print "warning: nonsmooth ",
+            print("warning: nonsmooth ",end='')
         del nonsmooth_ness
 
     if False:

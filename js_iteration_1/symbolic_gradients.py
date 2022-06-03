@@ -84,7 +84,7 @@ eqlist = [
 [(c_name, c_code), (h_name, c_header)] = codegen( \
       eqlist, \
       "C", header=False, empty=False)
-print "Filename: ", c_name
+print("Filename: ", c_name)
 c_code = c_code.replace("pow", "std::pow")
 c_code = c_code.replace("sqrt", "std::sqrt")
 c_code = c_code.replace("double", "REAL")
