@@ -43,3 +43,21 @@
 * Use `@types/emscripten`
 
 * A `tfjs` backend !
+
+* Architctual overhaul:
+## Architectural Structure
+"Implisolid current architecture: Some proposed changes shown in purple:
+![svg]( https://drive.google.com/uc?export=view&id=1VKJaGe-Hycb6qcfEx0rTbSrc6FtcT0G-   "Implisolid current architecture (needs change)" )
+
+Required:
+* decouple into independent interoperable parts
+    * low level vectorised stuff
+    * basic structures
+    * the "simplical complexes" layer (includes the mesh).
+* More structural changes:
+* C++ namespaces for various above-mentioned parts.
+* Folder structure to reflect the new structure.
+* Clean up: A branch to keep (but remove from main branch) the contributions that are not used: mark, etc. Also the newer ones (already in a separate branch: Tiger and Shane Blobixx )
+* Separate the js parts that use ThreeJS (half-way) from the rest.
+* NodeJS-based unit tests need to be able to test the web-worker functionality.
+
