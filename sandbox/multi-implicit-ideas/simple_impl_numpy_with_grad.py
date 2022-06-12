@@ -187,16 +187,7 @@ def pl2(img_vals):
 
     pyplot.show()
 
-
-def main():
-    X,Y = mesh()
-
-    # v = np.maximum(v1,v1*0)
-    #v = np.maximum(v1,v1*0)
-    v, (gx,gy) = im_sdf(X,Y)
-    v[v<0] = -1
-    print('vv')
-    pl4(v, (X,Y, gx, gy))
+def plot_grads(X,Y, gx,gy):
     from matplotlib import pyplot
 
     gn = np.power(gx**2 + gy**2, 0.5)
@@ -211,6 +202,20 @@ def main():
         arrowsize=1, arrowstyle='->'
     )
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html#matplotlib.patches.FancyArrowPatch
+
+def main():
+    X,Y = mesh()
+
+    # v = np.maximum(v1,v1*0)
+    #v = np.maximum(v1,v1*0)
+    v, (gx,gy) = im_sdf(X,Y)
+    v[v<0] = -1
+    print('vv')
+    pl4(v, (X,Y, gx, gy))
+
+    plot_grads(X,Y, gx,gy)
+
+    from matplotlib import pyplot
     pyplot.show()
 
 
