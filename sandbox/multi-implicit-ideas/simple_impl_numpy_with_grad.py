@@ -195,7 +195,17 @@ def main():
     pl4(v, (X,Y, gx, gy))
     from matplotlib import pyplot
 
-    pyplot.streamplot(X,Y,gx,gy, density=3, color='k', maxlength=0.4, linewidth=0.2, arrowsize=1, arrowstyle='->')
+    gn = np.power(gx**2 + gy**2, 0.5)
+    gx = gx/gn * 0.1
+    gy = gy/gn * 0.1
+    # rotate!
+    gx,gy = gy, -gx
+
+    pyplot.streamplot(X,Y,gx,gy, \
+        density=3, color='k', \
+        maxlength=0.4, linewidth=0.2, \
+        arrowsize=1, arrowstyle='->'
+    )
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html#matplotlib.patches.FancyArrowPatch
     pyplot.show()
 
