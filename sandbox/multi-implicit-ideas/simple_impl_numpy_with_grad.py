@@ -5,10 +5,11 @@ import numpy as np
 def signed_pow(x, p):
     absx = np.abs(x)
     sgnx = np.sign(x)
-    return np.power(absx, p) * sgnx, sgnx
+    #return np.power(absx, p) * sgnx, sgnx
+    return np.power(x, p), None
 
 def sdf1(X,Y):
-    v = signed_pow((X - 0.5)**2 + (Y-0.5)**2, 0.5)[0] - 0.5
+    v = signed_pow((X - 0.5)**2 + (Y-0.5)**2, 0.5)[0] - 0.2
     (gx,gy) = 2*(X - 0.5),  2*(Y-0.5)
     return v, (gx,gy)
 
@@ -16,7 +17,7 @@ def sdf1(X,Y):
 def sdf2(X,Y):
     v = signed_pow((X - 0.0)**2 + (Y-0.5)**2, 0.5)[0] - 0.5
     #, (gx,gy)
-    (gx,gy) = 2*(X - 0.5),  2*(Y-0.5)
+    (gx,gy) = 2*(X - 0.0),  2*(Y-0.5)
     return v, (gx,gy)
 
 from math import prod
@@ -100,6 +101,9 @@ def im_sdf(X,Y):
 
     print('g1.apply_third_index')
     v, gx, gy = apply_third_index(min12, (v12, g12x, g12y))
+
+    #v,gx,gy = v1,g1x,g1y
+    #v,gx,gy = v2,g2x,g2y
 
     # #v = v12[:,:,min12]
     # v = v12[:,:],min12
