@@ -235,7 +235,7 @@ def main():
     pyplot.figure()
     mv, (mgx,mgy) = next(g)
     print(mv.shape, mgx.shape,mgy.shape)
-    pl4(mv[:,:,0]*np.nan, (X,Y, mgx[:,:,0], mgy[:,:,0]))
+    pl4(mv[:,:,0], (X,Y, mgx[:,:,0], mgy[:,:,0]))
     for i in range(mgx.shape[2]):
         v,gx,gy = mv[:,:,i], mgx[:,:,i], mgy[:,:,i]
         plot_grads(X,Y, gx,gy)
