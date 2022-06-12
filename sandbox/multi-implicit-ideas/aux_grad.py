@@ -144,7 +144,7 @@ def pl3(img_vals):
     pyplot.colorbar()
     pyplot.show()
 
-def pl4(img_vals, more_info):
+def pl4(img_vals, more_info, contour=True):
     # cmap_name = 'Wistia'  # Wistia: Sun
     # see: https://matplotlib.org/3.5.0/tutorials/colors/colormaps.html
     cmap_name = 'copper'  # Wistia: Sun
@@ -160,7 +160,8 @@ def pl4(img_vals, more_info):
     pyplot.imshow(img_vals, cmap=cmap, extent=extent, origin='lower')
     #origin='lower'
     pyplot.colorbar()
-    pyplot.contour(X,Y, img_vals, levels=levels, colors='r' , origin='image') #, extent=extent) # cmap=cmap)
+    if contour:
+        pyplot.contour(X,Y, img_vals, levels=levels, colors='r' , origin='image') #, extent=extent) # cmap=cmap)
     # origin='upper' deafult: lower?
     # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_image.html
     #pyplot.show()
@@ -198,7 +199,10 @@ def pl2(img_vals):
 
     pyplot.show()
 
-def plot_grads(X,Y, gx,gy):
+def plot_grads(X,Y, gx,gy, \
+    thin=0.4, color='k', arrowsize=1,
+    density=3,
+    **kargs):
     from matplotlib import pyplot
 
     gn = np.power(gx**2 + gy**2, 0.5)
@@ -208,9 +212,10 @@ def plot_grads(X,Y, gx,gy):
     gx,gy = gy, -gx
 
     pyplot.streamplot(X,Y,gx,gy, \
-        density=3, color='k', \
-        maxlength=0.4, linewidth=0.2, \
-        arrowsize=1, arrowstyle='->'
+        density=density, color=color, \
+        maxlength=0.4, linewidth=thin, \
+        arrowsize=arrowsize, arrowstyle='->', \
+        **kargs
     )
     # https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html#matplotlib.patches.FancyArrowPatch
 
@@ -235,10 +240,13 @@ def main():
     pyplot.figure()
     mv, (mgx,mgy) = next(g)
     print(mv.shape, mgx.shape,mgy.shape)
-    pl4(mv[:,:,0], (X,Y, mgx[:,:,0], mgy[:,:,0]))
+    pl4(mv[:,:,0], (X,Y, mgx[:,:,0], mgy[:,:,0]), contour=False)
+    plot_grads(X,Y, gx,gy, thin=0.1, density=1)
     for i in range(mgx.shape[2]):
         v,gx,gy = mv[:,:,i], mgx[:,:,i], mgy[:,:,i]
-        plot_grads(X,Y, gx,gy)
+        plot_grads(X,Y, gx,gy,
+            color='k', arrowsize=0, density=3)
+
     pyplot.show()
 
 main()
