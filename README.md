@@ -102,6 +102,20 @@ List of platforms with scripts (to install and compile):
 - Clang / LLVM
 - Native C++: `g++` (see [script](js_iteration_1/build_g++.sh))
 
+
+
+
+# Stargazers
+
+[![Stargazers over time](https://starchart.cc/sohale/implisolid.svg)](https://starchart.cc/sohale/implisolid)
+
+# Contributors
+
+<a href="https://github.com/sohale/implisolid/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sohale/implisolid" />
+</a>
+
+
 ## Tutorials:
 
 ### E2E demo
