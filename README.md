@@ -8,13 +8,13 @@ ImpliSolid
 The main usecase for ImpliSolid was 3D printing, but it can be use din any manufacturing, SDF, stochastic implicit functions, etc.
 
 * Features:
-    * Supports sharp edges
-    * Dual meshing
-    * Adaptive meshing (curvature-based)
+    * ⭐️ Supports ✨ '''sharp edges''' ✨
+    * ⭐️ Dual meshing
+    * ⭐️ Curvature-based Adaptive meshing
         * adaptive subdivision and decimation
         * QEM
-    * Memory efficient
-    * Compute efficient
+    * ⭐️ Compute efficient
+    * ⭐️ Memory efficient
 
 Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 
