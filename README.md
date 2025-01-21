@@ -21,21 +21,27 @@ scalable [Architectural_geometry](https://en.wikipedia.org/wiki/Architectural_ge
 Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces)
 etc.
 
-* Features:
+* Key Features:
     * ⭐️ Supports ✨ **sharp edges** ✨
     * ⭐️ Curvature-based Adaptive meshing
         * adaptive subdivision and decimation
         * **Dual meshing**
         * QEM
-    * ⭐️ Compute
+
+* Other features:
+    * ⭐️ Compute efficiency
         * CPU efficient
         * Memory efficient
         * Cache efficient
         * Stable
         * robust
-    * ⭐️ Responsive, low-latency
-    * ⭐️ built-in progressive mesh generation (can offload to web0workers)
-    * ⭐️ Custom run-time functions
+    * ⭐️ Responsive, low-latency 
+    * ⭐️ Built-in **progressive** mesh generation
+        * Low-poly to detailed mesh and curvature-adaptive mesh
+        * (can offload to web-workers)
+    * ⭐️ Custom run-time functions (see live coding demo [mp5 editor](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html))
+    * ⭐️ Seamless integration with web, slicer
+
 
 Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
