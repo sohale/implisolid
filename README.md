@@ -26,14 +26,27 @@ ImpliSolid use is not limited to browsers. It has implementations in C++, Python
 <!-- |  An interactive editor: | [link defunct](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) | -->
 
 
-**`ImpliSolid`** uses academic research on the polygonization algorithm such as the algorithm by [Ohtake](https://www.u-tokyo.ac.jp/focus/en/people/people000639.html) & [Belyaev](https://scholar.google.co.uk/citations?user=UgOo39sAAAAJ&hl=en).
 
-<!-- https://dl.acm.org/doi/10.1145/882262.882293 -->
 
 Currently two open-source projects that use this library:
 
 * [mp5-private](http://github.com/sohale/mp5-private), i.e. the [WeDesign.Live](http://beta.wedesign.live) (incubated)
 * [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated)
+
+
+### Science
+**`ImpliSolid`** uses academic research on the polygonization algorithm such as the [algorithm]() by [Ohtake](https://www.u-tokyo.ac.jp/focus/en/people/people000639.html) & [Belyaev](https://scholar.google.co.uk/citations?user=UgOo39sAAAAJ&hl=en).
+
+<!-- https://dl.acm.org/doi/10.1145/882262.882293 -->
+
+Dynamic Mesh Optimization for Polygonized Implicit Surfaces with Sharp Features.
+[1]: Ohtake & Belyaev 2002. Mesh Optimization for Polygonized Isosurfaces. Yutaka Ohtake, Alexander G. Belyaev. 25 July 2002. https://doi.org/10.1111/1467-8659.00529
+
+[2]: Ohtake, Belyaev & Pasko 2003. 
+Ohtake, Y., Belyaev, A. & Pasko, A. Dynamic mesh optimization for polygonized implicit surfaces with sharp features. Visual Computer 19, 115–126 (2003). https://doi.org/10.1007/s00371-002-0181-z Yutaka Ohtake, Alexander Belyaev, Alexander Pasko.
+
+[3]: Ohtake & Belyaev 2002 (b). Dual/Primal mesh optimization for polygonized implicit surfaces.  Proceedings of the seventh ACM symposium on Solid modeling and applications. June 2002. [dblp](https://dblp.uni-trier.de/rec/conf/sma/OhtakeB02.html?view=bibtex) https://doi.org/10.1145/566282.566308
+
 
 ## E2E demo
 For single-click execution in your computer (tested on Ubuntu and MacOS), run:
