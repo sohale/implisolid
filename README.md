@@ -4,7 +4,19 @@ ImpliSolid
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 **ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *Implicit Surfaces* modelling (aka *F-REP*).
-The main usecase for ImpliSolid is 3D printing.
+
+The main usecase for ImpliSolid was 3D printing, but it can be use din any manufacturing, SDF, stochastic implicit functions, etc.
+
+* Features:
+    * Supports sharp edges
+    * Dual meshing
+    * Adaptive meshing (curvature-based)
+        * adaptive subdivision and decimation
+        * QEM
+    * Memory efficient
+    * Compute efficient
+
+Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 
 ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
 
@@ -12,9 +24,12 @@ The main strength is its ability to work efficiently with **sharp edges**.
 It also uses **adaptive subdivition** for smooth and perfect curved surfaces.
 These are achieved using relatively lower resolution meshes.
 
-It uses "vectorised" numerical calulations to achieve higher speed by utilising Instruction Pipelining in modern CPUs.
+* Performance:
+It uses "vectorised" numerical calulations (loop tiling, loop blocking for cache optimisation) to achieve higher speed by utilising Instruction Pipelining and L1/L2 caches in modern CPUs.
 This enables it to be useful on consumer and home computers.
 <!-- This enables it to be useful on consumer and home computers on browser without GPU.-->
+LLVM’s built-in CGO generates performant javascript, webassembly and native CPU code.
+Dynamic Programming is used to improve speed of graph algorithms.
 
 ImpliSolid use is not limited to browsers. It has implementations in C++, Python (native) and JavaScript.
 
