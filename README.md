@@ -38,7 +38,8 @@ etc.
     * ⭐️ Responsive, low-latency 
     * ⭐️ Built-in **progressive** mesh generation
         * Low-poly to detailed mesh and curvature-adaptive mesh
-        * (can offload to web-workers)
+        * Distributed: can offload to web-workers using message-passing
+        * Suitable for live-coding
     * ⭐️ Custom run-time functions (see live coding demo [mp5 editor](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html))
     * ⭐️ Seamless integration with web, slicer
 
