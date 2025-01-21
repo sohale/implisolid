@@ -14,9 +14,12 @@ The main usecase for ImpliSolid was 3D printing, but it can be use din any manuf
         * adaptive subdivision and decimation
         * QEM
     * ⭐️ Compute efficient
-    * ⭐️ Memory efficient
+        * Memory efficient
+        * Cache efficient
+    * ⭐️ Responsive, progressive mesh generation, low-latency
 
 Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
+ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
 
 ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
 
@@ -31,7 +34,7 @@ This enables it to be useful on consumer and home computers.
 LLVM’s built-in CGO generates performant javascript, webassembly and native CPU code.
 Dynamic Programming is used to improve speed of graph algorithms.
 
-ImpliSolid use is not limited to browsers. It has implementations in C++, Python (native) and JavaScript.
+
 
 | | |
 |------:|:-------|
