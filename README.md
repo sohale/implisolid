@@ -7,18 +7,18 @@ ImpliSolid
 
 The main usecase for ImpliSolid has been 3D Printing in mind.
 It is equally suitable for
-industry-grade manufacturing applications,
+industry-grade manufacturing applications 🏗️,
 CAD/CAM,
 SDF,
 stochastic modelling of surfaces,
 design of organic shapes,
-architectural geometric modelling,
+scalable 🏠 [Architectural_geometry](https://en.wikipedia.org/wiki/Architectural_geometry) modelling (siutable for parametric and modular architecture),
 solid modelling (water-tight guarantee: Topologically Closedness, Geometry-Consistent),
 any mesh generation,
 STL-to-SDF (for general-purpose mesh fixing and optimisaiton)
 Finite Element mesh generation for surfaces,
-scalable [Architectural_geometry](https://en.wikipedia.org/wiki/Architectural_geometry),
-Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces)
+Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces),
+Gnerative 3D Design, Procedural 3D Design
 etc.
 
 * Key Features:
