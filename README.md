@@ -3,9 +3,9 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *Implicit Surfaces* modelling (aka *F-REP*).
+**ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
 
-The main usecase for ImpliSolid was 3D printing, but it can be use din any manufacturing, SDF, stochastic implicit functions, etc.
+The main usecase for ImpliSolid was 3D printing, but it is suitable for indstry-grade manufacturing, SDF, stochastic modelling of surfaces, etc.
 
 * Features:
     * ⭐️ Supports ✨ '''sharp edges''' ✨
