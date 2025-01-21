@@ -5,18 +5,37 @@ ImpliSolid
 
 **ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
 
-The main usecase for ImpliSolid was 3D printing, but it is suitable for indstry-grade manufacturing, SDF, stochastic modelling of surfaces, etc.
+The main usecase for ImpliSolid has been 3D printing.
+It is competently suitable for
+industry-grade manufacturing applications,
+CAD/CAM,
+SDF,
+stochastic modelling of surfaces,
+design of organic shapes,
+architectural geometric modelling,
+solid modelling (water-tight guarantee: Topologically Closedness, Geometry-Consistent),
+any mesh generation,
+STL-to-SDF (for general-purpose mesh fixing and optimisaiton)
+Finite Element mesh generation for surfaces,
+scalable [Architectural_geometry](https://en.wikipedia.org/wiki/Architectural_geometry),
+Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces)
+etc.
 
 * Features:
-    * ⭐️ Supports ✨ '''sharp edges''' ✨
+    * ⭐️ Supports ✨ **sharp edges** ✨
     * ⭐️ Curvature-based Adaptive meshing
         * adaptive subdivision and decimation
         * **Dual meshing**
         * QEM
-    * ⭐️ Compute efficient
+    * ⭐️ Compute
+        * CPU efficient
         * Memory efficient
         * Cache efficient
-    * ⭐️ Responsive, progressive mesh generation, low-latency
+        * Stable
+        * robust
+    * ⭐️ Responsive, low-latency
+    * ⭐️ built-in progressive mesh generation (can offload to web0workers)
+    * ⭐️ Custom run-time functions
 
 Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
