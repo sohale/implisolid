@@ -9,9 +9,9 @@ The main usecase for ImpliSolid was 3D printing, but it is suitable for indstry-
 
 * Features:
     * ⭐️ Supports ✨ '''sharp edges''' ✨
-    * ⭐️ Dual meshing
     * ⭐️ Curvature-based Adaptive meshing
         * adaptive subdivision and decimation
+        * '''Dual meshing'''
         * QEM
     * ⭐️ Compute efficient
         * Memory efficient
