@@ -3,8 +3,50 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *Implicit Surfaces* modelling (aka *F-REP*).
-The main usecase for ImpliSolid is 3D printing.
+**ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
+
+The main usecase for ImpliSolid has been 3D Printing in mind.
+It is equally suitable for
+industry-grade manufacturing applications 🏗️,
+CAD/CAM,
+SDF,
+stochastic modelling of surfaces,
+design of organic shapes,
+scalable 🏠 [Architectural_geometry](https://en.wikipedia.org/wiki/Architectural_geometry) modelling (siutable for parametric and modular architecture),
+solid modelling (water-tight guarantee: Topologically Closedness, Geometry-Consistent),
+any mesh generation,
+STL-to-SDF (for general-purpose mesh fixing and optimisaiton)
+Finite Element mesh generation for surfaces,
+Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces),
+Gnerative 3D Design, Procedural 3D Design
+etc.
+
+* Key Features:
+    * ⭐️ Supports ✨ **sharp edges** ✨
+    * ⭐️ Curvature-based Adaptive meshing
+        * adaptive subdivision and decimation
+        * **Dual meshing**
+        * QEM
+
+* Other features:
+    * ⭐️ Compute efficiency
+        * CPU efficient
+        * Memory efficient
+        * Cache efficient
+        * Stable
+        * robust
+    * ⭐️ Responsive, low-latency 
+    * ⭐️ Built-in **progressive** mesh generation
+        * Low-poly to detailed mesh and curvature-adaptive mesh
+        * Distributed: can offload to web-workers using message-passing
+        * Suitable for live-coding
+    * ⭐️ Custom run-time functions (see live coding demo [mp5 editor](http://sohale.github.io/demos/implisolid-build/demo1/mp5_json_code.html))
+    * ⭐️ Seamless integration with web, slicer
+
+
+Languages: **C++** (native), Python (native), Javascript.
+Targets: Native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
+ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
 
 ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
 
@@ -12,11 +54,14 @@ The main strength is its ability to work efficiently with **sharp edges**.
 It also uses **adaptive subdivition** for smooth and perfect curved surfaces.
 These are achieved using relatively lower resolution meshes.
 
-It uses "vectorised" numerical calulations to achieve higher speed by utilising Instruction Pipelining in modern CPUs.
+* Performance:
+It uses "vectorised" numerical calulations (loop tiling, loop blocking for cache optimisation) to achieve higher speed by utilising Instruction Pipelining and L1/L2 caches in modern CPUs.
 This enables it to be useful on consumer and home computers.
 <!-- This enables it to be useful on consumer and home computers on browser without GPU.-->
+LLVM’s built-in CGO generates performant javascript, webassembly and native CPU code.
+Dynamic Programming is used to improve speed of graph algorithms.
 
-ImpliSolid use is not limited to browsers. It has implementations in C++, Python (native) and JavaScript.
+
 
 | | |
 |------:|:-------|
@@ -26,14 +71,27 @@ ImpliSolid use is not limited to browsers. It has implementations in C++, Python
 <!-- |  An interactive editor: | [link defunct](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) | -->
 
 
-**`ImpliSolid`** uses academic research on the polygonization algorithm such as the algorithm by [Ohtake](https://www.u-tokyo.ac.jp/focus/en/people/people000639.html) & [Belyaev](https://scholar.google.co.uk/citations?user=UgOo39sAAAAJ&hl=en).
 
-<!-- https://dl.acm.org/doi/10.1145/882262.882293 -->
 
 Currently two open-source projects that use this library:
 
 * [mp5-private](http://github.com/sohale/mp5-private), i.e. the [WeDesign.Live](http://beta.wedesign.live) (incubated)
 * [mp5slicer](http://github.com/sohale/mp5slicer) A slicer for 3D printing (incubated)
+
+
+### Science
+**`ImpliSolid`** uses academic research on the polygonization algorithm such as the [algorithm]() by [Ohtake](https://www.u-tokyo.ac.jp/focus/en/people/people000639.html) & [Belyaev](https://scholar.google.co.uk/citations?user=UgOo39sAAAAJ&hl=en).
+
+<!-- https://dl.acm.org/doi/10.1145/882262.882293 -->
+
+Dynamic Mesh Optimization for Polygonized Implicit Surfaces with Sharp Features.
+[1]: Ohtake & Belyaev 2002. Mesh Optimization for Polygonized Isosurfaces. Yutaka Ohtake, Alexander G. Belyaev. 25 July 2002. https://doi.org/10.1111/1467-8659.00529
+
+[2]: Ohtake, Belyaev & Pasko 2003. 
+Ohtake, Y., Belyaev, A. & Pasko, A. Dynamic mesh optimization for polygonized implicit surfaces with sharp features. Visual Computer 19, 115–126 (2003). https://doi.org/10.1007/s00371-002-0181-z Yutaka Ohtake, Alexander Belyaev, Alexander Pasko.
+
+[3]: Ohtake & Belyaev 2002 (b). Dual/Primal mesh optimization for polygonized implicit surfaces.  Proceedings of the seventh ACM symposium on Solid modeling and applications. June 2002. [dblp](https://dblp.uni-trier.de/rec/conf/sma/OhtakeB02.html?view=bibtex) https://doi.org/10.1145/566282.566308
+
 
 ## E2E demo
 For single-click execution in your computer (tested on Ubuntu and MacOS), run:
