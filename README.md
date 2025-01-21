@@ -5,8 +5,8 @@ ImpliSolid
 
 **ImpliSolid** is a Geometric Modelling library suitable for solid omdlling engine based on *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
 
-The main usecase for ImpliSolid has been 3D printing.
-It is competently suitable for
+The main usecase for ImpliSolid has been 3D Printing in mind.
+It is equally suitable for
 industry-grade manufacturing applications,
 CAD/CAM,
 SDF,
@@ -44,7 +44,8 @@ etc.
     * ⭐️ Seamless integration with web, slicer
 
 
-Languages: C++, Python, Javascript. Targets: native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
+Languages: **C++** (native), Python (native), Javascript.
+Targets: Native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
 
 ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
