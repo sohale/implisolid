@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # runs demo1 locally for MacOS
+# demo1 is the cool "interactive mp5 editor" with live-updates (incremental-progressive)
 set -ex
 set -u
 
