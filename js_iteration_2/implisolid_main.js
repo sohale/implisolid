@@ -53,6 +53,7 @@ function init(service, Module) {
     */ /*
     service.build_geometry_u = Module.cwrap('build_geometry_u', null, [ 'string', 'string', 'string']);
     */
+
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
     service.get_f_size = Module.cwrap('get_f_size', 'number', []);
     service.get_v = Module.cwrap('get_v', null, ['number']);

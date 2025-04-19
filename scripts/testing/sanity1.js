@@ -122,6 +122,18 @@ async function run2() {
   console.log(IMPLICIT.service2);
 
 
+  // todo: make make_geometry async natively (as async member (method) of `IMPLICIT.service2`)
+  async function make_geometry(shape_json, polygonization_json, allocate_buffer) {
+    return new Promise((resolve, reject) => {
+      IMPLICIT.service2.make_geometry(shape_json, polygonization_json,
+        (verts, faces, allocate_buffer) => {
+          resolve({verts, faces, allocate_buffer});
+      }, allocate_buffer);
+    });
+    // todo: reject
+  }
+
+
 
   // Two polygonisation tests:
   // build_geometry() versus make_geometry():
@@ -129,22 +141,19 @@ async function run2() {
 
   console.log("\n1. make_geometry:");
   // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
-  const q1 = IMPLICIT.service2.make_geometry(shape_json, polygonization_json,
-    (verts, faces, allocate_buffer)=>{
-      console.log('made');
-      console.log('async end.. todo: async or promise');
-      console.log({verts, faces, allocate_buffer});
-      chai.expect(verts).to.be.an.instanceof(Float32Array);
-      chai.expect(faces).to.be.an.instanceof(Uint32Array);
-      // chai.expect(verts).to.be.an.instanceof(TypedArray);
-      console.log(typeof verts, typeof faces, typeof allocate_buffer);
+  const {verts, faces, allocate_buffer} = await make_geometry(shape_json, polygonization_json, true);
 
-      console.log('made');
-      console.log('');
-  }, 'qq');
+  // async response:
+  console.log('made');
+  console.log('async end.. todo: async or promise');
+  console.log({verts, faces, allocate_buffer});
+  chai.expect(verts).to.be.an.instanceof(Float32Array);
+  chai.expect(faces).to.be.an.instanceof(Uint32Array);
+  // chai.expect(verts).to.be.an.instanceof(TypedArray);
+  console.log(typeof verts, typeof faces, typeof allocate_buffer);
+  console.log('made');
+  console.log('');
 
-  console.log('make_geometry returned:', q1);
-  console.log();
 
   console.log("\n2. build_geometry:");
   const q2 = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
