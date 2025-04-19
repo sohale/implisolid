@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eux
 function assert_env_nonempty() {
+  if [ "$#" -ne 2 ]; then
+    echo "assert_env_nonempty: expected 2 arguments, got $#: $*"
+    return 1
+  fi
+
   if [ ".$1" = "." ]; then
     echo "shell env is empty"; echo $2
     return 1
@@ -42,16 +47,16 @@ function assert_env_nonempty() {
 
 echo "11IMPLISOLID=$IMPLISOLID"
 # args:
-assert_env_nonempty $IMPLISOLID "env-argument IMPLISOLID= not specified"
-#assert_env_nonempty $BASELOC1
+assert_env_nonempty "$IMPLISOLID" "env-argument IMPLISOLID= not specified: It's the repo root"
+# assert_env_nonempty "$BASELOC1"
 #export IMPLISOLID=$BASELOC1/implisolid
 # arg: pwd (unused)
-assert_env_nonempty $CACHE_TEMP "env-argument CACHE_TEMP= not specified"
+assert_env_nonempty "$CACHE_TEMP" "env-argument CACHE_TEMP= not specified: It's the folder to download dependencies"
 
 # target:
 #export BUILD_LOCATION=$IMPLISOLID/build
-assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
-assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER= not specified"
+assert_env_nonempty "$BUILD_LOCATION" "env-argument BUILD_LOCATION= not specified: It's where compiled file will be stored."
+assert_env_nonempty "$LIB_FOLDER" "env-argument LIB_FOLDER= not specified: It's where to find C++ libraries (exrtacted from CACHE_TEMP)"
 
 source $IMPLISOLID/scripts/bash-utils.sh
 

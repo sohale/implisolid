@@ -43,7 +43,7 @@ source $(__current_script_dir_func0)/bash-utils.sh
 set -ex
 export ORIG_REPO_ROOT=$(git rev-parse --show-toplevel)
 echo "ORIG_REPO_ROOT :::: $ORIG_REPO_ROOT"
-assert_env_nonempty $ORIG_REPO_ROOT "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisolid repo not found in current directory $(pwd)"
+assert_env_nonempty "$ORIG_REPO_ROOT" "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisolid repo not found in current directory $(pwd)"
 
 #cd $ORIG_REPO_ROOT; mkdir e2e-sandbox-temp
 E2E=$ORIG_REPO_ROOT/e2e-sandbox-temp

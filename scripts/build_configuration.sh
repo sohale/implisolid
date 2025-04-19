@@ -14,7 +14,7 @@ function assert_env_nonempty() {
 # Parameter values from the specific configuration (relative location of build, lib, etc):
 
 # args:
-assert_env_nonempty $IMPLISOLID "mising IMPLISOLID="
+assert_env_nonempty "$IMPLISOLID" "mising IMPLISOLID="
 
 # target:
 #export BUILD_LOCATION=$IMPLISOLID/demos/build

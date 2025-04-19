@@ -1,7 +1,13 @@
 #!/bin/bash
 
 set -ex
+set -u
 function assert_env_nonempty() {
+  if [ "$#" -ne 2 ]; then
+    echo "assert_env_nonempty: expected 2 arguments, got $#: $*"
+    return 1
+  fi
+
   if [ ".$1" = "." ]; then
     echo "shell env is empty"; echo $2
     return 1
@@ -13,7 +19,7 @@ function assert_env_nonempty() {
 # alt name: demo1-localrun.sh
 
 #args:
-assert_env_nonempty $APP_RUN_LOCATION "env-argument APP_RUN_LOCATION= missing"
+assert_env_nonempty "$APP_RUN_LOCATION" "env-argument APP_RUN_LOCATION= missing"
 # APP_RUN_LOCATION was DEPLOY_LOCATION
 # Template
 

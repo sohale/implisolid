@@ -2,15 +2,20 @@
 set -eux
 
 function assert_env_nonempty() {
+  if [ "$#" -ne 2 ]; then
+    echo "assert_env_nonempty: expected 2 arguments, got $#: $*"
+    return 1
+  fi
+
   if [ ".$1" = "." ]; then
     echo "shell env is empty"; echo $2
     return 1
   fi
 }
 
-assert_env_nonempty $IMPLISOLID "repo root"
-assert_env_nonempty $BUILD_LOCATION "BUILD_LOCATION where compiled file wil be stored."
-assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
+assert_env_nonempty "$IMPLISOLID" "repo root"
+assert_env_nonempty "$BUILD_LOCATION" "BUILD_LOCATION where compiled file wil be stored."
+assert_env_nonempty "$LIB_FOLDER" "where to find C++ libraries"
 # optional args:
     #  $MAIN_SOURCE_CPP_FILE "source.cpp path/filename"
     #  $TARGET_FILENAME "filename.compiled.js"
@@ -26,8 +31,8 @@ assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
 function old_pattern() {
     IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
     # output: BUILD_LOCATION,LIB_FOLDER
-    assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION ..."
-    assert_env_nonempty $LIB_FOLDER "env-argument LIB_FOLDER ..."
+    assert_env_nonempty "$BUILD_LOCATION" "env-argument BUILD_LOCATION ..."
+    assert_env_nonempty "$LIB_FOLDER" "env-argument LIB_FOLDER ..."
 }
 
 source $IMPLISOLID/scripts/bash-utils.sh

@@ -2,7 +2,16 @@
 
 # runs demo1 locally for MacOS
 set -ex
+set -u
+
 function assert_env_nonempty() {
+
+  if [ "$#" -ne 2 ]; then
+    echo "assert_env_nonempty: expected 2 arguments, got $#: $*"
+    return 1
+  fi
+
+  echo ">>\"$-\"<<"
   if [ ".$1" = "." ]; then
     echo "shell env is empty"; echo $2
     return 1
@@ -11,13 +20,12 @@ function assert_env_nonempty() {
 
 # args:
 # source:
-assert_env_nonempty $IMPLISOLID_REPO "env-argument IMPLISOLID_REPO= not specified"
-#assert_env_nonempty $SCRIPTS_DIR "env-argument SCRIPTS_DIR= not specified"
+assert_env_nonempty "$IMPLISOLID_REPO" "env-argument IMPLISOLID_REPO= not specified1"
+# assert_env_nonempty "$SCRIPTS_DIR" "env-argument SCRIPTS_DIR= not specified"
 # target/destination: to-deploy:
-assert_env_nonempty $DEPLOY_LOCATION "env-argument DEPLOY_LOCATION= not specified"
+assert_env_nonempty "$DEPLOY_LOCATION" "env-argument DEPLOY_LOCATION= not specified2"
 
-assert_env_nonempty $BUILD_LOCATION "env-argument BUILD_LOCATION= not specified"
-
+assert_env_nonempty "$BUILD_LOCATION" "env-argument BUILD_LOCATION= not specified3"
 
 #echo SCRIPTS_DIR is not really used
 
