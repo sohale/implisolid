@@ -60,3 +60,40 @@ Failed attempt: on `~/cs/implisolid/js_iteration_1/`: `git submodulegit submodul
           * Uses folder `IMPLISOLID_REPO` rather than `IMPLISOLID`
 
       * Not needed: ( internal use: bash-utils.sh, deprecated: build_configuration.sh )
+
+      * Typical run: (make sure you have `nvm` on remote machine)
+      ```bash
+
+      cat ~/.ssh/config
+      ssh -YC -R 1999:localhost:22  myservermachine
+
+      # on remote machine:
+      export DEPLOY_LOCATION=/dataneura/implisolid/build/b2/build2/demo1
+      export IMPLISOLID_REPO=/dataneura/implisolid
+      export LIB_FOLDER=/dataneura/implisolid/build/lib
+      export BUILD_LOCATION=/dataneura/implisolid/build
+      export CACHE_TEMP=/dataneura/implisolid/cache-temp
+      export IMPLISOLID=/dataneura/implisolid
+
+      # semi-manual:
+      # bash scripts/e2e-test-builds.bash
+      # bash scripts/build-clonepull.sh
+
+      # The main part
+      bash scripts/build-emscripten.sh
+
+      # Polygonises some objects in CLI mode on NodeJS:
+      bash scripts/testing/sanity-test-1.bash
+
+      # Deploys the interactive demo
+      bash scripts/demos/demo1/demo1-deploy.sh
+      #  output: DEPLOY_LOCATION is /dataneura/implisolid/build/b2/build2/demo1
+
+      # On a local machine (to enable localhost)
+      export REMOTE_DEPLOY_LOCATION="/dataneura/implisolid/build/b2/build2/demo1"
+      mksir -p ~/cs/implisolid
+      scp -r myservermachine:$REMOTE_DEPLOY_LOCATION  ~/cs/implisolid/
+      cd ~/cs/implisolid/
+      python3 -m http.server 8000
+      # Now visit http://localhost:8000/mp5_json_code.html
+   ```

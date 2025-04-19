@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eux
+# Builds using autodiff (is incomplete?)
 
 # why error?
 export REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -50,10 +51,12 @@ MAKE_HAPPEN  "$COMPILED_FILE" || {
         TARGET_FILENAME=$TARGET_FILENAME \
           bash "$IMPLISOLID/scripts/build-emscripten.sh"
 }
-expect_file  "$HOME/cs/implisolid/build/$TARGET_FILENAME"
+# expect_file  "$HOME/cs/implisolid/build/$TARGET_FILENAME"
+expect_file  "$BUILD_LOCATION/$TARGET_FILENAME"
 expect_file  "$COMPILED_FILE"
 # export COMPILED_FILE=$HOME/cs/implisolid/build/mcc2.compiled.js
 
+node --version || echo "nodejs not found. Install nvm (see https://github.com/nvm-sh/nvm ) and then:  nvm install lts/fermium && nvm use lts/fermium"
 node --version
 # tested on v12.22.12
 
@@ -61,3 +64,10 @@ node --version
 
 node --trace-uncaught $REPO_ROOT/sandbox/autodiff/autodiff-sanity1.js \
     $COMPILED_FILE
+
+ls -alth $COMPILED_FILE
+echo "ok:sandbox/autodiff/test-autodiff-1.bash"
+
+# Compare:
+#   sandbox/autodiff/test-autodiff-1.bash
+#   scripts/testing/sanity-test-1.bash

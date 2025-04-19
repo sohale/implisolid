@@ -1,5 +1,10 @@
 
 // NodeJS code
+// A CLI demo file to test the compiled Emscripten module on NodeJS.
+// Usage: executed via: scripts/testing/sanity-test-1.bash
+// Polygonises (meshify/vectorised renders(!)) a Cone.
+// 3D geomeric content: Uses `example_objects.js` 's `provide_input()` 's DEFAULT_OBJ_SELECTOR, which is a cone.
+
 
 const [, , compiled_js_filename] = process.argv;
 if (!compiled_js_filename) {
@@ -76,15 +81,22 @@ async function old_pattern_deprecated() {
 }
 
 async function run2() {
+  console.log('Runtime-loading of module:');
   const wait_for_full_reload = require('./service_l1');
   const Service1 = await wait_for_full_reload(compiled_js_filename);
   const s1 = new Service1();
   s1.about();
-
+  console.log('(JS Module loaded.)\n')
   // "type":"sdf_3d"
   const example_objects = require('../../examples/js-lib/example_objects.js');
+
+  console.log('\nExample 3D object: two pars: task-options and shape:')
   const {shape_json, polygonization_json} = example_objects.provide_input(0.0, 0, {}, {});
+  console.log('3D object generated (above are logs and debug prints).');
+
+  console.log('\noutput to be fed into ImpliSolid Polygoniser:');
   console.log({shape_json, polygonization_json})
+
 
   const {
     _on_cpp_loaded,
@@ -99,20 +111,31 @@ async function run2() {
     }
   }
 
-  console.log('1')
+  console.log('\nInterface: javascript object `IMPLICIT` (has 3 layers):');
+  console.log('Runtime-loading of module, again:');
   const IMPLICIT = _on_cpp_loaded(Service1.emscriptenModule);
   console.log(IMPLICIT);
   console.log(IMPLICIT.about());
   console.log(IMPLICIT.service2);
+
+
+
+  // Two polygonisation tests:
+  // build_geometry() versus make_geometry():
+
+  console.log("\n1. make_geometry:");
   // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
   const q1 = IMPLICIT.service2.make_geometry(shape_json, polygonization_json, ()=>{
     console.log('made');
   });
-  console.log(q1);
-  const q2 = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
-  console.log(q2);
+  console.log('make_geometry returned:', q1);
+  console.log();
 
-  //console.log(IMPLICIT);
+  console.log("\n2. build_geometry:");
+  const q2 = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
+  console.log('build_geometry returned:', q2);
+  console.log();
+
 }
 
 run2();
