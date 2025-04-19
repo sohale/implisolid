@@ -6,6 +6,9 @@
 // 3D geomeric content: Uses `example_objects.js` 's `provide_input()` 's DEFAULT_OBJ_SELECTOR, which is a cone.
 
 
+const chai = require('chai');
+const expect = chai.expect;
+
 const [, , compiled_js_filename] = process.argv;
 if (!compiled_js_filename) {
   throw new Error('Usage: node sanity1.js "./compiled-escripten-filename.js"');
@@ -122,12 +125,24 @@ async function run2() {
 
   // Two polygonisation tests:
   // build_geometry() versus make_geometry():
+  // make_geometry wraps around build_geometry
 
   console.log("\n1. make_geometry:");
   // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
-  const q1 = IMPLICIT.service2.make_geometry(shape_json, polygonization_json, ()=>{
-    console.log('made');
-  });
+  const q1 = IMPLICIT.service2.make_geometry(shape_json, polygonization_json,
+    (verts, faces, allocate_buffer)=>{
+      console.log('made');
+      console.log('async end.. todo: async or promise');
+      console.log({verts, faces, allocate_buffer});
+      chai.expect(verts).to.be.an.instanceof(Float32Array);
+      chai.expect(faces).to.be.an.instanceof(Uint32Array);
+      // chai.expect(verts).to.be.an.instanceof(TypedArray);
+      console.log(typeof verts, typeof faces, typeof allocate_buffer);
+
+      console.log('made');
+      console.log('');
+  }, 'qq');
+
   console.log('make_geometry returned:', q1);
   console.log();
 

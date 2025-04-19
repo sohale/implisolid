@@ -1,5 +1,8 @@
 'use strict';
-
+/*
+   todo: Why the `_old` variant? what was the chasm : implisolid_main_old.js ?
+   todo: remove this file
+*/
 
 function init_(service, Module) {
     'use strict';

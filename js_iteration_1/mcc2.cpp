@@ -84,13 +84,19 @@ typedef array1d::index  index_t;
 
 
 /*********************************************************
-    public interface for JavaScript
+    public interface for JavaScript:   C <-> JS
+    API Level 1 (low-level) for polygoniser (C-sise)
  *********************************************************/
 
-
 extern "C" {
+    // sync: blocking version: non-progressive.
     void build_geometry(const char* shape_parameters_json, const char* mc_parameters_json);
+
+    // "updatable": initiating async progressive-inremental updates from worker/service, server, or client itself.
+    // initiates a stream of updates
+    // Is non-blocking, and in some swense: async.
     void build_geometry_u(const char* shape_parameters_json, const char* mc_parameters_json, const char* call_specs);
+
     int get_v_size();
     int get_f_size();
     void get_f(int*, int);
@@ -134,6 +140,14 @@ extern "C" {
     // bad: one instance only.
     //     Solution 1:  MarchingCubes* build_geometry();
     //     Solution 2: ids (for workers! ; a statically determined number of them (slots/workers/buckets).).
+
+    /*
+    The js wrapper will also have:
+        .init_()
+        .finish_with()
+        .set_vect()
+        .needs_deallocation: boolean
+    */
 }
 
 // typedef    std::tuple<std::vector<REAL>, std::vector<vectorized_vect::index>> verts_faces_t;

@@ -48,6 +48,7 @@ Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
 * moved to branch: revival-sohale from commit
 * reviving some code destoryed by others.
 * will have to check commits; master, my last change ( 69ce747c7bbf4959d79a16298187c0af2ecf8c5e ) and Tiger's  (proobably) last change (  99dc78cf6242556383db31c54a9a576836849c56 ):
+i.e. the changes after my changes:
   `git diff 69ce747c7bbf4959d79a16298187c0af2ecf8c5e..99dc78cf6242556383db31c54a9a576836849c56`
 
 ### intents:

@@ -38,6 +38,7 @@ function assert(cond, message) {
 var ImplicitService = (function () {
 'use strict';
 
+// todo: merge as a proper starndard class construtor (move on from this legacy prototype-based OOP)
 function init(service, Module) {
     'use strict';
 
@@ -45,6 +46,13 @@ function init(service, Module) {
     //main = Module.cwrap('main', 'number', []);
     //var service={}; //= newProducer //is an interface
     service.build_geometry = Module.cwrap('build_geometry', null, [ 'string', 'string']);
+
+    /*
+    The service.build_geometry_u is only used only on worker side (see js_iteration_2/js/worker_api.js )
+    Todo: merge those APIs (merge this init/contructore with `worker_api.js`'s equivalent part )
+    */ /*
+    service.build_geometry_u = Module.cwrap('build_geometry_u', null, [ 'string', 'string', 'string']);
+    */
     service.get_v_size = Module.cwrap('get_v_size', 'number', []);
     service.get_f_size = Module.cwrap('get_f_size', 'number', []);
     service.get_v = Module.cwrap('get_v', null, ['number']);
@@ -95,6 +103,7 @@ function init(service, Module) {
         service.needs_deallocation = false;
     }
 
+    // todo: document
     service.set_vect = function (float32Array) {
         // Accesses module
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
@@ -200,7 +209,8 @@ function init2(impli2, impli1, Module) {
 
     // mid-level API
 
-    /** Note that nomals are NOT queried & applied in this function.
+    /**
+    Note that normals are NOT queried & applied in this function.
     The inputs should be jsonified already. Although for bavkward compatibilty it is automatically converted.
     Note that in the similar "update" method, the polygonization_params must be non-JSONified. 
     the update methos is: update_geometry_from_json() or update_geometry()
@@ -213,7 +223,7 @@ function init2(impli2, impli1, Module) {
 
         if (typeof polygonization_params_str !== "string") {
             polygonization_params_str = JSON.stringify(polygonization_params_str);
-            console.error("Use a string, a JSONified settings:", polygonization_params_str);
+            console.warn("Use a string, a JSONified settings:", polygonization_params_str);
         }
 
         var startTime = new Date();
