@@ -246,6 +246,7 @@ For the c++ code, we use the Boost library. It does not need to be built but sti
 
 ##### Emscripten
 Emscripten can be used simply using Docker `emscripten/emsdk`. See abovementioned script.
+Tested on `3.1.14` docker image.
 
 Old note:
 The installation of Emscripten often proves a little trickier than the other installations. Here are two tutorials you should follow <b>in the order proposed</b> : https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#platform-notes-installation-instructions-portable-sdk  http://kripken.github.io/emscripten-site/docs/building_from_source/building_fastcomp_manually_from_source.html#building-fastcomp-from-source.

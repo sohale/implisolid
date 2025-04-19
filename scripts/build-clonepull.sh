@@ -7,9 +7,38 @@ function assert_env_nonempty() {
   fi
 }
 
+# Usage:
+#
+# Function:
+# This script downloads the prequisites:
+#     library tarballs and docker image(s)
+#     needs:
+#        IMPLISOLID
+#        CACHE_TEMP
+#        BUILD_LOCATION
+#        LIB_FOLDER
+#
+# You should run 'scripts/build-emscripten.sh' after this script.
+
+# Usages:
+# 1. This script (scripts/build-clonepull.sh) is better be actually executed by scripts/e2e-test-builds.bash after cloning.
+# 2. Although in theory, it can be run directly (and I usually do it).
+# deprecaetd note:
 # run:  bash deploy-demo-1.sh
 
-# This script downloads the prequisites
+
+# scripts/build-clonepull.sh:
+# Usages 1:
+#    To run directly:
+#        export IMPLISOLID=/dataneura/implisolid
+#        export CACHE_TEMP=/dataneura/implisolid/cache-temp
+#        export BUILD_LOCATION=/dataneura/implisolid/build
+#        export LIB_FOLDER=/dataneura/implisolid/build/lib
+# For more environment variables: changelog docs/change-log.md , the Apr 18-19 2025 section.
+
+# If already cloned: git submodule update --init --depth 1 --recursive
+
+# Usages 2: See scripts/e2e-test-builds.bash
 
 echo "11IMPLISOLID=$IMPLISOLID"
 # args:
@@ -74,9 +103,17 @@ export BUILT=$IMPLISOLID/docs/implisolid-build
 # pull latest dsocker
 # ...
 
+
 prime_docker() {
   echo "docker pull emscripten/emsdk"
-  docker pull emscripten/emsdk
+  # docker pull emscripten/emsdk
+  # docker pull emscripten/emsdk:3.1.14
+  export DOCKERTAG="3.1.14"
+  docker pull emscripten/emsdk:$DOCKERTAG
+
+  # Check tags and their dates:
+  #   curl -s 'https://hub.docker.com/v2/repositories/emscripten/emsdk/tags?page_size=100' | jq -r '.results[] | "\(.name)  \t\(.last_updated)"'
+
 }
 printf "\n\n\n"
 
@@ -100,12 +137,16 @@ get_boost() {
     #ORIG_IMPLISOLID=$IMPLISOLID/..
     #CACHE_TEMP=$ORIG_IMPLISOLID/build
 
+
+    # BOOST_DL_URL="https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz"
+    # BOOST_DL_URL="https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
+    BOOST_DL_URL="https://archives.boost.io/release/1.75.0/source/boost_1_75_0.tar.gz"
     mkdir -p $CACHE_TEMP
     ls -1 $CACHE_TEMP/boost.tar.gz >/dev/null || \
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O $CACHE_TEMP/boost.tar.gz
+    wget "$BOOST_DL_URL" -O $CACHE_TEMP/boost.tar.gz
 
-    #wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
-    #echo rem || wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz -O boost.tar.gz
+    # wget "$BOOST_DL_URL" -O boost.tar.gz
+    # echo rem || wget "$BOOST_DL_URL" -O boost.tar.gz
     cp $CACHE_TEMP/boost.tar.gz  $QQ/boost.tar.gz
 
     # boost_1_75_0.tar.gz

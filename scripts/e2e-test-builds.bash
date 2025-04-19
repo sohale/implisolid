@@ -33,7 +33,7 @@ set -eux
 # docker.io/library/bash:latest
 # tested on emscripten/emsdk:2.0.22
 # tested on emscripten/emsdk:3.1.8  # detected a flaw
-
+# tested on emscripten/emsdk:3.1.14 ( in 2025, for backwards until I migrate the build script + more)
 
 function __current_script_dir_func0 () {
   cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd
@@ -53,7 +53,9 @@ rm -rf $E2E
 mkdir $E2E
 cd $E2E
 # only updated after actually pushing => requires branch name! active branch name: hot branch: one neing processed. stil hot
-git clone --recurse-submodules git@github.com:sohale/implisolid.git
+git clone  \
+   --depth 1 --shallow-submodules  \
+   --recurse-submodules git@github.com:sohale/implisolid.git
 # todo: from local:
 #rsync -r $ORIG_REPO_ROOT $E2E
 # recursive

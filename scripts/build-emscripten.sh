@@ -21,6 +21,8 @@ assert_env_nonempty $LIB_FOLDER "where to find C++ libraries"
 # targets:
 #     BUILD_LOCATION
 
+# See changelog docs/change-log.md , the Apr 18-19 2025 section.
+
 function old_pattern() {
     IMPLISOLID=$IMPLISOLID source ./scripts/build_configuration.sh
     # output: BUILD_LOCATION,LIB_FOLDER
@@ -133,6 +135,9 @@ set -e
 # tested on emscripten/emsdk:2.0.22
 # tested on emscripten/emsdk:3.1.8  # detected a flaw
 # tested on emscripten/emsdk:3.1.10
+# tested on emscripten/emsdk:3.1.14 ( in 2025, for backwards)
+
+DOCKERTAG="3.1.14"
 
 EXPORTED_FUNCTIONS="['_main', '_build_geometry', '_get_v_size', '_get_f_size', '_get_f', '_get_v', '_finish_geometry', '_get_f_ptr', '_get_v_ptr',   '_set_object', '_unset_object', '_set_x', '_unset_x', '_calculate_implicit_values', '_get_values_ptr', '_get_values_size', '_calculate_implicit_gradients', '_get_gradients_ptr', '_get_gradients_size', '_get_pointset_ptr', '_get_pointset_size', '_build_geometry_u', '_about' ]"
 #EXPORTED_FUNCTIONS="['_main', '_about', '_about2'  ]"
@@ -144,7 +149,7 @@ docker run \
   -v $LIB_FOLDER:/src-lib \
   -v $BUILD_LOCATION:/build \
   -u $(id -u):$(id -g) \
-  emscripten/emsdk \
+  emscripten/emsdk:$DOCKERTAG \
     emcc \
       $CLI_ARGS \
       -s EXPORTED_FUNCTIONS="$EXPORTED_FUNCTIONS" \
@@ -167,7 +172,7 @@ expect_file  "$BUILD_LOCATION/$TARGET_FILENAME"
 #  -v $MAIN_SOURCE_FOLDER:/src \
 #  -v $BUILD_LOCATION:/build \
 #  -u $(id -u):$(id -g) \
-#  emscripten/emsdk \
+#  emscripten/emsdk:$DOCKERTAG \
 #
 # emcc helloworld.cpp -o helloworld.js
 # emcc mcc2.cpp  -o  ../build/mcc2.compiled.js

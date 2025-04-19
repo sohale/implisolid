@@ -1,3 +1,5 @@
+# DEPRECATED. Not used anymore.
+
 # use with `source` only
 # todo: use groovy
 
