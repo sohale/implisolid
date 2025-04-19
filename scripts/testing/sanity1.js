@@ -134,12 +134,12 @@ async function run2() {
   }
 
 
-
   // Two polygonisation tests:
   // build_geometry() versus make_geometry():
   // make_geometry wraps around build_geometry
 
-  console.log("\n1. make_geometry:");
+  console.log("\n1. make_geometry: (Level2 API");
+  {
   // should not have dependency on threejs. IMPLICIT needs to be generatd separately from service2.
   const {verts, faces, allocate_buffer} = await make_geometry(shape_json, polygonization_json, true);
 
@@ -153,12 +153,30 @@ async function run2() {
   console.log(typeof verts, typeof faces, typeof allocate_buffer);
   console.log('made');
   console.log('');
+  }
 
 
-  console.log("\n2. build_geometry:");
-  const q2 = IMPLICIT.service2.service1.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
-  console.log('build_geometry returned:', q2);
+  console.log("\n2. build_geometry: (Level1 API");
+  {
+  // level0: Module itself (not access here. has "heap")
+  // Just for completion: Level1 API test. (not recommended/intended for use)
+  // Level1API  IMPLICIT.Level1
+  // const Level1API = IMPLICIT.service2.service1;
+  const Level1API = IMPLICIT.service2.service1;
+  const void_ = Level1API.build_geometry(JSON.stringify(shape_json), JSON.stringify(polygonization_json));
+  // How to get output?
+  // implisolid js "module" is stateful: the result can be read from this giant state (heap)
+  const nverts = Level1API.get_v_size();
+  const verts_address = Level1API.get_v_ptr();
+  //or: get_subarray_f32
+  // heap = Level1API._c_heap(); Module.HEAPF32
+  const verts = Level1API._get_subarray_f32(verts_address, 3 * nverts);
+  console.log('verts:', verts);
+  console.log('faces:', Level1API._get_subarray_u32(Level1API.get_f_ptr(), 3 * Level1API.get_f_size()));
+  // Needs to be called exactly once, otherwise, aborts (assertion error)
+  Level1API.finish_geometry();
   console.log();
+}
 
 }
 

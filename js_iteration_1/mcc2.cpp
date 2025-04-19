@@ -99,7 +99,9 @@ extern "C" {
 
     int get_v_size();
     int get_f_size();
+    // Makes a copy of the contents into the given pointer (call by ref)
     void get_f(int*, int);
+    // Makes a copy of the contents into the given pointer (call by ref)
     void get_v(REAL*, int);
     void finish_geometry();
     void* get_f_ptr();

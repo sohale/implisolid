@@ -62,13 +62,21 @@ function init_(service, Module) {
         service.needs_deallocation = false;
     }
 
+    /*
+    Makes a copy of the input array and sends it to the C++ side.
+    */
     service.set_vect = function (float32Array) {
-        // Accesses module
+        /*
+        Implementation:
+        Allocates and deallocates memory from heap, to call `set_x()` (since it will need a pointer on heap).
+        Accesses the "module", i.e. the stateful "heap" object and its related functions.
+        */
         const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
         if (float32Array.length % 3 != 0) {console.error("bad input array");};
         var nverts = float32Array.length / 3;
         var verts_space = Module._malloc(_FLOAT_SIZE*3*nverts);
         Module.HEAPF32.subarray(verts_space/_FLOAT_SIZE, verts_space/_FLOAT_SIZE + 3*nverts).set(float32Array);
+        // This set_x() needs to be on an allocated memory from the heap. After this, we can free it from the heap.
         var result = this.set_x(verts_space, nverts);
         console.log("result: "+result);
         if (!result) {

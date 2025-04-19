@@ -91,6 +91,31 @@ function init(service, Module) {
     }
     */
 
+    /*
+    // Access to raw heap:
+    service._c_heap_f32 = function() {
+        // C's Machine Model's Heap
+        // will not change(or will it?)
+        // service._c_heap = Module.HEAPF32;
+        return Module.HEAPF32;
+    }
+    */
+
+    // Usage not recommended. For use with build_geometry (otherwise, the output of build_geometry cannot be accessed, since the called will need to access C-Machine-Model's heap )
+    // Only for completion of Level1API
+    service._get_subarray_f32 = function (pointer_address, length) {
+        // start_address==pointer_address
+        const _FLOAT_SIZE = Float32Array.BYTES_PER_ELEMENT;
+        return Module.HEAPF32.subarray(pointer_address/_FLOAT_SIZE, pointer_address/_FLOAT_SIZE + length);
+        // usage: .set(float32Array);
+    }
+
+    // Usage not recommended. Same as _get_subarray_f32().
+    service._get_subarray_u32 = function (pointer_address, length) {
+        const _INT_SIZE = Uint32Array.BYTES_PER_ELEMENT
+        return Module.HEAPU32.subarray(pointer_address/_INT_SIZE, pointer_address/_INT_SIZE + length);
+    }
+
     service.init_ = function(){
         service.needs_deallocation = false;
     }
