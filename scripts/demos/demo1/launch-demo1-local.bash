@@ -28,7 +28,8 @@ ps aux|grep python|grep http.server |cut -c10-17 | xargs kill || :
 
 cd $APP_RUN_LOCATION
 echo "Running python server from: $(pwd)"
-python3 -m http.server 8000 &
+# Keep `--bind 127.0.0.1` to access locally via 127.0.0.1:8000 . Login should use `-L 8000:127.0.0.1:8000`. It would be "inbound SSH to your Mac". Never bind to 0.0.0.0 on an internet-facing host.
+python3 -m http.server 8000 --bind 127.0.0.1 &
 export server_pid=$!
 echo $server_pid >$APP_RUN_LOCATION/server_pid-$server_pid.pid
 

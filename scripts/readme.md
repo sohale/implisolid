@@ -12,7 +12,13 @@ Then, open your browser at the location shown, for example:
 
 This script is refined to run on a remote dev machine (ssh via terminal). But originally designed to run on MacOS too.
 
-If you use a remote ssh-linux setup: Also, to access the local web-server in this remote setup, the you will need to open the firewall `sudo ufw allow ...` to allow incoming http on port 8000.
+Security note about remote development setup:
+If you use a remote ssh-linux setup: Also, to access the local web-server in this remote setup. Dont open the firewall. Use ssh like this or equivalent (You may not need `-R` and `-Y`, or alternavively, you can set up "ssh config" file for this):
+```bash
+ssh -YC  -L 8000:127.0.0.1:8000  -R 127.0.0.1:1999:localhost:22  myservername
+```
+It works if `python3 -m http.server 8000 --bind 127.0.0.1` must use the `--bind` part. Otherwise, the risk is real (it happened to me).
+
 
 ## Prerequisites:
 (May require manual steps if not installed)
