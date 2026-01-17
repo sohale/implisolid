@@ -37,9 +37,12 @@ docker run --rm \
   bash -c '
     set -euo pipefail
     cp -a /emsdk/upstream/emscripten/cache/sysroot/include /out/
+    echo "I am in emscripten"
+    # find /emsdk
   '
 # verify the purpose is fulfilled:
 test -f "${EMSDK_SURROGATE}/include/emscripten.h"
+test -f "${EMSDK_SURROGATE}/include/c++/v1/vector"
 
 # Wrong: /emsdk/upstream/emscripten/system/include
 # Right: /emsdk/upstream/emscripten/cache/sysroot/include
@@ -55,7 +58,8 @@ cat > "$COMPILE_DB" <<EOF
   {
     "directory": "$ORIG_REPO_ROOT",
     "file": "$SRC1",
-    "command": "$CXX -std=c++17 -I$BOOST -I$EIGEN -I${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include  js_iteration_1/mcc2.cpp"
+    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN -I${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include
+  -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
   }
 ]
 EOF
