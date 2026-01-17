@@ -36,12 +36,14 @@ docker run --rm \
   emscripten/emsdk:${EMSDK_VERSION} \
   bash -c '
     set -euo pipefail
-    cp -a /emsdk/upstream/emscripten/system/include /out/
+    cp -a /emsdk/upstream/emscripten/cache/sysroot/include /out/
   '
 # verify the purpose is fulfilled:
 test -f "${EMSDK_SURROGATE}/include/emscripten.h"
-# Recent versions of the SDK (3.x) moved to a model where only the headers under the cache/sysroot include tree are intended for compilation.
-# It contains sanitized copies of standard headers (libc/libc++), platform headers, and Emscripten API headers that actually work with both native and cross-compilation modes.
+
+# Wrong: /emsdk/upstream/emscripten/system/include
+# Right: /emsdk/upstream/emscripten/cache/sysroot/include
+# Reason: Recent versions of the SDK (3.x) moved to a model where only the headers under the cache/sysroot include tree are intended for compilation. It contains sanitized copies of standard headers (libc/libc++), platform headers, and Emscripten API headers that actually work with both native and cross-compilation modes.
 
 SRC1="$ORIG_REPO_ROOT/js_iteration_1/mcc2.cpp"
 test -f "$SRC1"
