@@ -4,7 +4,7 @@
 
 # Fresh test. Tests all builds
 set -eu
-# set -x
+set -x
 
 # args:
 # * pwd (via $ORIG_REPO_ROOT)
@@ -56,18 +56,37 @@ assert_env_nonempty "$ORIG_REPO_ROOT" "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisol
 
 #cd $ORIG_REPO_ROOT; mkdir e2e-sandbox-temp
 E2E=$ORIG_REPO_ROOT/e2e-sandbox-temp
+
 rm -rf $E2E
 # #### hard reset done #####
 
 mkdir $E2E
 cd $E2E
 # only updated after actually pushing => requires branch name! active branch name: hot branch: one neing processed. stil hot
+
+
+######## non-clone mode:
+mkdir -p $E2E/implisolid
+# cp -a --verbose $ORIG_REPO_ROOT/. $E2E/implisolid
+rsync \
+    -a \
+    --verbose \
+    --exclude "$(realpath --relative-to="$ORIG_REPO_ROOT" "$E2E")" \
+    --exclude "/.git" \
+    --exclude "/build" \
+    --exclude "/temp" \
+    "$ORIG_REPO_ROOT/."  "$E2E/implisolid"
+
+######## clean-clone mode:
+: || \
 git clone  \
    --depth 1 --shallow-submodules  \
    --recurse-submodules git@github.com:sohale/implisolid.git
 # todo: from local:
 #rsync -r $ORIG_REPO_ROOT $E2E
 # recursive
+
+
 
 cd implisolid
 pwd

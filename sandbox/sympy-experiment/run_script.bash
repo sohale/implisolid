@@ -9,6 +9,7 @@
 set -u
 cd /Users/sohail/cs/implisolid/sandbox/sympy-experiment
 
+# rename: temp -> temp-files ?
 mkdir -p temp
 source ./temp/my-bash-utils.sh || curl -k \
     https://raw.githubusercontent.com/sohale/implisolid/revival-sohale/scripts/bash-utils.sh \

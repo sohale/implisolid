@@ -25,6 +25,7 @@ class transformable_implicit_function : public implicit_function {
     Matrix12  inv_transf_matrix;
     */
 
+    // Why is this a `const` method?!
     virtual void rotate(const REAL angle, const vectorized_vect axis) const {
       REAL ca = cos(angle);
       REAL sa = sin(angle);

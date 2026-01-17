@@ -48,6 +48,7 @@ function xxxxxxx(type, children, root_matrix, ignore_root_matrix) {
         return ret;
 }
 
+//* todo: rename: inferBoundingBoxForDict
 const getBoundingBoxForDict = function (dict, ignore_root_matrix) {
     if(dictIsSingleShape(dict)) {
         //return shape.getBoundingBox_(ignore_root_matrix);

@@ -21,17 +21,7 @@ const bool VERBOSE = false;
 const bool REPORT_STATS = false;
 bool writing_test_file = false;
 
-typedef unsigned short int dim_t; //small integers for example the size of one side of the grid
-typedef float REAL;
-
-typedef  boost::multi_array<REAL, 1>  array1d;
-typedef boost::array<array1d::index, 1>  array_shape_t;
-typedef array1d::index  index_t;
-
-typedef index_t index3_t; //Range of the element type has to be large enough, larger than (size^3)*3.
-typedef boost::multi_array<index3_t, 1>   array1d_e3;
-typedef std::map<index3_t,int>  e3map_t;
-
+#include "../js_iteration_2/foundation_types.hpp"
 
 struct callback_t { void call (void*) const { } callback_t(){} };
 

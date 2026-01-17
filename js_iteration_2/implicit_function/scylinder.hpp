@@ -1,4 +1,6 @@
 #pragma once
+#include  "../../js_iteration_2/foundation_types.hpp"
+#include "../../js_iteration_2/basic_data_structures.hpp"
 //#include "../basic_data_structures.hpp"
 //#include "../basic_functions.hpp"
 

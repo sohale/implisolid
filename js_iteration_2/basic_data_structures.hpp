@@ -53,44 +53,8 @@ using namespace std;
 */
 
 
+#include "../js_iteration_2/foundation_types.hpp"
 
-
-typedef unsigned short int dim_t;
-
-typedef float REAL;     // heavily used (can be changed to double from here at any time)
-
-typedef boost::multi_array<REAL, 1>  array1d;
-
-typedef boost::array<array1d::index, 1>  array_shape_t;
-
-typedef array1d::index  index_t;
-
-/* define types for vertices, faces and indexes of them */
-// typedef boost::multi_array<REAL, 2> verts_t;
-//typedef boost::multi_array<int, 2> faces_t;
-
-//typedef verts_t::index vindex_t;   // used for arrays of verts or centroids
-//typedef verts_t::size_type vindex_t;
-//typedef verts_t::index eindex_t; // may be long-er than vindex_t, becasue each edgepair has twice number of vertices. (not in MC, but in O&B)
-
-
-/*
-C::element  is not C::value_type   when C is multi-dimensional
-*/
-//typedef  faces_t::value_type  vertexindex_type;
-//typedef  faces_t::element  vertexindex_type;
-// Also see vertexindex_type_
-
-
-typedef short int bool_t;
-
-const bool_t  b_true = 1;
-const bool_t  b_false = 0;
-
-//typedef boost::array<vectorized_vect::index, 2>  shape_t;
-
-
-typedef array1d::index  vertex_t;
 
 /** Implementation Note
  *  Data type: vectorized_scalar

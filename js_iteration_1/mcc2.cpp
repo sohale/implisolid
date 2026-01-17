@@ -66,17 +66,7 @@ extern "C" {
 
 const bool REPORT_STATS = false;
 
-// typedef unsigned short int size_t;
-typedef uint16_t dim_t;  // small integers for example the size of one side of the grid
-typedef float REAL;
-// typedef unsigned long int index_t;
-
-// boost::array will not work becasue the size of a boost:array has to be known in compile-time (static).
-typedef  boost::multi_array<REAL, 1>  array1d;
-// typedef array1d::index  array_index_t;
-typedef boost::array<array1d::index, 1>  array_shape_t;
-// #define array1d  boost::multi_array<REAL, 1>
-typedef array1d::index  index_t;
+#include "../js_iteration_2/foundation_types.hpp"
 
 #include "../js_iteration_2/marching_cubes.hpp"
 #include "tests/marching_cubes_mock.hpp"

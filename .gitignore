@@ -21,6 +21,7 @@ pymplicit.egg-info/
 temp-files/
 e2e-sandbox-temp
 cache-temp
+temp # from sandbox/sympy-experiment/run_script.bash
 
 #compiled files.
 build/
