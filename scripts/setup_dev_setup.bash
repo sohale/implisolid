@@ -66,17 +66,27 @@ test -f "$SRC1"
 
 COMPILE_DB="$ORIG_REPO_ROOT/build/compile_commands.json"
 
+CLANGD_ARGS=(
+  -std=c++17
+  -I$BOOST
+  -I$EIGEN
+  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}
+  -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1
+  --target=wasm32-unknown-emscripten
+  -nostdinc++
+)
+
 cat > "$COMPILE_DB" <<EOF
 [
   {
     "directory": "$ORIG_REPO_ROOT",
     "file": "$SRC1",
-    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
+    "command": "$CXX  ${CLANGD_ARGS[*]}  js_iteration_1/mcc2.cpp"
   },
   {
     "directory": "$ORIG_REPO_ROOT",
     "file": "$CLANG_TU1",
-    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++  ${CLANG_TU1}"
+    "command": "$CXX  ${CLANGD_ARGS[*]}   ${CLANG_TU1}"
   }
 ]
 EOF
