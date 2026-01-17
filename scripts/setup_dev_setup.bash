@@ -48,6 +48,19 @@ test -f "${EMSDK_SURROGATE}/include/c++/v1/vector"
 # Right: /emsdk/upstream/emscripten/cache/sysroot/include
 # Reason: Recent versions of the SDK (3.x) moved to a model where only the headers under the cache/sysroot include tree are intended for compilation. It contains sanitized copies of standard headers (libc/libc++), platform headers, and Emscripten API headers that actually work with both native and cross-compilation modes.
 
+# A dummy file will be required: clangd_basic_data_structures.cpp
+
+CLANGD_TU_DIR="$ORIG_REPO_ROOT/build/clangd_TUs"
+CLANG_TU1="$CLANGD_TU_DIR/clangd_basic_data_structures.cpp"
+mkdir -p "$CLANGD_TU_DIR"
+echo '
+// Dummy file for clangd errors.
+#include <vector>
+#include <cassert>
+#include "js_iteration_2/basic_data_structures.hpp"
+#include "js_iteration_2/object_factory.hpp"
+' > "${CLANG_TU1}"
+
 SRC1="$ORIG_REPO_ROOT/js_iteration_1/mcc2.cpp"
 test -f "$SRC1"
 
@@ -59,6 +72,11 @@ cat > "$COMPILE_DB" <<EOF
     "directory": "$ORIG_REPO_ROOT",
     "file": "$SRC1",
     "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
+  },
+  {
+    "directory": "$ORIG_REPO_ROOT",
+    "file": "$CLANG_TU1",
+    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++  ${CLANG_TU1}"
   }
 ]
 EOF
