@@ -58,10 +58,15 @@ cat > "$COMPILE_DB" <<EOF
   {
     "directory": "$ORIG_REPO_ROOT",
     "file": "$SRC1",
-    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
+    "command": "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
   }
 ]
 EOF
+
+# was:
+#. "$CXX -std=c++17  -I$BOOST -I$EIGEN  -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
+# This works cleanly: 0 errors:
+# "$CXX -std=c++17  -I$BOOST -I$EIGEN  --sysroot=${ORIG_REPO_ROOT}/${EMSDK_SURROGATE} -isystem ${ORIG_REPO_ROOT}/${EMSDK_SURROGATE}/include/c++/v1   --target=wasm32-unknown-emscripten -nostdinc++ js_iteration_1/mcc2.cpp"
 
 echo "compile_commands.json written to:"
 echo "  $COMPILE_DB"
