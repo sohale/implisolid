@@ -1,12 +1,21 @@
 #!/bin/bash
-# test all builds
-# Fresh test
-set -eux
+# The Master Script! See scripts/readme.md
+#      Is the driver script for other scripts/.
+
+# Fresh test. Tests all builds
+set -eu
+# set -x
 
 # args:
 # * pwd (via $ORIG_REPO_ROOT)
 # mmust be executed fromo within a folder in the main implisolid repo
 # todo : another version for install-dev
+
+
+# Verify docker etc installation
+docker --version
+python3 --version
+
 
 #docker pull frolvlad/alpine-gxx
 #docker pull groovy
@@ -40,7 +49,7 @@ function __current_script_dir_func0 () {
 }
 source $(__current_script_dir_func0)/bash-utils.sh
 
-set -ex
+# set -ex
 export ORIG_REPO_ROOT=$(git rev-parse --show-toplevel)
 echo "ORIG_REPO_ROOT :::: $ORIG_REPO_ROOT"
 assert_env_nonempty "$ORIG_REPO_ROOT" "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisolid repo not found in current directory $(pwd)"
@@ -62,7 +71,7 @@ git clone  \
 
 cd implisolid
 pwd
-find $E2E -maxdepth 2
+tree $E2E  -L 2 || find $E2E -maxdepth 2
 
 NEWREPO_BASE="$E2E"
 NEW_REPO="$E2E/implisolid"

@@ -36,11 +36,14 @@ echo $server_pid >$APP_RUN_LOCATION/server_pid-$server_pid.pid
 # cd $APP_RUN_LOCATION/js
 
 public_ip="$(curl https://ipinfo.io/ip)"
-echo "http://${public_ip}:8000/mp5_json_code.html"
 echo "public ip: $public_ip"
+echo "http://${public_ip}:8000/mp5_json_code.html"
+GREEN="\e[1;32m" RESET="\e[0m"
+echo -e "Click here: ${GREEN}http://${public_ip}:8000/mp5_json_code.html${RESET}"
 
 echo "click on mp5_json_code.html @"
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
+[[ $OSTYPE == 'darwin'* ]] || \
 open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
 
 

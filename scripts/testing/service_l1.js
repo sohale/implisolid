@@ -1,4 +1,5 @@
 'use strict';
+// To be used in NodeJS environment by likes of sandbox/autodiff/autodiff-sanity1.js
 
 // LiveBufferGeometry71  MyBufferGeometry77 LiveBufferGeometry79
 

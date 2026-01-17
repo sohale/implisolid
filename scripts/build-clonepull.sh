@@ -113,8 +113,8 @@ prime_docker() {
   echo "docker pull emscripten/emsdk"
   # docker pull emscripten/emsdk
   # docker pull emscripten/emsdk:3.1.14
-  export DOCKERTAG="3.1.14"
-  docker pull emscripten/emsdk:$DOCKERTAG
+  export EMSDK_VERSION="3.1.14"
+  docker pull emscripten/emsdk:$EMSDK_VERSION
 
   # Check tags and their dates:
   #   curl -s 'https://hub.docker.com/v2/repositories/emscripten/emsdk/tags?page_size=100' | jq -r '.results[] | "\(.name)  \t\(.last_updated)"'

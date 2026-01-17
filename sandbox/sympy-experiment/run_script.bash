@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+
+# Python route. MacOS in mind.
+
 # Forked from: point-process-simple-example/run_script.bash: https://github.com/sohale/point-process-simple-example/blob/82a62d013d909f365a391aa254dc598d62a0c2d4/run_script.bash
 # Forked from https://github.com/sosi-org/scientific-code/blob/main/timescales-state/run-script.bash
 # which was in turn forked from https://github.com/sosi-org/primsoup/blob/master/actn/run-actn.bash
 
-set -xu
-
+set -u
 cd /Users/sohail/cs/implisolid/sandbox/sympy-experiment
 
 mkdir -p temp

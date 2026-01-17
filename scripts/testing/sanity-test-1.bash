@@ -40,6 +40,7 @@ expect_file  "$COMPILED_FILE"
 node --version || echo "nodejs not found. Install nvm (see https://github.com/nvm-sh/nvm ) and then:  nvm install lts/fermium && nvm use lts/fermium"
 node --version
 # tested on v12.22.12
+# also: v22.19.0
 
 # node $COMPILED_FILE
 
