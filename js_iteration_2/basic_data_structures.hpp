@@ -17,7 +17,10 @@
 #include "boost/numeric/ublas/lu.hpp"
 #include "boost/numeric/ublas/io.hpp"
 
-#include "svd.cpp"
+// Do not include implementation files here; prevents circular includes.
+// If SVD utilities are needed, declare them in an svd.hpp and include that.
+// #include "svd.cpp"
+#include "svd.hpp"
 
 
 

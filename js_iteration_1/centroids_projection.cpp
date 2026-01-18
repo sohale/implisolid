@@ -24,6 +24,9 @@ author: Marc, Solene, Sohail
 
 // #include "../js_iteration_2/basic_data_structures.hpp"
 
+// test_if_conjugate_opposite_signs_indexed
+#include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
+
 #include "../js_iteration_2/vectorised_algorithms/make_random_pm1.hpp"
 #include "../js_iteration_2/vectorised_algorithms/add_inplace.hpp"
 #include "../js_iteration_2/vectorised_algorithms/cross_product.hpp"
@@ -60,7 +63,7 @@ using mp5_implicit::check_all_are_root;
 #include "../js_iteration_2/v2v_f2f.hpp"
 
 #include "../js_iteration_2/subdivision/do_subdivision.hpp"
-
+#include "../js_iteration_2/polygoniser/bisection.hpp"
 
 using namespace std;
 
@@ -98,7 +101,7 @@ REAL compute_average_edge_length(const vectorized_faces& faces, const vectorized
 
 
 
-#include "../js_iteration_2/polygoniser/bisection.hpp"
+
 
 /*
 namespace mp5 {

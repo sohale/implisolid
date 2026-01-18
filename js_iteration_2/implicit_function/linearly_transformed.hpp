@@ -1,4 +1,5 @@
 #pragma once
+#include "./assertions.hpp"
 
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"

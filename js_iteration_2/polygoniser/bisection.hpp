@@ -1,7 +1,12 @@
+#pragma once
+
 #include "my_sign.hpp"
 
-#include "../implicit_vectorised_algorithms.hpp"
+// check_all_are_root
+#include "../../js_iteration_2/implicit_vectorised_algorithms.hpp"
+using mp5_implicit::check_all_are_root;
 using mp5_implicit::vectorised_algorithms::norm_2;
+
 
 
 template<typename T>
