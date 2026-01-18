@@ -105,16 +105,15 @@ echo "Contents: ======="
 batcat -pp "$COMPILE_DB" || cat -pp "$COMPILE_DB"
 echo -e "=======\n"
 
-
-"$CLANGD" --version
-# "$CXX" --version
-
-"$CLANGD" --check=$SRC1 --compile-commands-dir=build
-
 cd "$ORIG_REPO_ROOT"
 # test -f .clangd # not anymore
 test -f ".vscode/settings.json"
 test -f "$COMPILE_DB"
+
+
+"$CLANGD" --version
+# "$CXX" --version
+"$CLANGD" --check=$SRC1 --compile-commands-dir=build
 
 
 # Now you can use, even in commandline, :
