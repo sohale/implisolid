@@ -62,6 +62,7 @@ echo '
 #include <cassert>
 #include "js_iteration_2/basic_data_structures.hpp"
 #include "js_iteration_2/object_factory.hpp"
+#include "js_iteration_2/foundation_types.hpp"
 ' > "${CLANG_TU1}"
 
 SRC1="$ORIG_REPO_ROOT/js_iteration_1/mcc2.cpp"
@@ -118,3 +119,5 @@ test -f "$COMPILE_DB"
 
 # Now you can use, even in commandline, :
 # /usr/bin/clangd-21  --compile-commands-dir=build --check=js_iteration_2/implicit_function/cube.hpp
+
+echo -en "/usr/bin/clangd-21 --compile-commands-dir=build --check="

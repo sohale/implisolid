@@ -4,9 +4,18 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <stdio.h>
-#include <dirent.h>
+// #include <stdio.h> // shit!
+// #include <dirent.h>
 
+#include "../../js_iteration_2/foundation_types.hpp"
+
+// for edge_pair_type
+#include "../../js_iteration_2/basic_data_structures.hpp"
+// for MIN_PRINTABLE_LENGTH
+#include "../configs.hpp"
+
+// for transformable_implicit_function
+#include "./transformation.hpp"
 
 namespace mp5_implicit {
 namespace implicit_functions {
@@ -377,6 +386,7 @@ public:
 
     }
     bool integrity_invariant() const {
+      // shit! the device for correctness is commended!
       // if(this->p[0] < MIN_PRINTABLE_LENGTH || this->p[7] < MIN_PRINTABLE_LENGTH) || this->p[14] < MIN_PRINTABLE_LENGTH)
       //   return false;
       // else

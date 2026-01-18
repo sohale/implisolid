@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Eigen/Core>
+using Eigen::Dynamic;
+
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 

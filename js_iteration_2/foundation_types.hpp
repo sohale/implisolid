@@ -1,6 +1,9 @@
 #pragma once
 
-#include <boost/array.hpp>
+#include<map>
+#include <boost/multi_array.hpp>
+
+// #include <boost/array.hpp>
 
 typedef float REAL;     // heavily used (can be changed to double from here at any time)
 

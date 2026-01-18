@@ -8,15 +8,16 @@
 
 #pragma once
 
+#include <map>
 
-#include "boost/multi_array.hpp"
-#include "boost/array.hpp"
-#include <math.h>
+#include <boost/multi_array.hpp>
+#include <boost/array.hpp>
 
-#include "boost/numeric/ublas/matrix.hpp"
-#include "boost/numeric/ublas/lu.hpp"
-#include "boost/numeric/ublas/io.hpp"
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
+// #include <math.h>
 #include "svd.cpp"
 
 

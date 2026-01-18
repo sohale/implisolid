@@ -1,8 +1,11 @@
 #pragma once
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 #include "../basic_data_structures.hpp"
 #include "../basic_functions.hpp"
+
+// for implicit_function
+#include "./implicit_function.hpp"
 
 namespace mp5_implicit {
 namespace implicit_functions {
