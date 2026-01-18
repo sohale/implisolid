@@ -8,6 +8,7 @@
 
 #include "../my_assert.hpp"
 
+namespace mp5_implicit {
 namespace implicit_functions {
 
 inline bool assert_implicit_function_io(const vectorized_vect& x, const vectorized_scalar& output){
@@ -20,6 +21,7 @@ inline bool assert_implicit_function_io(const vectorized_vect& x, const vectoriz
 }
 
 }  // namespace implicit_functions
+} // mp5_implicit
 
 /*
 s.implicit_func(x, f);

@@ -29,6 +29,7 @@ class transformable_implicit_function : public implicit_function {
     */
 
     // Why is this a `const` method?!
+    // angle is in radians
     virtual void rotate(const REAL angle, const vectorized_vect axis) const {
       REAL ca = cos(angle);
       REAL sa = sin(angle);

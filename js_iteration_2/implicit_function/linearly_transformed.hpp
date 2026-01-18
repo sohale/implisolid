@@ -5,6 +5,9 @@
 
 #include "transformed.hpp"
 
+// for MIN_PRINTABLE_LENGTH
+#include "../configs.hpp"
+
 namespace mp5_implicit {
 namespace implicit_functions {
 

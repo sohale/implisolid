@@ -14,11 +14,15 @@ using Eigen::Dynamic;
 #include "object_collector.hpp"
 #include "implicit_function/2d/implicit_function_2d.hpp"
 #include "implicit_function/2d/GDT/convex_polygon.hpp"
+
+
+
 //using namespace mp5_implicit;
 
 // todo: movee each loogic (in each "else if" case below), to their classes. OR use separate files. factory methods. Each can have multiple. They may not be 1:1. 
 
 using mp5_implicit::implicit_function;
+using mp5_implicit::implicit_functions::transformable_implicit_function;
 
 
 namespace pt = boost::property_tree ;
@@ -121,6 +125,36 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
         }
         object = new implicit_functions::cube(matrix12);
        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        register_new_object(object);
+    }
+    else
+    if (name == "debug_cube" ){
+        REAL matrix12[12];
+        getMatrix12(matrix12,shapeparams_dict);
+        if(ignore_root_matrix) {
+            copy_eye(matrix12);
+        }
+
+      ///////////////////
+      boost::array<int, 2> vectorshape = { 1, 3 };
+      vectorized_vect  rotation_axis(vectorshape);
+      rotation_axis[0][0] = 0.;
+      rotation_axis[0][1] = 0.3;
+      rotation_axis[0][2] = 0.3;
+      // rotation_axis[0] = normalize_vectors(rotation_axis[0]);
+      // rotation_axis[0].normalize();
+
+      // unit_sphere segg(0.5);
+      // segg.rotate(2., rotation_axis);
+
+        // (implicit_function*const)
+        transformable_implicit_function *cubeobjref = new implicit_functions::cube(matrix12);
+        // object = new implicit_functions::cube(f_argument+0.2, f_argument+0.2, f_argument+0.2);
+        // object->rotate(2., rotation_axis);
+        cubeobjref->rotate(PI*0.25, rotation_axis);
+
+        object = cubeobjref;
+
         register_new_object(object);
     }
     else

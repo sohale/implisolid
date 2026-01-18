@@ -1,3 +1,16 @@
+## 17 Jan 2026
+#### clangd
+`clangd` is set up (new scripts).
+It compiles (E2E demo). Readme added. Fix http security issue for python-based local server.
+Some plan/scripts for llvm versions.
+
+### Realisations:
+Some invairants were destroyed. Also asserts.
+A good version is `41a56f2e849de8021dd03208c9fef5221d84ed85`
+for cube.
+Example command
+`git show 41a56f2e849de8021dd03208c9fef5221d84ed85:js_iteration_2/implicit_function/cube.hpp > js_iteration_2/implicit_function/cube.hpp`
+
 
 Also see [docs/notes-on-folders.md](docs/notes-on-folders.md)
 ## 7 May 2022

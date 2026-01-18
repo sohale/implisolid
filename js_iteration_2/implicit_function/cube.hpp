@@ -2,6 +2,15 @@
 //#include "../basic_data_structures.hpp"
 //#include "../basic_functions.hpp"
 
+#include "../../js_iteration_2/foundation_types.hpp"
+#include "../../js_iteration_2/basic_data_structures.hpp"
+#include "./transformation.hpp"
+
+// for assert_implicit_function_io
+#include "../../js_iteration_2/implicit_function/primitives.hpp"
+
+using mp5_implicit::implicit_functions::assert_implicit_function_io;
+
 namespace mp5_implicit {
 namespace implicit_functions {
 
