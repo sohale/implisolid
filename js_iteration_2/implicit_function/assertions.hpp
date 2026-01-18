@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../my_assert.hpp"
 
 namespace mp5_implicit {
