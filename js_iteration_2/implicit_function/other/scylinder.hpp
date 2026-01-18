@@ -1,6 +1,9 @@
 #pragma once
+
 #include  "../../js_iteration_2/foundation_types.hpp"
 #include "../../js_iteration_2/basic_data_structures.hpp"
+//#include "../basic_data_structures.hpp"
+//#include "../basic_functions.hpp"
 #include "./transformation.hpp"
 
 namespace mp5_implicit {
@@ -11,13 +14,15 @@ class scylinder : public transformable_implicit_function {
 protected:
     REAL x; REAL y; REAL z;
     REAL* w; REAL c_len;
-    REAL radius_u; REAL radius_v;
+    REAL radius_u;
+    //REAL radius_v;
+    REAL radius_v;
 
 public:
     scylinder(REAL matrix12[12]){
         this->radius_u = 0.5;
         this->radius_v = 0.5;
-        this->c_len = 1.0;
+        this->c_len = 1.0 * 0.3;
 
         this->x = 0.;
         this->y = 0.;
@@ -96,7 +101,7 @@ public:
 
 
     virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
-        my_assert(assert_implicit_function_io(x, *f_output), "");
+        
         my_assert(this->integrity_invariant(), "");
 
         vectorized_vect x_copy = x;
@@ -117,8 +122,11 @@ public:
 
           REAL t0 = (i0-this->x)*w0 + (i1-this->y)*w1 + (i2-this->z)*w2;
           REAL t1 = c_len - t0;
-          REAL r_ = radius_u - sqrt((i0 - w0*t0 - this->x)*(i0 - w0*t0 - this->x)
-            + (i1 - w1*t0- this->y)*(i1 - w1*t0 - this->y) +(i2 - w2*t0 - this->z)*(i2 - w2*t0 - this->z));
+          REAL r_ = radius_u - sqrt(
+            (i0 - w0*t0 - this->x)*(i0 - w0*t0 - this->x)
+            + (i1 - w1*t0- this->y)*(i1 - w1*t0 - this->y)
+            +(i2 - w2*t0 - this->z)*(i2 - w2*t0 - this->z)
+          );
 
           (*f_output)[output_ctr] = min(t0,min(t1,r_));
 
