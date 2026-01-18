@@ -70,12 +70,12 @@ mkdir -p $E2E/implisolid
 # cp -a --verbose $ORIG_REPO_ROOT/. $E2E/implisolid
 rsync \
     -a \
-    --verbose \
     --exclude "$(realpath --relative-to="$ORIG_REPO_ROOT" "$E2E")" \
     --exclude "/.git" \
     --exclude "/build" \
     --exclude "/temp" \
     "$ORIG_REPO_ROOT/."  "$E2E/implisolid"
+#    --verbose \
 
 ######## clean-clone mode:
 : || \

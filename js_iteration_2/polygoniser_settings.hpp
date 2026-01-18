@@ -1,8 +1,12 @@
 #pragma once
 
-namespace mp5_implicit{
-
+// for read_json()
+#include <boost/property_tree/json_parser.hpp>
+// #include <boost/property_tree/ptree.hpp>
 namespace prtree = boost::property_tree;
+
+#include "../js_iteration_2/foundation_types.hpp"
+namespace mp5_implicit{
 
 /* Holds all MC information that is transferred through json. Separate from the shape json (i.e. the MP5 Json). */
 struct mc_settings {
