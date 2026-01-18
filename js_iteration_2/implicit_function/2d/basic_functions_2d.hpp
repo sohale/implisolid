@@ -1,5 +1,7 @@
 #pragma once
 
+// move to helpers etc ( non-essential)
+// also:  assertions in 3d
 namespace mp5_implicit {
 
 bool assert_implicit_function_io_2d(const vectorized_vect_2d& x, vectorized_scalar* f_output) {
