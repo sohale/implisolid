@@ -1,5 +1,7 @@
 #pragma once
 
+// hacky or correct?
+#include "./basic_data_structures.hpp"
 #include "vectorised_algorithms/normalise_inplace.hpp"
 //only for compute_centroid_gradient  that uses normalize111
 #include "vectorised_algorithms/assert_are_normalised.hpp"

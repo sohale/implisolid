@@ -4,7 +4,7 @@ author: Marc, Solene, Sohail
 */
 #pragma once
 
-#include "../js_iteration_2/qem.hpp"
+
 
 
 #include <iostream>
@@ -24,8 +24,7 @@ author: Marc, Solene, Sohail
 
 // #include "../js_iteration_2/basic_data_structures.hpp"
 
-// test_if_conjugate_opposite_signs_indexed
-#include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
+#include "../js_iteration_2/qem.hpp"
 
 #include "../js_iteration_2/vectorised_algorithms/make_random_pm1.hpp"
 #include "../js_iteration_2/vectorised_algorithms/add_inplace.hpp"
@@ -45,6 +44,9 @@ using mp5_implicit::vectorised_algorithms::build_range_array;
 using mp5_implicit::vectorised_algorithms::set_all_array_elements_to_a_boolean_value;
 
 
+#include "../js_iteration_2/implicit_function/implicit_function.hpp"
+// If a TU includes implicit_vectorised_algorithms.hpp before any header that declares implicit_function, you’ll get compile errors — but not due to cycles.
+// test_if_conjugate_opposite_signs_indexed
 #include "../js_iteration_2/implicit_vectorised_algorithms.hpp"
 using mp5_implicit::get_signs;
 using mp5_implicit::produce_facet_normals;
@@ -52,7 +54,7 @@ using mp5_implicit::compute_centroid_gradient;
 
 using mp5_implicit::eval_implicit_on_selected_points_indexed;
 using mp5_implicit::test_if_conjugate_opposite_signs_indexed;
-using mp5_implicit::check_all_are_root;
+// using mp5_implicit::check_all_are_root;
 
 // #include "../js_iteration_2/matrix_functions.hpp"
 
