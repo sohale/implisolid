@@ -7,17 +7,20 @@ set -x
 # Disable Microsoft IntelliSense diagnostics: Id: ms-vscode.cpptools , Id: ms-vscode.cpptools-extension-pack.
 # and let clangd be the only authority.
 
+# llvm-vs-code-extensions.vscode-clangd
 
 # Note that this does not use the e2e folder that keeps a copy (scripted build), but the actual original repo's files (as required for `clangd` LSP to work in a useful way).
 export ORIG_REPO_ROOT="$(git rev-parse --show-toplevel)"
-export E2E="$ORIG_REPO_ROOT/e2e-sandbox-temp"
-echo "Repo root        : $ORIG_REPO_ROOT"
+# export E2E="$ORIG_REPO_ROOT/e2e-sandbox-temp"
+echo "Repo root        : $ORIG_REPO_ROOT" # will be: "/dataneura/3d/implisolid"
 
+# LLVERSION="18"
+LLVERSION="21"
 
-CLANGD="/usr/bin/clangd-18"
-CXX="clang++-18"
+CLANGD="/usr/bin/clangd-${LLVERSION}"
+CXX="clang++-${LLVERSION}"
 # Build-time only (not relied upon by clangd)
-export CC="clang-18"
+export CC="clang-${LLVERSION}"
 export CXX
 
 
@@ -104,8 +107,7 @@ echo -e "=======\n"
 
 
 "$CLANGD" --version
-"$CXX" --version
-"$CLANGD" --version
+# "$CXX" --version
 
 "$CLANGD" --check=$SRC1 --compile-commands-dir=build
 
@@ -113,3 +115,7 @@ cd "$ORIG_REPO_ROOT"
 # test -f .clangd # not anymore
 test -f ".vscode/settings.json"
 test -f "$COMPILE_DB"
+
+
+# Now you can use, even in commandline, :
+# /usr/bin/clangd-21  --compile-commands-dir=build --check=js_iteration_2/implicit_function/cube.hpp
