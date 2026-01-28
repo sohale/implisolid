@@ -3,11 +3,11 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a leading Geometric Modelling library suitable for use as solid modelling engine for 3D printing and other engineering uses, based on *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
+**ImpliSolid** is a leading Geometric Shape Modelling library suitable for use as the solid modelling engine for 3D printing and other engineering uses, using *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
 
-Up to my knowledge in 2025, among open-source, and it uniquely supports sharp edges.
+Up to my knowledge as of 2025, it is the only open-source mesh generator supporting implicit surfaces with **sharp edges**.
 
-The main usecase for ImpliSolid has been 3D Printing in mind.
+The main use case for ImpliSolid has been 3D Printing in mind.
 It is equally suitable for
 industry-grade manufacturing applications 🏗️,
 CAD/CAM,
@@ -20,6 +20,7 @@ any mesh generation,
 STL-to-SDF (for general-purpose mesh fixing and optimisaiton)
 Finite Element mesh generation for surfaces,
 Neural Implicit Surfaces Learning (Multi-view Reconstruction, implicit surface reconstruction, learning of implicit surfaces),
+PArametric Architecture,
 Gnerative 3D Design, Procedural 3D Design
 etc.
 
@@ -37,6 +38,7 @@ etc.
         * Cache efficient
         * Stable
         * robust
+        * Feels light
     * ⭐️ Responsive, low-latency 
     * ⭐️ Built-in **progressive** mesh generation
         * Low-poly to detailed mesh and curvature-adaptive mesh
