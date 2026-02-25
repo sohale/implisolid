@@ -52,7 +52,7 @@ Languages: **C++** (native), Python (native), Javascript.
 Targets: Native executable (LLVM), Javascript (frontend browser), WebAssembly, NodeJS (backend).
 ImpliSolid use is not limited to browsers. It is implementated in C++ (native), Python (native) and JavaScript.
 
-ImpliSolid uses very efficientcalculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
+ImpliSolid uses very efficient calculations to provide instant polygonisation of Implicit Surfaces efficient eniough to run on your browser using CPU only.
 
 The main strength is its ability to work efficiently with **sharp edges**.
 It also uses **adaptive subdivition** for smooth and perfect curved surfaces.
@@ -75,6 +75,8 @@ Dynamic Programming is used to improve speed of graph algorithms.
 <!-- |  An interactive editor: | [link defunct](https://api-project-1000362687695.appspot.com/mp5interactive/mp5_json_code.html) | -->
 
 
+![Actual 3D-printed objects using ImpliSolid (via MP5 Slicer)  ~ December 2016](https://repository-images.githubusercontent.com/72203031/dae5c53f-ccea-47a8-acef-d0dcdd1b2e63)
+> **Photo**: Two objects 3D-printed on Ultimaker 2, using a slicer written from scratch based on **ImpliSolid 3D**. December 2016. (See [MP5 Slicer](https://github.com/sohale/mp5slicer) for details)
 
 
 Currently two open-source projects that use this library:
