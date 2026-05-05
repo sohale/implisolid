@@ -66,14 +66,26 @@ expect_file  "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp"
 expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 #expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
 
-
+# Mistake:
 # Current state of source-code inclusion etc, expects a file `svd.cpp` here
 # SVD_CPP="$LIB_VM/$EIGEN_SUBFOLDER/lapack/svd.cpp"
 # SVD_CPP="$LIB_FOLDER/$EIGEN_SUBFOLDER/lapack/svd.cpp"
 # echo $SVD_CPP
 # Which is (exists) here!
-expect_file "$LIB_FOLDER/$EIGEN_SUBFOLDER/lapack/svd.cpp"
+ # NOT!
+#expect_file "$LIB_FOLDER/$EIGEN_SUBFOLDER/lapack/svd.cpp"
 # BTW, this bypasses Eigen? and uses directly the LAPACK?
+# No!
+# do not add to compiler flags:
+#```bash
+#        -I $LIB_VM/$EIGEN_SUBFOLDER/lapack \
+#        # dont'!
+#```
+# Instead, we can use this:
+# `js_iteration_2/svd.hpp`
+# But this is an external file , so I moved it to:
+# `lib-external/svd.hpp`
+# and the #include "svd.cpp" Was replaced by #include "lib-external/svd.hpp"
 
 
 # LIB_FOLDER_VM
@@ -106,7 +118,6 @@ then
     export CLI_ARGS=" \
         -I $LIB_VM/$BOOST_SUBFOLDER \
         -I $LIB_VM/$EIGEN_SUBFOLDER \
-        -I $LIB_VM/$EIGEN_SUBFOLDER/lapack \
         -O3   \
         -Oz \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -139,7 +150,6 @@ then
     export CLI_ARGS=" \
         -I $LIB_VM/$BOOST_SUBFOLDER  \
         -I $LIB_VM/$EIGEN_SUBFOLDER \
-        -I $LIB_VM/$EIGEN_SUBFOLDER/lapack \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \

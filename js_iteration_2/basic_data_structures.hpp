@@ -18,7 +18,7 @@
 #include <boost/numeric/ublas/io.hpp>
 
 // #include <math.h>
-#include "svd.cpp"
+#include <lib-external/svd.hpp>
 
 
 
