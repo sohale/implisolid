@@ -14,6 +14,8 @@ function assert_env_nonempty() {
   fi
 }
 
+export MYPORT8000=8099
+
 # Runs the deployed one
 # Currennt folder (pwd) should be where the served files are (ie the app) (root of url resources)
 # alt name: demo1-localrun.sh
@@ -29,7 +31,7 @@ ps aux|grep python|grep http.server |cut -c10-17 | xargs kill || :
 cd $APP_RUN_LOCATION
 echo "Running python server from: $(pwd)"
 # Keep `--bind 127.0.0.1` to access locally via 127.0.0.1:8000 . Login should use `-L 8000:127.0.0.1:8000`. It would be "inbound SSH to your Mac". Never bind to 0.0.0.0 on an internet-facing host.
-python3 -m http.server 8000 --bind 127.0.0.1 &
+python3 -m http.server $MYPORT8000 --bind 127.0.0.1 &
 export server_pid=$!
 echo $server_pid >$APP_RUN_LOCATION/server_pid-$server_pid.pid
 
@@ -38,14 +40,14 @@ echo $server_pid >$APP_RUN_LOCATION/server_pid-$server_pid.pid
 
 public_ip="$(curl https://ipinfo.io/ip)"
 echo "public ip: $public_ip"
-echo "http://${public_ip}:8000/mp5_json_code.html"
+echo "http://${public_ip}:$MYPORT8000/mp5_json_code.html"
 GREEN="\e[1;32m" RESET="\e[0m"
-echo -e "Click here: ${GREEN}http://${public_ip}:8000/mp5_json_code.html${RESET}"
+echo -e "Click here: ${GREEN}http://${public_ip}:$MYPORT8000/mp5_json_code.html${RESET}"
 
 echo "click on mp5_json_code.html @"
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
 [[ $OSTYPE == 'darwin'* ]] || \
-open -a "Google Chrome" http://localhost:8000/mp5_json_code.html
+open -a "Google Chrome" http://localhost:$MYPORT8000/mp5_json_code.html
 
 
 echo "The current server PID is:"
