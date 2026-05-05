@@ -85,8 +85,37 @@ expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 # `js_iteration_2/svd.hpp`
 # But this is an external file , so I moved it to:
 # `lib-external/svd.hpp`
-# and the #include "svd.cpp" Was replaced by #include "lib-external/svd.hpp"
+# and the #include "svd.cpp" Was replaced by #include <lib-external/svd.hpp>
 
+# CMake-like shenanigans for explusiely adding to icnlcudes
+# SHENANIGAN_INLCLUDES=
+# I_SHENANIGANS="shenanigans"
+# a build-local, not temp-local, and, not e2e-clone-local:
+#
+# Aiming at: /dataneura/3d/mp5-revival/mp5-private/implisolid/e2e-sandbox-temp/implisolid/build/lib/shenanigans
+# "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp"
+# an empty place for shenanigans:
+INLCLUDE_SHENANIGANS="shenanigans"
+# create a view for a neat `#include <lib-external/svd.hpp>`
+: || '
+# absoute:
+DIR3="$LIB_FOLDER/$INLCLUDE_SHENANIGANS/svd_hpp_view/lib-external"
+mkdir -p "$DIR3"
+ln -s "./lib-external/svd.hpp" "$DIR3/svd.hpp"
+expect_file "$LIB_FOLDER/$INLCLUDE_SHENANIGANS/svd_hpp_view/lib-external/svd.hpp"
+# relative to both $LIB_VM and $LIB_FOLDER, and redy for `-I` ing (compiler-flag):
+RELATIVE_INCLUDE3="$INLCLUDE_SHENANIGANS/svd_hpp_view/lib-external"
+#         -I $LIB_VM/$INLCLUDE_SHENANIGANS/svd_hpp_view/ \
+expect_file "$LIB_FOLDER/$RELATIVE_INCLUDE3/lib-external/svd.hpp"
+'
+
+# Third `-I` flag: (-I's view)
+INCLUDE3_RELATIVE="$INLCLUDE_SHENANIGANS/svd.hpp__view/lib-external"
+# forced:
+ln -s --force "./lib-external/svd.hpp" "$LIB_FOLDER/$INCLUDE3_RELATIVE/svd.hpp"
+
+# Ready for : `#include <lib-external/svd.hpp>`
+expect_file "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external/svd.hpp"
 
 # LIB_FOLDER_VM
 LIB_VM="/src-lib"
@@ -118,6 +147,7 @@ then
     export CLI_ARGS=" \
         -I $LIB_VM/$BOOST_SUBFOLDER \
         -I $LIB_VM/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$INCLUDE3_RELATIVE \
         -O3   \
         -Oz \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -150,6 +180,7 @@ then
     export CLI_ARGS=" \
         -I $LIB_VM/$BOOST_SUBFOLDER  \
         -I $LIB_VM/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$INCLUDE3_RELATIVE \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \
