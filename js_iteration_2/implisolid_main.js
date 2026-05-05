@@ -873,7 +873,11 @@ return _ImplicitService;
 
 /* most times you need to write the following function */
 var IMPLICIT = null;  // is assigned to at _on_cpp_loaded();
-function _on_cpp_loaded(Module) {
+function _on_cpp_loaded() {
+    // Formerly as: _on_cpp_loaded(Module)
+    // Emscripten 3.x calls onRuntimeInitialized() with no arguments.
+    // `Module` is the global set in index.html and augmented by mcc2.compiled.js.
+
     IMPLICIT = new ImplicitService(Module);
     // IMPLICIT = new ImplicitWorkerService();
 
