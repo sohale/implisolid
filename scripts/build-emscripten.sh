@@ -67,6 +67,24 @@ expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 #expect_file "$LIB_FOLDER/$AUTODIFF_LIB_SUBFOLDER/autodiff/forward/dual.hpp"
 
 
+# Current state of source-code inclusion etc, expects a file `svd.cpp` here
+# SVD_CPP="$LIB_VM/$EIGEN_SUBFOLDER/lapack/svd.cpp"
+# SVD_CPP="$LIB_FOLDER/$EIGEN_SUBFOLDER/lapack/svd.cpp"
+# echo $SVD_CPP
+# Which is (exists) here!
+expect_file "$LIB_FOLDER/$EIGEN_SUBFOLDER/lapack/svd.cpp"
+# BTW, this bypasses Eigen? and uses directly the LAPACK?
+
+
+# LIB_FOLDER_VM
+LIB_VM="/src-lib"
+# MAIN_SOURCE_FOLDER_VM
+MAIN_SRC_VM=/src
+# BUILD_LOCATION_VM
+BUILD_VM=/build
+
+
+
 
 export OPTIM=1
 export DEV=2
@@ -83,11 +101,12 @@ then
 
     echo "** optimised mode **"
 
-#         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
+#         -I $LIB_VM/$AUTODIFF_LIB_SUBFOLDER \
 
     export CLI_ARGS=" \
-        -I /src-lib/$BOOST_SUBFOLDER \
-        -I /src-lib/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$BOOST_SUBFOLDER \
+        -I $LIB_VM/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$EIGEN_SUBFOLDER/lapack \
         -O3   \
         -Oz \
         -DNDEBUG -DBOOST_UBLAS_NDEBUG -DBOOST_DISABLE_ASSERTS  \
@@ -115,11 +134,12 @@ then
 
     echo "** dev compiling mode **"
 
-#         -I /src-lib/$AUTODIFF_LIB_SUBFOLDER \
+#         -I $LIB_VM/$AUTODIFF_LIB_SUBFOLDER \
 
     export CLI_ARGS=" \
-        -I /src-lib/$BOOST_SUBFOLDER  \
-        -I /src-lib/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$BOOST_SUBFOLDER  \
+        -I $LIB_VM/$EIGEN_SUBFOLDER \
+        -I $LIB_VM/$EIGEN_SUBFOLDER/lapack \
         -s TOTAL_MEMORY=30146560 \
         -s ABORTING_MALLOC=0 \
         -s NO_EXIT_RUNTIME=1 \
@@ -150,17 +170,17 @@ EXPORTED_FUNCTIONS="['_main', '_build_geometry', '_get_v_size', '_get_f_size', '
 
 docker run \
   --rm \
-  -v $MAIN_SOURCE_FOLDER:/src \
-  -v $LIB_FOLDER:/src-lib \
-  -v $BUILD_LOCATION:/build \
+  -v $MAIN_SOURCE_FOLDER:$MAIN_SRC_VM \
+  -v $LIB_FOLDER:$LIB_VM \
+  -v $BUILD_LOCATION:$BUILD_VM \
   -u $(id -u):$(id -g) \
   emscripten/emsdk:$DOCKERTAG \
     emcc \
       $CLI_ARGS \
       -s EXPORTED_FUNCTIONS="$EXPORTED_FUNCTIONS" \
       -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
-      /src/$MAIN_SOURCE_CPP_FILE \
-      -o /build/$TARGET_FILENAME
+      $MAIN_SRC_VM/$MAIN_SOURCE_CPP_FILE \
+      -o $BUILD_VM/$TARGET_FILENAME
 
 # The compiled file can be found here:
 ls "$BUILD_LOCATION/$TARGET_FILENAME"
@@ -174,13 +194,13 @@ expect_file  "$BUILD_LOCATION/$TARGET_FILENAME"
 #
 # docker run \
 #  --rm \
-#  -v $MAIN_SOURCE_FOLDER:/src \
-#  -v $BUILD_LOCATION:/build \
+#  -v $MAIN_SOURCE_FOLDER:$MAIN_SRC_VM \
+#  -v $BUILD_LOCATION:$BUILD_VM \
 #  -u $(id -u):$(id -g) \
 #  emscripten/emsdk:$DOCKERTAG \
 #
 # emcc helloworld.cpp -o helloworld.js
-# emcc mcc2.cpp  -o  ../build/mcc2.compiled.js
+# emcc mcc2.cpp  -o  ..$BUILD_VM/mcc2.compiled.js
 
 # emcc?
 # em++?
