@@ -95,8 +95,9 @@ expect_file  "$LIB_FOLDER/$EIGEN_SUBFOLDER/Eigen/src/Core/MatrixBase.h"
 # Aiming at: /dataneura/3d/mp5-revival/mp5-private/implisolid/e2e-sandbox-temp/implisolid/build/lib/shenanigans
 # "$LIB_FOLDER/$BOOST_SUBFOLDER/boost/array.hpp"
 # an empty place for shenanigans:
-INLCLUDE_SHENANIGANS="shenanigans"
+export INLCLUDE_SHENANIGANS="shenanigans"
 # create a view for a neat `#include <lib-external/svd.hpp>`
+
 : || '
 # absoute:
 DIR3="$LIB_FOLDER/$INLCLUDE_SHENANIGANS/svd_hpp_view/lib-external"
@@ -110,18 +111,18 @@ expect_file "$LIB_FOLDER/$RELATIVE_INCLUDE3/lib-external/svd.hpp"
 '
 
 # Third `-I` flag: (-I's view)
-# foe snot have the `/lib-external` part.
-INCLUDE3_RELATIVE="$INLCLUDE_SHENANIGANS/svd.hpp__view"
+# Does not have the `/lib_external` part.
+export INCLUDE3_RELATIVE="$INLCLUDE_SHENANIGANS/svd.hpp__view"
 mkdir -p "$LIB_FOLDER/$INCLUDE3_RELATIVE"
 
 # filling contents:
-mkdir -p "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external"
+mkdir -p "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib_external"
 # forced:
-ln -s --force "$MAIN_SOURCE_FOLDER/lib-external/svd.hpp" "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external/svd.hpp"
-test -e "$MAIN_SOURCE_FOLDER/lib-external/svd.hpp"
+ln -s --force "$MAIN_SOURCE_FOLDER/lib_external/svd.hpp" "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib_external/svd.hpp"
+test -e "$MAIN_SOURCE_FOLDER/lib_external/svd.hpp"
 
-# Ready for : `#include <lib-external/svd.hpp>`
-expect_file "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external/svd.hpp"
+# Ready for : `#include <lib_external/svd.hpp>`
+expect_file "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib_external/svd.hpp"
 
 # LIB_FOLDER_VM
 LIB_VM="/src-lib"
