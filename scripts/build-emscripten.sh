@@ -110,9 +110,15 @@ expect_file "$LIB_FOLDER/$RELATIVE_INCLUDE3/lib-external/svd.hpp"
 '
 
 # Third `-I` flag: (-I's view)
-INCLUDE3_RELATIVE="$INLCLUDE_SHENANIGANS/svd.hpp__view/lib-external"
+# foe snot have the `/lib-external` part.
+INCLUDE3_RELATIVE="$INLCLUDE_SHENANIGANS/svd.hpp__view"
+mkdir -p "$LIB_FOLDER/$INCLUDE3_RELATIVE"
+
+# filling contents:
+mkdir -p "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external"
 # forced:
-ln -s --force "./lib-external/svd.hpp" "$LIB_FOLDER/$INCLUDE3_RELATIVE/svd.hpp"
+ln -s --force "$MAIN_SOURCE_FOLDER/lib-external/svd.hpp" "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external/svd.hpp"
+test -e "$MAIN_SOURCE_FOLDER/lib-external/svd.hpp"
 
 # Ready for : `#include <lib-external/svd.hpp>`
 expect_file "$LIB_FOLDER/$INCLUDE3_RELATIVE/lib-external/svd.hpp"
