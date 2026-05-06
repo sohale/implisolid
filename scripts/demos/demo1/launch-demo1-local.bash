@@ -44,6 +44,8 @@ echo "http://${public_ip}:$MYPORT8000/mp5_json_code.html"
 GREEN="\e[1;32m" RESET="\e[0m"
 echo -e "Click here: ${GREEN}http://${public_ip}:$MYPORT8000/mp5_json_code.html${RESET}"
 
+echo "OSTYPE= $OSTYPE"
+
 echo "click on mp5_json_code.html @"
 [[ $OSTYPE == 'darwin'* ]] || "Warning: MacOS-specific code: for `open`"
 [[ $OSTYPE == 'darwin'* ]] || \

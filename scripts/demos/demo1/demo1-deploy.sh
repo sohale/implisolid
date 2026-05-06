@@ -146,7 +146,7 @@ function gather_files_for_deploy() {
     CP $EX_JSLIB/asmjscb.js $DEPLOY_LOCATION/js-copy/
 
 
-    echo "compiled_file $compiled_file"
+    echo "compiled_file $compiled_file ---> $DEPLOY_LOCATION/js-copy/"
     CP $compiled_file $DEPLOY_LOCATION/js-copy/
     # CP $BUILT/opt/mcc2.compiled.js.mem $DEPLOY_LOCATION/js-copy/
 

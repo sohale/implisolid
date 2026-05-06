@@ -861,6 +861,8 @@ var _ImplicitService = function(Module) {
     console.log("impli1 -----API Level1.",  Object.keys(impli1));
     console.log("impli2 -----API Level2.",   Object.keys(impli2));
     console.log("impli3 -------IMPLICIT.",   Object.keys(impli3));
+    impli3.about();
+
 };
 
 
