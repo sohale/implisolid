@@ -139,7 +139,8 @@ export DEV=2
 #export WORKER=3
 #export BITCODE=4
 
-MODE=$DEV
+# MODE=$DEV
+MODE=$OPTIM
 
 export WASM=0
 
