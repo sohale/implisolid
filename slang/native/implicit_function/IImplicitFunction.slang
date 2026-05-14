@@ -20,9 +20,11 @@
 //      declaration (not only on the implementing struct) so that bwd_diff() works
 //      through a generic T : IImplicitFunction parameter.
 //
-//   4. __exported import types — BoundingBox must be visible to any file that
-//      imports IImplicitFunction; without __exported, callers would need to
-//      separately import types themselves.
+//   4. __exported import types — re-exports BoundingBox to all importers of this
+//      module so they don't need a separate `import types`.
+//
+//   5. Slang module visibility: all exported symbols must be `public`.
+//      Struct fields default to `internal` — see types.slang.
 //
 // USING THE INTERFACE IN A GENERIC POLYGONISER:
 //
@@ -40,28 +42,28 @@ module IImplicitFunction;
 
 __exported import types;   // re-exports BoundingBox to all importers of this module
 
-interface IImplicitFunction {
+public interface IImplicitFunction {
     // Implicit function value at a single point p.
     // f > 0: inside, f = 0: surface, f < 0: outside  (F-REP convention).
-    // Must be [Differentiable] so bwd_diff() works through generic parameters.
+    // [Differentiable] must be on the interface declaration (not only the struct)
+    // so that bwd_diff() works when T is a generic parameter.
     [Differentiable]
     float eval(float3 p);
 
-    // Bounding box for the solid in world space.
-    // Used by the polygoniser to set grid extent.
+    // Bounding box in world space. Used by the polygoniser to set grid extent.
     BoundingBox getBoundingBox();
 };
 
 // ---------------------------------------------------------------------------
 // _evalForDiff<T> — free wrapper so bwd_diff can differentiate eval().
 //
-// bwd_diff() cannot take a reference to a non-static member function —
-// `bwd_diff(shape.eval)` is not valid Slang. Wrapping eval() in a free
-// function with an explicit `no_diff T shape` parameter is the correct idiom:
-// shape is passed through unchanged; only `p` is in the AD graph.
+// bwd_diff() cannot take a reference to a non-static member function;
+// `bwd_diff(shape.eval)` is not valid Slang. This wrapper with an explicit
+// `no_diff T shape` parameter is the correct idiom: shape passes through
+// unchanged; only `p` participates in the AD graph.
 // ---------------------------------------------------------------------------
 [Differentiable]
-float _evalForDiff<T : IImplicitFunction>(no_diff T shape, float3 p) {
+public float _evalForDiff<T : IImplicitFunction>(no_diff T shape, float3 p) {
     return shape.eval(p);
 }
 
@@ -70,13 +72,13 @@ float _evalForDiff<T : IImplicitFunction>(no_diff T shape, float3 p) {
 //
 // Implementing types may supply [BackwardDerivativeOf(eval)] to replace the
 // auto-generated backward pass with a hand-coded one (same result, faster).
-// bwd_diff(_evalForDiff<T>) dispatches through shape.eval(p), which will use
-// that hand-coded backward pass when T provides one.
+// bwd_diff(_evalForDiff<T>) dispatches through shape.eval(p) and will use
+// T's hand-coded backward derivative when one is provided.
 //
-// Returns ∇f(p). Not unit-length; magnitude varies. Normalize for rendering.
-// Direction convention: points toward the solid interior (inward normal).
+// Returns ∇f(p). Not unit-length. Normalize for rendering normals.
+// Direction: points toward the solid interior (inward normal), matching C++ ref.
 // ---------------------------------------------------------------------------
-float3 gradient<T : IImplicitFunction>(T shape, float3 p) {
+public float3 gradient<T : IImplicitFunction>(T shape, float3 p) {
     var dp = diffPair(p, float3(0.0f, 0.0f, 0.0f));
     bwd_diff(_evalForDiff<T>)(shape, dp, 1.0f);
     return dp.d;
