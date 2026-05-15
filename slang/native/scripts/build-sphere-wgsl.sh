@@ -6,7 +6,7 @@
 #   bash slang/native/scripts/build-sphere-wgsl.sh
 #
 # Output:
-#   slang/native/examples/simplical-visualiser/app/renderer/slang_bridge/sphere_mesh_wgsl.js
+#   slang/native/examples/simplical-visualiser/app/renderer/slang_bridge/generated/sphere_mesh_wgsl.js
 set -euo pipefail
 
 SLANGC="${SLANGC:-/dataneura/gpu-experimentations/experiments/20_slang_shaders/slang/build/RelWithDebInfo/bin/slangc}"
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 NATIVE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"   # slang/native/
 
 FIXTURE="$NATIVE_DIR/polygonisers/fixtures/sphere_surface_mesh_stub_for_test.slang"
-OUT="$NATIVE_DIR/examples/simplical-visualiser/app/renderer/slang_bridge/sphere_mesh_wgsl.js"
+OUT="$NATIVE_DIR/examples/simplical-visualiser/app/renderer/slang_bridge/generated/sphere_mesh_wgsl.js"
 
 echo "slangc: $SLANGC"
 echo "fixture: $FIXTURE"
