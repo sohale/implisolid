@@ -84,7 +84,7 @@ public:
         a.eval_gradient(x, &grad1);
         b.eval_gradient(x, &grad2);
 
-
+        // flips one of gradients ( since it is subtraction CSG )
         for (auto i = grad2.begin(); i < grad2.end(); i++) {
                 (*i)[0] =  -(*i)[0];
                 (*i)[1] =  -(*i)[1];
