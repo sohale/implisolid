@@ -28,6 +28,7 @@
 //   cx, cy, cz   — sphere centre
 //   M            — latitude  divisions (vertex rows:    M+1, face rows:    M)
 //   N            — longitude divisions (vertex columns: N+1, face columns: N)
+//  (no parameter for the z-cut: always happens at Z=0 )
 //
 // Outputs (storage buffers — tightly packed, compatible with Three.js BufferAttribute):
 //   gVertices    — float[], length (M+1)*(N+1)*3   layout: [x0,y0,z0, ...]
@@ -86,7 +87,8 @@ void genVertices(uint3 tid : SV_DispatchThreadID) {
 
     if (i > gParams.M || j > gParams.N) return;
 
-    float theta = float(i) * PI / float(gParams.M);          // 0 .. π
+    // todo: fix: theta will have a a limited range (interval)  for this z-hemisphere:
+    float theta = float(i) * PI? / float(gParams.M) - PI/2.0; ?         // 0 .. π/2 ? or -π/4..π/4?
     float phi   = float(j) * 2.0f * PI / float(gParams.N);   // 0 .. 2π
 
     float sinT = sin(theta);
@@ -102,6 +104,16 @@ void genVertices(uint3 tid : SV_DispatchThreadID) {
     gVertices[vidx * 3u + 0u] = x;
     gVertices[vidx * 3u + 1u] = y;
     gVertices[vidx * 3u + 2u] = z;
+
+    // now add the closing flat lid/cap:
+    // bi n interms of vertices: only needs one vvertex: centre!
+    int lid_first_vertex_index = ...;
+    if (once){
+        uint centrepoint_idx = ...;
+        gVertices[centrepoint_idx * 3u + 0u] = gParams.cx;
+        gVertices[centrepoint_idx * 3u + 1u] = gParams.cy;
+        gVertices[centrepoint_idx * 3u + 2u] = gParams.cz;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +150,19 @@ void genFaces(uint3 tid : SV_DispatchThreadID) {
     gFaces[fidx0 + 3u] = v10;
     gFaces[fidx0 + 4u] = v11;
     gFaces[fidx0 + 5u] = v01;
+
+    // now add the closing flat lid/cap:
+    // connect all equator points to center, a fan of triangles
+    int lid_first_vertex_index = ...; // same as above
+    int lid_first_face_index = ...;
+    int v_centre = ...;
+
+    if (....) { // if based on `tid`, we are at a point on sharp-equator,
+        lidfanfidx0 = ...
+        gFaces[lidfanfidx0 + 0u] = v_centre;
+        gFaces[lidfanfidx0 + 1u] = v10;
+        gFaces[lidfanfidx0 + 2u] = v01;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -172,10 +197,12 @@ void genNormals(uint3 tid : SV_DispatchThreadID) {
 
     // Reconstruct the sphere implicit function from the uniform params.
     UnitSphere sphere = makeSphere(gParams.radius, float3(gParams.cx, gParams.cy, gParams.cz));
+    HalfPlane halfplane_z = makeHalfPlane(float3(0.0f, 0.0f, 1.0f), 0.0f);   // z>=0
+    Hemisphere hemisphere = intersection(sphere, halfplane_z);
 
     // gradient<T>() calls bwd_diff(_evalForDiff<T>) — the autodiff pipeline.
     // For UnitSphere: ∇f(p) = eval_bwd → −2·(p−center).
-    float3 grad = gradient(sphere, p);
+    float3 grad = gradient(hemisphere, p);
 
     // F-REP gradient points inward; negate for outward surface normal.
     float3 n = normalize(-grad);

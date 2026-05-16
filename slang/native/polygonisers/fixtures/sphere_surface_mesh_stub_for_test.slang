@@ -33,6 +33,8 @@
 
 module SphereMeshFixture;
 
+import UnitSphere;   // brings in makeSphere(), gradient<T>(), BoundingBox
+
 static const float PI = 3.14159265358979323846f;
 
 // Sphere parameters — bound as a uniform buffer.
@@ -103,23 +105,66 @@ void genFaces(uint3 tid : SV_DispatchThreadID) {
 
     uint Np1 = gParams.N + 1u;
 
-    // Corners of this quad cell in the (i,j) grid
     uint v00 =  i      * Np1 +  j;
     uint v10 = (i + 1u)* Np1 +  j;
     uint v01 =  i      * Np1 + (j + 1u);
     uint v11 = (i + 1u)* Np1 + (j + 1u);
 
-    // Two triangles per cell; cell index → face buffer offset
     uint cellIdx = i * gParams.N + j;
-    uint fidx0 = cellIdx * 6u;   // each triangle = 3 uints, 2 per cell = 6 per cell
+    uint fidx0   = cellIdx * 6u;
 
-    // Triangle 0: bottom-left, top-left, bottom-right  (CCW from outside)
+    // Triangle 0: v00, v10, v01  (CCW from outside)
     gFaces[fidx0 + 0u] = v00;
     gFaces[fidx0 + 1u] = v10;
     gFaces[fidx0 + 2u] = v01;
 
-    // Triangle 1: top-left, top-right, bottom-right
+    // Triangle 1: v10, v11, v01
     gFaces[fidx0 + 3u] = v10;
     gFaces[fidx0 + 4u] = v11;
     gFaces[fidx0 + 5u] = v01;
+}
+
+// ---------------------------------------------------------------------------
+// Entry 3: genNormals
+// One thread per (i, j) vertex — same dispatch as genVertices.
+// Dispatch: ceil((M+1)/8) × ceil((N+1)/8) × 1
+// MUST run after genVertices (reads gVertices).
+//
+// Uses gradient<UnitSphere>() from IImplicitFunction.slang, which calls
+// bwd_diff(_evalForDiff<UnitSphere>) — the autodiff path that the real
+// MC/OB polygoniser will use for arbitrary implicit functions.
+//
+// Gradient direction: ∇f(p) = −2·(p−center)  (inward for F-REP sphere).
+// Outward normal     = normalize(−∇f(p))      = normalize(p − center).
+// ---------------------------------------------------------------------------
+[shader("compute")]
+[numthreads(8, 8, 1)]
+void genNormals(uint3 tid : SV_DispatchThreadID) {
+    uint i = tid.x;
+    uint j = tid.y;
+
+    if (i > gParams.M || j > gParams.N) return;
+
+    uint vidx = i * (gParams.N + 1u) + j;
+
+    // Read vertex position written by genVertices.
+    float3 p = float3(
+        gVertices[vidx * 3u + 0u],
+        gVertices[vidx * 3u + 1u],
+        gVertices[vidx * 3u + 2u]
+    );
+
+    // Reconstruct the sphere implicit function from the uniform params.
+    UnitSphere sphere = makeSphere(gParams.radius, float3(gParams.cx, gParams.cy, gParams.cz));
+
+    // gradient<T>() calls bwd_diff(_evalForDiff<T>) — the autodiff pipeline.
+    // For UnitSphere: ∇f(p) = eval_bwd → −2·(p−center).
+    float3 grad = gradient(sphere, p);
+
+    // F-REP gradient points inward; negate for outward surface normal.
+    float3 n = normalize(-grad);
+
+    gNormals[vidx * 3u + 0u] = n.x;
+    gNormals[vidx * 3u + 1u] = n.y;
+    gNormals[vidx * 3u + 2u] = n.z;
 }
