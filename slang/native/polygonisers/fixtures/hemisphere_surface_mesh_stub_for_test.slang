@@ -1,6 +1,6 @@
-// Sphere surface mesh generator — stub/fixture for bridge integration testing.
+// Hemi-Sphere surface mesh generator — stub/fixture for bridge integration testing.
 //
-// Purpose: produce a pre-triangulated sphere mesh + per-vertex normals via GPU
+// Purpose: produce a pre-triangulated hemisphere mesh + per-vertex normals via GPU
 // compute so the JS↔Slang bridge (gpu_compute_bridge.js) can be tested before
 // any real polygoniser (MC, OB) is implemented.
 //
@@ -18,8 +18,13 @@
 // Normal sign: ∇f(p) = −2·(p−center) points INWARD for our F-REP sphere
 //   (f > 0 inside). genNormals negates the gradient to get the outward normal.
 //
+// the flat side of hemisphere is subtracting the part of space with "negative Z". this should stitch the open side
+// maybe simply by connecting each edhe to centre ( creating a fan/hedge-hog flat surface)
+// The resulting mesh has a flat side, and importandly sharp curve edges at Z=0. (the border of the disk, the curve: (Z=0 && x^2+y^2==R*R) ).
+// this curve will be naturally part of the mesh if we cut the Z<0 and add that flat-fan side.
+//
 // Inputs (uniform buffer):
-//   radius       — sphere radius
+//   radius       — hemisphere radius
 //   cx, cy, cz   — sphere centre
 //   M            — latitude  divisions (vertex rows:    M+1, face rows:    M)
 //   N            — longitude divisions (vertex columns: N+1, face columns: N)
