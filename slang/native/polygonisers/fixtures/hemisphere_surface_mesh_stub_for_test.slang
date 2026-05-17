@@ -1,3 +1,4 @@
+// This file is deprecated.
 // Hemi-Sphere surface mesh generator — stub/fixture for bridge integration testing.
 //
 // Purpose: produce a pre-triangulated hemisphere mesh + per-vertex normals via GPU

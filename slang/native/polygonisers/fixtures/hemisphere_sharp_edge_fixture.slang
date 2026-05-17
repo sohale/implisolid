@@ -83,7 +83,9 @@ RWStructuredBuffer<float>  gNormals;    // binding(3)  vertex normals
 RWStructuredBuffer<uint>   gSharpEdges; // binding(4)  sharp directed-edge indices
 RWStructuredBuffer<uint>   gSharpCorners; // binding(5)  sharp corner indices
 
-// The output counts are inferred in this fixture, but I will add a function fotr them too.
+// The output counts are inferred in this fixture, but I will add a function for them too.
+// Mostly about counts. Cannot be inferred in generic way.
+
 public struct ShapeSharpFeatures {
     uint numVerts;
     uint numFaces;
@@ -95,15 +97,12 @@ public struct ShapeSharpFeatures {
     // And edge, only can have two normals.
     // We dont generate normals here yet.
 
-    // how to define nested structs in Slang?
+    // how to define nested structs in Slang? as sharp.{...}
     struct ShapeSharpFeatures {
         public uint numSharpEdges;
         public uint numSharpCorners;
     }
     ShapeSharpFeatures shape;
-    struct dispatchSizes {
-
-    }
 };
 public struct DispatchSizes {
     public uint dispVX;
@@ -169,7 +168,7 @@ void getOutputMetadata(uint3 tid : SV_DispatchThreadID) {
     gOutputMetadata.numNormals = gOutputMetadata.numVerts; // for now, it will change
     const uint capEdges = N;
     gOutputMetadata.sharp.numSharpEdges = capEdges;
-    gOutputMetadata.sharp.numSharpCorners = 1;
+    gOutputMetadata.sharp.numSharpCorners = 2; // 2 (almost-)random vertices! vertex 0, vertex 1.
 
     // These are for dispatching the compute shaders
     // populated with values based on IMPLICIT/slang/native/examples/simplical-visualiser/app/renderer/slang_bridge/gpu_compute_bridge.js
@@ -341,8 +340,10 @@ void genDiskFaces(uint3 tid : SV_DispatchThreadID) {
     uint sharp_edge_idx = (B_base + j)*3 +  1u;
     gSharpEdges[j] = sharp_edge_idx; // mark this edge as the one that participates in a sharp edge
 
-    // and now for sharp edges:
-    gSharpCorners[]
+    if( j <= 2 ) {
+        // and now for sharp edges:
+        gSharpCorners[j] = j; // for now, some random vertice is considered as sharp ones!
+    }
 }
 
 
