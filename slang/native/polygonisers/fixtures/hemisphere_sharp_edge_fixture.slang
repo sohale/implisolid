@@ -80,6 +80,108 @@ ConstantBuffer<HemiParams> gParams;     // binding(0)
 RWStructuredBuffer<float>  gVertices;   // binding(1)  vertex positions
 RWStructuredBuffer<uint>   gFaces;      // binding(2)  triangle indices
 RWStructuredBuffer<float>  gNormals;    // binding(3)  vertex normals
+RWStructuredBuffer<uint>   gSharpEdges; // binding(4)  sharp directed-edge indices
+RWStructuredBuffer<uint>   gSharpCorners; // binding(5)  sharp corner indices
+
+// The output counts are inferred in this fixture, but I will add a function fotr them too.
+public struct ShapeSharpFeatures {
+    uint numVerts;
+    uint numFaces;
+    uint numNormals; // not same as numVerts (for future, not for this fixture)
+
+    // These have multiple normal vectors!
+    // A point can have many normals!
+    // because these are non-smooth points.
+    // And edge, only can have two normals.
+    // We dont generate normals here yet.
+
+    // how to define nested structs in Slang?
+    struct ShapeSharpFeatures {
+        public uint numSharpEdges;
+        public uint numSharpCorners;
+    }
+    ShapeSharpFeatures shape;
+    struct dispatchSizes {
+
+    }
+};
+public struct DispatchSizes {
+    public uint dispVX;
+    public uint dispVY;
+    public uint dispFX;
+    public uint dispFY;
+}
+OutputBuffer<ShapeSharpFeatures> gOutputMetadata; // binding(6)
+OutputBuffer<DispatchSizes> gDispatchSizes; // binding(7)
+
+
+[shader("compute")]
+[numthreads(64, 1, 1)]
+void getOutputMetadata(uint3 tid : SV_DispatchThreadID) {
+    uint t = tid.x;
+    if (t >= 1) return; // no parallelisation!
+
+    // These can be iinferred in this fixture, but in general, are non-trivial numbers.
+    // Currently the code is hard-coded in IMPLISOLID/slang/native/examples/simplical-visualiser/app/renderer/slang_bridge
+    /*
+    // --- Dispatch sizes ---
+    const dispVX = Math.ceil((M + 1) / 8)
+    const dispVY = Math.ceil((N + 1) / 8)
+    const dispFX = Math.ceil(M / 8)
+    const dispFY = Math.ceil(N / 8)
+
+    ...
+    const A_count   = (M + 1) * (N + 1)
+    const C_idx     = A_count + (N + 1)
+    const totalVerts = C_idx + 1
+    const capFaces  = M * N * 2
+    const totalFaces = capFaces + N
+
+    const vertBytes = totalVerts * 3 * 4
+    const faceBytes = totalFaces * 3 * 4
+    const normBytes = totalVerts * 3 * 4
+
+    const nVerts     = (M + 1) * (N + 1)
+    const nFaces     = M * N * 2
+    const vertBytes  = nVerts * 3 * 4     // float32
+    const faceBytes  = nFaces * 3 * 4     // uint32
+    const normBytes  = nVerts * 3 * 4     // float32, same count as vertices
+
+    from comments:
+    // vertices: dispatch ceil((M+1)/8) × ceil((N+1)/8) × 1.
+    // faces: dispatch ceil(M/8) × ceil(N/8) × 1.
+    //      + dispatch ceil(N/64) × 1 × 1.
+    Normals are not dispatched here, in this fixture, yet.
+    In strategic solution, normals will be generated in the same polygniisation process/pipeline/chain.
+
+
+    This is for callers, not for the algorithms.
+    In the fixture, simlar things are calculated based on the input paramets (`gParams`, which is part of initial input).
+    Since the algorithm is progressive, these will be avilable only after each rout of improvements.
+    The inprovments may or may not have observable results.
+    Thesea re produced only each time we have obrvable retuslts to give back.
+    */
+    const uint M = gParams.M;
+    const uint N = gParams.N;
+    gOutputMetadata.numVerts = (M + 1) * (N + 1);
+    const uint capFaces = M * N * 2;
+    gOutputMetadata.numFaces = capFaces + N;
+    gOutputMetadata.numNormals = gOutputMetadata.numVerts; // for now, it will change
+    const uint capEdges = N;
+    gOutputMetadata.sharp.numSharpEdges = capEdges;
+    gOutputMetadata.sharp.numSharpCorners = 1;
+
+    // These are for dispatching the compute shaders
+    // populated with values based on IMPLICIT/slang/native/examples/simplical-visualiser/app/renderer/slang_bridge/gpu_compute_bridge.js
+    // The gpu_compute_bridge.js will be eventually very generic
+
+    // `ceil()`: See https://shader-slang.org/stdlib-reference/global-decls/ceil.html
+    gDispatchSizes.dispVX = ceil((M + 1) / 8);
+    gDispatchSizes.dispVY = ceil((N + 1) / 8);
+    gDispatchSizes.dispFX = ceil(M / 8);
+    gDispatchSizes.dispFY = ceil(N / 8);
+}
+
 
 static const float PI = 3.14159265358979323846f;
 
@@ -231,4 +333,41 @@ void genDiskFaces(uint3 tid : SV_DispatchThreadID) {
     gFaces[fidx0 + 0u] = C_idx;
     gFaces[fidx0 + 1u] = B_base + j;
     gFaces[fidx0 + 2u] = B_base + j + 1u;
+
+    // Here, (by construction), we know which one is the sharp edge:
+    // It is between (e1,e2) = (B_base + j , B_base + j + 1u)
+    // (uint, uint) : sharp_edge =  (B_base + j , B_base + j + 1u)
+    // sharp_edge_idx = ( B_base + j, 1); // 1: always the second vertex in this, connecting 2->3
+    uint sharp_edge_idx = (B_base + j)*3 +  1u;
+    gSharpEdges[j] = sharp_edge_idx; // mark this edge as the one that participates in a sharp edge
+
+    // and now for sharp edges:
+    gSharpCorners[]
+}
+
+
+
+[shader("compute")]
+[numthreads(64, 1, 1)]
+void genCapDiscSharpEdges(uint3 tid : SV_DispatchThreadID) {
+    uint j = tid.x;   // cap as disc segment [0 .. N−1]
+    if (j >= gParams.N) return;
+
+    // gSharpEdges[j] = index of the edge that participates in a sharp edge: ridge, etc
+    // The value of `gSharpEdges[j]` is actually the index of a `gFaces` entry.
+    // It encodes via a single integer:
+    // The triangle index of the triangle that straddles the sharp edge between cap and disk at equator segment j.
+    // if e = gSharpEdges[j],
+    // the edge vertices are as follows:
+    //   (fi, ei) = (e / 3, e % 3)
+    //   v0 = gFaces[fi*3 + ei]
+    //   v1 = gFaces[fi*3 + (ei+1) % 3]
+    // It reuses the directionality implicitly encoded in the face (winding-number).
+    // Let's call it "directed edge" represention. Ironically, it is more compact, shorte, but represent more infomtion: the edge + the edge dir.
+    // directed edge ( but not directed in sense iof graph-direciton, but winding-direction ; (that is defined for) of the edge)
+    // Brilliant, isn't it? -- Sun 17 May 2026 11:37:45 BST
+
+    // gSharpEdges[j] = ...; // mark edge between cap and disk at equator segment j
+    // The values of gSharpEdges[] are already generated in genDiskFaces, but the calculations may move here. I just did that beucae it was  hard to reuse the relevant part of that code.
+
 }
