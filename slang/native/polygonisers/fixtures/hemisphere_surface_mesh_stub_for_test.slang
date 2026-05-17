@@ -1,4 +1,4 @@
-// This file is deprecated.
+// This file is deprecated. DONT CHANGE THIS FILE. This will be absorbed into hemisphere_sharp_edge_fixture.slang
 // Hemi-Sphere surface mesh generator — stub/fixture for bridge integration testing.
 //
 // Purpose: produce a pre-triangulated hemisphere mesh + per-vertex normals via GPU
