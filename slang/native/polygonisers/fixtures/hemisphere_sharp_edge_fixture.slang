@@ -70,6 +70,8 @@ public struct HemiParams {
     public float cx;
     public float cy;
     public float cz;
+    // unverified: cap latitude rows  (theta=[0,π/2] → M+1 vertex rows)
+    // unverified: longitude columns  (phi=[0,2π]   → N+1 vertex cols)
     public uint  M;      // cap latitude divisions (M+1 rows, theta=[0,π/2])
     public uint  N;      // longitude divisions    (N+1 cols, phi=[0,2π])
     public uint  _pad0;
@@ -86,32 +88,40 @@ RWStructuredBuffer<uint>   gSharpCorners; // binding(5)  sharp corner indices
 // The output counts are inferred in this fixture, but I will add a function for them too.
 // Mostly about counts. Cannot be inferred in generic way.
 
-public struct ShapeSharpFeatures {
-    uint numVerts;
-    uint numFaces;
-    uint numNormals; // not same as numVerts (for future, not for this fixture)
-
-    // These have multiple normal vectors!
-    // A point can have many normals!
-    // because these are non-smooth points.
-    // And edge, only can have two normals.
-    // We dont generate normals here yet.
-
-    // how to define nested structs in Slang? as sharp.{...}
-    struct ShapeSharpFeatures {
-        public uint numSharpEdges;
-        public uint numSharpCorners;
-    }
-    ShapeSharpFeatures shape;
+// Sharp-feature counts as a nested struct.
+// Inner struct must be a separate named type (Slang does not allow inline anonymous structs).
+public struct SharpCounts {
+    public uint numSharpEdges;
+    public uint numSharpCorners;
 };
+
+// Output metadata produced by getOutputMetadata.
+// All fields are uint so the WGSL layout is a flat u32 array (no padding):
+//   [0]=numVerts  [1]=numFaces  [2]=numNormals  [3]=shape.numSharpEdges  [4]=shape.numSharpCorners
+public struct ShapeSharpFeatures {
+    public uint numVerts;
+    public uint numFaces;
+    // Should be the same as numVerts
+    public uint numNormals;   // temporarily. Currently, still the same as numVerts for now; will diverge with sharp-vertex duplication
+    public SharpCounts shape;
+};
+
 public struct DispatchSizes {
     public uint dispVX;
     public uint dispVY;
     public uint dispFX;
     public uint dispFY;
 }
-OutputBuffer<ShapeSharpFeatures> gOutputMetadata; // binding(6)
-OutputBuffer<DispatchSizes> gDispatchSizes; // binding(7)
+RWStructuredBuffer<DispatchSizes> gDispatchSizes; // binding(7)? // not implemented yet,
+// Dispatch sizes should be computed here, NOT on JS side, because they are part of the algorithm's logic, not just a detail of how to call it. The bridge will remain generic.
+// They must be calculated here bsased on the complex polygonisatoion algorithms, on the Slang side itself
+//  and returned to JS via gOutputMetadata.
+// This is important for correctness and maintainability, as well as for supporting different shapes and algorithms in the future.
+// Dispatch sizes were computed on the JS side (see gpu_compute_bridge.js).
+// But need to be calculated here. The logic belogs to here, on the Slang side itself.
+// binding(6): one-element structured buffer; written by getOutputMetadata, read back to JS.
+RWStructuredBuffer<ShapeSharpFeatures> gOutputMetadata; // binding(6)
+
 
 
 [shader("compute")]
@@ -162,27 +172,34 @@ void getOutputMetadata(uint3 tid : SV_DispatchThreadID) {
     */
     const uint M = gParams.M;
     const uint N = gParams.N;
-    gOutputMetadata.numVerts = (M + 1) * (N + 1);
-    const uint capFaces = M * N * 2;
-    gOutputMetadata.numFaces = capFaces + N;
-    gOutputMetadata.numNormals = gOutputMetadata.numVerts; // for now, it will change
-    const uint capEdges = N;
-    gOutputMetadata.sharp.numSharpEdges = capEdges;
-    gOutputMetadata.sharp.numSharpCorners = 2; // 2 (almost-)random vertices! vertex 0, vertex 1.
-
-    // These are for dispatching the compute shaders
-    // populated with values based on IMPLICIT/slang/native/examples/simplical-visualiser/app/renderer/slang_bridge/gpu_compute_bridge.js
-    // The gpu_compute_bridge.js will be eventually very generic
-
-    // `ceil()`: See https://shader-slang.org/stdlib-reference/global-decls/ceil.html
-    gDispatchSizes.dispVX = ceil((M + 1) / 8);
-    gDispatchSizes.dispVY = ceil((N + 1) / 8);
-    gDispatchSizes.dispFX = ceil(M / 8);
-    gDispatchSizes.dispFY = ceil(N / 8);
+    // totalVerts = (M+1)*(N+1) [cap A] + (N+1) [disk rim B] + 1 [disk centre C]
+    uint totalVerts = (M + 1u) * (N + 1u) + (N + 1u) + 1u;
+    uint capFaces   = M * N * 2u;
+    gOutputMetadata[0].numVerts              = totalVerts;
+    gOutputMetadata[0].numFaces              = capFaces + N;
+    gOutputMetadata[0].numNormals            = totalVerts;   // will differ when sharp-vertex duplication is added
+    gOutputMetadata[0].shape.numSharpEdges   = N;            // one per equator segment
+    gOutputMetadata[0].shape.numSharpCorners = 3u;           // placeholder: vertices 0 and 1
 }
 
 
 static const float PI = 3.14159265358979323846f;
+
+
+// geometric shape-specific:  (expired/deprecated comments?)
+// Shape: upper hemisphere (z ≥ 0) of radius R centred at (cx,cy,cz).
+// Z-up coordinate convention.
+// Vertex layout in the returned buffers:
+//   Section A  [0 .. (M+1)*(N+1))    curved cap — sphere-gradient normals
+//   Section B  [A .. A+N]            disk rim copies — flat normal (0,0,-1)
+//   Section C  [A+N+1]               disk centre    — flat normal (0,0,-1)
+//   totalVerts = (M+2)*(N+1)+1
+//
+// Face layout:
+//   Cap triangles  [0 .. M*N*2)      two per grid cell
+//   Disk fan       [M*N*2 .. M*N*2+N) fan from centre to rim
+//   totalFaces = M*N*2 + N
+ // geometric shape-specific: (expired/deprecated comments?) ^.
 
 // ---------------------------------------------------------------------------
 // Entry 1: genCapGeom
@@ -284,6 +301,7 @@ void genDiskGeom(uint3 tid : SV_DispatchThreadID) {
 // One thread per grid cell (i, j); dispatch ceil(M/8) × ceil(N/8) × 1.
 // Cell (i,j): 2 triangles from 4 corners of the cap quad.
 // Face buffer range: [0 .. M·N·6).
+// note: either genCapFaces or genDiskFaces is redundant. combine & absorb
 // ---------------------------------------------------------------------------
 [shader("compute")]
 [numthreads(8, 8, 1)]
@@ -312,6 +330,7 @@ void genCapFaces(uint3 tid : SV_DispatchThreadID) {
 //   C_idx = (M+1)·(N+1) + (N+1)
 //   B[j]  = (M+1)·(N+1) + j
 // Face buffer range: [M·N·6 .. (M·N·2+N)·3).
+// note: either genCapFaces or genDiskFaces is redundant. combine & absorb
 // ---------------------------------------------------------------------------
 [shader("compute")]
 [numthreads(64, 1, 1)]
@@ -334,15 +353,32 @@ void genDiskFaces(uint3 tid : SV_DispatchThreadID) {
     gFaces[fidx0 + 2u] = B_base + j + 1u;
 
     // Here, (by construction), we know which one is the sharp edge:
+    // Directed-edge encoding: e = faceIndex * 3 + localEdgeIndex:
+    //
     // It is between (e1,e2) = (B_base + j , B_base + j + 1u)
     // (uint, uint) : sharp_edge =  (B_base + j , B_base + j + 1u)
     // sharp_edge_idx = ( B_base + j, 1); // 1: always the second vertex in this, connecting 2->3
+    /*
     uint sharp_edge_idx = (B_base + j)*3 +  1u;
     gSharpEdges[j] = sharp_edge_idx; // mark this edge as the one that participates in a sharp edge
+    */
+    //
+    //
+    //   so that JS can decode: faceIdx = e / 3,  v0 = faces[faceIdx*3 + e%3],  v1 = faces[faceIdx*3 + (e%3+1)%3]
+    // Disk fan face j has index (cap_tri_count + j) — cap_tri_count already declared above.
+    // Its local edge 1 connects gFaces[fidx0+1]=B_base+j to gFaces[fidx0+2]=B_base+j+1.
+    uint fi = cap_tri_count + j;
+    // Mark this edge as the one that participates in a sharp edge:
+    gSharpEdges[j] = fi * 3u + 1u;   // directed equator edge j
 
-    if( j <= 2 ) {
-        // and now for sharp edges:
-        gSharpCorners[j] = j; // for now, some random vertice is considered as sharp ones!
+    // and now for sharp corners:
+    // Placeholder sharp corners: first two equator vertices (vertex indices B_base+0, B_base+1).
+    if (j == 0) {
+        // lol, N>3
+        // for now, some arbitrary vertice is considered as sharp ones in this fixture
+        gSharpCorners[0] = B_base + 0;
+        gSharpCorners[1] = B_base + 1;
+        gSharpCorners[2] = C_idx;
     }
 }
 
