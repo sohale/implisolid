@@ -112,7 +112,9 @@ public struct DispatchSizes {
     public uint dispFX;
     public uint dispFY;
 }
+/*
 RWStructuredBuffer<DispatchSizes> gDispatchSizes; // binding(7)? // not implemented yet,
+*/
 // Dispatch sizes should be computed here, NOT on JS side, because they are part of the algorithm's logic, not just a detail of how to call it. The bridge will remain generic.
 // They must be calculated here bsased on the complex polygonisatoion algorithms, on the Slang side itself
 //  and returned to JS via gOutputMetadata.
@@ -120,6 +122,7 @@ RWStructuredBuffer<DispatchSizes> gDispatchSizes; // binding(7)? // not implemen
 // Dispatch sizes were computed on the JS side (see gpu_compute_bridge.js).
 // But need to be calculated here. The logic belogs to here, on the Slang side itself.
 // binding(6): one-element structured buffer; written by getOutputMetadata, read back to JS.
+
 RWStructuredBuffer<ShapeSharpFeatures> gOutputMetadata; // binding(6)
 
 
