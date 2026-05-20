@@ -15,9 +15,11 @@ protected:
     // We use (TF1, TF2) = ( 9/4, 9/200 ) to make the heart more pointy and less flat at the top.
     REAL TF1 = 9./4.; // alpha
     REAL TF2 = 9./200.; // beta
+    /*
     REAL TF2b = 9./100.;
     REAL TF1b = (27./2);
     REAL TF1c = 27./200.;
+    */
     size_t TP3 = 3;
 
     // some helpers for readablilty and a DSL feel
