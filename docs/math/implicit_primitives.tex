@@ -245,6 +245,7 @@ The gradient of $f=w^3 B-A^3$, should be:
   \\
   & \left(\vec{\nabla}w\right) =  \left( 0, 0, 1 \right)^\top =: \vec{j}
 \end{align}
+\def\vvv#1#2#3{{\begin{pmatrix} #1\\#2\\#3\end{pmatrix}}}
 \begin{align}
   %
   \vec{\nabla} f  &= 3 \left( w^2 B  \vec{j} + w^3 \vec{\nabla} B - A^2 \vec{\nabla} A \right)
@@ -263,24 +264,46 @@ The gradient of $f=w^3 B-A^3$, should be:
          \vec{\nabla} A  ^\top  \vec{u}
        \right)^2 \vec{\nabla} A \right)
   %
+\end{align}
+\begin{align}
+  \vec{\nabla} f
+    &= \frac32 \left( w^2  \vvv{u}{\beta v}{0} ^\top    \vvv{u}{v}{w}  \cdot \vvv{0}{0}{1}
+    +  2 w^3 \vvv{u}{\beta v}{0}
+    - \left(
+      \vvv{u}{\alpha v}{w}   ^\top   \vvv{u}{v}{w}
+    \right)^2 \vvv{u}{\alpha v}{w} \right)
+    \\
+    &= \frac32 \left( w^2 a  \cdot \vvv{0}{0}{1}
+    +  2 w^3 \vvv{u}{\beta v}{0}
+    - b^2 \vvv{u}{\alpha v}{w} \right)
+    \\
+    a &=  \vvv{u}{\beta v}{0} ^\top    \vvv{u}{v}{w}
+    \\
+    b &=  \vvv{u}{\alpha v}{w}   ^\top   \vvv{u}{v}{w}
   %
 \end{align}
 
-
+So,
 \begin{align}
+  \tfrac23
   {\partial f}/{\partial u}
     &=
+    2 w^3 u - b^2 u
     ,
   \\
+  \tfrac23
   {\partial f}/{\partial v}
     &=
+    2 w^3 \beta v - b^2 \alpha v
     ,
   \\
+  \tfrac23
   {\partial f}/{\partial w}
     &=
+    w^2 a - b^2 w
     .
 \end{align}
-TBC.
+
 
 
 
