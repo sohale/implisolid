@@ -162,10 +162,24 @@ public:
             REAL v = (*i)[1];
             REAL w = (*i)[2];
 
+            /*
             REAL A = pow(p2(u) + TF1 * p2(v) + p2(w) - 1, 2);
             REAL g0 = -6. * u * A + 2. * u * p3(w);
             REAL g1 = -TF1b * v * A + TF2b * v * p3(w);
             REAL g2 = -6. * w * A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
+            */
+
+            REAL a = u * u + TF2 * v * v;
+            REAL b = u * u + TF1 * v * v + w * w;
+
+            REAl g0, g1, g2;
+            g0 = 2 * pow3(w) * u - pow2(b) * u;
+            g1 = 2 * pow3(w)*TF2*v - pow2(b) * TF1 * v;
+            g2 = oiw2(w) * a - pow2(b) * w;
+
+            g0 = g0 * 3 / 2.;
+            g1 = g1 * 3 / 2.;
+            g2 = g2 * 3 / 2.;
 
             transforme_back_and_copy(
                (*output)[output_ctr][0],
