@@ -8,7 +8,7 @@ class heart : public transformable_implicit_function {
 
 protected:
     // REAL a; REAL b; REAL c;
-    REAL x; REAL y; REAL z;
+    REAL cx; REAL cy; REAL cz;
 
     // See docs/math/implicit_primitives.tex
     // Classical Taubin (1993) heart surface: (TF1, TF2) = ( 9/4, 9/80 ) and TF2b=TF2, TP3=3
@@ -24,9 +24,9 @@ public:
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
-        this->x = 0.;
-        this->y = 0.;
-        this->z = 0.;
+        this->cx = 0.;
+        this->cy = 0.;
+        this->cz = 0.;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -48,9 +48,9 @@ public:
         // this->b = 2.5;
         // this->c = 1.;
 
-        this->x = 0.;
-        this->y = 0.;
-        this->z = 0.;
+        this->cx = 0.;
+        this->cy = 0.;
+        this->cz = 0.;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -67,9 +67,9 @@ public:
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
-        this->x = center_x;
-        this->y = center_y;
-        this->z = center_z;
+        this->cx = center_x;
+        this->cy = center_y;
+        this->cz = center_z;
 
         this->transf_matrix = new REAL [12];
         this->inv_transf_matrix = new REAL [12];
@@ -97,9 +97,9 @@ public:
         // const REAL r = this->a*this->a;
         int output_ctr=0;
 
-        REAL cx = this->x;
-        REAL cy = this->y;
-        REAL cz = this->z;
+        REAL cx = this->cx;
+        REAL cy = this->cy;
+        REAL cz = this->cz;
 
         auto i = x_copy.begin();
         auto e = x_copy.end();
@@ -125,9 +125,9 @@ public:
 
         // const REAL r = this->a*this->a;
 
-        REAL cx = this->x;
-        REAL cy = this->y;
-        REAL cz = this->z;
+        REAL cx = this->cx;
+        REAL cy = this->cy;
+        REAL cz = this->cz;
 
         int output_ctr=0;
         auto i = x_copy.begin();
