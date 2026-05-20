@@ -145,6 +145,30 @@ IMPLISOLID="$NEW_REPO"  LIB_FOLDER="$IMPLISOLID/build/lib" \
     BUILD_LOCATION="$IMPLISOLID/build"   \
     bash ./scripts/build-emscripten.sh
 
+
+echo "==============================================="
+
+
+ASSUMED_MP5_BASE="/dataneura/3d/mp5-revival/mp5-private"
+echo "
+# How to apply it to the wedesign deployed web:
+# If you have this as .../mp5-private/implisolid/..., then you can do the following:
+# Assuming ASSUMED_MP5_BASE="${ASSUMED_MP5_BASE}"
+
+cd ${ASSUMED_MP5_BASE}/implisolid && bash ${ASSUMED_MP5_BASE}/implisolid/scripts/e2e-test-builds.bash
+
+cp -i ${ASSUMED_MP5_BASE}/implisolid/e2e-sandbox-temp/implisolid/build/mcc2.compiled.js* ${ASSUMED_MP5_BASE}/frontend/public/
+
+ls -alth ${ASSUMED_MP5_BASE}/frontend/public/mcc2.compiled.js*
+
+cd ${ASSUMED_MP5_BASE}/frontend/tasks/ && npx gulp --output ${ASSUMED_MP5_BASE}/frontend/public
+
+
+
+"
+echo "                    * * *                      "
+echo "==============================================="
+
 pwd
 # # not the main one
 #IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/build" \
