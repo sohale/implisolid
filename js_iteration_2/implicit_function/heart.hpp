@@ -116,7 +116,7 @@ public:
           REAL v = (*i)[1];
           REAL w = (*i)[2];
 
-          (*f_output)[output_ctr] = -(
+          REAL f = -(
             std::pow(
               p2(u) + TF1 * p2(v) + p2(w) - 1., TP3
             )
@@ -124,7 +124,24 @@ public:
             - TF2 * p2(v) * p3(w)
           );
 
+          (*f_output)[output_ctr] = f;
+
         }
+    }
+    // helper
+    inline static void transforme_back_and_copy(   REAL & out0, REAL & out1, REAL & out2 , REAL invmat[12],, REAL g0, REAL g1, REAL g2,){ {
+        // copy_3(g0,g1,g2, this->inv_transf_matrix, (*output)[output_ctr][0], (*output)[output_ctr][1], (*output)[output_ctr][2], )
+        // (*output)[output_ctr][0] = ...
+        constexpr size_t // Math notation: row-then-column, starting with 1
+          _11 = 0, _21 = 1, _31 = 2, _41 = 3,
+          _12 = 4, _22 = 5, _32 = 6, _42 = 7,
+          _13 = 8, _23 = 9, _33 = 10, _43 = 11;
+          // This reveals an issue: The size (4x3 or 3x4?),
+          // and also, the translation is not used!
+          // todo: + invmat[_41]
+        out0 = invmat[_11] * g0 + invmat[_12] * g1 + invmat[_13] * g2;
+        out1 = invmat[_21] * g0 + invmat[_22] * g1 + invmat[_23] * g2;
+        out2 = invmat[_31] * g0 + invmat[_32] * g1 + invmat[_33] * g2;
     }
     virtual void eval_gradient(const vectorized_vect& X, vectorized_vect* output) const {
 
@@ -151,9 +168,14 @@ public:
             REAL g1 = -TF1b * v * A + TF2b * v * p3(w);
             REAL g2 = -6. * w * A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
 
-            (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
-            (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
-            (*output)[output_ctr][2] = this->inv_transf_matrix[2]*g0 + this->inv_transf_matrix[6]*g1 + this->inv_transf_matrix[10]*g2;
+            transforme_back_and_copy(
+               (*output)[output_ctr][0],
+               (*output)[output_ctr][1],
+               (*output)[output_ctr][2],
+               this->inv_transf_matrix,
+               g0, g1, g2
+            );
+
         }
     }
     bool integrity_invariant() const {
