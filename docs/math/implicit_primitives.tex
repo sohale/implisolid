@@ -1,6 +1,8 @@
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{bm} % bold for \alpha
+
 \usepackage{titling}
 \setlength{\droptitle}{-3cm}
 
@@ -41,7 +43,7 @@ $f(\mathbf{p}) > 0$ inside the solid, $f(\mathbf{p}) < 0$ outside.
 %\label{common:homogenic-transform} -> equation-based referencing is preferred than section-based numbering
 
 Often,
-and when subclass of \texttt{transformable_implicit_function}``
+and when subclass of \texttt{transformable\_implicit\_function}
 before evaluation,
 % First,
 the input point $\mathbf{p} = (x,y,z)$ is mapped to local coordinates $(u,v,w)$
@@ -91,19 +93,67 @@ Then, in local frame (local coordinates),
   \;=\;
   u^2 w^3
   + \frac{9}{200}\,v^2 w^3
-  - \left(u^2 + \tfrac{9}{4}\,v^2 + w^2 - 1\right)^3 .
+  - \left(u^2 + \frac{9}{4}\,v^2 + w^2 - 1\right)^3 .
 \end{equation}
+
+or,
+\begin{align}
+  f(u,v,w)
+  \;&=\;
+   w^3 (
+    u^2 + \bm\beta\,v^2 )
+  - \left( A \right)^3 ,
+  \\
+  A(u,v,w) &\;=\; u^2 + \bm\alpha\,v^2 + w^2 - 1
+  \\
+  \bm\beta &\;=\; \tfrac{9}{200} ,
+  \;\;
+  \bm\alpha \;=\; \tfrac{9}{4} .
+\end{align}
 
 Equivalently,
 the zero set (the surface) satisfies:
 \begin{equation}
   \left(u^2 + \tfrac{9}{4}\,v^2 + w^2 - 1\right)^3
   \;=\;
-  u^2 w^3 + \frac{9}{200}\,v^2 w^3 .
+  u^2 w^3 + \tfrac{9}{200}\,v^2 w^3 .
 \end{equation}
+or,
+\begin{align}
+  &
+  \left(u^2 + \bm\alpha\,v^2 + w^2 - 1\right)^3
+  \;=\;
+  ( u^2 + \bm\beta\,v^2 ) w^3 ,
+  %\\
+  %&
+  %\bm\beta \;=\; \tfrac{9}{200}
+  %, \,
+  %\bm\alpha \;=\; \tfrac{9}{4}
+  \\
+  &
+  \left(A\right)^3
+  \;=\;
+  ( u^2 + \bm\beta\,v^2 ) w^3 ,
+\end{align}
+
+% (Taubin 1993, 1994)
+% Taubin, G. "An Accurate Algorithm for Rasterizing Algebraic Curves." In Second ACM/IEEE Symposium on Solid Modeling and Applications Proceedings. 221-230, May 1993.
+% Taubin, G. "An Accurate Algorithm for Rasterizing Algebraic Curves and Surfaces." IEEE Comput. Graphics Appl. 14, 14-23, 1994.
+
+% Also some variations:
+% (Nordstrand, Kuska 2004).
+%  (2x^2 + 2y^2 + z^2 - 1)^3-1/(10)x^2z^3-y^2z^3=0
+% via https://mathworld.wolfram.com/HeartSurface.html
+
+% Peterson, I. "MathTrek: Algebraic Hearts." Feb. 9, 2002.
+% https://www.sciencenews.org/article/algebraic-hearts
+
+%  (2*x^2+y^2+z^2-1)^3-(1/10)*x^2*z^3-y^2*z^3 = 0
+% by (?) "tore?" "mona.hjemme"?
+% https://web.archive.org/web/20260424054906/http://jalape.no/math/hearttxt
 
 This is a variant of the \textbf{Taubin (1993) heart surface}.
-The classical Taubin coefficient is $\tfrac{9}{80}$; here it is $\tfrac{9}{200}$,
+The classical Taubin coefficient is $\bm\beta=\tfrac{9}{80}$; here it is $\bm\beta=\tfrac{9}{200}$,
 which narrows the bottom lobes of the heart.
 
 \subsubsection{Gradient}
@@ -114,7 +164,7 @@ Define the auxiliary quantity
 \end{equation}
 so that $A^2$ is the common factor in all three gradient components.
 
-The gradient in local coordinates $(u,v,w)$ is:
+The gradient in local coordinates $(u,v,w)$ is implemented as:
 \begin{align}
   \frac{\partial f}{\partial u}
     &= 2u w^3 - 6u A^2 ,

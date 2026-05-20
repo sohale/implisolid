@@ -13,8 +13,8 @@ protected:
     // See docs/math/implicit_primitives.tex
     // Classical Taubin (1993) heart surface: (TF1, TF2) = ( 9/4, 9/80 ) and TF2b=TF2, TP3=3
     // We use (TF1, TF2) = ( 9/4, 9/200 ) to make the heart more pointy and less flat at the top.
-    REAL TF1 = 9./4.;
-    REAL TF2 = 9./200.;
+    REAL TF1 = 9./4.; // alpha
+    REAL TF2 = 9./200.; // beta
     REAL TF2b = 9./100.;
     REAL TF1b = (27./2);
     REAL TF1c = 27./200.;
@@ -116,10 +116,9 @@ public:
           REAL v = (*i)[1];
           REAL w = (*i)[2];
 
+          REAL A = p2(u) + TF1 * p2(v) + p2(w) - 1.;
           REAL f = -(
-            std::pow(
-              p2(u) + TF1 * p2(v) + p2(w) - 1., TP3
-            )
+            std::pow(A, TP3)
             - p2(u) * p3(w)
             - TF2 * p2(v) * p3(w)
           );
