@@ -63,7 +63,7 @@ public:
         my_assert(this->integrity_invariant(), "");
     }
 
-    heart(/*REAL radius_x, REAL radius_y, REAL radius_z,*/ REAL center_x, REAL center_y, REAL center_z){
+    heart(/*REAL radius_x, REAL radius_y, REAL radius_z,*/ /*REAL center_x, REAL center_y, REAL center_z*/){
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
