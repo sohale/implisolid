@@ -104,16 +104,16 @@ public:
         auto i = X_copy.begin();
         auto e = X_copy.end();
         for(; i<e; i++, output_ctr++){
-          REAL i1 = (*i)[0];
-          REAL i2 = (*i)[1];
-          REAL i3 = (*i)[2];
+          REAL u = (*i)[0];
+          REAL v = (*i)[1];
+          REAL w = (*i)[2];
 
           (*f_output)[output_ctr] = -(
             std::pow(
-              i1*i1 + (this->TF1)*i2*i2 + i3*i3 - 1., this->TP3
+              u*u + (this->TF1)*v*v + w*w - 1., this->TP3
             )
-            - i1*i1*i3*i3*i3
-            - (this->TF2) * i2*i2*i3*i3*i3
+            - u*u*w*w*w
+            - (this->TF2) * v*v*w*w*w
           );
 
         }
@@ -138,14 +138,14 @@ public:
             REAL g1;
             REAL g2;
 
-            REAL i1 = (*i)[0];
-            REAL i2 = (*i)[1];
-            REAL i3 = (*i)[2];
+            REAL u = (*i)[0];
+            REAL v = (*i)[1];
+            REAL w = (*i)[2];
 
-            REAL a = pow(i1*i1 + (this->TF1)*i2*i2 + i3*i3 - 1, 2);
-            g0 = -6.*i1*a + 2.*i1*i3*i3*i3;
-            g1 = -(27./2)*i2*a + (this->TF2b)*i2*i3*i3*i3;
-            g2 = -6.*i3*a + 3.*i1*i1*i3*i3 + (27./200.)*i2*i2*i3*i3;
+            REAL a = pow(u*u + (this->TF1)*v*v + w*w - 1, 2);
+            g0 = -6.*u*a + 2.*u*w*w*w;
+            g1 = -(27./2)*v*a + (this->TF2b)*v*w*w*w;
+            g2 = -6.*w*a + 3.*u*u*w*w + (27./200.)*v*v*w*w;
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
