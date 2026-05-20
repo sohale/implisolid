@@ -27,7 +27,7 @@ protected:
 
 public:
     // Was never used
-    heart(/*REAL radius_x, REAL radius_y, REAL radius_z*/){
+    heart(int IGNORE_THIS_CONSTRUCTOR /*REAL radius_x, REAL radius_y, REAL radius_z*/){
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
@@ -147,9 +147,9 @@ public:
             REAL w = (*i)[2];
 
             REAL A = pow(p2(u) + TF1 * p2(v) + p2(w) - 1, 2);
-            REAL g0 = -6.*u*A + 2. * u * p3(w);
+            REAL g0 = -6. * u * A + 2. * u * p3(w);
             REAL g1 = -TF1b * v * A + TF2b * v * p3(w);
-            REAL g2 = -6.*w*A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
+            REAL g2 = -6. * w * A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
@@ -165,6 +165,10 @@ public:
         return true;
     }
     virtual mp5_implicit::bounding_box  get_boundingbox() const {
+        // Just to replicate the old logic/function faithfully as part of refactoring (knowing the values are incorrect)
+        REAL a = 6.;
+        REAL b = 2.5;
+        REAL c = 1.;
         REAL max_size = norm_squared(a,b,c);
         return mp5_implicit::bounding_box{-max_size, max_size, -max_size, max_size, -max_size, max_size};
     }

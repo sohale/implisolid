@@ -54,6 +54,10 @@ export ORIG_REPO_ROOT=$(git rev-parse --show-toplevel)
 echo "ORIG_REPO_ROOT :::: $ORIG_REPO_ROOT"
 assert_env_nonempty "$ORIG_REPO_ROOT" "ORIG_REPO_ROOT=$ORIG_REPO_ROOT   implisolid repo not found in current directory $(pwd)"
 
+test -d $ORIG_REPO_ROOT/js_iteration_1 || echo "you need to cd into an ImpliSolid clone. ORIG_REPO_ROOT may be wrong: ORIG_REPO_ROOT=$ORIG_REPO_ROOT"
+test -d $ORIG_REPO_ROOT/js_iteration_1
+
+
 #cd $ORIG_REPO_ROOT; mkdir e2e-sandbox-temp
 E2E=$ORIG_REPO_ROOT/e2e-sandbox-temp
 
@@ -68,10 +72,16 @@ cd $E2E
 ######## non-clone mode:
 mkdir -p $E2E/implisolid
 # cp -a --verbose $ORIG_REPO_ROOT/. $E2E/implisolid
+
+# Double check if it is not being executed from a differnt:
+test -d $ORIG_REPO_ROOT/js_iteration_1 || echo "you need to cd into an ImpliSolid clone. ORIG_REPO_ROOT may be wrong: ORIG_REPO_ROOT=$ORIG_REPO_ROOT"
+test -d $ORIG_REPO_ROOT/js_iteration_1
+
 rsync \
     -a \
     --exclude "$(realpath --relative-to="$ORIG_REPO_ROOT" "$E2E")" \
     --exclude "/.git" \
+    --exclude "/slang/native/examples/simplical-visualiser" \
     --exclude "/build" \
     --exclude "/temp" \
     "$ORIG_REPO_ROOT/."  "$E2E/implisolid"
