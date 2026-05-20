@@ -16,10 +16,17 @@ protected:
     REAL TF1 = 9./4.;
     REAL TF2 = 9./200.;
     REAL TF2b = 9./100.;
+    REAL TF1b = (27./2);
+    REAL TF1c = 27./200.;
     size_t TP3 = 3;
 
+    // some helpers for readablilty and a DSL feel
+    inline static REAL p2(REAL x) { return x * x; }
+    inline static REAL p3(REAL x) { return x * x * x; }
+    // inline static REAL p4(REAL x) { return x * x * x * x; }
 
 public:
+    // Was never used
     heart(/*REAL radius_x, REAL radius_y, REAL radius_z*/){
         // this->a = radius_x;
         // this->b = radius_y;
@@ -63,6 +70,7 @@ public:
         my_assert(this->integrity_invariant(), "");
     }
 
+    // Was never used
     heart(/*REAL radius_x, REAL radius_y, REAL radius_z,*/ /*REAL center_x, REAL center_y, REAL center_z*/){
         // this->a = radius_x;
         // this->b = radius_y;
@@ -110,10 +118,10 @@ public:
 
           (*f_output)[output_ctr] = -(
             std::pow(
-              u*u + (this->TF1)*v*v + w*w - 1., this->TP3
+              p2(u) + TF1 * p2(v) + p2(w) - 1., TP3
             )
-            - u*u*w*w*w
-            - (this->TF2) * v*v*w*w*w
+            - p2(u) * p3(w)
+            - TF2 * p2(v) * p3(w)
           );
 
         }
@@ -134,18 +142,14 @@ public:
         auto e = X_copy.end();
         for(; i<e; i++, output_ctr++){
 
-            REAL g0;
-            REAL g1;
-            REAL g2;
-
             REAL u = (*i)[0];
             REAL v = (*i)[1];
             REAL w = (*i)[2];
 
-            REAL a = pow(u*u + (this->TF1)*v*v + w*w - 1, 2);
-            g0 = -6.*u*a + 2.*u*w*w*w;
-            g1 = -(27./2)*v*a + (this->TF2b)*v*w*w*w;
-            g2 = -6.*w*a + 3.*u*u*w*w + (27./200.)*v*v*w*w;
+            REAL A = pow(p2(u) + TF1 * p2(v) + p2(w) - 1, 2);
+            REAL g0 = -6.*u*A + 2. * u * p3(w);
+            REAL g1 = -TF1b * v * A + TF2b * v * p3(w);
+            REAL g2 = -6.*w*A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
 
             (*output)[output_ctr][0] = this->inv_transf_matrix[0]*g0 + this->inv_transf_matrix[4]*g1 + this->inv_transf_matrix[8]*g2;
             (*output)[output_ctr][1] = this->inv_transf_matrix[1]*g0 + this->inv_transf_matrix[5]*g1 + this->inv_transf_matrix[9]*g2;
