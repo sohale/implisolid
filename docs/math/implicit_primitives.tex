@@ -216,21 +216,69 @@ Given,
 \end{align}
 
 \begin{align}
-  \nabla A  &= \left( 2u, ?, ? \right)
+  \nabla A ^\top  &= \left( 2 u, 2 \bm\alpha v, 2 w \right) =&=&  \left( u, \bm\alpha v, w \right) \cdot 2
   \\
-  \nabla B  &= \left( 2u, ?, ? \right)
+  \nabla B ^\top  &= \left( 2 u, 2 \bm\beta v, 0 \right) =&=& \left( u, \bm\beta v, 0 \right) \cdot 2
 \end{align}
 
-The gradient should be:
+Interestingly,
 \begin{align}
-  \frac{\partial f}{\partial u}
-    &= 2u w^3 - 6u A^2 ???,
-  \\[4pt]
-  \frac{\partial f}{\partial v}
-    &= 2\bm\beta\,v w^3 - \frac{27}{2}\,v A^2 ???,
-  \\[4pt]
-  \frac{\partial f}{\partial w}
-    &= 3 u^2 w^2 + \frac{27}{200}\,v^2 w^2 - 6 w A^2 ???.
+  A &\;=\;  \left( u, \bm\alpha v, w \right) \cdot  \left( u, v, w \right)^\top - 1
+  \\
+  B &\;=\; \left( u, \bm\beta v, 0 \right) \cdot  \left( u, v, w \right)^\top
+  \\[8pt]
+  A &\;=\;  \tfrac12 \vec{\nabla} A  ^\top \cdot  \left( u, v, w \right)^\top - 1
+  \\
+  B &\;=\; \tfrac12 \vec{\nabla} B  ^\top \cdot  \left( u, v, w \right)^\top
+  \\[8pt]
+  A &\;=\;  \tfrac12 \vec{\nabla} A  ^\top  \vec{u}
+  \\
+  B &\;=\; \tfrac12 \vec{\nabla} B  ^\top  \vec{u}
+  \\
+  \vec{u} &\;=\;  \left( u, v, w \right)^\top
+  %
+\end{align}
+
+The gradient of $f=w^3 B-A^3$, should be:
+\begin{align}
+  \vec{\nabla} f  &= 3 w^2 \left(\vec{\nabla}w\right) B + 3 w^3 \vec{\nabla} B - 3 A^2 \vec{\nabla} A
+  \\
+  & \left(\vec{\nabla}w\right) =  \left( 0, 0, 1 \right)^\top =: \vec{j}
+\end{align}
+\begin{align}
+  %
+  \vec{\nabla} f  &= 3 \left( w^2 B  \vec{j} + w^3 \vec{\nabla} B - A^2 \vec{\nabla} A \right)
+  %
+  \\
+       &= 3 \left( w^2  \left( \tfrac12 \vec{\nabla} B  ^\top   \vec{u} \right) \cdot \vec{j}
+       + \tfrac22 w^3 \vec{\nabla} B
+       - \left(
+        \tfrac12 \vec{\nabla} A  ^\top  \vec{u}
+       \right)^2 \vec{\nabla} A \right)
+  %
+  \\
+       &= \frac32 \left( w^2  \vec{\nabla B}  ^\top   \vec{u}  \cdot \vec{j}
+       +  2 w^3 \vec{\nabla} B
+       - \left(
+         \vec{\nabla} A  ^\top  \vec{u}
+       \right)^2 \vec{\nabla} A \right)
+  %
+  %
+\end{align}
+
+
+\begin{align}
+  {\partial f}/{\partial u}
+    &=
+    ,
+  \\
+  {\partial f}/{\partial v}
+    &=
+    ,
+  \\
+  {\partial f}/{\partial w}
+    &=
+    .
 \end{align}
 TBC.
 
