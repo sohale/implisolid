@@ -128,7 +128,7 @@ public:
         }
     }
     // helper
-    inline static void transforme_back_and_copy(   REAL & out0, REAL & out1, REAL & out2 , REAL invmat[12],, REAL g0, REAL g1, REAL g2,){ {
+    inline static void transforme_back_and_copy(   REAL & out0, REAL & out1, REAL & out2 , REAL invmat[12], REAL g0, REAL g1, REAL g2 ) {
         // copy_3(g0,g1,g2, this->inv_transf_matrix, (*output)[output_ctr][0], (*output)[output_ctr][1], (*output)[output_ctr][2], )
         // (*output)[output_ctr][0] = ...
         constexpr size_t // Math notation: row-then-column, starting with 1
@@ -172,10 +172,10 @@ public:
             REAL a = u * u + TF2 * v * v;
             REAL b = u * u + TF1 * v * v + w * w;
 
-            REAl g0, g1, g2;
-            g0 = 2 * pow3(w) * u - pow2(b) * u;
-            g1 = 2 * pow3(w)*TF2*v - pow2(b) * TF1 * v;
-            g2 = oiw2(w) * a - pow2(b) * w;
+            REAL g0, g1, g2;
+            g0 = 2 * p3(w) * u - p2(b) * u;
+            g1 = 2 * p3(w)*TF2*v - p2(b) * TF1 * v;
+            g2 = p2(w) * a - p2(b) * w;
 
             g0 = g0 * 3 / 2.;
             g1 = g1 * 3 / 2.;
