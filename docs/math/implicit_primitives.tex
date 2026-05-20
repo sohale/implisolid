@@ -1,0 +1,151 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{titling}
+\setlength{\droptitle}{-3cm}
+
+\title{Implicit-Function Primitives in ImpliSolid}
+%\vspace{-2cm}
+% \title{Implicit Primitives in ImpliSolid / MP5}
+\author{Sosi}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent The pre-defined implicit functions used in \texttt{ImpliSolid},
+These appear in WeDesign as primitive objects (MP5/json file-format).
+
+\noindent
+% As appear in implementations (may be mathematically wrong, but reflect the code as it is)
+They reflect the actual implementation, and may have flaws.
+As in \texttt{js\_iteration\_2/implicit\_function/}.
+
+\noindent
+% All primitives follow the F-REP sign convention:
+Sign convention: F-Rep:
+$f(\mathbf{p}) > 0$ inside the solid, $f(\mathbf{p}) < 0$ outside.
+%, $f(\mathbf{p}) = 0$ on the surface.
+
+\section{Common patterns}
+\subsection{Coordinate transform}\label{common:homogenic-transform}
+
+Often,
+before evaluation,
+% First,
+the input point $\mathbf{p} = (x,y,z)$ is mapped to local coordinates $(u,v,w)$
+via the stored inverse transformation matrix $M^{-1}$:
+\[
+  (u, v, w)^\top = M^{-1}\, (x, y, z)^\top .
+\]
+
+This is followed by evaluation of the function in local coordinates $f(u,v,w)$,
+which is directly returned.
+
+\label{common:homogenic-transform:gradient-chain-rule-output}
+\paragraph{The gradient} in world coordinates is recovered via the chain rule for the
+linear transformation $\nabla_{\mathbf{p}} f$,
+where the matrix-vector product uses the upper-left $3\times 3$ block of $M^{-1}$:
+\begin{equation}
+  \nabla_{\mathbf{p}} f
+  \;=\;
+  (M^{-1})^\top \,
+  \begin{pmatrix} \partial f/\partial u \\ \partial f/\partial v \\ \partial f/\partial w \end{pmatrix} ,
+\end{equation}
+
+\subsection{Constructor}
+Often,
+the default (identity) constructor
+assumes $M=I$, hence, $(u,v,w) = (x,y,z)$.
+% In such cases, formulas are in local coordinates, e.g. $(u,v,w)$.
+
+
+% ============================================================
+\section{Heart}
+% ============================================================
+
+\textbf{Source:}
+\texttt{js\_iteration\_2/implicit\_function/heart.hpp}
+\noindent Implemented by \cite{schauvier:800358f}
+and corrections by \cite{m.karotsieris:9af5c56}.
+
+
+\subsubsection{Implicit function}
+First, it applies the coordinate transform \ref{common:homogenic-transform}.
+Then,
+
+\begin{equation}
+  f(u,v,w)
+  \;=\;
+  u^2 w^3
+  + \frac{9}{200}\,v^2 w^3
+  - \left(u^2 + \tfrac{9}{4}\,v^2 + w^2 - 1\right)^3 .
+\end{equation}
+
+% Equivalently, the zero set (the surface) satisfies:
+\begin{equation}
+  \left(u^2 + \tfrac{9}{4}\,v^2 + w^2 - 1\right)^3
+  \;=\;
+  u^2 w^3 + \frac{9}{200}\,v^2 w^3 .
+\end{equation}
+
+This is a variant of the \textbf{Taubin (1993) heart surface}.
+The classical Taubin coefficient is $\tfrac{9}{80}$; here it is $\tfrac{9}{200}$,
+which narrows the bottom lobes of the heart.
+
+\subsubsection{Gradient}
+
+Define the auxiliary quantity
+\begin{equation}
+  A \;=\; u^2 + \tfrac{9}{4}\,v^2 + w^2 - 1 ,
+\end{equation}
+so that $A^2$ is the common factor in all three gradient components.
+
+The gradient in local coordinates $(u,v,w)$ is:
+\begin{align}
+  \frac{\partial f}{\partial u}
+    &= 2u w^3 - 6u A^2 ,
+  \\[4pt]
+  \frac{\partial f}{\partial v}
+    &= \frac{9}{100}\,v w^3 - \frac{27}{2}\,v A^2 ,
+  \\[4pt]
+  \frac{\partial f}{\partial w}
+    &= 3 u^2 w^2 + \frac{27}{200}\,v^2 w^2 - 6 w A^2 .
+\end{align}
+
+The gradient in world coordinates is recovered as in section \ref{common:homogenic-transform:gradient-chain-rule-output}.
+
+\subsubsection{Implementation notes}
+
+\begin{itemize}
+  \item Parameters \texttt{a}, \texttt{b}, \texttt{c} (radius) and
+        \texttt{x}, \texttt{y}, \texttt{z} (centre) are stored by the
+        constructor but \emph{not used} in the formula; the shape is
+        always the canonical heart, regardless of their values.
+        Only the transformation matrix $M^{-1}$ scales and positions it.
+  \item The matrix constructor hard-codes $a = 6$, $b = 2.5$, $c = 1$.
+  \item The variable $r = a^2$ is computed in the source but never
+        referenced inside the evaluation loop.
+\end{itemize}
+
+
+
+
+\begin{thebibliography}{9}
+
+\bibitem{schauvier:800358f}[schauvier]
+Charles Chauvier:
+Heart implicit function and gradient.
+\texttt{s.chauvier} \texttt{800358f}.
+
+\bibitem{michael.karotsieris:9af5c56}[m.karotsieris]
+Michael Karotsieris:
+Fixes on ``heart'' formula.
+\texttt{m.karotsieris} \texttt{9af5c56}.
+
+
+\end{thebibliography}
+
+
+
+\end{document}
