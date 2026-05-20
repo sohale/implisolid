@@ -28,16 +28,18 @@ $f(\mathbf{p}) > 0$ inside the solid, $f(\mathbf{p}) < 0$ outside.
 %, $f(\mathbf{p}) = 0$ on the surface.
 
 \section{Common patterns}
-\subsection{Coordinate transform}\label{common:homogenic-transform}
+\subsection{Coordinate transform}
+%\label{common:homogenic-transform} -> equation-based referencing is preferred than section-based numbering
 
 Often,
 before evaluation,
 % First,
 the input point $\mathbf{p} = (x,y,z)$ is mapped to local coordinates $(u,v,w)$
 via the stored inverse transformation matrix $M^{-1}$:
-\[
+\begin{equation}
+\label{eq:common:homogenous-transform:pre}% equation-based referencing is preferred than section-based numbering
   (u, v, w)^\top = M^{-1}\, (x, y, z)^\top .
-\]
+\end{equation}
 
 This is followed by evaluation of the function in local coordinates $f(u,v,w)$,
 which is directly returned.
@@ -59,7 +61,7 @@ the default (identity) constructor
 assumes $M=I$, hence, $(u,v,w) = (x,y,z)$.
 % In such cases, formulas are in local coordinates, e.g. $(u,v,w)$.
 
-
+\pagebreak
 % ============================================================
 \section{Heart}
 % ============================================================
@@ -71,9 +73,9 @@ and corrections by \cite{m.karotsieris:9af5c56}.
 
 
 \subsubsection{Implicit function}
-First, it applies the coordinate transform \ref{common:homogenic-transform}.
-Then,
-
+First, it applies the coordinate transform
+of Eq. \ref{eq:common:homogenous-transform:pre}.
+Then, in local frame (local coordinates),
 \begin{equation}
   f(u,v,w)
   \;=\;
