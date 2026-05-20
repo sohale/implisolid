@@ -177,19 +177,24 @@ The gradient in local coordinates $(u,v,w)$ is implemented as:
     &= 3 u^2 w^2 + \frac{27}{200}\,v^2 w^2 - 6 w A^2 .
 \end{align}
 
+\noindent
+Last step:
 The gradient in world coordinates is recovered as in section \ref{common:homogenic-transform:gradient-chain-rule-output}.
 
 \subsubsection{Implementation notes}
 
 \begin{itemize}
-  \item Parameters \texttt{a}, \texttt{b}, \texttt{c} (radius) and
-        \texttt{x}, \texttt{y}, \texttt{z} (centre) are stored by the
-        constructor but \emph{not used} in the formula; the shape is
+  % fixed:
+  % \item Parameters \texttt{a}, \texttt{b}, \texttt{c} (radius) and
+  %      \texttt{x}, \texttt{y}, \texttt{z} (centre) are stored by the
+  %      constructor but \emph{not used} in the formula;
+  \item the shape is
         always the canonical heart, regardless of their values.
         Only the transformation matrix $M^{-1}$ scales and positions it.
-  \item The matrix constructor hard-codes $a = 6$, $b = 2.5$, $c = 1$.
-  \item The variable $r = a^2$ is computed in the source but never
-        referenced inside the evaluation loop.
+  % \item The matrix constructor hard-codes $a = 6$, $b = 2.5$, $c = 1$.
+  \item The bounding-box is (incorrect and is) based on hard-coded $a = 6$, $b = 2.5$, $c = 1$.
+  % fixed:
+  % \item The variable $r = a^2$ is computed in the source but never referenced inside the evaluation loop.
 \end{itemize}
 
 
