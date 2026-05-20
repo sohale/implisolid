@@ -198,8 +198,24 @@ The gradient in world coordinates is recovered as in section \ref{common:homogen
 \end{itemize}
 
 
-\subsubsection{Correcting the gradient}
-The gradient in local coordinates $(u,v,w)$ should be: TBC.
+\subsubsection{Study: Correcting re-deriving the gradient}
+Let's re-derive the gradient in local coordinates $(u,v,w)$:
+% should be: TBC.
+Given,
+\begin{align}
+  f(u,v,w)
+  \;&=\;
+   w^3 B  - A ^3 ,
+  \\
+  A &\;=\; u^2 + \bm\alpha\,v^2 + w^2 - 1
+  \\
+  B &\;=\; u^2 + \bm\beta\,v^2
+  \\
+  \bm\alpha \;=\; \tfrac{9}{4} ,
+  \bm\beta &\;=\; \tfrac{9}{200} ,
+\end{align}
+
+The gradient should be:
 \begin{align}
   \frac{\partial f}{\partial u}
     &= 2u w^3 - 6u A^2 ???,
