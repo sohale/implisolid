@@ -87,13 +87,13 @@ public:
       }
 
 
-    virtual void eval_implicit(const vectorized_vect& x, vectorized_scalar* f_output) const {
+    virtual void eval_implicit(const vectorized_vect& X, vectorized_scalar* f_output) const {
 
 
         my_assert(this->integrity_invariant(), "");
-        vectorized_vect x_copy = x;
+        vectorized_vect X_copy = X;
 
-        matrix_vector_product(this->inv_transf_matrix, x_copy);
+        matrix_vector_product(this->inv_transf_matrix, X_copy);
         // const REAL r = this->a*this->a;
         int output_ctr=0;
 
@@ -101,8 +101,8 @@ public:
         // REAL cy = this->cy;
         // REAL cz = this->cz;
 
-        auto i = x_copy.begin();
-        auto e = x_copy.end();
+        auto i = X_copy.begin();
+        auto e = X_copy.end();
         for(; i<e; i++, output_ctr++){
           REAL i1 = (*i)[0];
           REAL i2 = (*i)[1];
@@ -118,10 +118,10 @@ public:
 
         }
     }
-    virtual void eval_gradient(const vectorized_vect& x, vectorized_vect* output) const {
+    virtual void eval_gradient(const vectorized_vect& X, vectorized_vect* output) const {
 
-        vectorized_vect x_copy = x;
-        matrix_vector_product(this->inv_transf_matrix, x_copy);
+        vectorized_vect X_copy = X;
+        matrix_vector_product(this->inv_transf_matrix, X_copy);
 
         // const REAL r = this->a*this->a;
 
@@ -130,8 +130,8 @@ public:
         // REAL cz = this->cz;
 
         int output_ctr=0;
-        auto i = x_copy.begin();
-        auto e = x_copy.end();
+        auto i = X_copy.begin();
+        auto e = X_copy.end();
         for(; i<e; i++, output_ctr++){
 
             REAL g0;
