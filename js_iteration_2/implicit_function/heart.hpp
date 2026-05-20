@@ -25,6 +25,34 @@ protected:
     inline static REAL p3(REAL x) { return x * x * x; }
     // inline static REAL p4(REAL x) { return x * x * x * x; }
 
+    inline static void populate_identity_matrix(REAL m[12]) {
+        for (int i=0; i<12; i++){
+          if(i==0 || i==5 || i==10){
+            m[i] = 1;
+          }
+          else{
+            m[i] = 0;
+          }
+        }
+    }
+
+    void init_the_transform_matrix_as_identity() {
+      this->transf_matrix = new REAL [12];
+      this->inv_transf_matrix = new REAL [12];
+      populate_identity_matrix(this->transf_matrix);
+      populate_identity_matrix(this->inv_transf_matrix);
+    }
+
+    void init_the_transform_matrix_from_given(REAL matrix[12]) {
+        this->transf_matrix = new REAL [12];
+        this->inv_transf_matrix = new REAL [12];
+
+        for (int i=0; i<12; i++){
+            transf_matrix[i] = matrix[i];
+        }
+
+        invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+    }
 public:
     // Was never used
     heart(int IGNORE_THIS_CONSTRUCTOR /*REAL radius_x, REAL radius_y, REAL radius_z*/){
@@ -35,18 +63,8 @@ public:
         // this->cy = 0.;
         // this->cz = 0.;
 
-        this->transf_matrix = new REAL [12];
-        this->inv_transf_matrix = new REAL [12];
-        for (int i=0; i<12; i++){
-          if(i==0 || i==5 || i==10){
-            this->transf_matrix[i] = 1;
-            this->inv_transf_matrix[i] = 1;
-          }
-          else{
-            this->transf_matrix[i] = 0;
-            this->inv_transf_matrix[i] = 0;
-          }
-        }
+        this->init_the_transform_matrix_as_identity();
+
         my_assert(this->integrity_invariant(), "");
     }
 
@@ -59,14 +77,7 @@ public:
         // this->cy = 0.;
         // this->cz = 0.;
 
-        this->transf_matrix = new REAL [12];
-        this->inv_transf_matrix = new REAL [12];
-
-        for (int i=0; i<12; i++){
-            transf_matrix[i] = matrix[i];
-        }
-
-        invert_matrix(this->transf_matrix, this->inv_transf_matrix);
+        this->init_the_transform_matrix_from_given(matrix);
         my_assert(this->integrity_invariant(), "");
     }
 
@@ -79,18 +90,7 @@ public:
         // this->cy = center_y;
         // this->cz = center_z;
 
-        this->transf_matrix = new REAL [12];
-        this->inv_transf_matrix = new REAL [12];
-        for (int i=0; i<12; i++){
-          if(i==0 || i==5 || i==10){
-            this->transf_matrix[i] = 1;
-            this->inv_transf_matrix[i] = 1;
-          }
-          else{
-            this->transf_matrix[i] = 0;
-            this->inv_transf_matrix[i] = 0;
-          }
-        }
+        init_the_transform_matrix_as_identity();
         my_assert(this->integrity_invariant(), "");
       }
 
