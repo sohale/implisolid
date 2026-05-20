@@ -132,7 +132,7 @@ cat > "$OUT_HEMI" <<JSEOF
 //   genDiskGeom     @binding(0)=params  @binding(1)=vertices  @binding(3)=normals
 //   genCapFaces     @binding(0)=params  @binding(2)=faces
 //   genDiskFaces    @binding(0)=params  @binding(2)=faces  @binding(4)=sharpEdges  @binding(5)=sharpCorners
-//   getOutputMetadata  @binding(0)=params  @binding(6)=outputMetadata
+//   getOutputMetadata  @binding(0)=params  @binding(6)=resultsMetadata
 //
 // ShapeSharpFeatures std430 layout (flat u32 array at binding 6):
 //   [0]=numVerts  [1]=numFaces  [2]=numNormals  [3]=shape.numSharpEdges  [4]=shape.numSharpCorners
