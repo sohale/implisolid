@@ -56,6 +56,7 @@ protected:
         invert_matrix(this->transf_matrix, this->inv_transf_matrix);
     }
 public:
+    /*
     // Was never used
     heart(int IGNORE_THIS_CONSTRUCTOR /*REAL radius_x, REAL radius_y, REAL radius_z*/){
         // this->a = radius_x;
@@ -69,8 +70,9 @@ public:
 
         my_assert(this->integrity_invariant(), "");
     }
+    */
 
-    heart(REAL matrix[12]) {
+    heart(REAL matrix[12], REAL alpha, REAL beta, REAL P3) {
         // this->a = 6.;
         // this->b = 2.5;
         // this->c = 1.;
@@ -79,12 +81,19 @@ public:
         // this->cy = 0.;
         // this->cz = 0.;
 
+        this->TF1 = alpha;
+        this->TF2 = beta;
+        this->TP3 = P3;
+
         this->init_the_transform_matrix_from_given(matrix);
         my_assert(this->integrity_invariant(), "");
     }
 
+    /*
     // Was never used
-    heart(/*REAL radius_x, REAL radius_y, REAL radius_z,*/ /*REAL center_x, REAL center_y, REAL center_z*/){
+    heart(
+      // REAL radius_x, REAL radius_y, REAL radius_z,*/ /*REAL center_x, REAL center_y, REAL center_z
+      ){
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
@@ -95,6 +104,7 @@ public:
         init_the_transform_matrix_as_identity();
         my_assert(this->integrity_invariant(), "");
       }
+      */
 
 
     virtual void eval_implicit(const vectorized_vect& X, vectorized_scalar* f_output) const {
@@ -119,10 +129,9 @@ public:
           REAL w = (*i)[2];
 
           REAL A = p2(u) + TF1 * p2(v) + p2(w) - 1.;
-          REAL f = -(
-            std::pow(A, TP3)
-            - p2(u) * p3(w)
-            - TF2 * p2(v) * p3(w)
+          REAL f = (
+            - std::pow(A, TP3)
+            + ( p2(u)  + TF2 * p2(v) ) * p3(w)
           );
 
           (*f_output)[output_ctr] = f;
@@ -171,13 +180,18 @@ public:
             REAL g2 = -6. * w * A + 3. * p2(u) * p2(w) + TF1c * p2(v) * p2(w);
             */
 
+            // todo: swap nameing of a, b
             REAL a = u * u + TF2 * v * v;
             REAL b = u * u + TF1 * v * v + w * w;
 
             REAL g0, g1, g2;
-            g0 = 2 * p3(w) * u - p2(b) * u;
-            g1 = 2 * p3(w)*TF2*v - p2(b) * TF1 * v;
-            g2 = p2(w) * a - p2(b) * w;
+            // REAL b2 = p2(b);
+            // REAL b2 = std::pow(b,2);
+            // REAL b2 = std::pow(b, TP3 - 1) *3. / 3.;
+            REAL b2 = std::pow(b, TP3 - 1) * TP3 / 3.;
+            g0 = 2 * p3(w) * u - b2 * u;
+            g1 = 2 * p3(w)*TF2*v - b2 * TF1 * v;
+            g2 = p2(w) * a - b2 * w;
 
             g0 = g0 * 3 / 2.;
             g1 = g1 * 3 / 2.;
