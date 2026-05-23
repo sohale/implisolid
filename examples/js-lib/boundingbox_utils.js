@@ -14,7 +14,10 @@ const getBoundingBoxForSingleShape = function (matrix, ignore_root_matrix) {
 
 function dictIsSingleShape(dict) {
     var type = dict.type;
+    /*
     if (type === "Union" || type === "Difference" || type === "Intersection" || type === "root") {
+    */
+    if(type in ShapeTree.types.nonSingleShapes) {// criterion for non-single shape
         return false;
     }
     return true;
