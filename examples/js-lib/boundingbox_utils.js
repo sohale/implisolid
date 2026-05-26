@@ -85,7 +85,7 @@ getBoundingBoxForGroup = function (shape_list) {
     getBoundingBoxForTree = getBoundingBoxForDict;
 
     //assert(shape_list[0]);
-    assert(!!shape_list.push, "shape_list has to be of type list ", shape_list);
+    assert(!!shape_list.push, ["shape_list has to be of type list ", shape_list]);
     var result_bbox = { min: {x: Infinity, y: Infinity, z: Infinity}, max: {x: -Infinity, y: -Infinity, z: -Infinity}};
     var n = shape_list.length;
 

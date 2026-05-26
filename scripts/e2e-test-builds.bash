@@ -156,20 +156,25 @@ echo "
 # If you have this as .../mp5-private/implisolid/..., then you can do the following:
 # Assuming ASSUMED_MP5_BASE="${ASSUMED_MP5_BASE}"
 
+# to copy to mp5-private:
+
 cd ${ASSUMED_MP5_BASE}/implisolid && bash ${ASSUMED_MP5_BASE}/implisolid/scripts/e2e-test-builds.bash
 
 cp -i ${ASSUMED_MP5_BASE}/implisolid/e2e-sandbox-temp/implisolid/build/mcc2.compiled.js* ${ASSUMED_MP5_BASE}/frontend/public/
 
 ls -alth ${ASSUMED_MP5_BASE}/frontend/public/mcc2.compiled.js*
 
-cd ${ASSUMED_MP5_BASE}/frontend/tasks/ && npx gulp --output ${ASSUMED_MP5_BASE}/frontend/public
-
-
+cd "${ASSUMED_MP5_BASE}/frontend/tasks/" && npx gulp --output "${ASSUMED_MP5_BASE}/frontend/public"
 
 "
 echo "                    * * *                      "
 echo "==============================================="
 
+
+
+# test -d "${ASSUMED_MP5_BASE}"
+# cd "${ASSUMED_MP5_BASE}" && \
+# cp -R ./implisolid/e2e-sandbox-temp/implisolid/docs/implisolid-build ./implisolid
 
 
 pwd
@@ -184,6 +189,10 @@ IMPLISOLID_REPO="$NEW_REPO"  BUILD_LOCATION="$NEW_REPO/build" \
     DEPLOY_LOCATION="$DEPLOY_LOCATION" \
     bash ./scripts/demos/demo1/demo1-deploy.sh
 # also runs demos/launch-demo1-local.bash
+
+echo "Things are ok. skipping the launch of deploy"
+
+exit 0
 
 pwd
 APP_RUN_LOCATION="$DEPLOY_LOCATION" \

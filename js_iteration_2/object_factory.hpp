@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <Eigen/Core>
 using Eigen::Dynamic;
 
@@ -197,7 +198,26 @@ implicit_function*  object_factory(pt::ptree shapeparams_dict, bool ignore_root_
             copy_eye(matrix12);
         }
 
-        object = new implicit_functions::heart(matrix12);
+        /*
+        if( shapeparams_dict.) {
+        }
+        */
+
+        boost::optional<REAL> params_alpha = shapeparams_dict.get_optional<REAL>("params.alpha");
+        boost::optional<REAL> params_beta = shapeparams_dict.get_optional<REAL>("params.beta");
+        boost::optional<size_t> P3 = shapeparams_dict.get_optional<size_t>("params.P3");
+        // std::cout << shapeparams_dict.
+
+        if (params_alpha.has_value() && params_beta.has_value() && P3.has_value()) {
+            struct _{REAL alpha; REAL beta; size_t P3;};
+            _ params = {params_alpha.value(), params_beta.value(), P3.value()};
+            std::clog << "heart params: " << params.alpha << ", " << params.beta << ", " << params.P3 << std::endl;
+            object = new implicit_functions::heart(matrix12, params.alpha, params.beta, params.P3);
+        } else {
+            std::clog << "heart: no-params: default constructor" << std::endl;
+            object = new implicit_functions::heart(matrix12);
+        }
+        // There you have it! That was all needed!
         register_new_object(object);
 
     }else if(name == "itorus" ){

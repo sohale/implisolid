@@ -51,7 +51,14 @@ class Mp5builder {
 
     sphere() {
       this.cursor.push(this.primitives.sphere(1.0));
+      /*
       checkMP5Object(this.mp5);
+      */
+        IntegrityIssuesAccumulator.fine().concat(
+            checkMP5Object(this.mp5)
+        )
+            .react(INTEGRITY_REACTIONS._EXPECT_LIKE_BEHAVIOUR);
+
       return this;
     }
 }

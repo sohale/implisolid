@@ -58,7 +58,8 @@ protected:
 public:
     /*
     // Was never used
-    heart(int IGNORE_THIS_CONSTRUCTOR /*REAL radius_x, REAL radius_y, REAL radius_z*/){
+    IGNORE_THIS_CONSTRUCTOR:
+    heart(REAL radius_x, REAL radius_y, REAL radius_z  ){
         // this->a = radius_x;
         // this->b = radius_y;
         // this->c = radius_z;
@@ -72,7 +73,12 @@ public:
     }
     */
 
-    heart(REAL matrix[12], REAL alpha, REAL beta, REAL P3) {
+    heart(REAL matrix[12]) {
+        this->init_the_transform_matrix_from_given(matrix);
+        my_assert(this->integrity_invariant(), "");
+    }
+
+    heart(REAL matrix[12], REAL alpha, REAL beta, size_t P3) {
         // this->a = 6.;
         // this->b = 2.5;
         // this->c = 1.;
@@ -207,6 +213,7 @@ public:
 
         }
     }
+    // todo: now communiate... use this for a new purpose : (report) parameter combinations... (that work or not)
     bool integrity_invariant() const {
       /*
       if(this->a < MIN_PRINTABLE_LENGTH || this->b < MIN_PRINTABLE_LENGTH || this->c < MIN_PRINTABLE_LENGTH)

@@ -10,6 +10,16 @@ See:
 */
 // move to a different file
 function checkMP5Object(mp5Obj) {
+    const validity = IntegrityIssuesAccumulator.fine();
+    if (!(mp5Obj.root && mp5Obj.root.children)) {
+        validity.add(mp5Obj.root && mp5Obj.root.children, 'no .root.children', IntegrityIssuesAccumulator.HIGH_SEVERITY);
+    }
+    validity.react(INTEGRITY_REACTIONS.THROW_UP);
+    // any reaction
+    return validity;
+
+    /*
   if (!(mp5Obj.root && mp5Obj.root.children)) throw new Error('no .root.children');
   return;
+    */
 }
