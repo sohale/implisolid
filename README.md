@@ -3,7 +3,8 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a leading Geometric Shape Modelling library ready to use as a a fully functional
+**ImpliSolid** is a leading Geometric **implicit-native**(( Shape Modelling library.
+Ready to use as a a fully functional
 solid shape modelling engine
 for 3D printing Direct Slicing,
 visualisation,
