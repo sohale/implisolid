@@ -85,7 +85,10 @@ simultanously.
 
 These two are fulfilled while achieved using relatively lower resolution meshes: "adaptive meshing".
 
-* Performance:
+## Computational Performance:
+Deliberately designed to enable SIMD operations,
+achiving computing performance on CPU that can compete with GPU.
+Measured speedup from systolic/vectorised/SIMD/cache-contiguous: as 200x-300x.
 It uses "vectorised" numerical calulations (loop tiling, loop blocking for cache optimisation) to achieve higher speed by utilising Instruction Pipelining and L1/L2 caches in modern CPUs.
 This enables it to be useful on consumer and home computers.
 <!-- This enables it to be useful on consumer and home computers on browser without GPU.-->
