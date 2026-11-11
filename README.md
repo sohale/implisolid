@@ -3,7 +3,14 @@ ImpliSolid
 
 [![Join the chat at https://gitter.im/implisolid/Lobby](https://badges.gitter.im/implisolid/Lobby.svg)](https://gitter.im/implisolid/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**ImpliSolid** is a leading Geometric Shape Modelling library suitable for use as the solid modelling engine for 3D printing and other engineering uses, using *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*).
+**ImpliSolid** is a leading Geometric Shape Modelling library ready to use as a a fully functional
+solid shape modelling engine
+for 3D printing Direct Slicing,
+visualisation,
+manifacturing,
+adaptive mesh generation (FEMM),
+and other engineering uses,
+using *[Implicit Surfaces](https://en.wikipedia.org/wiki/Implicit_surface)* modelling (aka *F-REP*) natively.
 
 Up to my knowledge as of 2025, it is the only open-source mesh generator supporting implicit surfaces with **sharp edges**.
 
